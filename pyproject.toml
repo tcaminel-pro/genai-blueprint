@@ -1,0 +1,58 @@
+[tool.poetry]
+name = "genai-training"
+version = "0.1.0"
+description = ""
+authors = ["thierry-caminel-atos <thierry.caminel@eviden.com>"]
+readme = "README.md"
+#packages = [{include = "genai-training"}]
+
+[tool.poetry.urls]
+Homepage = "https://github.com/tcaminel-pro/genai-training"
+Repository = "https://github.com/tcaminel-pro/genai-training"
+
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.12"
+pydantic = "^2.7.0"
+langchain = "^0.1.16"
+langchainhub = "^0.1.15"
+langchain-community = "^0.0.32"
+langchain-experimental = "^0.0.57"
+langchain-groq = "^0.0.1"
+langchain-openai = "^0.1.3"
+lunary = "^1.0.1"
+devtools = "^0.12.2"
+loguru = "^0.7.2"
+chromadb = "^0.4.24"
+fastapi = "^0.110.1"
+uvicorn = "^0.27.1"
+httpx = "^0.27.0"
+tomli = "^2.0.1"
+typer = "^0.9.0"
+streamlit = "^1.32.1"
+sqlalchemy = "^2.0.29"
+
+
+[tool.poetry.group.rag.dependencies]
+#sentence-transformers = "^2.5.1" #add 5G to the image !
+
+
+[tool.poetry.group.extra.dependencies]
+# pymupdf = "^1.23.26"
+# unstructured = { extras = ["all-docs"], version = "^0.12.5" }
+# pdf2image = "^1.17.0"
+# pdfminer-six = "^20231228"
+# pillow-heif = "^0.15.0"
+# opencv-python = "^4.9.0.80"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+ipykernel = "^6.27.1"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.1.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

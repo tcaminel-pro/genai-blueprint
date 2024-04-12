@@ -1,0 +1,59 @@
+Maintenance Procedure for Power Plant Generator
+
+Generator: XYZ-123
+
+
+1. Task: Preparations for Maintenance
+   - Prerequisite Task: Notify the power plant supervisor for scheduled maintenance.
+   - Required Tools: Safety gloves, safety goggles, flashlight, walkie-talkie.
+   - Spare Parts: None.
+
+2. Task: Power Shutdown
+   - Prerequisite Task: Ensure all electrical loads are transferred to an alternative power source.
+   - Required Tools: None.
+   - Spare Parts: None.
+
+3. Task: Cooling System Inspection
+   - Prerequisite Task: Power Shutdown (Task 2) completed.
+   - Required Tools: Pressure gauge, temperature gauge, wrench set.
+   - Spare Parts: None.
+
+4. Task: Fuel System Inspection
+   - Prerequisite Task: Power Shutdown (Task 2) completed.
+   - Required Tools: Fuel pressure gauge, fuel filter wrench, fuel sampling kit.
+   - Spare Parts: Fuel filters (2), fuel injector nozzles (if necessary).
+
+5. Task: Lubrication System Inspection
+   - Prerequisite Task: Power Shutdown (Task 2) completed.
+   - Required Tools: Oil pressure gauge, oil filter wrench, oil sampling kit.
+   - Spare Parts: Oil filters (2), lubricating oil (if necessary).
+
+6. Task: Electrical Component Inspection
+   - Prerequisite Task: Power Shutdown (Task 2) completed.
+   - Required Tools: Multimeter, insulation resistance tester, cable connectors.
+   - Spare Parts: None.
+
+7. Task: Generator Rotor and Stator Inspection
+   - Prerequisite Task: Power Shutdown (Task 2) completed.
+   - Required Tools: Megger test set, vibration analyzer, cleaning brushes.
+   - Spare Parts: None.
+
+8. Task: Belt and Pulley Inspection
+   - Prerequisite Task: Power Shutdown (Task 2) completed.
+   - Required Tools: Belt tension gauge, pulley alignment tool, belt dressing spray.
+   - Spare Parts: Belts (if necessary).
+
+9. Task: Exhaust System Inspection
+   - Prerequisite Task: Power Shutdown (Task 2) completed.
+   - Required Tools: Exhaust gas analyzer, pipe wrench, flue gas temperature probe.
+   - Spare Parts: Exhaust gaskets (if necessary).
+
+10. Task: Final Checks and Cleanup
+    - Prerequisite Task: Completion of all inspections (Tasks 3-9).
+    - Required Tools: Cleaning rags, lubricating oil, torque wrench.
+    - Spare Parts: None.
+
+11. Task: Power Restoration
+    - Prerequisite Task: Final Checks and Cleanup (Task 10) completed.
+    - Required Tools: None.
+    - Spare Parts: None.

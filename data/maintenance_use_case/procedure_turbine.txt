@@ -1,0 +1,61 @@
+Maintenance Procedure for Power Plant Steam Turbine
+
+Turbine: ABC-456
+
+
+1. Task: Preparations for Maintenance
+   - Prerequisite Task: Notify the power plant supervisor for scheduled maintenance.
+   - Required Tools: Safety gloves, safety goggles, flashlight, walkie-talkie.
+   - Spare Parts: None.
+
+2. Task: Turbine Shutdown
+   - Prerequisite Task: Ensure all steam supply valves are closed and the turbine is not in operation.
+   - Required Tools: None.
+   - Spare Parts: None.
+
+3. Task: Rotor Inspection
+   - Prerequisite Task: Turbine Shutdown (Task 2) completed.
+   - Required Tools: Borescope, vibration analyzer, cleaning brushes.
+   - Spare Parts: None.
+
+4. Task: Blade Inspection
+   - Prerequisite Task: Turbine Shutdown (Task 2) completed.
+   - Required Tools: Blade inspection mirror, calipers, ultrasonic flaw detector.
+   - Spare Parts: None.
+
+5. Task: Diaphragm Inspection
+   - Prerequisite Task: Turbine Shutdown (Task 2) completed.
+   - Required Tools: Diaphragm inspection probe, dye penetrant kit, thickness gauge.
+   - Spare Parts: Diaphragm (in necessary).
+
+6. Task: Bearing Inspection
+   - Prerequisite Task: Turbine Shutdown (Task 2) completed.
+   - Required Tools: Bearing puller, micrometer, bearing lubrication grease.
+   - Spare Parts: Bearings (if necessary).
+
+7. Task: Steam Valve Inspection
+   - Prerequisite Task: Turbine Shutdown (Task 2) completed.
+   - Required Tools: Valve position indicator, valve packing wrench, steam trap tester.
+   - Spare Parts: Valve packing (if necessary).
+
+8. Task: Governor System Inspection
+   - Prerequisite Task: Turbine Shutdown (Task 2) completed.
+   - Required Tools: Governor calibration tool, speed sensor tester, control system software.
+   - Spare Parts: None.
+
+9. Task: Condenser Inspection
+   - Prerequisite Task: Turbine Shutdown (Task 2) completed.
+   - Required Tools: Condenser tube cleaner, condenser vacuum gauge, tube bundle brush.
+   - Spare Parts: Condenser tubes (if necessary).
+
+10. Task: Final Checks and Cleanup
+    - Prerequisite Task: Completion of all inspections (Tasks 3-9).
+    - Required Tools: Cleaning rags, lubricating oil, torque wrench.
+    - Spare Parts: None.
+
+11. Task: Turbine Startup
+    - Prerequisite Task: Final Checks and Cleanup (Task 10) completed.
+    - Required Tools: None.
+    - Spare Parts: None.
+
+Note: This is a fictional maintenance procedure and should not be used in real-world scenarios. Always consult the manufacturer's guidelines and follow the appropriate maintenance procedures for actual power plant steam turbines.
