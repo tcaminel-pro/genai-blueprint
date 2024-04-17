@@ -37,83 +37,11 @@ from langchain_community.callbacks import StreamlitCallbackHandler
 
 from python.st_utils.clear_result import with_clear_container
 from python.core.maintenance_agents import MaintenanceAgent, PROCEDURES
-from python.GenAI_Training import EVIDEN_LOGO, app_conf, config_sidebar
+from python.GenAI_Training import LOGO, app_conf, config_sidebar
 from python.core.dummy_data import DATA_PATH, dummy_database
 from python.core.coder_agents import DiagramGeneratorTool
 
 # fmt:off
-SAMPLE_PROMPTS = {
-  #  "Display a diagram" : "Display a diagram",
-
-    "Task prerequisite and required tools": 
-        "What are the required tools and prerequisite for task 'Diaphragm Inspection' of procedure 'Power Plant Steam Turbine'?",
-    "Required tools availability and localization":  """
-            Print the required tools for task 'Diaphragm Inspection' in procedure 'Power Plant Steam Turbine', 
-            check if they are available and print their localization""",
-    "Tasks assigned to an employee":
-            "print the tasks assigned to employee 'John Smith' next week",
-    "Print assigned tasks to an employee, spares needed, required tools, their availability and localization": """
-        Follow these steps: 
-        -  print the tasks assigned to employee John Smith next week. 
-        -  print the tools required for these tasks
-        -  print the spare parts required for these tasks. 
-        -  for each of these spare parts, print their availability and localization.
-        Print different sections for each step.""",
-    "Values from the sensor 'signal_1' last 2 weeks":
-        "Values from the sensor 'signal_1' last week ",
-}
-# fmt:on
-
-
-from streamlit.external.langchain.streamlit_callback_handler import LLMThought
-
-
-original_on_tool_end = LLMThought.on_tool_end
-original_on_llm_start = LLMThought.on_llm_start
-
-
-def new_on_tool_end(
-    self,
-    output: str,
-    color: Optional[str] = None,
-    observation_prefix: Optional[str] = None,
-    llm_prefix: Optional[str] = None,
-    **kwargs: Any,
-) -> None:
-    original_on_tool_end(self, output, color, observation_prefix, llm_prefix, **kwargs)
-    debug(kwargs, observation_prefix, llm_prefix)
-    self._container.write("TOOL END")
-
-
-def new_on_llm_start(self, serialized: Dict[str, Any], prompts: List[str]) -> None:
-    original_on_llm_start(self, serialized, prompts)
-    debug(serialized, prompts)
-    self._container.write(f"LLM_START: {';'.join(prompts)}")
-
-
-# LLMThought.on_tool_end = new_on_tool_end
-# LLMThought.on_llm_start = new_on_llm_start
-
-# fmt=off
-
-
-if not st.session_state.get("authenticated"):
-    st.write("not authenticated")
-    st.stop()
-
-config_sidebar()
-
-
-def agent():
-    assert app_conf().embeddings_model
-
-    agent = MaintenanceAgent(
-        default_llm=app_conf().chat_gpt,
-        embeddings_model=app_conf().embeddings_model,  # type: ignore
-    )
-    agent.create_tools()
-    # agent.add_tools([DiagramGeneratorTool()])
-    return agent
 
 
 ################################
@@ -122,19 +50,12 @@ def agent():
 
 title_col1, title_col2 = st.columns([2, 1])
 
-title_col1.title("Maintenance Operation Assistant")
-title_col2.image(EVIDEN_LOGO, width=250)
+title_col1.title("Practicum A")
+title_col2.image(LOGO, width=250)
 title_col1.markdown(
     f"""
-    ## LLM-Augmented Autonomous Agents (LAAA) Demo for Maintenance Operation.
-    
-
-    The goal is to support  plant turbine maintenance operations. 
-    Currently, we gather information from:
-    - Maintenance procedures  (text document)
-    - Planning System   (SQL database)
-    - ERP and PLM (API)
-""",
+    ##  Your first exercise with a Web App
+    """,
     unsafe_allow_html=True,
 )
 

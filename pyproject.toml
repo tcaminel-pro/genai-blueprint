@@ -31,6 +31,10 @@ tomli = "^2.0.1"
 typer = "^0.9.0"
 streamlit = "^1.32.1"
 sqlalchemy = "^2.0.29"
+grandalf = "^0.8"
+langchain-chroma = "^0.1.0"
+bs4 = "^0.0.2"
+sentence-transformers = "^2.6.1"
 
 
 [tool.poetry.group.rag.dependencies]

@@ -1,0 +1,21 @@
+
+# Configuration file for the project
+#
+[llm]
+default_model = "Llama2_70B_DeepInfra"
+#model = "Mixtral_7x8B_DeepInfra"
+#model = "Llama2_70B_Groq"
+cache = "memory"
+lunary = false
+
+
+[embeddings]
+cache = "/home/tcl/hf_models"
+#default_model = "OpenAI"
+#default_model = "dangvantuan/sentence-camembert-base"
+default_model = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+vector_store_path = "/home/tcl/chromadb"
+
+[documents]
+base = "${HOME}/prj/genai-training/use_case_data"
+
