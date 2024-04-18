@@ -6,11 +6,10 @@ They can  be either Cloud based or for local run with CPU
 
 # See also https://huggingface.co/spaces/mteb/leaderboard
 
-from functools import cache, lru_cache
-from pathlib import Path
+from functools import cache
 
 from langchain.embeddings.base import Embeddings
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 
 from python.config import get_config
 

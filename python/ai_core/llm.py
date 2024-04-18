@@ -20,13 +20,20 @@ from python.config import get_config
 
 MAX_TOKEN = 2048
 
+KNOWN_LLM = {
+    "gpt-3.5-turbo",
+    "Llama2_70B_DeepInfra",
+    "Llama2_70B_Groq",
+    "Mixtral_7x8B_DeepInfra",
+    "Mixtral_7x8B_Groq",
+}
 
-@cache
+
 def get_llm(model: str | None = None, temperature=0) -> BaseLanguageModel:
     if model is None:
         model = get_config("llm", "default_model")
 
-    if model in ["gpt-3.5-turbo_OpenAI", "gpt-3.5"]:
+    if model in ["gpt-3.5-turbo_OpenAI", "gpt-3.5", "gpt-3.5-turbo"]:
         result = ChatOpenAI(
             model="gpt-3.5-turbo-0125",
             temperature=temperature,
@@ -76,14 +83,14 @@ def get_llm(model: str | None = None, temperature=0) -> BaseLanguageModel:
     elif model.startswith("Mixtral"):
         result = Mixtral(llm=result)  # type: ignore
 
-    set_cache()
     return result
 
 
-def set_cache():
-    # Set LangChain prompt cache
-    cache = get_config("llm", "cache")
-    if cache == "memory":
+@cache
+def set_cache(cache: str | None = None):
+    if not cache:
+        cache = get_config("llm", "cache")
+    elif cache == "memory":
         set_llm_cache(InMemoryCache())
     elif cache == "sqlite":
         set_llm_cache(SQLiteCache(database_path=".langchain.db"))

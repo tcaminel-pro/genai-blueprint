@@ -1,13 +1,9 @@
 
 # Configuration file for the project
 #
-[llm]
-default_model = "Llama2_70B_DeepInfra"
-#model = "Mixtral_7x8B_DeepInfra"
-#model = "Llama2_70B_Groq"
-cache = "memory"
-lunary = false
 
+[llm]
+default_model = "gpt-3.5-turbo_OpenAI"
 
 [embeddings]
 cache = "/home/tcl/hf_models"

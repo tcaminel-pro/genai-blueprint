@@ -7,9 +7,14 @@ from functools import cache
 import os
 from pathlib import Path
 import re
+from typing import Any
 import tomli
+from collections import defaultdict
 
 TOML_FILE_NAME = "app_conf.toml"
+
+
+_config = defaultdict(dict)
 
 
 @cache
@@ -29,11 +34,11 @@ def _get_conf_file(fn: str = TOML_FILE_NAME) -> dict:
 
 def get_config(group: str, key: str, default_value: str | None = None) -> str:
     """
-    Return the value of a key in the configuration file.
+    Return the value of a key, either set by 'set_config', or found in the configuration file.
     If it contains an environment variable in the form $(XXX), then replace it.
-    Raise an exeption if key not founf and if not default value is given
+    Raise an exeption if key not found and if not default value is given
     """
-    d = _get_conf_file()
+    d = merge_dicts(_get_conf_file(), _config)
 
     try:
         value = d[group][key]
@@ -44,3 +49,25 @@ def get_config(group: str, key: str, default_value: str | None = None) -> str:
             return default_value
         else:
             raise ValueError(f"no key {group}/{key} in file {TOML_FILE_NAME}")
+
+
+def set_config(group: str, key: str, value: str):
+    """ """
+    _config[group][key] = value
+
+
+def merge_dicts(a: dict, b: dict, overide=False, path=[]):
+    """Utility to merge 2 dictionnaries.
+    Raise exception if same keys if not 'overide' set
+
+    Taken from https://stackoverflow.com/a/7205107"""
+
+    for key in b:
+        if key in a:
+            if isinstance(a[key], dict) and isinstance(b[key], dict):
+                merge_dicts(a[key], b[key], overide, path + [str(key)])
+            elif a[key] != b[key] and not overide:
+                raise Exception("Conflict at " + ".".join(path + [str(key)]))
+        else:
+            a[key] = b[key]
+    return a
