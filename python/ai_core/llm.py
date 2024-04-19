@@ -1,5 +1,5 @@
 """
-LLM models factory
+LLM models factory and Runnable
 
 """
 
@@ -22,26 +22,27 @@ from lunary import LunaryCallbackHandler
 from python.config import get_config
 
 
-class LmmInfo(BaseModel):
-    name: str
-    model: str
-    alt_name: list[str] = []
-
-
-MAX_TOKEN = 2048
+MAX_TOKENS = 2048
 
 KNOWN_LLM = {
+    # Names should follow Python variables constraints - ie no '-', no space, etc
+    # Use pattern "{model name}_{version}_{inference provider or library}"
     "gpt_3_openai",
     "gpt_3_edenai",
     "llama2_70_deepinfra",
     "llama2_70_groq",
-    "Llama3_70_groq",
+    "llama3_70_groq",
     "mixtral_7x8_deepinfra",
     "mixtral_7x8_groq",
 }
 
 
-def llm_factory(model: str | None = None, temperature=0) -> BaseLanguageModel:
+def llm_factory(
+    model: str | None = None, temperature=0, max_tokens=MAX_TOKENS
+) -> BaseLanguageModel:
+    """
+    Create an LLM model
+    """
     if model is None:
         model = get_config("llm", "default_model")
 
@@ -49,6 +50,7 @@ def llm_factory(model: str | None = None, temperature=0) -> BaseLanguageModel:
         result = ChatOpenAI(
             model="gpt-3.5-turbo-0125",
             temperature=temperature,
+            max_tokens=max_tokens,
             model_kwargs={"seed": 42},  # Not sure that works
         )
 
@@ -57,7 +59,7 @@ def llm_factory(model: str | None = None, temperature=0) -> BaseLanguageModel:
             model_id="meta-llama/Llama-2-70b-chat-hf",
             model_kwargs={
                 "temperature": temperature,
-                "max_new_tokens": MAX_TOKEN,
+                "max_new_tokens": max_tokens,
                 "repetition_penalty": 1.3,
                 "stop": ["STOP_TOKEN"],
             },
@@ -68,7 +70,7 @@ def llm_factory(model: str | None = None, temperature=0) -> BaseLanguageModel:
             model_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
             model_kwargs={
                 "temperature": temperature,
-                "max_new_tokens": MAX_TOKEN,
+                "max_new_tokens": max_tokens,
                 "repetition_penalty": 1.3,
                 "stop": ["STOP_TOKEN"],
             },
@@ -78,19 +80,19 @@ def llm_factory(model: str | None = None, temperature=0) -> BaseLanguageModel:
         result = ChatGroq(
             model="lLama2-70b-4096",
             temperature=temperature,
-            max_tokens=MAX_TOKEN,
+            max_tokens=max_tokens,
         )
-    elif model == "Llama3_70_groq":
+    elif model == "llama3_70_groq":
         result = ChatGroq(
             model="lLama3-70b-8192",
             temperature=temperature,
-            max_tokens=MAX_TOKEN,
+            max_tokens=max_tokens,
         )
     elif model == "mixtral_7x8_groq":
         result = ChatGroq(
             model="Mixtral-8x7b-32768",
             temperature=temperature,
-            max_tokens=MAX_TOKEN,
+            max_tokens=max_tokens,
         )
 
     elif model == "gpt_3_edenai":
@@ -99,7 +101,7 @@ def llm_factory(model: str | None = None, temperature=0) -> BaseLanguageModel:
             provider="openai",
             model="gpt-3.5-turbo-instruct",
             temperature=temperature,
-            max_tokens=MAX_TOKEN,
+            max_tokens=max_tokens,
         )
 
     else:

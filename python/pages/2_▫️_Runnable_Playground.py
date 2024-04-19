@@ -28,5 +28,5 @@ with st.form('my_form'):
     input = st.text_area('Enter input:', runnable_desc.examples[0], placeholder='')
     submitted = st.form_submit_button('Submit')
     if submitted:
-        result = runnable_desc.runnable.invoke(input)
+        result = runnable_desc.runnable.invoke({"input":input})
         st.info(result)

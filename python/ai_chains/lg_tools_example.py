@@ -3,76 +3,75 @@
 Adapted from https://blog.langchain.dev/tool-calling-with-langchain/  
 """
 
-from langchain_core.pydantic_v1 import BaseModel, Field
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.tools import tool
-
-from python.config import get_config
-from python.ai_core.embeddings import get_embeddings
-from python.ai_core.llm import llm_factory, set_cache
-from python.ai_core.vector_store import get_vector_store
+from langchain.agents import create_tool_calling_agent, AgentExecutor
 
 
 from python.ai_core.chain_registry import register_runnable
-from python.config import get_config
-from python.ai_core.embeddings import get_embeddings
 from python.ai_core.llm import llm_getter
-from python.ai_core.vector_store import get_vector_store
 
 
-# ✅ Pydantic class
-class multiply(BaseModel):
-    """Return product of 'x' and 'y'."""
-
-    x: float = Field(..., description="First factor")
-    y: float = Field(..., description="Second factor")
+@tool
+def multiply(x: float, y: float) -> float:
+    """Multiply 'x' times 'y'."""
+    return x * y
 
 
-# ✅ LangChain tool
 @tool
 def exponentiate(x: float, y: float) -> float:
     """Raise 'x' to the 'y'."""
     return x**y
 
 
-# ✅ Function
+@tool
+def add(x: float, y: float) -> float:
+    """Add 'x' and 'y'."""
+    return x + y
 
 
-def subtract(x: float, y: float) -> float:
-    """Subtract 'x' from 'y'."""
-    return y - x
-
-
-# ✅ OpenAI-format dict
-# Could also pass in a JSON schema with "title" and "description"
-add = {
-    "name": "add",
-    "description": "Add 'x' and 'y'.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "x": {"type": "number", "description": "First number to add"},
-            "y": {"type": "number", "description": "Second number to add"},
-        },
-        "required": ["x", "y"],
-    },
-}
+tools = [multiply, exponentiate, add]
 
 
 # Whenever we invoke `llm_with_tool`, all three of these tool definitions
 # are passed to the model.
-llm_with_tools = llm_getter().bind(stop="STOP")
 
 
 from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(model="gpt-3.5-turbo-0125", temperature=0)
-llm_with_tools = llm.bind_tools([multiply, exponentiate, add, subtract])
+llm_with_tools = llm.bind_tools(tools)
 
 
 register_runnable(
     "Tool",
-    "Simple calculator",
+    "Calculator tool",
     llm_with_tools,
     examples=["what's 5 raised to the 2.743"],
 )
 
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", "you're a helpful assistant"),
+        ("human", "{input}"),
+        ("placeholder", "{agent_scratchpad}"),
+    ]
+)
+
+
+agent = create_tool_calling_agent(llm, tools, prompt)
+agent_executor = AgentExecutor(agent=agent, tools=tools)
+
+register_runnable(
+    "Agent",
+    "Calculator agent",
+    agent_executor,
+    examples=["what's 3 plus 5 raised to the 2.743. also what's 17.24 - 918.1241"],
+)
+
+
+# agent_executor.invoke(
+#     {
+#         "input": "what's 3 plus 5 raised to the 2.743. also what's 17.24 - 918.1241",
+#     }
+# )

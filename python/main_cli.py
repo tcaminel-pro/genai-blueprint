@@ -9,6 +9,7 @@ from pathlib import Path
 import importlib
 import typer
 from langchain.globals import set_debug, set_verbose
+from langchain.agents import create_tool_calling_agent, AgentExecutor
 
 
 # fmt: off
@@ -47,7 +48,10 @@ def run(name: str, input: str | None = None, verbose:bool = False, debug:bool = 
             runnable = runnable_desc.runnable.with_config(configurable={"llm": llm})
         else:
             runnable = runnable_desc.runnable
-        result = runnable.invoke(input)
+        if isinstance(runnable_desc.runnable,AgentExecutor ):
+            result = runnable.invoke({"input":input})
+        else:
+            result = runnable.invoke(input)
         print(result)
     else:
         print(f"Runnable not found: '{name}'. Should be in: {runnables_list_str}")
