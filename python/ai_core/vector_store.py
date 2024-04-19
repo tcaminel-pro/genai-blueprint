@@ -42,3 +42,7 @@ def get_vector_store(
     else:
         raise ValueError(f"Unknown vector store: {name}")
     return vector_store
+
+
+def search_one(vc: VectorStore, query: str):
+    return vc.similarity_search(query, k=1)

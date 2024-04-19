@@ -1800,19 +1800,19 @@ numpy = ">=1,<2"
 
 [[package]]
 name = "langchain-community"
-version = "0.0.32"
+version = "0.0.33"
 description = "Community contributed LangChain integrations."
 optional = false
 python-versions = "<4.0,>=3.8.1"
 files = [
-    {file = "langchain_community-0.0.32-py3-none-any.whl", hash = "sha256:406977009999952d0705de3806de2b4867e9bb8eda8ca154a59c7a8ed58da38d"},
-    {file = "langchain_community-0.0.32.tar.gz", hash = "sha256:1510217d646c8380f54e9850351f6d2a0b0dd73c501b666c6f4b40baa8160b29"},
+    {file = "langchain_community-0.0.33-py3-none-any.whl", hash = "sha256:830f0d5f4ff9638b99ca01820c26abfa4b65fa705ef89b5ce55ac9aa3a7d83af"},
+    {file = "langchain_community-0.0.33.tar.gz", hash = "sha256:bb56dbc1ef11ca09f258468e11368781adda9219e144073e30cda69496d342b2"},
 ]
 
 [package.dependencies]
 aiohttp = ">=3.8.3,<4.0.0"
 dataclasses-json = ">=0.5.7,<0.7"
-langchain-core = ">=0.1.41,<0.2.0"
+langchain-core = ">=0.1.43,<0.2.0"
 langsmith = ">=0.1.0,<0.2.0"
 numpy = ">=1,<2"
 PyYAML = ">=5.3"
@@ -1826,13 +1826,13 @@ extended-testing = ["aiosqlite (>=0.19.0,<0.20.0)", "aleph-alpha-client (>=2.15.
 
 [[package]]
 name = "langchain-core"
-version = "0.1.42"
+version = "0.1.44"
 description = "Building applications with LLMs through composability"
 optional = false
 python-versions = "<4.0,>=3.8.1"
 files = [
-    {file = "langchain_core-0.1.42-py3-none-any.whl", hash = "sha256:c5653ffa08a44f740295c157a24c0def4a753333f6a2c41f76bf431cd00be8b5"},
-    {file = "langchain_core-0.1.42.tar.gz", hash = "sha256:40751bf60ea5d8e2b2efe65290db434717ee3834870c002e40e2811f09d814e6"},
+    {file = "langchain_core-0.1.44-py3-none-any.whl", hash = "sha256:d8772dccef95fc97bfa2dcd19412e620ebe14def1f0e218374971f6e30a46a49"},
+    {file = "langchain_core-0.1.44.tar.gz", hash = "sha256:e313975d9ae2926342e6f2ad760338d31f18b1223e9b8b4dc408daeeade46a83"},
 ]
 
 [package.dependencies]
@@ -1963,13 +1963,13 @@ dev = ["Sphinx (==7.2.5)", "colorama (==0.4.5)", "colorama (==0.4.6)", "exceptio
 
 [[package]]
 name = "lunary"
-version = "1.0.1"
+version = "1.0.3"
 description = "Observability, analytics and evaluations for AI agents and chatbots."
 optional = false
 python-versions = "<4.0.0,>=3.8.1"
 files = [
-    {file = "lunary-1.0.1-py3-none-any.whl", hash = "sha256:eda53bc55d3f93f735091cb115602e878ce489f01aa36fc107c339788951e715"},
-    {file = "lunary-1.0.1.tar.gz", hash = "sha256:2ba3b457140e87585f3945856aea472a8c9398899086f2510c1bfd300de98621"},
+    {file = "lunary-1.0.3-py3-none-any.whl", hash = "sha256:f3ff4b85c589576541ae517bab46defed471853deab28fb85a0c90192d823984"},
+    {file = "lunary-1.0.3.tar.gz", hash = "sha256:a760637b349ff0aa33d81e173385f209e165a988da16b50713d86242a8d94696"},
 ]
 
 [package.dependencies]
@@ -5609,4 +5609,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "f55f756283ea5ccbeefd8455e4f3c708dfb4787b259934c5d000af7d428b67a0"
+content-hash = "b166d77c9a47b62884494dd76f39ba56211581cdf3e7d924fa700c7efdb3bdc3"
