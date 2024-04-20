@@ -3,7 +3,7 @@
 #
 
 [llm]
-default_model = "gpt_3_openai"
+default_model = "gpt_35_openai"
 
 [embeddings]
 cache = "/home/tcl/hf_models"

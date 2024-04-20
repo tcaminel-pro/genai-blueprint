@@ -1,5 +1,26 @@
 {
+    "terminal.integrated.env.linux": {
+        "PYTHONPATH": "${env:PYTHONPATH}:${workspaceFolder}/python:${env:PYTHONPATH}:${workspaceFolder}/notebooks:${workspaceFolder}/test",
+      },
+
     "cSpell.words": [
-        "mult"
+        "mult",
+        "dataframe",
+        "deepinfra",
+        "edenai",
+        "Eviden",
+        "groq",
+        "langchain",
+        "loguru",
+        "lunary",
+        "mistralai",
+        "Mixtral",
+        "openai",
+        "pydantic",
+        "selectbox",
+        "streamlit",
+        "typer",
+        "crewai"
     ]
 }
+

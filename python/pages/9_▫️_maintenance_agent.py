@@ -37,7 +37,7 @@ from langchain_community.callbacks import StreamlitCallbackHandler
 
 from python.st_utils.clear_result import with_clear_container
 from python.core.maintenance_agents import MaintenanceAgent, PROCEDURES
-from python.GenAI_Training import LOGO, app_conf, config_sidebar
+from python.GenAI_Training import logo, app_conf, config_sidebar
 from python.core.dummy_data import DATA_PATH, dummy_database
 from python.core.coder_agents import DiagramGeneratorTool
 
@@ -123,7 +123,7 @@ def agent():
 title_col1, title_col2 = st.columns([2, 1])
 
 title_col1.title("Maintenance Operation Assistant")
-title_col2.image(LOGO, width=250)
+title_col2.image(logo, width=250)
 title_col1.markdown(
     f"""
     ## LLM-Augmented Autonomous Agents (LAAA) Demo for Maintenance Operation.

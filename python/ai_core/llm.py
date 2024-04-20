@@ -18,6 +18,7 @@ from langchain_community.llms.deepinfra import DeepInfra
 from langchain_community.llms.edenai import EdenAI
 from langchain_groq import ChatGroq
 
+# from langchain_community.chat_models import ChatLiteLLM
 from lunary import LunaryCallbackHandler
 from python.config import get_config
 
@@ -27,8 +28,8 @@ MAX_TOKENS = 2048
 KNOWN_LLM = {
     # Names should follow Python variables constraints - ie no '-', no space, etc
     # Use pattern "{model name}_{version}_{inference provider or library}"
-    "gpt_3_openai",
-    "gpt_3_edenai",
+    "gpt_35_openai",
+    "gpt_35_edenai",
     "llama2_70_deepinfra",
     "llama2_70_groq",
     "llama3_70_groq",
@@ -46,7 +47,7 @@ def llm_factory(
     if model is None:
         model = get_config("llm", "default_model")
 
-    if model == "gpt_3_openai":
+    if model == "gpt_35_openai":
         result = ChatOpenAI(
             model="gpt-3.5-turbo-0125",
             temperature=temperature,
@@ -94,8 +95,10 @@ def llm_factory(
             temperature=temperature,
             max_tokens=max_tokens,
         )
+    elif model == "mixtral_7x8_groq_lite":
+        result = ChatLiteLLM(model="groq/mixtral-8x7b-32768", client=None)
 
-    elif model == "gpt_3_edenai":
+    elif model == "gpt_35_edenai":
         result = EdenAI(
             feature="text",
             provider="openai",
@@ -129,7 +132,7 @@ def llm_getter(temp=0) -> Runnable:
     }
     return (
         llm_factory()  # select default LLM
-        .with_fallbacks([llm_factory("gpt_3_openai", temp)])  # To be changed
+        .with_fallbacks([llm_factory("gpt_35_openai", temp)])  # To be changed
         .configurable_alternatives(
             ConfigurableField(id="llm"),
             default_key=default,

@@ -15,7 +15,7 @@ from loguru import logger
 from devtools import debug
 
 
-from python.ai_core.chain_registry import register_runnable
+from python.ai_core.chain_registry import RunnableItem, register_runnable
 from python.config import get_config
 from python.ai_core.embeddings import get_embeddings
 from python.ai_core.llm import llm_getter
@@ -57,6 +57,15 @@ rag_chain = (
     | prompt
     | llm_getter()
     | StrOutputParser()
+)
+
+r = RunnableItem(
+    category="RAG",
+    description="Simple RAG chain on Maintenance procedures",
+    runnable=rag_chain,
+    examples=[
+        "What are the tools required for the maintenance task 'Repair of Faulty Switchgear' "
+    ],
 )
 
 register_runnable(

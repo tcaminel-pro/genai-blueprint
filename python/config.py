@@ -36,9 +36,9 @@ def get_config(group: str, key: str, default_value: str | None = None) -> str:
     """
     Return the value of a key, either set by 'set_config', or found in the configuration file.
     If it contains an environment variable in the form $(XXX), then replace it.
-    Raise an exeption if key not found and if not default value is given
+    Raise an exception if key not found and if not default value is given
     """
-    d = merge_dicts(_get_conf_file(), _config)
+    d = merge_dicts(dict(_get_conf_file()), _config, override=True)
 
     try:
         value = d[group][key]
@@ -56,17 +56,17 @@ def set_config(group: str, key: str, value: str):
     _config[group][key] = value
 
 
-def merge_dicts(a: dict, b: dict, overide=False, path=[]):
-    """Utility to merge 2 dictionnaries.
-    Raise exception if same keys if not 'overide' set
+def merge_dicts(a: dict, b: dict, override=False, path=[]):
+    """Utility to merge 2 dictionaries.
+    Raise exception if same keys if not 'override' set
 
     Taken from https://stackoverflow.com/a/7205107"""
 
     for key in b:
         if key in a:
             if isinstance(a[key], dict) and isinstance(b[key], dict):
-                merge_dicts(a[key], b[key], overide, path + [str(key)])
-            elif a[key] != b[key] and not overide:
+                merge_dicts(a[key], b[key], override, path + [str(key)])
+            elif a[key] != b[key] and not override:
                 raise Exception("Conflict at " + ".".join(path + [str(key)]))
         else:
             a[key] = b[key]

@@ -6,10 +6,10 @@ Adapted from https://blog.langchain.dev/tool-calling-with-langchain/
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.tools import tool
 from langchain.agents import create_tool_calling_agent, AgentExecutor
-
+from langchain_core.runnables import Runnable
 
 from python.ai_core.chain_registry import register_runnable
-from python.ai_core.llm import llm_getter
+from python.ai_core.llm import llm_factory
 
 
 @tool
@@ -37,16 +37,17 @@ tools = [multiply, exponentiate, add]
 # are passed to the model.
 
 
-from langchain_openai import ChatOpenAI
 
-llm = ChatOpenAI(model="gpt-3.5-turbo-0125", temperature=0)
-llm_with_tools = llm.bind_tools(tools)
+
+def create_runnable(info: dict) -> Runnable:
+    llm = llm_factory(info["llm"])
+    return llm.bind_tools(tools)
 
 
 register_runnable(
     "Tool",
     "Calculator tool",
-    llm_with_tools,
+    create_runnable,
     examples=["what's 5 raised to the 2.743"],
 )
 
@@ -59,19 +60,16 @@ prompt = ChatPromptTemplate.from_messages(
 )
 
 
-agent = create_tool_calling_agent(llm, tools, prompt)
-agent_executor = AgentExecutor(agent=agent, tools=tools)
+def create_executor(info: dict) -> Runnable:
+    model = info["llm"]
+    llm = llm_factory(model)
+    agent = create_tool_calling_agent(llm, tools, prompt)
+    return AgentExecutor(agent=agent, tools=tools)
+
 
 register_runnable(
     "Agent",
     "Calculator agent",
-    agent_executor,
+    create_executor,
     examples=["what's 3 plus 5 raised to the 2.743. also what's 17.24 - 918.1241"],
 )
-
-
-# agent_executor.invoke(
-#     {
-#         "input": "what's 3 plus 5 raised to the 2.743. also what's 17.24 - 918.1241",
-#     }
-# )
