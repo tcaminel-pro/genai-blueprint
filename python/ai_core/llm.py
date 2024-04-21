@@ -42,7 +42,8 @@ def llm_factory(
     model: str | None = None, temperature=0, max_tokens=MAX_TOKENS
 ) -> BaseLanguageModel:
     """
-    Create an LLM model
+    Create an LLM model.
+    'model' is our internal name for the model and its provider. If None, take the default one
     """
     if model is None:
         model = get_config("llm", "default_model")
@@ -115,7 +116,7 @@ def llm_factory(
         pass
     elif model.startswith("Mixtral"):
         pass
-        # result = Mixtral(llm=result)  # type: ignore
+        result = Mixtral(llm=result)  # type: ignore
 
     return result
 

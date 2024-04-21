@@ -1,16 +1,15 @@
 from typing import Any, Callable
 from pydantic import BaseModel
 from langchain_core.runnables import Runnable
-from langchain.agents import create_tool_calling_agent, AgentExecutor
-
-from python.config import get_config
 
 
 class RunnableItem(BaseModel):
-    category: str
-    description: str
-    runnable: Runnable | Callable[[dict[str, Any]], Runnable]
+    tag: str
+    name: str
+    #    runnable: Runnable | Callable[[dict[str, Any]], Runnable]
+    runnable: Runnable | Callable
     examples: list[str] = []
+    key: str | None = None
 
     def invoke(self, input: str, config: dict[str, Any]) -> Any:
         if isinstance(self.runnable, Runnable):
@@ -19,11 +18,10 @@ class RunnableItem(BaseModel):
             runnable = self.runnable(config)
         else:
             raise Exception("unknown Runnable")
-        is_agent = isinstance(runnable, AgentExecutor)
+        # is_agent = isinstance(runnable, AgentExecutor)
         runnable = runnable.with_config(configurable=config)
-        if is_agent:
-            print("==> Agent Executor")
-            result = runnable.invoke({"input": input})
+        if self.key:
+            result = runnable.invoke({self.key: input})
         else:
             result = runnable.invoke(input)
         return result
@@ -35,17 +33,13 @@ class RunnableItem(BaseModel):
 _registry: list[RunnableItem] = []
 
 
-def register_runnable(
-    category: str,
-    description: str,
-    runnable: Runnable | Callable[[dict[str, Any]], Runnable],
-    examples: list[str] = [],
-):
-    r = RunnableItem(
-        category=category, description=description, runnable=runnable, examples=examples
-    )
+def register_runnable(r: RunnableItem):
     _registry.append(r)
 
 
 def get_runnable_registry():
     return _registry
+
+
+def find_runnable(name: str) -> RunnableItem | None:
+    return next((x for x in _registry if x.name == name), None)

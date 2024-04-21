@@ -8,7 +8,7 @@ from langchain_core.tools import tool
 from langchain.agents import create_tool_calling_agent, AgentExecutor
 from langchain_core.runnables import Runnable
 
-from python.ai_core.chain_registry import register_runnable
+from python.ai_core.chain_registry import RunnableItem, register_runnable
 from python.ai_core.llm import llm_factory
 
 
@@ -37,20 +37,19 @@ tools = [multiply, exponentiate, add]
 # are passed to the model.
 
 
-
-
 def create_runnable(info: dict) -> Runnable:
     llm = llm_factory(info["llm"])
     return llm.bind_tools(tools)
 
 
 register_runnable(
-    "Tool",
-    "Calculator tool",
-    create_runnable,
-    examples=["what's 5 raised to the 2.743"],
+    RunnableItem(
+        tag="Tool",
+        name="Calculator tool",
+        runnable=create_runnable,
+        examples=["what's 5 raised to the 2.743"],
+    )
 )
-
 prompt = ChatPromptTemplate.from_messages(
     [
         ("system", "you're a helpful assistant"),
@@ -68,8 +67,11 @@ def create_executor(info: dict) -> Runnable:
 
 
 register_runnable(
-    "Agent",
-    "Calculator agent",
-    create_executor,
-    examples=["what's 3 plus 5 raised to the 2.743. also what's 17.24 - 918.1241"],
+    RunnableItem(
+        tag="Agent",
+        name="Calculator agent",
+        runnable=create_executor,
+        examples=["what's 3 plus 5 raised to the 2.743. also what's 17.24 - 918.1241"],
+        key="input",
+    )
 )

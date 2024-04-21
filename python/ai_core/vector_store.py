@@ -9,8 +9,11 @@ from pathlib import Path
 
 from langchain.vectorstores.base import VectorStore
 from langchain.embeddings.base import Embeddings
-from langchain_chroma import Chroma
+from langchain_community.vectorstores import Chroma
 
+# from langchain_chroma import Chroma  does not work (yet?) with self_query
+
+from python.ai_core.embeddings import get_embeddings
 from python.config import get_config
 
 
@@ -19,24 +22,35 @@ DEFAULT_COLLECTION = "Training_collection"
 
 def get_vector_vector_store_path() -> str:
     # get path to store vector database, as specified in configuration file
-    dir = Path(get_config("embeddings", "vector_store_path"))
+    dir = Path(get_config("vector_store", "path"))
     try:
         dir.mkdir()
     except:
-        pass
+        pass  # TODO : log something
     return str(dir)
 
 
 def get_vector_store(
-    name: str = "Chroma",
+    name: str | None = None,
     embeddings: Embeddings | None = None,
     collection_name: str = DEFAULT_COLLECTION,
 ) -> VectorStore:
-    # Singleton for the vector database object (ChromaDB)
+    """
+    Factory for the vector database
+    """
+    if name is None:
+        name = get_config("vector_store", "default")
+    if embeddings is None:
+        embeddings = get_embeddings()  # Get default one
     if name == "Chroma":
         vector_store = Chroma(
             embedding_function=embeddings,
             persist_directory=get_vector_vector_store_path(),
+            collection_name=collection_name,
+        )
+    elif name == "Chroma_in_memory":
+        vector_store = Chroma(
+            embedding_function=embeddings,
             collection_name=collection_name,
         )
     else:

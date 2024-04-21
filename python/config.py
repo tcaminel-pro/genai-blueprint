@@ -52,13 +52,17 @@ def get_config(group: str, key: str, default_value: str | None = None) -> str:
 
 
 def set_config(group: str, key: str, value: str):
-    """ """
+    """
+    Add of override a key value
+    """
     _config[group][key] = value
 
 
 def merge_dicts(a: dict, b: dict, override=False, path=[]):
-    """Utility to merge 2 dictionaries.
-    Raise exception if same keys if not 'override' set
+    """
+    Utility to merge 2 dictionaries.
+    Raise exception if same keys if not 'override' set.
+    Note : dict 'a' is modified.  Use 'merge_dicts(dict(a),b)' if it's an issue
 
     Taken from https://stackoverflow.com/a/7205107"""
 

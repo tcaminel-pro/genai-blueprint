@@ -38,7 +38,9 @@ save:  # Create a zipped version of the image
 
 update:  # Update selected fast changing dependencies
 	poetry add 	langchain@latest langchain-experimental@latest  langchain-community@latest  langchainhub@latest \
-				lunary@latest loguru@latest devtools@latest langchain-openai@latest langchain-groq@latest
+				lunary@latest loguru@latest devtools@latest  langchain-groq@latest  
+
+#langchain-openai@latest
 
 clean:  # remove byte code
 	find . -type f -name "*.py[co]" -delete -or -type d -name "__pycache__" -delete

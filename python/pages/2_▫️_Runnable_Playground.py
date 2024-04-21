@@ -3,14 +3,14 @@ from python.ai_core.chain_registry import get_runnable_registry
 
 st.title("💬 Runnable playground")
 
-runnables_list = sorted([(o.category, o.description) for o in get_runnable_registry()])
+runnables_list = sorted([(o.tag, o.name) for o in get_runnable_registry()])
 selection = st.selectbox(
     "Runnable", runnables_list, index=0, format_func=lambda x: f"[{x[0]}] {x[1]}"
 )
 if not selection:
     st.stop()
 runnable_desc = next(
-    (x for x in get_runnable_registry() if x.description == selection[1]), None
+    (x for x in get_runnable_registry() if x.name == selection[1]), None
 )
 assert runnable_desc
 

@@ -38,6 +38,7 @@ bs4 = "^0.0.2"
 sentence-transformers = "^2.6.1"
 langchain-core = "^0.1.45"
 crewai = "^0.28.8"
+lark = "^1.1.9"
 
 
 [tool.poetry.group.rag.dependencies]

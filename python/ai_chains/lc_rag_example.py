@@ -59,20 +59,14 @@ rag_chain = (
     | StrOutputParser()
 )
 
-r = RunnableItem(
-    category="RAG",
-    description="Simple RAG chain on Maintenance procedures",
-    runnable=rag_chain,
-    examples=[
-        "What are the tools required for the maintenance task 'Repair of Faulty Switchgear' "
-    ],
-)
 
 register_runnable(
-    "RAG",
-    "Simple RAG chain on Maintenance procedures",
-    rag_chain,
-    examples=[
-        "What are the tools required for the maintenance task 'Repair of Faulty Switchgear' "
-    ],
+    RunnableItem(
+        tag="RAG",
+        name="Simple RAG chain on Maintenance procedures",
+        runnable=rag_chain,
+        examples=[
+            "What are the tools required for the maintenance task 'Repair of Faulty Switchgear' "
+        ],
+    )
 )
