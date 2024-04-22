@@ -19,7 +19,11 @@ from langchain_openai import ChatOpenAI
 
 from devtools import debug  # ignore
 
-from python.ai_core.chain_registry import RunnableItem, register_runnable
+from python.ai_core.chain_registry import (
+    RunnableItem,
+    register_runnable,
+    to_key_param_callable,
+)
 from python.ai_core.llm import llm_factory
 from python.ai_core.vector_store import vector_store_factory
 
@@ -119,11 +123,10 @@ register_runnable(
     RunnableItem(
         tag="self_query",
         name="self_query_constructor",
-        runnable=get_query_constructor,
+        runnable=to_key_param_callable("query", get_query_constructor),
         examples=[
             "What are some sci-fi movies from the 90's directed by Luc Besson about taxi drivers"
         ],
-        key="query",
     )
 )
 

@@ -3,13 +3,18 @@
 Adapted from https://blog.langchain.dev/tool-calling-with-langchain/  
 """
 
+from typing import Any, Callable
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.tools import tool
 from langchain.agents import create_tool_calling_agent, AgentExecutor
-from langchain_core.runnables import Runnable
-
-from python.ai_core.chain_registry import RunnableItem, register_runnable
+from langchain_core.runnables import Runnable, RunnableLambda
+from python.ai_core.chain_registry import (
+    RunnableItem,
+    register_runnable,
+    to_key_param_callable,
+)
 from python.ai_core.llm import llm_factory
+from devtools import debug  # ignore
 
 
 @tool
@@ -39,7 +44,7 @@ tools = [multiply, exponentiate, add]
 
 def create_runnable(config: dict) -> Runnable:
     llm = llm_factory(config["llm"])
-    return llm.bind_tools(tools)
+    return llm.bind_tools(tools)  # type: ignore
 
 
 register_runnable(
@@ -47,7 +52,7 @@ register_runnable(
         tag="Tool",
         name="Calculator tool",
         runnable=create_runnable,
-        examples=["what's 5 raised to the 2.743"],
+        examples=["what's 5 raised to the 3"],
     )
 )
 prompt = ChatPromptTemplate.from_messages(
@@ -59,19 +64,19 @@ prompt = ChatPromptTemplate.from_messages(
 )
 
 
-def create_executor(config: dict) -> Runnable:
-    model = config["llm"]
+def create_executor(conf: dict) -> Runnable:
+    debug(conf)
+    model = conf["llm"]
     llm = llm_factory(model)
-    agent = create_tool_calling_agent(llm, tools, prompt)
-    return AgentExecutor(agent=agent, tools=tools)
+    agent = create_tool_calling_agent(llm, tools, prompt)  # type: ignore
+    return AgentExecutor(agent=agent, tools=tools)  # type: ignore
 
 
 register_runnable(
     RunnableItem(
         tag="Agent",
         name="Calculator agent",
-        runnable=create_executor,
+        runnable=to_key_param_callable("input", create_executor),
         examples=["what's 3 plus 5 raised to the 2.743. also what's 17.24 - 918.1241"],
-        key="input",
     )
 )

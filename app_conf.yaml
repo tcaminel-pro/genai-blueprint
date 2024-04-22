@@ -1,0 +1,36 @@
+# Selectable LLM, embedding models, vector store etc HARD CODED in the code
+# DO NOT EDIT, except if you add new stuff in code !
+# In the future, that could be generated, or useless if everything is configured in YAML
+config_choice:
+  llm: 
+    - gpt_35_openai
+    - gpt_35_edenai
+    - llama2_70_deepinfra
+    - llama2_70_groq
+    - llama3_70_groq
+    - mixtral_7x8_deepinfra
+    - mixtral_7x8_groq
+
+  embeddings:
+    - OpenAI
+    - sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+
+  vector_store:
+    - Chroma
+    - Chroma_in_memory
+  
+
+
+# Agent configuration
+llm:
+  default_model: gpt_35_openai
+embeddings:
+  cache: /home/tcl/hf_models
+  default_model: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+vector_store:
+  default: Chroma
+  path: /home/tcl/chromadb
+documents:
+  base: ${HOME}/prj/genai-training/use_case_data
+
+    

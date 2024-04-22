@@ -12,6 +12,7 @@ from langchain_core.runnables import Runnable
 from langchain.globals import set_debug, set_verbose
 
 from python.ai_core.chain_registry import find_runnable, get_runnable_registry
+from python.ai_core.llm import set_cache
 from python.config import get_config
 
 
@@ -35,13 +36,16 @@ def run(
     input: str | None = None,  # input
     verbose: bool = False,
     debug: bool = False,
+    cache: str = "sqlite",
     llm: str | None = None,  # id (our name) of the LLM
 ):
     """
     Run a given Runnable with parameter 'input". LLM can be changed, otherwise the default one is selected.
+    ''cache' is prompt caching strategy, and it can be either 'sqlite' (default) or 'memory'
     """
     set_debug(debug)
     set_verbose(verbose)
+    set_cache(cache)
 
     runnables_list = sorted([f"'{o.name}'" for o in get_runnable_registry()])
     runnables_list_str = ", ".join(runnables_list)

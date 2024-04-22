@@ -4,16 +4,18 @@
       },
 
     "cSpell.words": [
-        "llm",
-        "llms",
-        "LCEL",
+        "chromadb",
         "crewai",
         "dataframe",
         "deepinfra",
         "edenai",
         "Eviden",
+        "genai",
         "groq",
         "langchain",
+        "LCEL",
+        "llm",
+        "llms",
         "loguru",
         "lunary",
         "mistralai",
@@ -25,7 +27,6 @@
         "streamlit",
         "typer",
         "vectorstore"
-        
     ]
 }
 

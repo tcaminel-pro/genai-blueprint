@@ -28,7 +28,6 @@ chromadb = "^0.4.24"
 fastapi = "^0.110.1"
 uvicorn = "^0.27.1"
 httpx = "^0.27.0"
-tomli = "^2.0.1"
 typer = "^0.9.0"
 streamlit = "^1.32.1"
 sqlalchemy = "^2.0.29"
@@ -39,19 +38,11 @@ sentence-transformers = "^2.6.1"
 langchain-core = "^0.1.45"
 crewai = "^0.28.8"
 lark = "^1.1.9"
-
-
-[tool.poetry.group.rag.dependencies]
-#sentence-transformers = "^2.5.1" #add 5G to the image !
-
-
-[tool.poetry.group.extra.dependencies]
-# pymupdf = "^1.23.26"
-# unstructured = { extras = ["all-docs"], version = "^0.12.5" }
-# pdf2image = "^1.17.0"
-# pdfminer-six = "^20231228"
-# pillow-heif = "^0.15.0"
-# opencv-python = "^4.9.0.80"
+pyyaml = "^6.0.1"
+langgraph = "^0.0.38"
+tiktoken = "^0.5.2"
+tavily-python = "^0.3.3"
+pygraphviz = "^1.12"
 
 
 [tool.poetry.group.dev.dependencies]

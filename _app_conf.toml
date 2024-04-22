@@ -1,6 +1,9 @@
 
 # Configuration file for the project
 #
+# Goon into to TOML here: https://learnxinyminutes.com/docs/toml/ 
+#
+
 
 [llm]
 default_model = "gpt_35_openai"

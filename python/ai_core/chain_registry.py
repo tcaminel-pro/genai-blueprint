@@ -1,27 +1,20 @@
 from typing import Any, Callable
 from pydantic import BaseModel
-from langchain_core.runnables import Runnable
+from langchain_core.runnables import Runnable, RunnableLambda
 from devtools import debug  # ignore
 
 
 class RunnableItem(BaseModel):
     tag: str
     name: str
-    #    runnable: Runnable | Callable[[dict[str, Any]], Runnable]
-    runnable: Runnable | Callable
+    runnable: Runnable | Callable[[dict], Runnable]
     examples: list[str] = []
     key: str | None = None
 
-    def invoke(self, input: str, config: dict[str, Any]) -> Any:
-        if isinstance(self.runnable, Runnable):
-            runnable = self.runnable
-        elif isinstance(self.runnable, Callable):
-            runnable = self.runnable(config)
-        else:
-            raise Exception("unknown Runnable")
+    def invoke(self, input: str, conf: dict[str, Any]) -> Any:
+        runnable = self.get_runnable(conf)
         # is_agent = isinstance(runnable, AgentExecutor)
-        runnable = runnable.with_config(configurable=config)
-
+        runnable = runnable.with_config(configurable=conf)
 
         # try to determine the name of the key for the query.
         # does not work for Agent Executor, but I keep it. There might be a way
@@ -32,13 +25,20 @@ class RunnableItem(BaseModel):
             assert len(input_keys) == 1
             key = next(iter(input_keys))
 
-        debug(key, self.key)
-        #assert key == self.key
         if self.key:
             result = runnable.invoke({self.key: input})
         else:
             result = runnable.invoke(input)
         return result
+
+    def get_runnable(self, conf={"llm": None}) -> Runnable:
+        if isinstance(self.runnable, Runnable):
+            runnable = self.runnable
+        elif isinstance(self.runnable, Callable):
+            runnable = self.runnable(conf)
+        else:
+            raise Exception("unknown Runnable")
+        return runnable
 
     class Config:
         arbitrary_types_allowed = True
@@ -57,3 +57,13 @@ def get_runnable_registry():
 
 def find_runnable(name: str) -> RunnableItem | None:
     return next((x for x in _registry if x.name == name), None)
+
+
+def to_key_param_callable(
+    key: str, function: Callable[[dict], Runnable]
+) -> Callable[[Any], Runnable]:
+    """
+    Take a function taking a config parameter and returning a Runnable whose input is a string,
+    and return a function where the same Runnable takes a dict instead.
+    """
+    return lambda conf: RunnableLambda(lambda x: {key: x}) | function(conf)

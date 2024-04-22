@@ -8,18 +8,18 @@ import os
 from pathlib import Path
 import re
 from typing import Any
-import tomli
+import yaml
 from collections import defaultdict
 
-TOML_FILE_NAME = "app_conf.toml"
+CONFIG_FILE = "app_conf.yaml"
 
 
 _config = defaultdict(dict)
 
 
 @cache
-def _get_conf_file(fn: str = TOML_FILE_NAME) -> dict:
-    # Read the TOML file  found either in the current directory, or its parent
+def _get_conf_file(fn: str = CONFIG_FILE) -> dict:
+    # Read the configuration file  found either in the current directory, or its parent
 
     toml_file = Path.cwd() / fn
     if not toml_file.exists():
@@ -27,8 +27,8 @@ def _get_conf_file(fn: str = TOML_FILE_NAME) -> dict:
 
     assert toml_file.exists(), f"cannot find {toml_file}"
 
-    with open(toml_file, "rb") as f:
-        data = tomli.load(f)
+    with open(toml_file, "r") as f:
+        data = yaml.safe_load(f)
     return data
 
 
@@ -48,7 +48,7 @@ def get_config(group: str, key: str, default_value: str | None = None) -> str:
         if default_value:
             return default_value
         else:
-            raise ValueError(f"no key {group}/{key} in file {TOML_FILE_NAME}")
+            raise ValueError(f"no key {group}/{key} in file {CONFIG_FILE}")
 
 
 def set_config(group: str, key: str, value: str):

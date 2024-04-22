@@ -19,7 +19,11 @@ from langchain_openai import ChatOpenAI
 
 from devtools import debug  # ignore
 
-from python.ai_core.chain_registry import RunnableItem, register_runnable
+from python.ai_core.chain_registry import (
+    RunnableItem,
+    register_runnable,
+    to_key_param_callable,
+)
 from python.ai_core.llm import llm_factory
 from python.ai_core.vector_store import vector_store_factory
 
@@ -87,7 +91,7 @@ def vector_store() -> VectorStore:
     return vector_store
 
 
-def get_query_constructor(config: dict):
+def get_query_constructor(conf: dict):
     prompt = get_query_constructor_prompt(
         document_content_description,
         metadata_field_info,
@@ -95,14 +99,14 @@ def get_query_constructor(config: dict):
     # debug(prompt.format(query="dummy question"))
 
     output_parser = StructuredQueryOutputParser.from_components()
-    model = config["llm"]
+    model = conf["llm"]
     llm = llm_factory(model)
     query_constructor = prompt | llm | output_parser
     return query_constructor
 
 
-def get_retriever(config: dict):
-    query_constructor = get_query_constructor(config)
+def get_retriever(conf: dict):
+    query_constructor = get_query_constructor(conf)
     debug(query_constructor)
     retriever = SelfQueryRetriever(
         query_constructor=query_constructor,  # TODO: Clarify
@@ -118,11 +122,11 @@ register_runnable(
     RunnableItem(
         tag="self_query",
         name="self_query_constructor",
-        runnable=get_query_constructor,
+        runnable=to_key_param_callable("query", get_query_constructor),
         examples=[
             "What are some sci-fi movies from the 90's directed by Luc Besson about taxi drivers"
         ],
-        key="query",
+        # key="query",
     )
 )
 
@@ -142,7 +146,7 @@ register_runnable(
 )
 
 if __name__ == "__main__":
-    r = get_retriever(config={"llm": None}).invoke(
+    r = get_retriever(conf={"llm": None}).invoke(
         "I want to watch a movie rated higher than 8.5"
     )
     debug(r)
