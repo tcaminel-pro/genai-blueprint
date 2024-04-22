@@ -30,7 +30,7 @@ def get_vector_vector_store_path() -> str:
     return str(dir)
 
 
-def get_vector_store(
+def vector_store_factory(
     name: str | None = None,
     embeddings: Embeddings | None = None,
     collection_name: str = DEFAULT_COLLECTION,

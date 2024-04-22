@@ -107,9 +107,8 @@ def get_retriever(config: dict):
     retriever = SelfQueryRetriever(
         query_constructor=query_constructor,  # TODO: Clarify
         llm_chain=query_constructor,
-        vectorstore=vector_store(),
+        vectorstore=vector_store_factory(),
         structured_query_translator=ChromaTranslator(),
-        verbose=True,
     )
     debug(query_constructor, retriever)
     return retriever

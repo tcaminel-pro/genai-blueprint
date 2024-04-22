@@ -37,8 +37,8 @@ tools = [multiply, exponentiate, add]
 # are passed to the model.
 
 
-def create_runnable(info: dict) -> Runnable:
-    llm = llm_factory(info["llm"])
+def create_runnable(config: dict) -> Runnable:
+    llm = llm_factory(config["llm"])
     return llm.bind_tools(tools)
 
 
@@ -59,8 +59,8 @@ prompt = ChatPromptTemplate.from_messages(
 )
 
 
-def create_executor(info: dict) -> Runnable:
-    model = info["llm"]
+def create_executor(config: dict) -> Runnable:
+    model = config["llm"]
     llm = llm_factory(model)
     agent = create_tool_calling_agent(llm, tools, prompt)
     return AgentExecutor(agent=agent, tools=tools)

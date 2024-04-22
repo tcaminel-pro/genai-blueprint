@@ -1,6 +1,7 @@
 from typing import Any, Callable
 from pydantic import BaseModel
 from langchain_core.runnables import Runnable
+from devtools import debug  # ignore
 
 
 class RunnableItem(BaseModel):
@@ -20,6 +21,19 @@ class RunnableItem(BaseModel):
             raise Exception("unknown Runnable")
         # is_agent = isinstance(runnable, AgentExecutor)
         runnable = runnable.with_config(configurable=config)
+
+
+        # try to determine the name of the key for the query.
+        # does not work for Agent Executor, but I keep it. There might be a way
+        input_schema_props = runnable.input_schema().schema().get("properties")
+        key = None
+        if input_schema_props:
+            input_keys = input_schema_props.keys()
+            assert len(input_keys) == 1
+            key = next(iter(input_keys))
+
+        debug(key, self.key)
+        #assert key == self.key
         if self.key:
             result = runnable.invoke({self.key: input})
         else:

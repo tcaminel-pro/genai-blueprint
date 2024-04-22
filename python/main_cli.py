@@ -69,7 +69,7 @@ def chain_info(name: str):
         if isinstance(r, Runnable):
             runnable = r
         elif isinstance(r, Callable):
-            runnable = r()
+            runnable = r({"llm": None})
 
         print("type: ", type(runnable))
         try:
