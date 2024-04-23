@@ -7,7 +7,7 @@ from devtools import debug  # ignore
 class RunnableItem(BaseModel):
     tag: str
     name: str
-    runnable: Runnable | Callable[[dict], Runnable]
+    runnable: Runnable | Callable[[dict[str, Any]], Runnable]
     examples: list[str] = []
     key: str | None = None
 
@@ -17,13 +17,13 @@ class RunnableItem(BaseModel):
         runnable = runnable.with_config(configurable=conf)
 
         # try to determine the name of the key for the query.
-        # does not work for Agent Executor, but I keep it. There might be a way
-        input_schema_props = runnable.input_schema().schema().get("properties")
-        key = None
-        if input_schema_props:
-            input_keys = input_schema_props.keys()
-            assert len(input_keys) == 1
-            key = next(iter(input_keys))
+        # does not work for Agent Executor, but there might be a way.
+        # input_schema_props = runnable.input_schema().schema().get("properties")
+        # key = None
+        # if input_schema_props:
+        #     input_keys = input_schema_props.keys()
+        #     assert len(input_keys) == 1
+        #     key = next(iter(input_keys))
 
         if self.key:
             result = runnable.invoke({self.key: input})
@@ -60,7 +60,7 @@ def find_runnable(name: str) -> RunnableItem | None:
 
 
 def to_key_param_callable(
-    key: str, function: Callable[[dict], Runnable]
+    key: str, function: Callable[[dict[str, Any]], Runnable]
 ) -> Callable[[Any], Runnable]:
     """
     Take a function taking a config parameter and returning a Runnable whose input is a string,

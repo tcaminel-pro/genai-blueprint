@@ -3,6 +3,7 @@ LLM models factory and Runnable
 
 """
 
+import os
 from functools import cache
 
 from pydantic import BaseModel
@@ -18,7 +19,7 @@ from langchain_community.llms.deepinfra import DeepInfra
 from langchain_community.llms.edenai import EdenAI
 from langchain_groq import ChatGroq
 
-# from langchain_community.chat_models import ChatLiteLLM
+# from langchain_community.chat_models.litellm import ChatLiteLLM
 from lunary import LunaryCallbackHandler
 from python.config import get_config
 
@@ -39,7 +40,7 @@ KNOWN_LLM = {
 
 
 def llm_factory(
-    model: str | None = None, temperature=0, max_tokens=MAX_TOKENS
+    model: str | None = None, temperature=0, max_tokens=MAX_TOKENS, json_mode=False
 ) -> BaseLanguageModel:
     """
     Create an LLM model.
@@ -49,7 +50,7 @@ def llm_factory(
         model = get_config("llm", "default_model")
 
     if model == "gpt_35_openai":
-        result = ChatOpenAI(
+        llm = ChatOpenAI(
             model="gpt-3.5-turbo-0125",
             temperature=temperature,
             max_tokens=max_tokens,
@@ -57,7 +58,7 @@ def llm_factory(
         )
 
     elif model == "llama2_70_deepinfra":
-        result = DeepInfra(
+        llm = DeepInfra(
             model_id="meta-llama/Llama-2-70b-chat-hf",
             model_kwargs={
                 "temperature": temperature,
@@ -68,7 +69,7 @@ def llm_factory(
         )
 
     elif model == "mixtral_7x8_deepinfra":
-        result = DeepInfra(
+        llm = DeepInfra(
             model_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
             model_kwargs={
                 "temperature": temperature,
@@ -77,30 +78,41 @@ def llm_factory(
                 "stop": ["STOP_TOKEN"],
             },
         )
+    elif model == "mixtral_7x8_deepinfra_oai":
+        key = os.getenv("DEEPINFRA_API_TOKEN")
+        assert key, "No DEEPINFRA_API_TOKEN key found"
+        llm = ChatOpenAI(
+            model="gpt-3.5-turbo-0125",
+            base_url="meta-llama/Llama-2-70b-chat-hf",
+            temperature=temperature,
+            max_tokens=max_tokens,
+            api_key=os.getenv("DEEPINFRA_API_TOKEN"),
+            model_kwargs={"seed": 42},  # Not sure that works
+        )
 
     elif model == "llama2_70_groq":
-        result = ChatGroq(
+        llm = ChatGroq(
             model="lLama2-70b-4096",
             temperature=temperature,
             max_tokens=max_tokens,
         )
     elif model == "llama3_70_groq":
-        result = ChatGroq(
+        llm = ChatGroq(
             model="lLama3-70b-8192",
             temperature=temperature,
             max_tokens=max_tokens,
         )
     elif model == "mixtral_7x8_groq":
-        result = ChatGroq(
+        llm = ChatGroq(
             model="Mixtral-8x7b-32768",
             temperature=temperature,
             max_tokens=max_tokens,
         )
     elif model == "mixtral_7x8_groq_lite":
-        result = ChatLiteLLM(model="groq/mixtral-8x7b-32768", client=None)
+        llm = ChatLiteLLM(model="groq/mixtral-8x7b-32768", client=None)
 
     elif model == "gpt_35_edenai":
-        result = EdenAI(
+        llm = EdenAI(
             feature="text",
             provider="openai",
             model="gpt-3.5-turbo-instruct",
@@ -116,9 +128,17 @@ def llm_factory(
         pass
     elif model.startswith("Mixtral"):
         pass
-        result = Mixtral(llm=result)  # type: ignore
+        llm = Mixtral(llm=llm)  # type: ignore
 
-    return result
+    if json_mode:  # NOT TESTED
+        # see also https://api.python.langchain.com/en/latest/chains/langchain.chains.structured_output.base.create_structured_output_runnable.html
+
+        if isinstance(llm, ChatOpenAI) or isinstance(llm, ChatGroq):
+            llm = llm.bind(response_format={"type": "json_object"})
+        else:
+            raise ValueError(f"json_mode  not supported for {type(llm)}")
+
+    return llm
 
 
 def llm_getter(temp=0) -> Runnable:

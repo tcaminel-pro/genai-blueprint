@@ -1,7 +1,7 @@
 # Selectable LLM, embedding models, vector store etc HARD CODED in the code
 # DO NOT EDIT, except if you add new stuff in code !
 # In the future, that could be generated, or useless if everything is configured in YAML
-config_choice:
+factories:
   llm: 
     - gpt_35_openai
     - gpt_35_edenai
@@ -25,8 +25,8 @@ config_choice:
 llm:
   default_model: gpt_35_openai
 embeddings:
-  cache: /home/tcl/hf_models
   default_model: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+  cache: /home/tcl/hf_models
 vector_store:
   default: Chroma
   path: /home/tcl/chromadb

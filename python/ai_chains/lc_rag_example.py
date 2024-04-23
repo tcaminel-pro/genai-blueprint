@@ -17,7 +17,7 @@ from devtools import debug
 
 from python.ai_core.chain_registry import RunnableItem, register_runnable
 from python.config import get_config
-from python.ai_core.embeddings import get_embeddings
+from python.ai_core.embeddings import embeddings_factory
 from python.ai_core.llm import llm_getter
 from python.ai_core.vector_store import vector_store_factory
 
@@ -29,7 +29,7 @@ assert base_dir.exists()
 @cache
 def retriever():
     dir = base_dir / "maintenance"
-    vector_store = vector_store_factory("Chroma", get_embeddings(), "maintenance_1")
+    vector_store = vector_store_factory("Chroma", embeddings_factory(), "maintenance_1")
 
     found = vector_store.similarity_search("maintenance", k=3)
     if len(found) == 0:

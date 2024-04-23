@@ -15,7 +15,7 @@ from python.config import get_config
 
 
 @cache
-def get_embeddings(embeddings_model: str | None = None) -> Embeddings:
+def embeddings_factory(embeddings_model: str | None = None) -> Embeddings:
     """
     Return an embedding function by name.  is none is given, take the default defined in configuration file.
     """

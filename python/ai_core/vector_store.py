@@ -13,7 +13,7 @@ from langchain_community.vectorstores import Chroma
 
 # from langchain_chroma import Chroma  does not work (yet?) with self_query
 
-from python.ai_core.embeddings import get_embeddings
+from python.ai_core.embeddings import embeddings_factory
 from python.config import get_config
 
 
@@ -41,7 +41,7 @@ def vector_store_factory(
     if name is None:
         name = get_config("vector_store", "default")
     if embeddings is None:
-        embeddings = get_embeddings()  # Get default one
+        embeddings = embeddings_factory()  # Get default one
     if name == "Chroma":
         vector_store = Chroma(
             embedding_function=embeddings,
