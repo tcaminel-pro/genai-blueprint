@@ -101,7 +101,7 @@ def get_query_constructor(config: dict):
     output_parser = StructuredQueryOutputParser.from_components()
 
     model = config["llm"]
-    llm = LlmFactory(model=model).get_dynamic_formatted()
+    llm = LlmFactory(llm_id=model).get_dynamic_formatted()
     query_constructor = prompt | llm | output_parser
     return query_constructor
 

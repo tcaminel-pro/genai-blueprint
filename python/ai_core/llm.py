@@ -3,14 +3,15 @@ LLM self.models factory and Runnable
 
 """
 
+from abc import ABC, abstractmethod
 import os
 from functools import cache
+from typing import cast
 
 from pydantic import BaseModel
 from langchain.schema.language_model import BaseLanguageModel
 from langchain_core.runnables import Runnable, ConfigurableField
 
-from langchain_experimental.chat_models.llm_wrapper import Llama2Chat, Mixtral
 from langchain_openai import ChatOpenAI
 from langchain.cache import InMemoryCache, SQLiteCache
 from langchain.globals import set_llm_cache
@@ -20,55 +21,79 @@ from langchain_community.llms.edenai import EdenAI
 from langchain_groq import ChatGroq
 
 from langchain_core.runnables import (
-    RunnablePassthrough,
-    chain,
-    RunnableParallel,
     RunnableLambda,
 )
 
-# from langchain_community.chat_models.litellm import ChatLiteLLM
-# from langchain_community.chat_models.litellm import ChatLiteLLM
+from langchain_community.chat_models.litellm import ChatLiteLLM
 from lunary import LunaryCallbackHandler
-from python.ai_utils.prompt_formatter import Llama3Format, OpenAIFormat
 from python.config import get_config
 
 
 MAX_TOKENS = 2048
 
-KNOWN_LLM = {
-    # Names should follow Python variables constraints - ie no '-', no space, etc
+
+class LLM_INFO(BaseModel):
+    id: str
+    litellm: str | None = None
+
+    def __hash__(self):
+        return hash(self.id)
+
+
+KNOWN_LLM_LIST = [
+    # LLM id should follow Python variables constraints - ie no '-', no space, etc
     # Use pattern "{self.model name}_{version}_{inference provider or library}"
-    "gpt_35_openai",
-    "gpt_35_edenai",
-    "llama2_70_deepinfra",
-    "llama2_70_groq",
-    "llama3_70_groq",
-    "mixtral_7x8_deepinfra",
-    "mixtral_7x8_groq",
-}
+    LLM_INFO(id="gpt_35_openai"),
+    LLM_INFO(id="gpt_35_edenai"),
+    LLM_INFO(
+        id="llama2_70_deepinfra", litellm="deepinfra/meta-llama/Llama-2-70b-chat-hf"
+    ),
+    LLM_INFO(id="llama3_70_groq", litellm="groq/llama3-70b-8192"),
+    LLM_INFO(id="mixtral_7x8_deepinfra"),
+    LLM_INFO(id="mixtral_7x8_groq", litellm="groq/mixtral-8x7b-32768"),
+]
+
+KNOWN_LLM_TABLE = {llm.id: llm for llm in KNOWN_LLM_LIST}
+KNOWN_LLM = KNOWN_LLM_TABLE.keys()
 
 
 class LlmFactory(BaseModel):
-    model: str | None = None
+    llm_id: str | None = None
     temperature: float = 0
     max_tokens: int = MAX_TOKENS
     json_mode: bool = False
 
-    def get(self, model: str | None = None) -> BaseLanguageModel:
+    def get(self, llm_id: str | None = None) -> BaseLanguageModel:
         """
-        Create an LLM self.model.
-        'model' is our internal name for the model and its provider. If None, take the default one
+        Create an LLM model.
+        'model' is our internal name for the model and its provider. If None, take the default one.
+        We select a LiteLLM wrapper if it's defined in the KNOWN_LLM_LIST table, otherwier
+        we create the LLM from a LangChain LLM class
         """
 
-        if model is None:
-            model = self.model
-        if self.model is None:
-            model = get_config("llm", "default_model")
-        self.model = model
+        if llm_id is None:
+            llm_id = self.llm_id
+        if self.llm_id is None:
+            llm_id = get_config("llm", "default_model")
+        self.llm_id = llm_id
+        assert self.llm_id
 
-        assert self.model
+        llm_info = KNOWN_LLM_TABLE.get(self.llm_id)
 
-        if self.model == "gpt_35_openai":
+        if not llm_info:
+            raise ValueError(f"Unknown LLM : {llm_id}")
+        if llm_info.litellm:
+            llm = ChatLiteLLM(model=llm_info.litellm, client=None)
+        else:
+            llm = self.custom_model_factory()
+        return llm
+
+    def custom_model_factory(self) -> BaseLanguageModel:
+        """
+        Create an LLM model using LangChain provided modules.
+        """
+
+        if self.llm_id == "gpt_35_openai":
             llm = ChatOpenAI(
                 model="gpt-3.5-turbo-0125",
                 temperature=self.temperature,
@@ -76,7 +101,7 @@ class LlmFactory(BaseModel):
                 model_kwargs={"seed": 42},  # Not sure that works
             )
 
-        elif self.model == "llama2_70_deepinfra":
+        elif self.llm_id == "llama2_70_deepinfra":
             llm = DeepInfra(
                 model_id="meta-llama/Llama-2-70b-chat-hf",
                 model_kwargs={
@@ -87,7 +112,7 @@ class LlmFactory(BaseModel):
                 },
             )
 
-        elif self.model == "mixtral_7x8_deepinfra":
+        elif self.llm_id == "mixtral_7x8_deepinfra":
             llm = DeepInfra(
                 model_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
                 model_kwargs={
@@ -97,7 +122,7 @@ class LlmFactory(BaseModel):
                     "stop": ["STOP_TOKEN"],
                 },
             )
-        elif self.model == "mixtral_7x8_deepinfra_oai":
+        elif self.llm_id == "mixtral_7x8_deepinfra_oai":
             key = os.getenv("DEEPINFRA_API_TOKEN")
             assert key, "No DEEPINFRA_API_TOKEN key found"
             llm = ChatOpenAI(
@@ -109,28 +134,25 @@ class LlmFactory(BaseModel):
                 model_kwargs={"seed": 42},  # Not sure that works
             )
 
-        elif self.model == "llama2_70_groq":
+        elif self.llm_id == "llama2_70_groq":
             llm = ChatGroq(
                 model="lLama2-70b-4096",
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
             )
-        elif self.model == "llama3_70_groq":
+        elif self.llm_id == "llama3_70_groq":
             llm = ChatGroq(
                 model="lLama3-70b-8192",
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
             )
-        elif self.model == "mixtral_7x8_groq":
+        elif self.llm_id == "mixtral_7x8_groq":
             llm = ChatGroq(
                 model="Mixtral-8x7b-32768",
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
             )
-        elif self.model == "mixtral_7x8_groq_lite":
-            llm = ChatLiteLLM(model="groq/mixtral-8x7b-32768", client=None)
-
-        elif self.model == "gpt_35_edenai":
+        elif self.llm_id == "gpt_35_edenai":
             llm = EdenAI(
                 feature="text",
                 provider="openai",
@@ -140,51 +162,53 @@ class LlmFactory(BaseModel):
             )
 
         else:
-            raise ValueError(f"unsupported LLM: '{self.model}'")
+            raise ValueError(f"unsupported LLM: '{self.llm_id}'")
 
         if self.json_mode:  # NOT TESTED
             # see also https://api.python.langchain.com/en/latest/chains/langchain.chains.structured_output.base.create_structured_output_runnable.html
 
             if isinstance(llm, ChatOpenAI) or isinstance(llm, ChatGroq):
-                llm = llm.bind(response_format={"type": "json_object"})
+                llm = cast(
+                    BaseLanguageModel, llm.bind(response_format={"type": "json_object"})
+                )
             else:
                 raise ValueError(f"json_mode  not supported for {type(llm)}")
 
         return llm
 
-    def get_dynamic(self) -> Runnable:
-        """
-        Define a configurable LLM runnable
+    def get_dynamic(self) -> BaseLanguageModel:
+        #
+        # see https://python.langchain.com/docs/expression_language/primitives/configure/#with-llms-1
 
-        https://python.langchain.com/docs/expression_language/primitives/configure/#with-llms-1
-        """
-        default = get_config("llm", "default_model")
-        alternatives = {llm: self.get(model=llm) for llm in KNOWN_LLM if llm != default}
+        default_llm_id = self.llm_id
+        if default_llm_id is None:
+            default_llm_id = get_config("llm", "default_model")
+        alternatives = {
+            llm: self.get(llm_id=llm) for llm in KNOWN_LLM if llm != default_llm_id
+        }
         selected_llm = (
-            self.get()  # select default LLM
+            self.get(default_llm_id)  # select default LLM
             .with_fallbacks(
-                [LlmFactory(model="gpt_35_openai").get()]
+                [self.get(llm_id="llama3_70_groq")]
             )  # To be changed, and set temperature etc
             .configurable_alternatives(
                 ConfigurableField(id="llm"),
-                default_key=default,
+                default_key=default_llm_id,
                 prefix_keys=False,
                 **alternatives,
             )
         )
-
         return selected_llm
 
-    def get_dynamic_formatted(self) -> Runnable:
-        if self.model is None:
-            self.model = get_config("llm", "default_model")
-        dev_debug(self.model)
-        if self.model.startswith("llama3"):
-            return self.get_dynamic() | RunnableLambda(
-                lambda x: Llama3Format().to_chat_prompt(x)
-            )
-        else:
-            return self.get_dynamic()
+    # def get_dynamic_formatted(self) -> Runnable:
+    #     if self.llm_id is None:
+    #         self.llm_id = get_config("llm", "default_model")
+    #     if self.llm_id.startswith("llama3"):
+    #         return self.get_dynamic() | RunnableLambda(
+    #             lambda x: Llama3Format().to_chat_prompt(x)
+    #         )
+    #     else:
+    #         return self.get_dynamic()
 
 
 @cache

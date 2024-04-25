@@ -45,7 +45,7 @@ tools = [multiply, exponentiate, add]
 
 
 def create_runnable(config: dict) -> Runnable:
-    llm = LlmFactory().get()
+    llm = LlmFactory()._get()
     return llm.bind_tools(tools)  # type: ignore
 
 

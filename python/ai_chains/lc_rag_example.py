@@ -55,7 +55,7 @@ def format_docs(docs):
 rag_chain = (
     {"context": retriever() | format_docs, "question": RunnablePassthrough()}
     | prompt
-    | LlmFactory()  .get_dynamic()
+    | LlmFactory()
     | StrOutputParser()
 )
 

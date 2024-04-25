@@ -36,7 +36,7 @@ def embeddings_factory(embeddings_model: str | None = None) -> Embeddings:
             cache = get_config("embeddings", "cache")
 
             return HuggingFaceEmbeddings(
-                model_name=embeddings_model,
+                llm_name=embeddings_model,
                 model_kwargs={"device": "cpu"},
                 cache_folder=cache,
             )

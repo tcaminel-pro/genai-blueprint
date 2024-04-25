@@ -16,3 +16,4 @@ if not sys.argv[0].endswith("pytest"):
         pass
     else:
         setattr(builtins, "dev_debug", dev_debug)
+        dev_debug("dev_debug loaded")
