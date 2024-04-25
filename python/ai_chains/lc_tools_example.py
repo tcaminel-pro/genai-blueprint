@@ -13,8 +13,10 @@ from python.ai_core.chain_registry import (
     register_runnable,
     to_key_param_callable,
 )
-from python.ai_core.llm import llm_factory
-from devtools import debug  # ignore
+
+from devtools import debug
+
+from python.ai_core.llm import LlmFactory  # ignore
 
 
 @tool
@@ -43,7 +45,7 @@ tools = [multiply, exponentiate, add]
 
 
 def create_runnable(config: dict) -> Runnable:
-    llm = llm_factory(config["llm"])
+    llm = LlmFactory().get()
     return llm.bind_tools(tools)  # type: ignore
 
 

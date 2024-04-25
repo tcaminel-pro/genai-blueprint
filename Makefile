@@ -37,7 +37,7 @@ save:  # Create a zipped version of the image
 	docker save $(PROJECT):$(IMAGE_VERSION)| gzip > /tmp/$(PROJECT)_$(IMAGE_VERSION).tar.gz
 
 update:  # Update selected fast changing dependencies
-	poetry add 	langchain@latest langchain-experimental@latest  langchain-community@latest langgraph@latest langchainhub@latest \
+	poetry add 	langchain@latest langchain-experimental@latest  langchain-core@latest  langchain-community@latest langgraph@latest langchainhub@latest \
 				lunary@latest loguru@latest devtools@latest  langchain-groq@latest  
 
 #langchain-openai@latest

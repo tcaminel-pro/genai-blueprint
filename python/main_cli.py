@@ -7,6 +7,7 @@ Entry point for the Command Line Interface
 import importlib
 import json
 import typer
+import pprint
 from typing import Callable
 from langchain_core.runnables import Runnable
 from langchain.globals import set_debug, set_verbose
@@ -14,6 +15,7 @@ from langchain.globals import set_debug, set_verbose
 from python.ai_core.chain_registry import find_runnable, get_runnable_registry
 from python.ai_core.llm import set_cache
 from python.config import get_config
+from devtools import debug, pprint
 
 
 # Import modules where runnables are registered
@@ -58,14 +60,13 @@ def run(
             input = runnable_desc.examples[0]
 
         result = runnable_desc.invoke(input, {"llm": llm})
-        print(result)
+        pprint(result)
     else:
         print(f"Runnable not found: '{name}'. Should be in: {runnables_list_str}")
 
 
 @cli_app.command()
 def chain_info(name: str):
-    import pprint
 
     runnable_desc = find_runnable(name)
     if runnable_desc:
@@ -82,7 +83,7 @@ def chain_info(name: str):
             print("output type:", runnable.OutputType)
             print("input schema: ", runnable.input_schema().schema())
             print("output schema: ")
-            pprint.pprint(runnable.output_schema().schema(), compact=True, width=120)
+            pprint(runnable.output_schema().schema())
         except:
             pass
 

@@ -26,7 +26,8 @@
         "selectbox",
         "streamlit",
         "typer",
-        "vectorstore"
+        "vectorstore",
+        "vectorstores"
     ]
 }
 

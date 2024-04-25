@@ -16,9 +16,9 @@ from devtools import debug
 
 
 from python.ai_core.chain_registry import RunnableItem, register_runnable
+from python.ai_core.llm import LlmFactory
 from python.config import get_config
 from python.ai_core.embeddings import embeddings_factory
-from python.ai_core.llm import llm_getter
 from python.ai_core.vector_store import vector_store_factory
 
 
@@ -55,7 +55,7 @@ def format_docs(docs):
 rag_chain = (
     {"context": retriever() | format_docs, "question": RunnablePassthrough()}
     | prompt
-    | llm_getter()
+    | LlmFactory()  .get_dynamic()
     | StrOutputParser()
 )
 

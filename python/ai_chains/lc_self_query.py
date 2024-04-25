@@ -24,7 +24,7 @@ from python.ai_core.chain_registry import (
     register_runnable,
     to_key_param_callable,
 )
-from python.ai_core.llm import llm_factory
+from python.ai_core.llm import LlmFactory
 from python.ai_core.vector_store import vector_store_factory
 
 docs = [
@@ -99,8 +99,9 @@ def get_query_constructor(config: dict):
     # debug(prompt.format(query="dummy question"))
 
     output_parser = StructuredQueryOutputParser.from_components()
+
     model = config["llm"]
-    llm = llm_factory(model)
+    llm = LlmFactory(model=model).get_dynamic_formatted()
     query_constructor = prompt | llm | output_parser
     return query_constructor
 

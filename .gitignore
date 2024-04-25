@@ -163,3 +163,4 @@ cython_debug/
 #.idea/
 .langchain.db
 .langchain.db
+.langchain.db
