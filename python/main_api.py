@@ -6,8 +6,9 @@ Copyright (C) 2024 Eviden. All rights reserved
 
 import sys
 from pathlib import Path
-from fastapi import FastAPI
+
 from devtools import debug  # type: ignore
+from fastapi import FastAPI
 from loguru import logger  # type: ignore
 
 # fmt: off

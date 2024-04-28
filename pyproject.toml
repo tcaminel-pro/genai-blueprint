@@ -2,7 +2,7 @@
 name = "genai-training"
 version = "0.1.0"
 description = ""
-authors = ["thierry-caminel-atos <thierry.caminel@eviden.com>"]
+authors = ["Thierry Caminel <thierry.caminel@eviden.com>"]
 readme = "README.md"
 #packages = [{include = "genai-training"}]
 
@@ -42,17 +42,22 @@ langgraph = "^0.0.39"
 tiktoken = "^0.5.2"
 tavily-python = "^0.3.3"
 pygraphviz = "^1.12"
-litellm = "^1.35.26"
+litellm = "^1.35.31"
 langchain = "^0.1.16"
 
 
-[tool.poetry.group.dev.dependencies]
-black = "^23.3.0"
-ipykernel = "^6.27.1"
 
-[tool.poetry.group.test.dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
+isort = "^5.13.2"
+ruff = "^0.0.94"
+black = "24.3.0"
+ipykernel = "^6.29.4"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.isort]
+profile = "black"

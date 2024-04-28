@@ -4,26 +4,20 @@
 Copyright (C) 2023 Eviden. All rights reserved
 """
 
+from textwrap import dedent
+from typing import Optional
 
 from devtools import debug
-from textwrap import dedent
-
-from langchain_experimental.tools.python.tool import PythonAstREPLTool
-
-from typing import Optional
-
+from langchain.agents.agent_types import AgentType
 from langchain.callbacks.manager import CallbackManagerForToolRun
 from langchain.tools import BaseTool
-from typing import Optional
-from langchain.agents.agent_types import AgentType
-from langchain.tools import BaseTool
-from langchain_experimental.agents.agent_toolkits import create_python_agent
-from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
-
-
+from langchain_experimental.agents.agent_toolkits import (
+    create_pandas_dataframe_agent,
+    create_python_agent,
+)
+from langchain_experimental.tools.python.tool import PythonAstREPLTool
 
 from python.GenAI_Training import app_conf
-
 
 PREFIX = """
     You are an agent designed to write and execute python code to generate a diagram using streamlit and matplotlib.

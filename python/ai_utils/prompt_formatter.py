@@ -8,29 +8,24 @@ but without the burden to create a new LLM
 
 from textwrap import dedent
 from typing import List, Optional, cast
-from langchain_core.prompts import ChatPromptTemplate, BasePromptTemplate
+
+from devtools import debug
+from langchain.schema import BaseMessage, HumanMessage, SystemMessage
+from langchain_core.messages.base import BaseMessage
 from langchain_core.prompts import (
-    PromptTemplate,
+    BasePromptTemplate,
+    ChatPromptTemplate,
     HumanMessagePromptTemplate,
+    PromptTemplate,
     SystemMessagePromptTemplate,
 )
-
-from langchain.schema import (
-    BaseMessage,
-    HumanMessage,
-    SystemMessage,
-)
-from langchain_core.messages.base import BaseMessage
 from loguru import logger
 from pydantic import BaseModel
-from devtools import debug
-
 
 DEFAULT_SYSTEM_PROMPT = ""
 
 
 class PromptFormatter(BaseModel):
-
     system_message: SystemMessage = SystemMessage(content=DEFAULT_SYSTEM_PROMPT)
 
     text_beg: str = ""
@@ -48,7 +43,6 @@ class PromptFormatter(BaseModel):
         self,
         input_prompt: ChatPromptTemplate,
     ) -> BasePromptTemplate:
-
         if not isinstance(input_prompt, ChatPromptTemplate):
             logger.warning(
                 f"ignore formatting of message of type : {type(input_prompt)}"

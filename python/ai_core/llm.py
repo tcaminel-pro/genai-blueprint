@@ -3,31 +3,23 @@ LLM self.models factory and Runnable
 
 """
 
-from abc import ABC, abstractmethod
 import os
 from functools import cache
 from typing import cast
 
-from pydantic import BaseModel
-from langchain.schema.language_model import BaseLanguageModel
-from langchain_core.runnables import Runnable, ConfigurableField
-
-from langchain_openai import ChatOpenAI
 from langchain.cache import InMemoryCache, SQLiteCache
 from langchain.globals import set_llm_cache
-
+from langchain.schema.language_model import BaseLanguageModel
+from langchain_community.chat_models.litellm import ChatLiteLLM
 from langchain_community.llms.deepinfra import DeepInfra
 from langchain_community.llms.edenai import EdenAI
+from langchain_core.runnables import ConfigurableField, Runnable
 from langchain_groq import ChatGroq
-
-from langchain_core.runnables import (
-    RunnableLambda,
-)
-
-from langchain_community.chat_models.litellm import ChatLiteLLM
+from langchain_openai import ChatOpenAI
 from lunary import LunaryCallbackHandler
-from python.config import get_config
+from pydantic import BaseModel
 
+from python.config import get_config
 
 MAX_TOKENS = 2048
 
@@ -44,6 +36,7 @@ KNOWN_LLM_LIST = [
     # LLM id should follow Python variables constraints - ie no '-', no space, etc
     # Use pattern "{self.model name}_{version}_{inference provider or library}"
     LLM_INFO(id="gpt_35_openai"),
+    LLM_INFO(id="gpt_35_openai_lite", litellm="gpt-3.5-turbo"),
     LLM_INFO(id="gpt_35_edenai"),
     LLM_INFO(
         id="llama2_70_deepinfra", litellm="deepinfra/meta-llama/Llama-2-70b-chat-hf"
@@ -67,7 +60,7 @@ class LlmFactory(BaseModel):
         """
         Create an LLM model.
         'model' is our internal name for the model and its provider. If None, take the default one.
-        We select a LiteLLM wrapper if it's defined in the KNOWN_LLM_LIST table, otherwier
+        We select a LiteLLM wrapper if it's defined in the KNOWN_LLM_LIST table, otherwise
         we create the LLM from a LangChain LLM class
         """
 
@@ -176,7 +169,7 @@ class LlmFactory(BaseModel):
 
         return llm
 
-    def get_dynamic(self) -> BaseLanguageModel:
+    def get_configurable(self, with_fallback=False) -> Runnable:
         #
         # see https://python.langchain.com/docs/expression_language/primitives/configure/#with-llms-1
 
@@ -186,18 +179,19 @@ class LlmFactory(BaseModel):
         alternatives = {
             llm: self.get(llm_id=llm) for llm in KNOWN_LLM if llm != default_llm_id
         }
-        selected_llm = (
-            self.get(default_llm_id)  # select default LLM
-            .with_fallbacks(
-                [self.get(llm_id="llama3_70_groq")]
-            )  # To be changed, and set temperature etc
-            .configurable_alternatives(
-                ConfigurableField(id="llm"),
-                default_key=default_llm_id,
-                prefix_keys=False,
-                **alternatives,
-            )
+        selected_llm = self.get(
+            default_llm_id
+        ).configurable_alternatives(  # select default LLM
+            ConfigurableField(id="llm"),
+            default_key=default_llm_id,
+            prefix_keys=False,
+            **alternatives,
         )
+        if with_fallback:
+            # Not tested
+            selected_llm = selected_llm.with_fallbacks(
+                [self.get(llm_id="llama3_70_groq")]
+            )
         return selected_llm
 
     # def get_dynamic_formatted(self) -> Runnable:

@@ -1,11 +1,11 @@
-from pathlib import Path
-import numpy as np
-from functools import cache
-from loguru import logger
-import pandas as pd
 from datetime import datetime, timedelta
-import sqlalchemy
+from functools import cache
+from pathlib import Path
 
+import numpy as np
+import pandas as pd
+import sqlalchemy
+from loguru import logger
 
 TABLE_NAME = "maintenance_planning"
 DATA_PATH = Path.cwd() / "data"

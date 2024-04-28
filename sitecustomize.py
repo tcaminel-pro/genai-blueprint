@@ -1,5 +1,5 @@
 # taken from https://python-devtools.helpmanual.io/usage/#manual-install
-
+# Not sure it  works :(
 
 import sys
 
@@ -16,4 +16,4 @@ if not sys.argv[0].endswith("pytest"):
         pass
     else:
         setattr(builtins, "dev_debug", dev_debug)
-        dev_debug("dev_debug loaded")
+        # dev_debug("dev_debug loaded")

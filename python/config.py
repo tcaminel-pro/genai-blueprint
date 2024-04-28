@@ -3,13 +3,14 @@ Read the TOML configuration file
 
 """
 
-from functools import cache
 import os
-from pathlib import Path
 import re
-from typing import Any
-import yaml
 from collections import defaultdict
+from functools import cache
+from pathlib import Path
+from typing import Any
+
+import yaml
 
 CONFIG_FILE = "app_conf.yaml"
 

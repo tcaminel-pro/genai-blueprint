@@ -26,6 +26,8 @@
         "pydantic",
         "selectbox",
         "streamlit",
+        "tavily",
+        "tiktoken",
         "typer",
         "vectorstore",
         "vectorstores"

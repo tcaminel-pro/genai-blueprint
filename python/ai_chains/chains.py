@@ -5,16 +5,16 @@ Copyright (C) 2024 Eviden. All rights reserved
 """
 
 import json
-from pathlib import Path
-
-from typing import List, Optional
-from pydantic import BaseModel
-from devtools import debug
-from langchain_core.prompts import ChatPromptTemplate
-
 
 # fmt: off
 import sys
+from pathlib import Path
+from typing import List, Optional
+
+from devtools import debug
+from langchain_core.prompts import ChatPromptTemplate
+from pydantic import BaseModel
+
 [sys.path.append(str(path)) for path in [Path.cwd(), Path.cwd().parent, Path.cwd().parent/"python"] if str(path) not in sys.path]  # type: ignore # fmt: on
 
 from python.ai.llm import get_llm

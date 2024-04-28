@@ -1,27 +1,16 @@
 # Adapted from https://github.com/definitive-io/crewai-groq/tree/main
 
-import sys
 from pathlib import Path
 
-# fmt: off
-#[sys.path.append(str(path)) for path in [Path.cwd(), Path.cwd().parent, Path.cwd().parent/"python"] if str(path) not in sys.path]  # type: ignore  # fmt: on
-
-
-import streamlit as st
 import pandas as pd
-import os
-from crewai import Agent, Task, Crew
-from langchain_groq import ChatGroq
+import streamlit as st
+from crewai import Agent, Crew, Task
 
-from python.ai_core.llm import llm_factory
-from python.config import get_config
+from python.ai_core.llm import LlmFactory
 
 
 def main():
-
-    model = get_config("llm", "default_model")
-    model = "mixtral_7x8_groq"
-    llm = llm_factory(model)
+    llm = LlmFactory(llm_id="mixtral_7x8_groq").get()
 
     # Streamlit UI
     st.title("CrewAI Machine Learning Assistant")
@@ -120,7 +109,6 @@ def main():
             st.error(f"Error reading the file: {e}")
 
     if user_question:
-
         task_define_problem = Task(
             description="""Clarify and define the machine learning problem, 
             including identifying the problem type and specific requirements.

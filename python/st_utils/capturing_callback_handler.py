@@ -6,7 +6,6 @@ Taken from an example.
 Copyright (C) 2023 Eviden. All rights reserved
 """
 
-
 from __future__ import annotations
 
 import pickle

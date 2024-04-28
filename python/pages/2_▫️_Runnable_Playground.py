@@ -1,9 +1,9 @@
 import importlib
-from typing import Callable
+
 import streamlit as st
+
 from python.ai_core.chain_registry import find_runnable, get_runnable_registry
 from python.config import get_config
-
 
 st.title("💬 Runnable playground")
 

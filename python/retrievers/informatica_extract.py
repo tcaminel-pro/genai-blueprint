@@ -1,11 +1,10 @@
 from pathlib import Path
-from pathlib import Path
 from typing import Tuple
+
+import graphviz
 import xmltodict
 from devtools import debug
-import graphviz
 from loguru import logger
-
 
 INDENT = 4 * " "
 
@@ -15,7 +14,6 @@ def get_value_by_name(name: str, table_att: dict) -> str | None:
 
 
 def extract_from_xml(input_file: Path):
-
     with open(input_file, "r") as f:
         xml = f.read()
     dxml = xmltodict.parse(xml)  # TODO: Maybe set force_list to True ?

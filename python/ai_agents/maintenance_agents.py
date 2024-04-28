@@ -4,53 +4,45 @@ LLM Augmented Autonomous Agent for Maintenance
 Copyright (C) 2023 Eviden. All rights reserved
 """
 
-
 import ast
 import re
 from datetime import datetime
 from functools import cached_property
-from typing import Any, Literal, Tuple, Union
 from textwrap import dedent
-from devtools import debug
-from loguru import logger
+from typing import Any, Literal, Tuple, Union
+
 import pandas as pd
-from datetime import datetime
-from pydantic import BaseModel, Field
-
-
-from langchain.agents import (
-    AgentType,
-    initialize_agent,
-    AgentExecutor,
-    create_sql_agent,
-)
-from langchain.tools import Tool, tool, BaseTool
-from langchain_community.agent_toolkits import SQLDatabaseToolkit
-from langchain.tools.retriever import create_retriever_tool
-from langchain.agents import (
-    AgentExecutor,
-    create_structured_chat_agent,
-    create_openai_tools_agent,
-)
-from langchain import hub
-from langchain.embeddings.base import Embeddings
-from langchain.callbacks.base import BaseCallbackHandler
-from langchain.sql_database import SQLDatabase
-from langchain.vectorstores.chroma import Chroma
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.schema.language_model import BaseLanguageModel
-from langchain.chains import RetrievalQA
-from langchain.schema import Document
-from langchain_core.runnables import RunnableConfig
-from langchain.utilities.sql_database import truncate_word
-
-from langchain.agents.agent_toolkits import (
-    create_vectorstore_agent,
-    VectorStoreToolkit,
-    VectorStoreInfo,
-)
-
 import streamlit as st
+from devtools import debug
+from langchain import hub
+from langchain.agents import (
+    AgentExecutor,
+    AgentType,
+    create_openai_tools_agent,
+    create_sql_agent,
+    create_structured_chat_agent,
+    initialize_agent,
+)
+from langchain.agents.agent_toolkits import (
+    VectorStoreInfo,
+    VectorStoreToolkit,
+    create_vectorstore_agent,
+)
+from langchain.callbacks.base import BaseCallbackHandler
+from langchain.chains import RetrievalQA
+from langchain.embeddings.base import Embeddings
+from langchain.schema import Document
+from langchain.schema.language_model import BaseLanguageModel
+from langchain.sql_database import SQLDatabase
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.tools import BaseTool, Tool, tool
+from langchain.tools.retriever import create_retriever_tool
+from langchain.utilities.sql_database import truncate_word
+from langchain.vectorstores.chroma import Chroma
+from langchain_community.agent_toolkits import SQLDatabaseToolkit
+from langchain_core.runnables import RunnableConfig
+from loguru import logger
+from pydantic import BaseModel, Field
 
 from python.core.dummy_data import DATA_PATH, dummy_database
 from python.GenAI_Training import app_conf, llm_agent_test

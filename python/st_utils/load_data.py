@@ -2,9 +2,8 @@ import os
 from io import BytesIO
 from pathlib import Path
 
-import streamlit as st
 import pandas as pd
-
+import streamlit as st
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from python.core.dummy_data import DATA_PATH

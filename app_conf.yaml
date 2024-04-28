@@ -31,6 +31,7 @@ embeddings:
 vector_store:
   default: Chroma
   path: /home/tcl/chromadb
+  default_collection: "training_session"
 documents:
   base: ${HOME}/prj/genai-training/use_case_data
 

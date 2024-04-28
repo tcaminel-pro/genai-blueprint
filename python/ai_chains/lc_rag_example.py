@@ -2,25 +2,24 @@
 # Taken from
 
 
-from functools import cache
 import sys
+from functools import cache
 from pathlib import Path
+
+from devtools import debug
 from langchain import hub
+from langchain_community.document_loaders.directory import DirectoryLoader
+from langchain_community.document_loaders.text import TextLoader
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders.text import TextLoader
-from langchain_community.document_loaders.directory import DirectoryLoader
 from loguru import logger
-from devtools import debug
-
 
 from python.ai_core.chain_registry import RunnableItem, register_runnable
-from python.ai_core.llm import LlmFactory
-from python.config import get_config
 from python.ai_core.embeddings import embeddings_factory
+from python.ai_core.llm import LlmFactory
 from python.ai_core.vector_store import vector_store_factory
-
+from python.config import get_config
 
 base_dir = Path(get_config("documents", "base"))
 assert base_dir.exists()
@@ -55,7 +54,7 @@ def format_docs(docs):
 rag_chain = (
     {"context": retriever() | format_docs, "question": RunnablePassthrough()}
     | prompt
-    | LlmFactory()
+    | LlmFactory().get_configurable()
     | StrOutputParser()
 )
 

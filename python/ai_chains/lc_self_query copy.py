@@ -3,21 +3,18 @@
 # See also https://blog.langchain.dev/query-construction/
 
 from functools import cache
-from langchain.retrievers.self_query.chroma import ChromaTranslator
-from langchain.vectorstores.base import VectorStore
 
-from langchain_core.documents import Document
-
+from devtools import debug  # ignore
 from langchain.chains.query_constructor.base import (
     StructuredQueryOutputParser,
     get_query_constructor_prompt,
 )
-
 from langchain.chains.query_constructor.schema import AttributeInfo
 from langchain.retrievers.self_query.base import SelfQueryRetriever
+from langchain.retrievers.self_query.chroma import ChromaTranslator
+from langchain.vectorstores.base import VectorStore
+from langchain_core.documents import Document
 from langchain_openai import ChatOpenAI
-
-from devtools import debug  # ignore
 
 from python.ai_core.chain_registry import (
     RunnableItem,

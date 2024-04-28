@@ -1,7 +1,8 @@
 from typing import Any, Callable
-from pydantic import BaseModel
-from langchain_core.runnables import Runnable, RunnableLambda
+
 from devtools import debug  # ignore
+from langchain_core.runnables import Runnable, RunnableLambda
+from pydantic import BaseModel
 
 
 class RunnableItem(BaseModel):

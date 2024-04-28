@@ -6,17 +6,17 @@ Entry point for the Command Line Interface
 
 import importlib
 import json
-import typer
 import pprint
 from typing import Callable
-from langchain_core.runnables import Runnable
+
+import typer
+from devtools import debug, pprint
 from langchain.globals import set_debug, set_verbose
+from langchain_core.runnables import Runnable
 
 from python.ai_core.chain_registry import find_runnable, get_runnable_registry
 from python.ai_core.llm import set_cache
 from python.config import get_config
-from devtools import debug, pprint
-
 
 # Import modules where runnables are registered
 RUNNABLES = {"lc_rag_example", "lc_tools_example", "lc_self_query"}
@@ -67,7 +67,6 @@ def run(
 
 @cli_app.command()
 def chain_info(name: str):
-
     runnable_desc = find_runnable(name)
     if runnable_desc:
         r = runnable_desc.runnable

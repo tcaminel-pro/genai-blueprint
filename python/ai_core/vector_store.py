@@ -6,18 +6,17 @@
 from functools import cache
 from pathlib import Path
 
-
-from langchain.vectorstores.base import VectorStore
 from langchain.embeddings.base import Embeddings
+from langchain.vectorstores.base import VectorStore
 from langchain_community.vectorstores import Chroma
-
-# from langchain_chroma import Chroma  does not work (yet?) with self_query
 
 from python.ai_core.embeddings import embeddings_factory
 from python.config import get_config
 
+# from langchain_chroma import Chroma  does not work (yet?) with self_query
 
-DEFAULT_COLLECTION = "Training_collection"
+
+default_collection = get_config("vector_store", "default_collection")
 
 
 def get_vector_vector_store_path() -> str:
@@ -33,7 +32,7 @@ def get_vector_vector_store_path() -> str:
 def vector_store_factory(
     name: str | None = None,
     embeddings: Embeddings | None = None,
-    collection_name: str = DEFAULT_COLLECTION,
+    collection_name: str = default_collection,
 ) -> VectorStore:
     """
     Factory for the vector database

@@ -4,20 +4,18 @@ Demo of an LLM Augmented Autonomous Agent for Maintenance
 Copyright (C) 2023 Eviden. All rights reserved
 """
 
-from datetime import datetime
-import sys
 import os
+import sys
+from datetime import datetime
 from pathlib import Path
 from textwrap import dedent
 from typing import Any, Dict, List, Optional
 
-from devtools import debug
-from loguru import logger
-import streamlit as st
 import pandas as pd
 import streamlit as st
+from devtools import debug
 from langchain_community.callbacks import StreamlitCallbackHandler
-
+from loguru import logger
 
 # fmt: off
 [sys.path.append(str(path)) for path in [Path.cwd(), Path.cwd().parent, Path.cwd().parent/"python"] if str(path) not in sys.path]  # type: ignore # fmt: on
@@ -35,11 +33,11 @@ from langchain_community.callbacks import StreamlitCallbackHandler
 #         )
 
 
-from python.st_utils.clear_result import with_clear_container
-from python.core.maintenance_agents import MaintenanceAgent, PROCEDURES
-from python.GenAI_Training import logo, app_conf, config_sidebar
-from python.core.dummy_data import DATA_PATH, dummy_database
 from python.core.coder_agents import DiagramGeneratorTool
+from python.core.dummy_data import DATA_PATH, dummy_database
+from python.core.maintenance_agents import PROCEDURES, MaintenanceAgent
+from python.GenAI_Training import app_conf, config_sidebar, logo
+from python.st_utils.clear_result import with_clear_container
 
 # fmt:off
 
