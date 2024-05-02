@@ -2,68 +2,87 @@
 https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_rag_agent_llama3_local.ipynb
 """
 
+from pprint import pprint
 from typing import List
 
 from devtools import debug
 from langchain import hub
-from langchain.schema import Document
 from langchain.prompts import ChatPromptTemplate, PromptTemplate
-from langgraph.graph import END, StateGraph
+from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
+from langchain_core.runnables import Runnable
+from langgraph.graph import END, StateGraph
+from loguru import logger
 from typing_extensions import TypedDict
 
 from python.ai_core.embeddings import embeddings_factory
 from python.ai_core.llm import LlmFactory
-from python.ai_core.vector_store import vector_store_factory
+from python.ai_core.vector_store import document_count, vector_store_factory
 
-MODEL ="llama3_70_groq"
-llm= LlmFactory(llm_id=MODEL, json_mode=True).get()
-llm_json= LlmFactory(llm_id=MODEL, json_mode=False).get()
+MODEL = "llama3_70_groq"
+llm = LlmFactory(llm_id=MODEL, json_mode=True, cache=True).get()
+llm_json = LlmFactory(llm_id=MODEL, json_mode=False, cache=True).get()
 
-def retriever() : 
+
+def retriever():
     urls = [
         "https://lilianweng.github.io/posts/2023-06-23-agent/",
         "https://lilianweng.github.io/posts/2023-03-15-prompt-engineering/",
         "https://lilianweng.github.io/posts/2023-10-25-adv-attack-llm/",
     ]
 
-    docs = [WebBaseLoader(url).load() for url in urls]
-    docs_list = [item for sublist in docs for item in sublist]
-    text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-        chunk_size=250, chunk_overlap=0
+    vectorstore = vector_store_factory(
+        name="Chroma", embeddings=embeddings_factory(), collection_name="rag-chroma"
     )
-    doc_splits = text_splitter.split_documents(docs_list)
 
-    # Add to vectorDB
-    vectorstore = vector_store_factory(name = "Chroma", embeddings=embeddings_factory(), collection_name="rag-chroma")                                     
-    vectorstore.add_documents(doc_splits)
+    if document_count(vectorstore) == 0:
+        logger.info("indexing documents...")
+
+        docs = [WebBaseLoader(url).load() for url in urls]
+        docs_list = [item for sublist in docs for item in sublist]
+        text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+            chunk_size=250, chunk_overlap=0
+        )
+        doc_splits = text_splitter.split_documents(docs_list)
+
+        # Add to vectorDB
+
+        vectorstore.add_documents(doc_splits)
     retriever = vectorstore.as_retriever()
     return retriever
 
-def retrieval_grader (): 
-    ### Retrieval Grader 
+
+def retrieval_grader():
+    ### Retrieval Grader
     prompt = ChatPromptTemplate.from_messages(
-            [
-                ("system", """"
+        [
+            (
+                "system",
+                """"
                 You are a grader assessing relevance  of a retrieved document to a user question. 
                 If the document contains keywords related to the user question, grade it as relevant. 
                 It does not need to be a stringent test. The goal is to filter out erroneous retrievals. \n
                 Give a binary score 'yes' or 'no' score to indicate whether the document is relevant to the question. \n
-                Provide the binary score as a JSON with a single key 'score' and no preamble or explanation."""),
-                ("user", """ 
+                Provide the binary score as a JSON with a single key 'score' and no preamble or explanation.""",
+            ),
+            (
+                "user",
+                """ 
                 Here is the retrieved document: \n\n {document} \n\n
-                Here is the user question: {question} \n"""),
-            ],
-        )
+                Here is the user question: {question} \n""",
+            ),
+        ],
+    )
 
+    logger.debug("Retrieval Grader for question: '{question}'")
     retrieval_grader = prompt | llm | JsonOutputParser()
     return retrieval_grader
 
 
-def rag_chain() :
+def rag_chain():
     prompt = PromptTemplate(
         template="""
         You are an assistant for question-answering tasks. 
@@ -83,47 +102,62 @@ def rag_chain() :
     rag_chain = prompt | llm | StrOutputParser()
     return rag_chain
 
-def hallucination_grader() : 
+
+def hallucination_grader() -> Runnable:
     prompt = ChatPromptTemplate.from_messages(
-            [
-                ("system", """"
+        [
+            (
+                "system",
+                """"
                   You are a grader assessing whether an answer is grounded in / supported by a set of facts. 
                  Give a binary score 'yes' or 'no' score to indicate  whether the answer is grounded in / supported by a set of facts. 
-                 Provide the binary score as a JSON with a single key 'score' and no preamble or explanation."""),
-                 ("user", """
+                 Provide the binary score as a JSON with a single key 'score' and no preamble or explanation.""",
+            ),
+            (
+                "user",
+                """
                     Here are the facts:
                     \n ------- \n
                     {documents} 
                     \n ------- \n
                     Here is the answer: {generation}  
-                    """
-                  ) 
-            ]
-        input_variables=["generation", "documents"],
+                    """,
+            ),
+        ],
     )
 
     hallucination_grader = prompt | llm | JsonOutputParser()
     return hallucination_grader
 
-### Answer Grader 
+
+### Answer Grader
+
 
 def answer_grader():
     prompt = ChatPromptTemplate.from_messages(
-            [
-                ("system", """"
+        [
+            (
+                "system",
+                """"
                  You are a grader assessing whether an answer is useful to resolve a question. 
                  Give a binary score 'yes' or 'no' to indicate whether the answer is useful to resolve a question. 
-                 Provide the binary score as a JSON with a single key 'score' and no preamble or explanation."""),
-                 ("user", """
+                 Provide the binary score as a JSON with a single key 'score' and no preamble or explanation.""",
+            ),
+            (
+                "user",
+                """
                  Here is the answer:
                 \n ------- \n
                 {generation} 
                 \n ------- \n
-                Here is the question: {question} """)],
+                Here is the question: {question} """,
+            ),
+        ],
     )
 
-    answer_grader = prompt | llm_json| JsonOutputParser()
+    answer_grader = prompt | llm_json | JsonOutputParser()
     return answer_grader
+
 
 def question_router():
 
@@ -148,10 +182,11 @@ def question_router():
 web_search_tool = TavilySearchResults(k=3)
 
 
-#We'll implement these as a control flow in LangGraph.
+# We'll implement these as a control flow in LangGraph.
 
 
 ### State
+
 
 class GraphState(TypedDict):
     """
@@ -161,16 +196,17 @@ class GraphState(TypedDict):
         question: question
         generation: LLM generation
         web_search: whether to add search
-        documents: list of documents 
+        documents: list of documents
     """
-    question : str
-    generation : str
-    web_search : str
-    documents : List[str]
 
+    question: str
+    generation: str
+    web_search: str
+    documents: List[str]
 
 
 ### Nodes
+
 
 def retrieve(state):
     """
@@ -186,8 +222,9 @@ def retrieve(state):
     question = state["question"]
 
     # Retrieval
-    documents = retriever.invoke(question)
+    documents = retriever().invoke(question)
     return {"documents": documents, "question": question}
+
 
 def generate(state):
     """
@@ -202,10 +239,11 @@ def generate(state):
     print("---GENERATE---")
     question = state["question"]
     documents = state["documents"]
-    
+
     # RAG generation
-    generation = rag_chain.invoke({"context": documents, "question": question})
+    generation = rag_chain().invoke({"context": documents, "question": question})
     return {"documents": documents, "question": question, "generation": generation}
+
 
 def grade_documents(state):
     """
@@ -222,13 +260,15 @@ def grade_documents(state):
     print("---CHECK DOCUMENT RELEVANCE TO QUESTION---")
     question = state["question"]
     documents = state["documents"]
-    
+
     # Score each doc
     filtered_docs = []
     web_search = "No"
     for d in documents:
-        score = retrieval_grader.invoke({"question": question, "document": d.page_content})
-        grade = score['score']
+        score = retrieval_grader().invoke(
+            {"question": question, "document": d.page_content}
+        )
+        grade = score["score"]
         # Document relevant
         if grade.lower() == "yes":
             print("---GRADE: DOCUMENT RELEVANT---")
@@ -241,7 +281,8 @@ def grade_documents(state):
             web_search = "Yes"
             continue
     return {"documents": filtered_docs, "question": question, "web_search": web_search}
-    
+
+
 def web_search(state):
     """
     Web search based based on the question
@@ -267,7 +308,9 @@ def web_search(state):
         documents = [web_results]
     return {"documents": documents, "question": question}
 
+
 ### Conditional edge
+
 
 def route_question(state):
     """
@@ -283,15 +326,16 @@ def route_question(state):
     print("---ROUTE QUESTION---")
     question = state["question"]
     print(question)
-    source = question_router.invoke({"question": question})  
+    source = question_router().invoke({"question": question})
     print(source)
-    print(source['datasource'])
-    if source['datasource'] == 'web_search':
+    print(source["datasource"])
+    if source["datasource"] == "web_search":
         print("---ROUTE QUESTION TO WEB SEARCH---")
         return "websearch"
-    elif source['datasource'] == 'vectorstore':
+    elif source["datasource"] == "vectorstore":
         print("---ROUTE QUESTION TO RAG---")
         return "vectorstore"
+
 
 def decide_to_generate(state):
     """
@@ -312,14 +356,18 @@ def decide_to_generate(state):
     if web_search == "Yes":
         # All documents have been filtered check_relevance
         # We will re-generate a new query
-        print("---DECISION: ALL DOCUMENTS ARE NOT RELEVANT TO QUESTION, INCLUDE WEB SEARCH---")
+        print(
+            "---DECISION: ALL DOCUMENTS ARE NOT RELEVANT TO QUESTION, INCLUDE WEB SEARCH---"
+        )
         return "websearch"
     else:
         # We have relevant documents, so generate answer
         print("---DECISION: GENERATE---")
         return "generate"
 
+
 ### Conditional edge
+
 
 def grade_generation_v_documents_and_question(state):
     """
@@ -337,16 +385,18 @@ def grade_generation_v_documents_and_question(state):
     documents = state["documents"]
     generation = state["generation"]
 
-    score = hallucination_grader.invoke({"documents": documents, "generation": generation})
-    grade = score['score']
+    score = hallucination_grader.invoke(
+        {"documents": documents, "generation": generation}
+    )
+    grade = score["score"]
 
     # Check hallucination
     if grade == "yes":
         print("---DECISION: GENERATION IS GROUNDED IN DOCUMENTS---")
         # Check question-answering
         print("---GRADE GENERATION vs QUESTION---")
-        score = answer_grader.invoke({"question": question,"generation": generation})
-        grade = score['score']
+        score = answer_grader.invoke({"question": question, "generation": generation})
+        grade = score["score"]
         if grade == "yes":
             print("---DECISION: GENERATION ADDRESSES QUESTION---")
             return "useful"
@@ -358,94 +408,96 @@ def grade_generation_v_documents_and_question(state):
         return "not supported"
 
 
-workflow = StateGraph(GraphState)
+def create_graph():
+    workflow = StateGraph(GraphState)
 
-# Define the nodes
-workflow.add_node("websearch", web_search) # web search
-workflow.add_node("retrieve", retrieve) # retrieve
-workflow.add_node("grade_documents", grade_documents) # grade documents
-workflow.add_node("generate", generate) # generatae
-### Graph Build
-# Build graph
-workflow.set_conditional_entry_point(
-    route_question,
-    {
-        "websearch": "websearch",
-        "vectorstore": "retrieve",
-    },
-)
+    # Define the nodes
+    workflow.add_node("websearch", web_search)  # web search
+    workflow.add_node("retrieve", retrieve)  # retrieve
+    workflow.add_node("grade_documents", grade_documents)  # grade documents
+    workflow.add_node("generate", generate)  # generatae
+    ### Graph Build
+    # Build graph
+    workflow.set_conditional_entry_point(
+        route_question,
+        {
+            "websearch": "websearch",
+            "vectorstore": "retrieve",
+        },
+    )
 
-workflow.add_edge("retrieve", "grade_documents")
-workflow.add_conditional_edges(
-    "grade_documents",
-    decide_to_generate,
-    {
-        "websearch": "websearch",
-        "generate": "generate",
-    },
-)
-workflow.add_edge("websearch", "generate")
-workflow.add_conditional_edges(
-    "generate",
-    grade_generation_v_documents_and_question,
-    {
-        "not supported": "generate",
-        "useful": END,
-        "not useful": "websearch",
-    },
-)
-# Compile
-app = workflow.compile()
+    workflow.add_edge("retrieve", "grade_documents")
+    workflow.add_conditional_edges(
+        "grade_documents",
+        decide_to_generate,
+        {
+            "websearch": "websearch",
+            "generate": "generate",
+        },
+    )
+    workflow.add_edge("websearch", "generate")
+    workflow.add_conditional_edges(
+        "generate",
+        grade_generation_v_documents_and_question,
+        {
+            "not supported": "generate",
+            "useful": END,
+            "not useful": "websearch",
+        },
+    )
+    # Compile
+    app = workflow.compile()
+    return app
+
 
 # Test
-from pprint import pprint
-
-inputs = {"question": "What are the types of agent memory?"}
-for output in app.stream(inputs):
-    for key, value in output.items():
-        pprint(f"Finished running: {key}:")
-pprint(value["generation"])
-Trace: 
 
 
-# Compile
-app = workflow.compile()
+def test_graph():
+    app = create_graph()
+    inputs = {"question": "What are the types of agent memory?"}
+    for output in app.stream(inputs):
+        for key, value in output.items():
+            pprint(f"Finished running: {key}:")
+    pprint(value["generation"])
 
-# Test
-from pprint import pprint
+    inputs = {"question": "Who are the Bears expected to draft first in the NFL draft?"}
+    for output in app.stream(inputs):
+        for key, value in output.items():
+            pprint(f"Finished running: {key}:")
+    pprint(value["generation"])
 
-inputs = {"question": "Who are the Bears expected to draft first in the NFL draft?"}
-for output in app.stream(inputs):
-    for key, value in output.items():
-        pprint(f"Finished running: {key}:")
-pprint(value["generation"])
-Trace: 
+    # https://smith.langchain.com/public/c785f9c0-f519-4a38-ad5a-febb59a2139c/r
+    app.get_graph().print_ascii()
 
-https://smith.langchain.com/public/c785f9c0-f519-4a38-ad5a-febb59a2139c/r
-app.get_graph().print_ascii()
 
-def test() :
-    
+def test_basic():
+
     question = "agent memory"
     docs = retriever().invoke(question)
     doc_txt = docs[1].page_content
-    print(retrieval_grader().invoke({"question": question, "document": doc_txt}))
+    debug(retrieval_grader().invoke({"question": question, "document": doc_txt}))
 
     # Run
-    docs = retriever.invoke(question)
-    generation = rag_chain.invoke({"context": docs, "question": question})
-    print(generation)
-    ### Hallucination Grader 
+    docs = retriever().invoke(question)
+    generation = rag_chain().invoke({"context": docs, "question": question})
+    debug(generation)
+    ### Hallucination Grader
 
-    hallucination_grader().invoke({"documents": docs, "generation": generation})
+    hallucination = hallucination_grader().invoke(
+        {"documents": docs, "generation": generation}
+    )
+    debug(hallucination)
 
-    answer_grader().invoke({"question": question,"generation": generation})
+    answer = answer_grader().invoke(
+        {"question": question, "generation": generation}
+    )
+    debug(answer)
 
-    
     question = "llm agent memory"
-    docs = retriever().get_relevant_documents(question)
+    docs = retriever().invoke(question)
     doc_txt = docs[1].page_content
     print(question_router().invoke({"question": question}))
 
 
-
+test_basic()

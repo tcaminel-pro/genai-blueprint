@@ -55,6 +55,7 @@ class LlmFactory(BaseModel):
     temperature: float = 0
     max_tokens: int = MAX_TOKENS
     json_mode: bool = False
+    cache: bool | None = None
 
     def get(self, llm_id: str | None = None) -> BaseLanguageModel:
         """
@@ -167,6 +168,7 @@ class LlmFactory(BaseModel):
             else:
                 raise ValueError(f"json_mode  not supported for {type(llm)}")
 
+        set_cache(self.cache)
         return llm
 
     def get_configurable(self, with_fallback=False) -> Runnable:

@@ -59,3 +59,11 @@ def vector_store_factory(
 
 def search_one(vc: VectorStore, query: str):
     return vc.similarity_search(query, k=1)
+
+
+def document_count(vs: VectorStore):
+    # It seems there's no generic way to get the number of docs stored in a Vector Store.
+    if isinstance(vs, Chroma):
+        return vs._collection.count()
+    else:
+        raise NotImplemented(f"Don'k know how to get collection count for {vs}")

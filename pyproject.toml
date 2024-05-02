@@ -14,13 +14,16 @@ Repository = "https://github.com/tcaminel-pro/genai-training"
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
 pydantic = "^2.7.0"
-langchain-core = "^0.1.46"
-langchain-community = "^0.0.34"
+langchain = "^0.1.17"
+langchain-core = "^0.1.49"
+langgraph = "^0.0.40"
+langchain-community = "^0.0.36"
 langchainhub = "^0.1.15"
 langchain-experimental = "^0.0.57"
 langchain-groq = "^0.1.3"
 #langchain-openai = "^0.1.3"
 langchain-openai = "^0.0.5"
+langchain-chroma = "^0.1.0"
 lunary = "^1.0.6"
 devtools = "^0.12.2"
 loguru = "^0.7.2"
@@ -32,26 +35,30 @@ typer = "^0.9.0"
 streamlit = "^1.32.1"
 sqlalchemy = "^2.0.29"
 grandalf = "^0.8"
-langchain-chroma = "^0.1.0"
 bs4 = "^0.0.2"
-sentence-transformers = "^2.6.1"
+sentence-transformers = {version = "^2.6.1", optional = true }  #poetry install --extras "sentence-transformers" or poetry install --all-extras
 crewai = "^0.28.8"
 lark = "^1.1.9"
 pyyaml = "^6.0.1"
-langgraph = "^0.0.39"
 tiktoken = "^0.5.2"
 tavily-python = "^0.3.3"
 pygraphviz = "^1.12"
-litellm = "^1.35.31"
-langchain = "^0.1.16"
+litellm = "^1.35.35"
 
 
+
+[tool.poetry.group.extra]  # Install : poetry install --with extra 
+optional = false
+
+[tool.poetry.group.extra.dependencies]
+crewai = "^0.28.8"
+sentence-transformers = "^2.6.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
 isort = "^5.13.2"
 ruff = "^0.0.94"
-black = "24.3.0"
+black = {extras = ["jupyter"], version = "^24.4.2"}
 ipykernel = "^6.29.4"
 
 [build-system]
