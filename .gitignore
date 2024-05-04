@@ -164,3 +164,4 @@ cython_debug/
 .langchain.db
 .langchain.db
 .langchain.db
+test_graph.png

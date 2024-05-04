@@ -116,9 +116,7 @@ def main():
             Here is the user's problem:
 
             {ml_problem}
-            """.format(
-                ml_problem=user_question
-            ),
+            """.format(ml_problem=user_question),
             agent=Problem_Definition_Agent,
             expected_output="A clear and concise definition of the machine learning problem.",
         )
@@ -134,9 +132,7 @@ def main():
 
                 The file name is called {uploaded_file}
                 
-                """.format(
-                    df=df.head(), uploaded_file=uploaded_file
-                ),
+                """.format(df=df.head(), uploaded_file=uploaded_file),
                 agent=Data_Assessment_Agent,
                 expected_output="An assessment of the data's quality and suitability, with suggestions for preprocessing or augmentation if necessary.",
             )

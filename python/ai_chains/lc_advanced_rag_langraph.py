@@ -2,22 +2,25 @@
 https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_rag_agent_llama3_local.ipynb
 """
 
-from pprint import pprint
+import sys
+from operator import itemgetter
 from typing import List
 
 from devtools import debug
-from langchain import hub
 from langchain.prompts import ChatPromptTemplate, PromptTemplate
 from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import WebBaseLoader
+from langchain_community.document_loaders.web_base import WebBaseLoader
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
+from langchain_core.retrievers import BaseRetriever
 from langchain_core.runnables import Runnable
 from langgraph.graph import END, StateGraph
+from langgraph.graph.graph import CompiledGraph
 from loguru import logger
 from typing_extensions import TypedDict
 
+from python.ai_core.chain_registry import RunnableItem, register_runnable
 from python.ai_core.embeddings import embeddings_factory
 from python.ai_core.llm import LlmFactory
 from python.ai_core.vector_store import document_count, vector_store_factory
@@ -27,7 +30,7 @@ llm = LlmFactory(llm_id=MODEL, json_mode=True, cache=True).get()
 llm_json = LlmFactory(llm_id=MODEL, json_mode=False, cache=True).get()
 
 
-def retriever():
+def retriever() -> BaseRetriever:
     urls = [
         "https://lilianweng.github.io/posts/2023-06-23-agent/",
         "https://lilianweng.github.io/posts/2023-03-15-prompt-engineering/",
@@ -55,7 +58,7 @@ def retriever():
     return retriever
 
 
-def retrieval_grader():
+def retrieval_grader() -> Runnable:
     ### Retrieval Grader
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -77,12 +80,12 @@ def retrieval_grader():
         ],
     )
 
-    logger.debug("Retrieval Grader for question: '{question}'")
+    logger.debug("Retrieval Grader'")
     retrieval_grader = prompt | llm | JsonOutputParser()
     return retrieval_grader
 
 
-def rag_chain():
+def rag_chain() -> Runnable:
     prompt = PromptTemplate(
         template="""
         You are an assistant for question-answering tasks. 
@@ -133,7 +136,7 @@ def hallucination_grader() -> Runnable:
 ### Answer Grader
 
 
-def answer_grader():
+def answer_grader() -> Runnable:
     prompt = ChatPromptTemplate.from_messages(
         [
             (
@@ -159,8 +162,7 @@ def answer_grader():
     return answer_grader
 
 
-def question_router():
-
+def question_router() -> Runnable:
     prompt = PromptTemplate(
         template="""
         You are an expert at routing a   user question to a vectorstore or web search. 
@@ -168,7 +170,7 @@ def question_router():
         You do not need to be stringent with the keywords in the question related to these topics. 
         Otherwise, use web-search. 
         Give a binary choice 'web_search' or 'vectorstore' based on the question. 
-        Return the a JSON with a single key 'datasource' and  no premable or explaination. 
+        Return the a JSON with a single key 'datasource' and  no preamble or explanation. 
         Question to route: {question} """,
         input_variables=["question"],
     )
@@ -177,9 +179,7 @@ def question_router():
     return question_router
 
 
-### Search
-
-web_search_tool = TavilySearchResults(k=3)
+web_search_tool = TavilySearchResults(max_results=3)  # Search tool
 
 
 # We'll implement these as a control flow in LangGraph.
@@ -188,37 +188,27 @@ web_search_tool = TavilySearchResults(k=3)
 ### State
 
 
-class GraphState(TypedDict):
+class GraphState(TypedDict, total=False):
     """
     Represents the state of our graph.
-
-    Attributes:
-        question: question
-        generation: LLM generation
-        web_search: whether to add search
-        documents: list of documents
     """
 
-    question: str
-    generation: str
-    web_search: str
-    documents: List[str]
+    question: str  # the question
+    generation: str  # LLM generation
+    web_search: str  # whether to add search
+    documents: List[Document]  # list of documents
 
 
 ### Nodes
 
 
-def retrieve(state):
+def retrieve(state: GraphState) -> GraphState:
     """
     Retrieve documents from vectorstore
-
-    Args:
-        state (dict): The current graph state
-
     Returns:
         state (dict): New key added to state, documents, that contains retrieved documents
     """
-    print("---RETRIEVE---")
+    logger.debug("---RETRIEVE---")
     question = state["question"]
 
     # Retrieval
@@ -226,17 +216,13 @@ def retrieve(state):
     return {"documents": documents, "question": question}
 
 
-def generate(state):
+def generate(state: GraphState) -> GraphState:
     """
     Generate answer using RAG on retrieved documents
-
-    Args:
-        state (dict): The current graph state
-
     Returns:
         state (dict): New key added to state, generation, that contains LLM generation
     """
-    print("---GENERATE---")
+    logger.debug("---GENERATE---")
     question = state["question"]
     documents = state["documents"]
 
@@ -245,19 +231,15 @@ def generate(state):
     return {"documents": documents, "question": question, "generation": generation}
 
 
-def grade_documents(state):
+def grade_documents(state: GraphState) -> GraphState:
     """
     Determines whether the retrieved documents are relevant to the question
     If any document is not relevant, we will set a flag to run web search
-
-    Args:
-        state (dict): The current graph state
-
     Returns:
         state (dict): Filtered out irrelevant documents and updated web_search state
     """
 
-    print("---CHECK DOCUMENT RELEVANCE TO QUESTION---")
+    logger.debug("---CHECK DOCUMENT RELEVANCE TO QUESTION---")
     question = state["question"]
     documents = state["documents"]
 
@@ -271,11 +253,11 @@ def grade_documents(state):
         grade = score["score"]
         # Document relevant
         if grade.lower() == "yes":
-            print("---GRADE: DOCUMENT RELEVANT---")
+            logger.debug("---GRADE: DOCUMENT RELEVANT---")
             filtered_docs.append(d)
         # Document not relevant
         else:
-            print("---GRADE: DOCUMENT NOT RELEVANT---")
+            logger.debug("---GRADE: DOCUMENT NOT RELEVANT---")
             # We do not include the document in filtered_docs
             # We set a flag to indicate that we want to run web search
             web_search = "Yes"
@@ -283,18 +265,14 @@ def grade_documents(state):
     return {"documents": filtered_docs, "question": question, "web_search": web_search}
 
 
-def web_search(state):
+def web_search(state: GraphState) -> GraphState:
     """
     Web search based based on the question
-
-    Args:
-        state (dict): The current graph state
-
     Returns:
         state (dict): Appended web results to documents
     """
 
-    print("---WEB SEARCH---")
+    logger.debug("---WEB SEARCH---")
     question = state["question"]
     documents = state["documents"]
 
@@ -312,114 +290,102 @@ def web_search(state):
 ### Conditional edge
 
 
-def route_question(state):
+def route_question(state: GraphState) -> str:
     """
     Route question to web search or RAG.
-
-    Args:
-        state (dict): The current graph state
-
-    Returns:
-        str: Next node to call
+    Returns next node to call
     """
 
-    print("---ROUTE QUESTION---")
+    logger.debug("---ROUTE QUESTION---")
     question = state["question"]
-    print(question)
+    logger.debug(question)
     source = question_router().invoke({"question": question})
-    print(source)
-    print(source["datasource"])
+    logger.debug(source)
+    logger.debug(source["datasource"])
     if source["datasource"] == "web_search":
-        print("---ROUTE QUESTION TO WEB SEARCH---")
+        logger.debug("---ROUTE QUESTION TO WEB SEARCH---")
         return "websearch"
     elif source["datasource"] == "vectorstore":
-        print("---ROUTE QUESTION TO RAG---")
+        logger.debug("---ROUTE QUESTION TO RAG---")
         return "vectorstore"
+    else:
+        raise Exception("Bug: unknown source")
 
 
-def decide_to_generate(state):
+def decide_to_generate(state: GraphState) -> str:
     """
     Determines whether to generate an answer, or add web search
-
-    Args:
-        state (dict): The current graph state
-
-    Returns:
-        str: Binary decision for next node to call
+    Returns binary decision for next node to call
     """
 
-    print("---ASSESS GRADED DOCUMENTS---")
-    question = state["question"]
+    logger.debug("---ASSESS GRADED DOCUMENTS---")
+    state["question"]
     web_search = state["web_search"]
-    filtered_documents = state["documents"]
+    state["documents"]
 
     if web_search == "Yes":
         # All documents have been filtered check_relevance
         # We will re-generate a new query
-        print(
+        logger.debug(
             "---DECISION: ALL DOCUMENTS ARE NOT RELEVANT TO QUESTION, INCLUDE WEB SEARCH---"
         )
         return "websearch"
     else:
         # We have relevant documents, so generate answer
-        print("---DECISION: GENERATE---")
+        logger.debug("---DECISION: GENERATE---")
         return "generate"
 
 
 ### Conditional edge
 
 
-def grade_generation_v_documents_and_question(state):
+def grade_generation_v_documents_and_question(state: GraphState) -> str:
     """
     Determines whether the generation is grounded in the document and answers question.
 
-    Args:
-        state (dict): The current graph state
-
-    Returns:
-        str: Decision for next node to call
+    Returns: Decision for next node to call
     """
 
-    print("---CHECK HALLUCINATIONS---")
+    logger.debug("---CHECK HALLUCINATIONS---")
     question = state["question"]
     documents = state["documents"]
     generation = state["generation"]
 
-    score = hallucination_grader.invoke(
+    score = hallucination_grader().invoke(
         {"documents": documents, "generation": generation}
     )
     grade = score["score"]
 
     # Check hallucination
     if grade == "yes":
-        print("---DECISION: GENERATION IS GROUNDED IN DOCUMENTS---")
+        logger.debug("---DECISION: GENERATION IS GROUNDED IN DOCUMENTS---")
         # Check question-answering
-        print("---GRADE GENERATION vs QUESTION---")
-        score = answer_grader.invoke({"question": question, "generation": generation})
+        logger.debug("---GRADE GENERATION vs QUESTION---")
+        score = answer_grader().invoke({"question": question, "generation": generation})
         grade = score["score"]
         if grade == "yes":
-            print("---DECISION: GENERATION ADDRESSES QUESTION---")
+            logger.debug("---DECISION: GENERATION ADDRESSES QUESTION---")
             return "useful"
         else:
-            print("---DECISION: GENERATION DOES NOT ADDRESS QUESTION---")
+            logger.debug("---DECISION: GENERATION DOES NOT ADDRESS QUESTION---")
             return "not useful"
     else:
-        pprint("---DECISION: GENERATION IS NOT GROUNDED IN DOCUMENTS, RE-TRY---")
+        logger.debug("---DECISION: GENERATION IS NOT GROUNDED IN DOCUMENTS, RE-TRY---")
         return "not supported"
 
 
-def create_graph():
+def create_graph(conf: dict) -> CompiledGraph:
     workflow = StateGraph(GraphState)
 
     # Define the nodes
     workflow.add_node("websearch", web_search)  # web search
     workflow.add_node("retrieve", retrieve)  # retrieve
     workflow.add_node("grade_documents", grade_documents)  # grade documents
-    workflow.add_node("generate", generate)  # generatae
+    workflow.add_node("generate", generate)  # generate
     ### Graph Build
     # Build graph
     workflow.set_conditional_entry_point(
-        route_question,
+        route_question,  # type: ignore
         {
             "websearch": "websearch",
             "vectorstore": "retrieve",
@@ -450,29 +416,52 @@ def create_graph():
     return app
 
 
+def query_graph(config: dict):
+    return create_graph({}) | itemgetter("generation")
+
+
+register_runnable(
+    RunnableItem(
+        tag="Advanced RAG",
+        name="Advanced-RAG-Langgraph",
+        runnable=query_graph,
+        examples=[
+            "What are the types of agent memory",
+            "Who are the Bears expected to draft first in the NFL draft?",
+        ],
+    )
+)
+
+
 # Test
 
 
-def test_graph():
-    app = create_graph()
+def test_graph_stream():
+    app = create_graph({})
     inputs = {"question": "What are the types of agent memory?"}
     for output in app.stream(inputs):
         for key, value in output.items():
-            pprint(f"Finished running: {key}:")
-    pprint(value["generation"])
+            logger.info(f"Finished running: {key}:")
+    print(value["generation"])
 
     inputs = {"question": "Who are the Bears expected to draft first in the NFL draft?"}
     for output in app.stream(inputs):
         for key, value in output.items():
-            pprint(f"Finished running: {key}:")
-    pprint(value["generation"])
+            logger.info(f"Finished running: {key}:")
+    print(value["generation"])
 
     # https://smith.langchain.com/public/c785f9c0-f519-4a38-ad5a-febb59a2139c/r
-    app.get_graph().print_ascii()
+    app.get_graph().draw_png("test_graph")
 
 
-def test_basic():
+def test_graph():
+    app = create_graph({}) | itemgetter("generation")
+    input = {"question": "What are the types of agent memory?"}
+    r = app.invoke(input)
+    debug(r)
 
+
+def test_nodes():
     question = "agent memory"
     docs = retriever().invoke(question)
     doc_txt = docs[1].page_content
@@ -489,15 +478,21 @@ def test_basic():
     )
     debug(hallucination)
 
-    answer = answer_grader().invoke(
-        {"question": question, "generation": generation}
-    )
+    answer = answer_grader().invoke({"question": question, "generation": generation})
     debug(answer)
 
     question = "llm agent memory"
     docs = retriever().invoke(question)
     doc_txt = docs[1].page_content
-    print(question_router().invoke({"question": question}))
+    logger.debug(question_router().invoke({"question": question}))
 
 
-test_basic()
+if __name__ == "__main__":
+    logger.remove()
+    logger.add(
+        sys.stderr,
+        format="<blue>{level}</blue> | <green>{message}</green>",
+        colorize=True,
+    )
+    # test_nodes()
+    test_graph()

@@ -13,6 +13,7 @@
         "genai",
         "groq",
         "langchain",
+        "langgraph",
         "LCEL",
         "litellm",
         "llm",
@@ -30,7 +31,12 @@
         "tiktoken",
         "typer",
         "vectorstore",
-        "vectorstores"
-    ]
+        "vectorstores",
+        "autofetch",
+        "exponentiate",
+        "informatica",
+        "toolkits",
+    ],
+    "cSpell.language": "en,fr",
 }
 
