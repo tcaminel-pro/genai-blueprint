@@ -8,7 +8,6 @@ import re
 from collections import defaultdict
 from functools import cache
 from pathlib import Path
-from typing import Any
 
 import yaml
 
@@ -45,7 +44,7 @@ def get_config(group: str, key: str, default_value: str | None = None) -> str:
         value = d[group][key]
         return re.sub(r"\${(\w+)}", lambda f: os.environ.get(f.group(1), ""), value)
 
-    except Exception as ex:
+    except Exception:
         if default_value:
             return default_value
         else:

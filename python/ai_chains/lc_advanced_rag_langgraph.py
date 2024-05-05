@@ -20,12 +20,17 @@ from langgraph.graph.graph import CompiledGraph
 from loguru import logger
 from typing_extensions import TypedDict
 
-from python.ai_core.chain_registry import RunnableItem, register_runnable
+from python.ai_core.chain_registry import (
+    RunnableItem,
+    register_runnable,
+    to_key_param_callable,
+)
 from python.ai_core.embeddings import embeddings_factory
 from python.ai_core.llm import LlmFactory
 from python.ai_core.vector_store import document_count, vector_store_factory
 
-MODEL = "llama3_70_groq"
+# MODEL = "llama3_70_groq"
+MODEL = "llama3_8_groq"
 llm = LlmFactory(llm_id=MODEL, json_mode=True, cache=True).get()
 llm_json = LlmFactory(llm_id=MODEL, json_mode=False, cache=True).get()
 
@@ -424,12 +429,22 @@ register_runnable(
     RunnableItem(
         tag="Advanced RAG",
         name="Advanced-RAG-Langgraph",
-        runnable=query_graph,
+        runnable=to_key_param_callable("question", query_graph),
         examples=[
             "What are the types of agent memory",
             "Who are the Bears expected to draft first in the NFL draft?",
         ],
     )
+)
+
+ri = RunnableItem(
+    tag="Advanced RAG",
+    name="Advanced-RAG-Langgraph",
+    runnable=to_key_param_callable("question", query_graph),
+    examples=[
+        "What are the types of agent memory",
+        "Who are the Bears expected to draft first in the NFL draft?",
+    ],
 )
 
 
@@ -455,9 +470,9 @@ def test_graph_stream():
 
 
 def test_graph():
-    app = create_graph({}) | itemgetter("generation")
+    chain = query_graph({}) | itemgetter("generation")
     input = {"question": "What are the types of agent memory?"}
-    r = app.invoke(input)
+    r = chain.invoke(input)
     debug(r)
 
 

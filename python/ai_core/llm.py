@@ -35,6 +35,7 @@ class LLM_INFO(BaseModel):
 KNOWN_LLM_LIST = [
     # LLM id should follow Python variables constraints - ie no '-', no space, etc
     # Use pattern "{self.model name}_{version}_{inference provider or library}"
+    # LiteLlm supported models are listed here: https://litellm.vercel.app/docs/providers 
     LLM_INFO(id="gpt_35_openai"),
     LLM_INFO(id="gpt_35_openai_lite", litellm="gpt-3.5-turbo"),
     LLM_INFO(id="gpt_35_edenai"),
@@ -42,6 +43,7 @@ KNOWN_LLM_LIST = [
         id="llama2_70_deepinfra", litellm="deepinfra/meta-llama/Llama-2-70b-chat-hf"
     ),
     LLM_INFO(id="llama3_70_groq", litellm="groq/llama3-70b-8192"),
+    LLM_INFO(id="llama3_8_groq", litellm="groq/llama3-8b-8192"),
     LLM_INFO(id="mixtral_7x8_deepinfra"),
     LLM_INFO(id="mixtral_7x8_groq", litellm="groq/mixtral-8x7b-32768"),
 ]
@@ -124,7 +126,7 @@ class LlmFactory(BaseModel):
                 base_url="meta-llama/Llama-2-70b-chat-hf",
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
-                api_key=os.getenv("DEEPINFRA_API_TOKEN"),
+                api_key=os.getenv("DEEPINFRA_API_TOKEN"),  # type: ignore
                 model_kwargs={"seed": 42},  # Not sure that works
             )
 

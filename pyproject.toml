@@ -44,6 +44,7 @@ tiktoken = "^0.5.2"
 tavily-python = "^0.3.3"
 pygraphviz = "^1.12"
 grandalf = "^0.8"
+langserve = {extras = ["all"], version = "^0.1.1"}
 
 
 [tool.poetry.group.extra]  # Install : poetry install --with extra 

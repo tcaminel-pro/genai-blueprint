@@ -19,7 +19,7 @@
 
 ## Files
 ### Code
-* main_api.cpp : Entry point of FastAPI app.  API definitions are there
+* fastapi_app.cpp : Entry point of FastAPI app.  API definitions are there
 * main_cli.cpp : Entry point for the Command line interface (nice for dev.). 
   * exemple usage : poetry run python cmd 
 

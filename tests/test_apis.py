@@ -16,7 +16,7 @@ from fastapi.testclient import TestClient
 [sys.path.append(str(path)) for path in [Path.cwd(), Path.cwd().parent, Path.cwd().parent/"python"] if str(path) not in sys.path]  # type: ignore # fmt: on
 
 
-from python.main_api import app
+from python.fastapi_app import app
 
 # Define your FastAPI routes and functions here
 

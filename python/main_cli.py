@@ -5,12 +5,10 @@ Entry point for the Command Line Interface
 """
 
 import importlib
-import json
-import pprint
 from typing import Callable
 
 import typer
-from devtools import debug, pprint
+from devtools import pprint
 from langchain.globals import set_debug, set_verbose
 from langchain_core.runnables import Runnable
 
@@ -19,7 +17,12 @@ from python.ai_core.llm import set_cache
 from python.config import get_config
 
 # Import modules where runnables are registered
-RUNNABLES = {"lc_rag_example", "lc_tools_example", "lc_self_query"}
+RUNNABLES = {
+    "lc_rag_example",
+    "lc_tools_example",
+    "lc_self_query",
+    "lc_advanced_rag_langgraph",
+}
 for r in RUNNABLES:
     importlib.import_module(f"python.ai_chains.{r}")
 
@@ -83,7 +86,7 @@ def chain_info(name: str):
             print("input schema: ", runnable.input_schema().schema())
             print("output schema: ")
             pprint(runnable.output_schema().schema())
-        except:
+        except Exception:
             pass
 
 

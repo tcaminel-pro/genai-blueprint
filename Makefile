@@ -17,7 +17,7 @@ check: ## Check if the image is built
 	docker images -a
 
 fast_api:  # run Python code localy
-	uvicorn python.main_api:app --reload
+	uvicorn python.fastapi_app:app --reload
 
 webapp:
 	streamlit run $(STREAMLIT_ENTRY_POINT)
@@ -43,7 +43,9 @@ update:  # Update selected fast changing dependencies
 #langchain-openai@latest
 
 clean:  # remove byte code
-	find . -type f -name "*.py[co]" -delete -or -type d -name "__pycache__" -delete
+# find . -type f -name "*.py[co]" -delete -or -type d -name "__pycache__" -delete
+	find ./python/ai/__pycache__ -type f -delete
+	find ./python/ai/__pycache__ -type d -empty -delete
 
 lint:
 	poetry run ruff check --select I --fix

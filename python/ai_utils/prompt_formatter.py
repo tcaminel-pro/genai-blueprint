@@ -7,11 +7,9 @@ but without the burden to create a new LLM
 """
 
 from textwrap import dedent
-from typing import List, Optional, cast
+from typing import Optional, cast
 
-from devtools import debug
-from langchain.schema import BaseMessage, HumanMessage, SystemMessage
-from langchain_core.messages.base import BaseMessage
+from langchain.schema import SystemMessage
 from langchain_core.prompts import (
     BasePromptTemplate,
     ChatPromptTemplate,

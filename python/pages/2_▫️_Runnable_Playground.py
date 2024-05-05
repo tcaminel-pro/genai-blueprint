@@ -1,11 +1,12 @@
 import importlib
+import importlib.util
 
 import streamlit as st
 
 from python.ai_core.chain_registry import find_runnable, get_runnable_registry
 from python.config import get_config
 
-st.title("💬 Runnable playground")
+st.title("💬 Runnable Playground")
 
 
 RUNNABLES = {"lc_rag_example", "lc_tools_example", "lc_self_query"}
@@ -27,17 +28,14 @@ if not runnable_desc:
 runnable = runnable_desc.get_runnable()
 
 with st.expander("Runnable information", expanded=False):
-    try:
-        import pygraphviz  # ignore
-
-        drawing = runnable.get_graph().draw_png()
-        st.image(drawing)
-    except ImportError:
+    if importlib.util.find_spec("pygraphviz") is None:
         st.warning(
             "cannot draw the Runnable graph because pygraphviz and Graphviz are not installed"
         )
-
-    st.write("")
+    else:
+        drawing = runnable.get_graph().draw_png()
+        st.image(drawing)
+        st.write("")
 
 # selected_runnable = st.selectbox("Select a Runnable", list(RUNNABLES.keys()))
 
