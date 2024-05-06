@@ -9,7 +9,12 @@ from python.config import get_config
 st.title("💬 Runnable Playground")
 
 
-RUNNABLES = {"lc_rag_example", "lc_tools_example", "lc_self_query"}
+RUNNABLES = {
+    "lc_rag_example",
+    "lc_tools_example",
+    "lc_self_query",
+    "lc_advanced_rag_langgraph",
+}
 for r in RUNNABLES:
     importlib.import_module(f"python.ai_chains.{r}")
 
@@ -33,7 +38,7 @@ with st.expander("Runnable information", expanded=False):
             "cannot draw the Runnable graph because pygraphviz and Graphviz are not installed"
         )
     else:
-        drawing = runnable.get_graph().draw_png() # type: ignore
+        drawing = runnable.get_graph().draw_png()  # type: ignore
         st.image(drawing)
         st.write("")
 

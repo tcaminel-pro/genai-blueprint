@@ -2,6 +2,7 @@
 https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_rag_agent_llama3_local.ipynb
 """
 
+
 import sys
 from enum import Enum
 from operator import itemgetter
@@ -36,9 +37,13 @@ from python.ai_core.embeddings import embeddings_factory
 from python.ai_core.llm import LlmFactory
 from python.ai_core.vector_store import document_count, vector_store_factory
 
+"""
+Suggested extensions :
+- Rewtrite query as in https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_adaptive_rag.ipynb 
+
+"""
 # MODEL = "llama3_70_groq"
 MODEL = "llama3_8_groq"
-# llm_json = LlmFactory(llm_id=MODEL, json_mode=True, cache=True).get()
 llm = LlmFactory(llm_id=MODEL, json_mode=False, cache=True).get()
 
 
@@ -77,10 +82,7 @@ def retriever() -> BaseRetriever:
             chunk_size=250, chunk_overlap=0
         )
         doc_splits = text_splitter.split_documents(docs_list)
-
-        # Add to vectorDB
-
-        vectorstore.add_documents(doc_splits)
+        vectorstore.add_documents(doc_splits)  # Add to vectorDB
     retriever = vectorstore.as_retriever()
     return retriever
 
@@ -90,8 +92,7 @@ def def_prompt(system: str | None, user: str) -> BasePromptTemplate:
     if system:
         messages.append(("system", dedent(system)))
     messages.append(("user", dedent(user)))
-    prompt = ChatPromptTemplate.from_messages(messages)
-    return prompt
+    return ChatPromptTemplate.from_messages(messages)
 
 
 def retrieval_grader() -> Runnable[Any, YesOrNow]:
@@ -126,16 +127,9 @@ def rag_chain() -> Runnable[Any, str]:
         Question: {question} 
         Context: {context} 
         Answer: """
-
+    logger.debug("Rag chain'")
     prompt = def_prompt(system=system_prompt, user=user_prompt)
-
-    # Post-processing
-    def format_docs(docs):
-        return "\n\n".join(doc.page_content for doc in docs)
-
-    # Chain
-    rag_chain = prompt | llm | StrOutputParser()
-    return rag_chain
+    return prompt | llm | StrOutputParser()
 
 
 def hallucination_grader() -> Runnable[Any, YesOrNow]:
@@ -147,16 +141,10 @@ def hallucination_grader() -> Runnable[Any, YesOrNow]:
         --- \n {documents} ---\n
         Here is the answer: {generation} \n
         Instructions: {instructions} """
-
     prompt = def_prompt(system_prompt, user_prompt).partial(
         instructions=yesno_enum_parser.get_format_instructions()
     )
-
-    hallucination_grader = prompt | llm | to_lower | yesno_enum_parser
-    return hallucination_grader
-
-
-### Answer Grader
+    return prompt | llm | to_lower | yesno_enum_parser
 
 
 def answer_grader() -> Runnable[Any, YesOrNow]:
@@ -169,13 +157,10 @@ def answer_grader() -> Runnable[Any, YesOrNow]:
         Here is the question: {question} \n
         Instructions: {instructions}
         """
-
     prompt = def_prompt(system_prompt, user_prompt).partial(
         instructions=yesno_enum_parser.get_format_instructions()
     )
-
-    answer_grader = prompt | llm | yesno_enum_parser
-    return answer_grader
+    return prompt | llm | yesno_enum_parser
 
 
 def question_router() -> Runnable[Any, DataRoute]:
@@ -481,7 +466,7 @@ def test_graph_stream():
 
 
 def test_graph():
-    chain = query_graph({}) | itemgetter("generation")
+    chain = query_graph({})
     input = {"question": "What are the types of agent memory?"}
     r = chain.invoke(input)
     debug(r)
@@ -514,11 +499,15 @@ def test_nodes():
 
 
 if __name__ == "__main__":
+    from langchain.globals import set_debug, set_verbose
+
+    set_debug(True)
+    set_verbose(True)
     logger.remove()
     logger.add(
         sys.stderr,
         format="<blue>{level}</blue> | <green>{message}</green>",
         colorize=True,
     )
-    #test_nodes()
+    # test_nodes()
     test_graph()
