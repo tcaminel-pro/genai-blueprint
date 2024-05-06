@@ -7,7 +7,7 @@ Copyright (C) 2024 Eviden. All rights reserved
 import sys
 from pathlib import Path
 
-from devtools import debug  # type: ignore
+from devtools import debug  # type: ignore  # noqa: F401
 from fastapi import FastAPI
 from loguru import logger  # type: ignore
 

@@ -1,6 +1,6 @@
 from typing import Any, Callable
 
-from devtools import debug  # ignore
+from devtools import debug  # noqa: F401
 from langchain_core.runnables import Runnable, RunnableLambda
 from pydantic import BaseModel
 

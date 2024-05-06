@@ -3,18 +3,25 @@ https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_rag_a
 """
 
 import sys
+from enum import Enum
 from operator import itemgetter
-from typing import List
+from textwrap import dedent
+from typing import Any, List
 
 from devtools import debug
-from langchain.prompts import ChatPromptTemplate, PromptTemplate
+from langchain.output_parsers.enum import EnumOutputParser
+from langchain.prompts import ChatPromptTemplate
 from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders.web_base import WebBaseLoader
 from langchain_community.tools.tavily_search import TavilySearchResults
-from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts.base import BasePromptTemplate
 from langchain_core.retrievers import BaseRetriever
-from langchain_core.runnables import Runnable
+from langchain_core.runnables import (
+    Runnable,
+    RunnableLambda,
+)
 from langgraph.graph import END, StateGraph
 from langgraph.graph.graph import CompiledGraph
 from loguru import logger
@@ -31,8 +38,23 @@ from python.ai_core.vector_store import document_count, vector_store_factory
 
 # MODEL = "llama3_70_groq"
 MODEL = "llama3_8_groq"
-llm = LlmFactory(llm_id=MODEL, json_mode=True, cache=True).get()
-llm_json = LlmFactory(llm_id=MODEL, json_mode=False, cache=True).get()
+# llm_json = LlmFactory(llm_id=MODEL, json_mode=True, cache=True).get()
+llm = LlmFactory(llm_id=MODEL, json_mode=False, cache=True).get()
+
+
+class YesOrNow(Enum):
+    YES = "yes"
+    NO = "no"
+
+
+class DataRoute(Enum):
+    WEB_SEARCH = "web_search"
+    VECTOR_STORE = "vectorstore"
+
+
+yesno_enum_parser = EnumOutputParser(enum=YesOrNow)
+
+to_lower = RunnableLambda(lambda x: x.content.lower())
 
 
 def retriever() -> BaseRetriever:
@@ -63,44 +85,49 @@ def retriever() -> BaseRetriever:
     return retriever
 
 
-def retrieval_grader() -> Runnable:
+def def_prompt(system: str | None, user: str) -> BasePromptTemplate:
+    messages: list = []
+    if system:
+        messages.append(("system", dedent(system)))
+    messages.append(("user", dedent(user)))
+    prompt = ChatPromptTemplate.from_messages(messages)
+    return prompt
+
+
+def retrieval_grader() -> Runnable[Any, YesOrNow]:
     ### Retrieval Grader
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                """"
-                You are a grader assessing relevance  of a retrieved document to a user question. 
-                If the document contains keywords related to the user question, grade it as relevant. 
-                It does not need to be a stringent test. The goal is to filter out erroneous retrievals. \n
-                Give a binary score 'yes' or 'no' score to indicate whether the document is relevant to the question. \n
-                Provide the binary score as a JSON with a single key 'score' and no preamble or explanation.""",
-            ),
-            (
-                "user",
-                """ 
-                Here is the retrieved document: \n\n {document} \n\n
-                Here is the user question: {question} \n""",
-            ),
-        ],
+
+    system_prompt = """
+        You are a grader assessing relevance  of a retrieved document to a user question. 
+        If the document contains keywords related to the user question, grade it as relevant. 
+        It does not need to be a stringent test. The goal is to filter out erroneous retrievals. \n
+        Give a binary score 'yes' or 'no' score to indicate whether the document is relevant to the question."""
+    user_prompt = """
+        Here is the retrieved document:
+        --- \n {document} ---\n\n
+        Here is the user question: {question} \n,
+        Instructions: {instructions}"""
+
+    prompt = def_prompt(system_prompt, user_prompt).partial(
+        instructions=yesno_enum_parser.get_format_instructions()
     )
 
     logger.debug("Retrieval Grader'")
-    retrieval_grader = prompt | llm | JsonOutputParser()
+    retrieval_grader = prompt | llm | to_lower | yesno_enum_parser
     return retrieval_grader
 
 
-def rag_chain() -> Runnable:
-    prompt = PromptTemplate(
-        template="""
+def rag_chain() -> Runnable[Any, str]:
+    system_prompt = """
         You are an assistant for question-answering tasks. 
         Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. 
-        Use three sentences maximum and keep the answer concise.
+        Use three sentences maximum and keep the answer concise."""
+    user_prompt = """
         Question: {question} 
         Context: {context} 
-        Answer: """,
-        input_variables=["question", "document"],
-    )
+        Answer: """
+
+    prompt = def_prompt(system=system_prompt, user=user_prompt)
 
     # Post-processing
     def format_docs(docs):
@@ -111,76 +138,65 @@ def rag_chain() -> Runnable:
     return rag_chain
 
 
-def hallucination_grader() -> Runnable:
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                """"
-                  You are a grader assessing whether an answer is grounded in / supported by a set of facts. 
-                 Give a binary score 'yes' or 'no' score to indicate  whether the answer is grounded in / supported by a set of facts. 
-                 Provide the binary score as a JSON with a single key 'score' and no preamble or explanation.""",
-            ),
-            (
-                "user",
-                """
-                    Here are the facts:
-                    \n ------- \n
-                    {documents} 
-                    \n ------- \n
-                    Here is the answer: {generation}  
-                    """,
-            ),
-        ],
+def hallucination_grader() -> Runnable[Any, YesOrNow]:
+    system_prompt = """
+        You are a grader assessing whether an answer is grounded in / supported by a set of facts. 
+        Give a binary score 'yes' or 'no' score to indicate  whether the answer is grounded in / supported by a set of facts. \n"""
+    user_prompt = """
+        Here are the facts:
+        --- \n {documents} ---\n
+        Here is the answer: {generation} \n
+        Instructions: {instructions} """
+
+    prompt = def_prompt(system_prompt, user_prompt).partial(
+        instructions=yesno_enum_parser.get_format_instructions()
     )
 
-    hallucination_grader = prompt | llm | JsonOutputParser()
+    hallucination_grader = prompt | llm | to_lower | yesno_enum_parser
     return hallucination_grader
 
 
 ### Answer Grader
 
 
-def answer_grader() -> Runnable:
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                """"
-                 You are a grader assessing whether an answer is useful to resolve a question. 
-                 Give a binary score 'yes' or 'no' to indicate whether the answer is useful to resolve a question. 
-                 Provide the binary score as a JSON with a single key 'score' and no preamble or explanation.""",
-            ),
-            (
-                "user",
-                """
-                 Here is the answer:
-                \n ------- \n
-                {generation} 
-                \n ------- \n
-                Here is the question: {question} """,
-            ),
-        ],
+def answer_grader() -> Runnable[Any, YesOrNow]:
+    system_prompt = """
+        You are a grader assessing whether an answer is useful to resolve a question. 
+        Give a binary score 'yes' or 'no' to indicate whether the answer is useful to resolve a question"""
+    user_prompt = """
+        Here are the answer:
+        \n---  {generation} \n---
+        Here is the question: {question} \n
+        Instructions: {instructions}
+        """
+
+    prompt = def_prompt(system_prompt, user_prompt).partial(
+        instructions=yesno_enum_parser.get_format_instructions()
     )
 
-    answer_grader = prompt | llm_json | JsonOutputParser()
+    answer_grader = prompt | llm | yesno_enum_parser
     return answer_grader
 
 
-def question_router() -> Runnable:
-    prompt = PromptTemplate(
-        template="""
-        You are an expert at routing a   user question to a vectorstore or web search. 
+def question_router() -> Runnable[Any, DataRoute]:
+    parser = EnumOutputParser(enum=DataRoute)
+
+    system_prompt = """
+        You are an expert at routing a user question to a vectorstore or web search. 
         Use the vectorstore for questions on LLM  agents, prompt engineering, and adversarial attacks. 
         You do not need to be stringent with the keywords in the question related to these topics. 
         Otherwise, use web-search. 
-        Give a binary choice 'web_search' or 'vectorstore' based on the question. 
-        Return the a JSON with a single key 'datasource' and  no preamble or explanation. 
-        Question to route: {question} """,
-        input_variables=["question"],
-    )
+        Give a binary choice 'web_search' or 'vectorstore' based on the question with no permeable or explanation.
 
-    question_router = prompt | llm_json | JsonOutputParser()
+        """
+    user_prompt = """
+        Question to route: {question} \n
+        Instructions: {instructions} """
+
+    prompt = def_prompt(system_prompt, user_prompt).partial(
+        instructions=parser.get_format_instructions()
+    )
+    question_router = prompt | llm | parser
     return question_router
 
 
@@ -252,12 +268,11 @@ def grade_documents(state: GraphState) -> GraphState:
     filtered_docs = []
     web_search = "No"
     for d in documents:
-        score = retrieval_grader().invoke(
+        grade = retrieval_grader().invoke(
             {"question": question, "document": d.page_content}
         )
-        grade = score["score"]
         # Document relevant
-        if grade.lower() == "yes":
+        if grade == YesOrNow.YES:
             logger.debug("---GRADE: DOCUMENT RELEVANT---")
             filtered_docs.append(d)
         # Document not relevant
@@ -303,14 +318,12 @@ def route_question(state: GraphState) -> str:
 
     logger.debug("---ROUTE QUESTION---")
     question = state["question"]
-    logger.debug(question)
     source = question_router().invoke({"question": question})
-    logger.debug(source)
-    logger.debug(source["datasource"])
-    if source["datasource"] == "web_search":
+    logger.debug(question, source)
+    if source == DataRoute.WEB_SEARCH:
         logger.debug("---ROUTE QUESTION TO WEB SEARCH---")
         return "websearch"
-    elif source["datasource"] == "vectorstore":
+    elif source == DataRoute.VECTOR_STORE:
         logger.debug("---ROUTE QUESTION TO RAG---")
         return "vectorstore"
     else:
@@ -356,19 +369,17 @@ def grade_generation_v_documents_and_question(state: GraphState) -> str:
     documents = state["documents"]
     generation = state["generation"]
 
-    score = hallucination_grader().invoke(
+    hallucination = hallucination_grader().invoke(
         {"documents": documents, "generation": generation}
     )
-    grade = score["score"]
 
     # Check hallucination
-    if grade == "yes":
+    if hallucination == YesOrNow.YES:
         logger.debug("---DECISION: GENERATION IS GROUNDED IN DOCUMENTS---")
         # Check question-answering
         logger.debug("---GRADE GENERATION vs QUESTION---")
-        score = answer_grader().invoke({"question": question, "generation": generation})
-        grade = score["score"]
-        if grade == "yes":
+        grade = answer_grader().invoke({"question": question, "generation": generation})
+        if grade == YesOrNow.YES:
             logger.debug("---DECISION: GENERATION ADDRESSES QUESTION---")
             return "useful"
         else:
@@ -509,5 +520,5 @@ if __name__ == "__main__":
         format="<blue>{level}</blue> | <green>{message}</green>",
         colorize=True,
     )
-    # test_nodes()
+    #test_nodes()
     test_graph()

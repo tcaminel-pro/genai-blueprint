@@ -33,7 +33,7 @@ with st.expander("Runnable information", expanded=False):
             "cannot draw the Runnable graph because pygraphviz and Graphviz are not installed"
         )
     else:
-        drawing = runnable.get_graph().draw_png()
+        drawing = runnable.get_graph().draw_png() # type: ignore
         st.image(drawing)
         st.write("")
 
