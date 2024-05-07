@@ -35,15 +35,15 @@ class LLM_INFO(BaseModel):
 KNOWN_LLM_LIST = [
     # LLM id should follow Python variables constraints - ie no '-', no space, etc
     # Use pattern "{self.model name}_{version}_{inference provider or library}"
-    # LiteLlm supported models are listed here: https://litellm.vercel.app/docs/providers 
+    # LiteLlm supported models are listed here: https://litellm.vercel.app/docs/providers
     LLM_INFO(id="gpt_35_openai"),
     LLM_INFO(id="gpt_35_openai_lite", litellm="gpt-3.5-turbo"),
     LLM_INFO(id="gpt_35_edenai"),
     LLM_INFO(
         id="llama2_70_deepinfra", litellm="deepinfra/meta-llama/Llama-2-70b-chat-hf"
     ),
-    LLM_INFO(id="llama3_70_groq", litellm="groq/llama3-70b-8192"),
-    LLM_INFO(id="llama3_8_groq", litellm="groq/llama3-8b-8192"),
+    LLM_INFO(id="llama3_70_groq", litellm=None),  # "groq/llama3-70b-8192"
+    LLM_INFO(id="llama3_8_groq", litellm=None),  # "groq/llama3-8b-8192"
     LLM_INFO(id="mixtral_7x8_deepinfra"),
     LLM_INFO(id="mixtral_7x8_groq", litellm="groq/mixtral-8x7b-32768"),
 ]

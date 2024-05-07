@@ -59,12 +59,12 @@ class PromptFormatter(BaseModel):
             if isinstance(message, SystemMessagePromptTemplate):
                 template.append(
                     self.sys_beg
-                    + dedent(cast(str, message.prompt.template) + self.sys_end) # type: ignore
+                    + dedent(cast(str, message.prompt.template) + self.sys_end)  # type: ignore
                 )
             elif isinstance(message, HumanMessagePromptTemplate):
                 template.append(
                     self.usr_n_beg
-                    + dedent(cast(str, message.prompt.template) + self.usr_n_end) # type: ignore
+                    + dedent(cast(str, message.prompt.template) + self.usr_n_end)  # type: ignore
                 )
             else:
                 raise Exception(f"cannot transform {message} in single prompt")

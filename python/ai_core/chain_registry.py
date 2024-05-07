@@ -10,26 +10,13 @@ class RunnableItem(BaseModel):
     name: str
     runnable: Runnable | Callable[[dict[str, Any]], Runnable]
     examples: list[str] = []
-    key: str | None = None
+    diagram: str | None = None
 
     def invoke(self, input: str, conf: dict[str, Any]) -> Any:
         runnable = self.get_runnable(conf)
         # is_agent = isinstance(runnable, AgentExecutor)
         runnable = runnable.with_config(configurable=conf)
-
-        # try to determine the name of the key for the query.
-        # does not work for Agent Executor, but there might be a way.
-        # input_schema_props = runnable.input_schema().schema().get("properties")
-        # key = None
-        # if input_schema_props:
-        #     input_keys = input_schema_props.keys()
-        #     assert len(input_keys) == 1
-        #     key = next(iter(input_keys))
-
-        if self.key:
-            result = runnable.invoke({self.key: input})
-        else:
-            result = runnable.invoke(input)
+        result = runnable.invoke(input)
         return result
 
     def get_runnable(self, conf={"llm": None}) -> Runnable:
@@ -64,7 +51,7 @@ def to_key_param_callable(
     key: str, function: Callable[[dict[str, Any]], Runnable]
 ) -> Callable[[Any], Runnable]:
     """
-    Take a function taking a config parameter and returning a Runnable whose input is a string,
-    and return a function where the same Runnable takes a dict instead.
+    Take a function having a config parameter and returning a Runnable whose input is a string,
+    and return a function where the same Runnable takes a dict instead of the string.
     """
     return lambda conf: RunnableLambda(lambda x: {key: x}) | function(conf)

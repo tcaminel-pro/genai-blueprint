@@ -1,9 +1,21 @@
-from diagrams import Diagram
-from diagrams.aws.compute import EC2
-from diagrams.aws.database import RDS
-from diagrams.aws.network import ELB
+from diagrams import Diagram  # noqa: I001
+from diagrams import Diagram, Edge, Node
+from diagrams.programming.flowchart import Action, Decision, Inspection
 
-with Diagram("Web Service",show=False): # It is recommended to set "show" to false to prevent the pop out of the diagram in your image viewer
-    ELB("lb") >> EC2("Production") >> RDS("Accounts")
-    ELB("lb") >> EC2("UAT") >> RDS("Accounts")
-    ELB("lb") >> EC2("DevDevDevDev") >> RDS("Accounts")
+#https://diagrams.mingrammer.com/docs/nodes/programming
+
+
+graph_attributes = {
+    "fontsize": "9",
+    "orientation": "portrait",
+    "splines":"spline"
+}
+
+# fmt: off
+with Diagram("Langchain RAG Graph",show=False,graph_attr=graph_attributes): # It is recommended to set "show" to false to prevent the pop out of the diagram in your image viewer
+    routing = Decision("Routing") 
+    Action("Question") >> routing 
+    routing - Edge() >> Inspection("Document Retrieve 1") >> Inspection("Document Grade")
+    routing >> Inspection("Web Search")
+    routing - Edge(style="dotted") >> Inspection("Other")
+    TB_fields  = Node(shape="oval", label="Question")

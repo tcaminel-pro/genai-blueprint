@@ -1,5 +1,6 @@
 import importlib
 import importlib.util
+from pathlib import Path
 
 import streamlit as st
 
@@ -32,7 +33,13 @@ if not runnable_desc:
 
 runnable = runnable_desc.get_runnable()
 
-with st.expander("Runnable information", expanded=False):
+if diagram := runnable_desc.diagram:
+    file = Path.cwd() / diagram
+    st.image(str(file))
+    st.write("")
+
+
+with st.expander("Runnable Graph", expanded=False):
     if importlib.util.find_spec("pygraphviz") is None:
         st.warning(
             "cannot draw the Runnable graph because pygraphviz and Graphviz are not installed"

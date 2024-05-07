@@ -39,7 +39,7 @@ from python.ai_core.vector_store import document_count, vector_store_factory
 
 """
 Suggested extensions :
-- Rewtrite query as in https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_adaptive_rag.ipynb 
+- Rewrite query as in https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_adaptive_rag.ipynb 
 
 """
 # MODEL = "llama3_70_groq"
@@ -47,7 +47,7 @@ MODEL = "llama3_8_groq"
 llm = LlmFactory(llm_id=MODEL, json_mode=False, cache=True).get()
 
 
-class YesOrNow(Enum):
+class YesOrNo(Enum):
     YES = "yes"
     NO = "no"
 
@@ -57,7 +57,7 @@ class DataRoute(Enum):
     VECTOR_STORE = "vectorstore"
 
 
-yesno_enum_parser = EnumOutputParser(enum=YesOrNow)
+yesno_enum_parser = EnumOutputParser(enum=YesOrNo)
 
 to_lower = RunnableLambda(lambda x: x.content.lower())
 
@@ -95,7 +95,7 @@ def def_prompt(system: str | None, user: str) -> BasePromptTemplate:
     return ChatPromptTemplate.from_messages(messages)
 
 
-def retrieval_grader() -> Runnable[Any, YesOrNow]:
+def retrieval_grader() -> Runnable[Any, YesOrNo]:
     ### Retrieval Grader
 
     system_prompt = """
@@ -132,7 +132,7 @@ def rag_chain() -> Runnable[Any, str]:
     return prompt | llm | StrOutputParser()
 
 
-def hallucination_grader() -> Runnable[Any, YesOrNow]:
+def hallucination_grader() -> Runnable[Any, YesOrNo]:
     system_prompt = """
         You are a grader assessing whether an answer is grounded in / supported by a set of facts. 
         Give a binary score 'yes' or 'no' score to indicate  whether the answer is grounded in / supported by a set of facts. \n"""
@@ -147,7 +147,7 @@ def hallucination_grader() -> Runnable[Any, YesOrNow]:
     return prompt | llm | to_lower | yesno_enum_parser
 
 
-def answer_grader() -> Runnable[Any, YesOrNow]:
+def answer_grader() -> Runnable[Any, YesOrNo]:
     system_prompt = """
         You are a grader assessing whether an answer is useful to resolve a question. 
         Give a binary score 'yes' or 'no' to indicate whether the answer is useful to resolve a question"""
@@ -257,7 +257,7 @@ def grade_documents(state: GraphState) -> GraphState:
             {"question": question, "document": d.page_content}
         )
         # Document relevant
-        if grade == YesOrNow.YES:
+        if grade == YesOrNo.YES:
             logger.debug("---GRADE: DOCUMENT RELEVANT---")
             filtered_docs.append(d)
         # Document not relevant
@@ -292,7 +292,7 @@ def web_search(state: GraphState) -> GraphState:
     return {"documents": documents, "question": question}
 
 
-### Conditional edge
+### Conditional edges
 
 
 def route_question(state: GraphState) -> str:
@@ -339,9 +339,6 @@ def decide_to_generate(state: GraphState) -> str:
         return "generate"
 
 
-### Conditional edge
-
-
 def grade_generation_v_documents_and_question(state: GraphState) -> str:
     """
     Determines whether the generation is grounded in the document and answers question.
@@ -359,12 +356,12 @@ def grade_generation_v_documents_and_question(state: GraphState) -> str:
     )
 
     # Check hallucination
-    if hallucination == YesOrNow.YES:
+    if hallucination == YesOrNo.YES:
         logger.debug("---DECISION: GENERATION IS GROUNDED IN DOCUMENTS---")
         # Check question-answering
         logger.debug("---GRADE GENERATION vs QUESTION---")
         grade = answer_grader().invoke({"question": question, "generation": generation})
-        if grade == YesOrNow.YES:
+        if grade == YesOrNo.YES:
             logger.debug("---DECISION: GENERATION ADDRESSES QUESTION---")
             return "useful"
         else:
@@ -430,6 +427,7 @@ register_runnable(
             "What are the types of agent memory",
             "Who are the Bears expected to draft first in the NFL draft?",
         ],
+        diagram="static/adaptative_rag_fallback.png",
     )
 )
 
