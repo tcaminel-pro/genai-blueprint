@@ -6,18 +6,15 @@ https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_rag_a
 import sys
 from enum import Enum
 from operator import itemgetter
-from textwrap import dedent
 from typing import Any, List
 
 from devtools import debug
 from langchain.output_parsers.enum import EnumOutputParser
-from langchain.prompts import ChatPromptTemplate
 from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders.web_base import WebBaseLoader
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts.base import BasePromptTemplate
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.runnables import (
     Runnable,
@@ -35,6 +32,7 @@ from python.ai_core.chain_registry import (
 )
 from python.ai_core.embeddings import embeddings_factory
 from python.ai_core.llm import LlmFactory
+from python.ai_core.prompts import def_prompt
 from python.ai_core.vector_store import document_count, vector_store_factory
 
 """
@@ -87,12 +85,7 @@ def retriever() -> BaseRetriever:
     return retriever
 
 
-def def_prompt(system: str | None, user: str) -> BasePromptTemplate:
-    messages: list = []
-    if system:
-        messages.append(("system", dedent(system)))
-    messages.append(("user", dedent(user)))
-    return ChatPromptTemplate.from_messages(messages)
+
 
 
 def retrieval_grader() -> Runnable[Any, YesOrNo]:

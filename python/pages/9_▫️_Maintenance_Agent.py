@@ -4,39 +4,19 @@ Demo of an LLM Augmented Autonomous Agent for Maintenance
 Copyright (C) 2023 Eviden. All rights reserved
 """
 
-import os
-import sys
 from datetime import datetime
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, Dict, List, Optional
 
 import pandas as pd
 import streamlit as st
-from devtools import debug
 from langchain_community.callbacks import StreamlitCallbackHandler
-from loguru import logger
+from loguru import logger  # noqa: F401
 
-# fmt: off
-[sys.path.append(str(path)) for path in [Path.cwd(), Path.cwd().parent, Path.cwd().parent/"python"] if str(path) not in sys.path]  # type: ignore # fmt: on
-
-
-# Fix issue with ChromaDB that needs recent SQLite version, not available in selected docker base image
-# st.session_state.first_time = "first_time" not in st.session_state
-# try:
-#     __import__("pysqlite3")
-#     sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
-# except Exception as ex:
-#     if st.session_state.first_time:
-#         logger.warning(
-#             "Cannot import pysqlite3; ChromaDB might work however. It not, reinstall pysqlite3-binary"
-#         )
-
-
-from python.core.coder_agents import DiagramGeneratorTool
-from python.core.dummy_data import DATA_PATH, dummy_database
-from python.core.maintenance_agents import PROCEDURES, MaintenanceAgent
-from python.GenAI_Training import app_conf, config_sidebar, logo
+from python.ai_agents.maintenance_agents import PROCEDURES, MaintenanceAgent
+from python.ai_core.embeddings import embeddings_factory
+from python.ai_core.llm import LlmFactory
+from python.dummy_datasources.maintenance_data import DATA_PATH, dummy_database
 from python.st_utils.clear_result import with_clear_container
 
 # fmt:off
@@ -63,50 +43,9 @@ SAMPLE_PROMPTS = {
 # fmt:on
 
 
-from streamlit.external.langchain.streamlit_callback_handler import LLMThought
-
-original_on_tool_end = LLMThought.on_tool_end
-original_on_llm_start = LLMThought.on_llm_start
-
-
-def new_on_tool_end(
-    self,
-    output: str,
-    color: Optional[str] = None,
-    observation_prefix: Optional[str] = None,
-    llm_prefix: Optional[str] = None,
-    **kwargs: Any,
-) -> None:
-    original_on_tool_end(self, output, color, observation_prefix, llm_prefix, **kwargs)
-    debug(kwargs, observation_prefix, llm_prefix)
-    self._container.write("TOOL END")
-
-
-def new_on_llm_start(self, serialized: Dict[str, Any], prompts: List[str]) -> None:
-    original_on_llm_start(self, serialized, prompts)
-    debug(serialized, prompts)
-    self._container.write(f"LLM_START: {';'.join(prompts)}")
-
-
-# LLMThought.on_tool_end = new_on_tool_end
-# LLMThought.on_llm_start = new_on_llm_start
-
-# fmt=off
-
-
-if not st.session_state.get("authenticated"):
-    st.write("not authenticated")
-    st.stop()
-
-config_sidebar()
-
-
 def agent():
-    assert app_conf().embeddings_model
-
     agent = MaintenanceAgent(
-        default_llm=app_conf().chat_gpt,
-        embeddings_model=app_conf().embeddings_model,  # type: ignore
+        llm=LlmFactory().get(), embeddings_model=embeddings_factory()
     )
     agent.create_tools()
     # agent.add_tools([DiagramGeneratorTool()])
@@ -119,11 +58,13 @@ def agent():
 
 title_col1, title_col2 = st.columns([2, 1])
 
+logo_eviden = str(Path.cwd() / "static/eviden-logo-white.png")
+
 title_col1.title("Maintenance Operation Assistant")
-title_col2.image(logo, width=250)
+title_col2.image(logo_eviden, width=250)
 title_col1.markdown(
-    f"""
-    ## LLM-Augmented Autonomous Agents (LAAA) Demo for Maintenance Operation.
+    """
+    ## LLM-Augmented Autonomous Agents Demo for Maintenance Operation.
     
 
     The goal is to support  plant turbine maintenance operations. 
@@ -201,15 +142,10 @@ if with_clear_container(submit_clicked):
     )
     query = context + "\n" + user_input
 
-    answer, struct_answer = agent().run(
+    answer = agent().run(
         query,
         extra_callbacks=[StreamlitCallbackHandler(answer_container)],
         extra_metadata={"st_container": ("answer_container", answer_container)},
     )
 
-    if struct_answer is not None:
-        tab1, tab2 = st.tabs(["✉️ Text", "🗃 Structured"])
-        tab1.write(answer)
-        tab2.write(struct_answer)
-    else:
-        answer_container.write(answer)
+    answer_container.write(answer)

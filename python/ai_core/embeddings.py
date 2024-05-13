@@ -31,7 +31,7 @@ def embeddings_factory(embeddings_model: str | None = None) -> Embeddings:
             return OpenAIEmbeddings()
 
         case "sentence-transformers" | "dangvantuan":
-            from langchain_community.embeddings import HuggingFaceEmbeddings
+            from langchain_community.embeddings.huggingface import HuggingFaceEmbeddings
 
             cache = get_config("embeddings", "cache")
 

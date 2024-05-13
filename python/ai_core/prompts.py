@@ -17,10 +17,19 @@ from langchain_core.prompts import (
     PromptTemplate,
     SystemMessagePromptTemplate,
 )
+from langchain_core.runnables import RunnableLambda
 from loguru import logger
 from pydantic import BaseModel
 
 DEFAULT_SYSTEM_PROMPT = ""
+
+
+def def_prompt(system: str | None, user: str) -> BasePromptTemplate:
+    messages: list = []
+    if system:
+        messages.append(("system", dedent(system)))
+    messages.append(("user", dedent(user)))
+    return ChatPromptTemplate.from_messages(messages)
 
 
 class PromptFormatter(BaseModel):
@@ -125,6 +134,10 @@ class MixtralFormat(PromptFormatter):
     usr_n_end: str = " [/INST]"
     usr_0_beg: str = ""
     usr_0_end: str = " [/INST]"
+
+
+llama3_formatter = RunnableLambda(lambda x: Llama3Format().to_chat_prompt(x))
+mistral_formatter = RunnableLambda(lambda x: MixtralFormat().to_chat_prompt(x))
 
 
 def test():

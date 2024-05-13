@@ -4,12 +4,10 @@ LLM Augmented Autonomous Agent for Maintenance
 Copyright (C) 2023 Eviden. All rights reserved
 """
 
-import ast
-import re
 from datetime import datetime
 from functools import cached_property
 from textwrap import dedent
-from typing import Any, Literal, Tuple, Union
+from typing import Literal, Tuple, Union
 
 import pandas as pd
 import streamlit as st
@@ -18,18 +16,13 @@ from langchain import hub
 from langchain.agents import (
     AgentExecutor,
     AgentType,
-    create_openai_tools_agent,
     create_sql_agent,
     create_structured_chat_agent,
-    initialize_agent,
-)
-from langchain.agents.agent_toolkits import (
-    VectorStoreInfo,
-    VectorStoreToolkit,
-    create_vectorstore_agent,
+    create_tool_calling_agent,
 )
 from langchain.callbacks.base import BaseCallbackHandler
-from langchain.chains import RetrievalQA
+from langchain.chains import create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.embeddings.base import Embeddings
 from langchain.schema import Document
 from langchain.schema.language_model import BaseLanguageModel
@@ -38,14 +31,20 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.tools import BaseTool, Tool, tool
 from langchain.tools.retriever import create_retriever_tool
 from langchain.utilities.sql_database import truncate_word
-from langchain.vectorstores.chroma import Chroma
-from langchain_community.agent_toolkits import SQLDatabaseToolkit
+from langchain.vectorstores.base import VectorStore
+from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
+from langchain_community.document_loaders import TextLoader
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableConfig
 from loguru import logger
-from pydantic import BaseModel, Field
 
-from python.core.dummy_data import DATA_PATH, dummy_database
-from python.GenAI_Training import app_conf, llm_agent_test
+# Pydantic v1 required - https://python.langchain.com/v0.1/docs/guides/development/pydantic_compatibility/
+from pydantic.v1 import BaseModel, Field
+
+from python.ai_core.embeddings import embeddings_factory
+from python.ai_core.prompts import def_prompt
+from python.ai_core.vector_store import vector_store_factory
+from python.dummy_datasources.maintenance_data import DATA_PATH, dummy_database
 
 # Tools setup
 PROCEDURES = [
@@ -53,39 +52,6 @@ PROCEDURES = [
     "procedure_generator.txt",
     "procedure_cooling_system.txt",
 ]
-
-
-class SqlToolQueryInterceptor(BaseCallbackHandler):
-    sql_query: str | None = None
-    run_id: str | None = None
-    sql_out: str | None = None
-    df: pd.DataFrame | None = None
-
-    def on_tool_start(
-        self, serialized: dict[str, Any], input_str: str, **kwargs: Any
-    ) -> Any:
-        if (n := serialized.get("name")) and n == "sql_db_query":
-            self.sql_query = input_str
-            self.run_id = str(kwargs.get("run_id"))
-
-    def on_tool_end(self, output: str, **kwargs: Any) -> Any:
-        if (r := str(kwargs.get("run_id"))) and r == self.run_id and self.sql_query:
-            self.str_to_list(output)
-
-    def str_to_list(self, output):
-        try:
-            self.sql_out = ast.literal_eval(output)
-        except:
-            logger.warning("unable to parse SQL query output")
-        assert self.sql_query
-        match = re.search(r"SELECT\s+(.*?)\s+FROM", self.sql_query, re.IGNORECASE)
-        if match:
-            columns = match.group(1).split(",")
-            columns = [col.strip().strip("'").strip('"') for col in columns]
-            try:
-                self.df = pd.DataFrame(self.sql_out, columns=columns)
-            except:
-                logger.warning("can't create dataframe from query out")
 
 
 class SQLDatabaseExt(SQLDatabase):
@@ -119,29 +85,28 @@ class SQLDatabaseExt(SQLDatabase):
 
 
 @st.cache_resource(show_spinner=True)
-def maintenance_procedure_vectors(text: str) -> Chroma:
+def maintenance_procedure_vectors(text: str) -> VectorStore:
     """Index and store a document for similarity matching (through embeddings).
 
     Embeddings are stored in a vector-store.
     """
 
-    from langchain_community.document_loaders import TextLoader
+    vector_store = vector_store_factory(
+        "Chroma_in_memory", embeddings_factory(), "maintenance_procedure"
+    )
 
     loader = TextLoader(str(DATA_PATH / text))
     documents = loader.load()
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     texts = text_splitter.split_documents(documents)
-
-    return Chroma.from_documents(
-        texts, app_conf().embeddings_model, collection_name="maintenance_procedure"
-    )
+    vector_store.add_documents(texts)
+    return vector_store
 
 
 class MaintenanceAgent(BaseModel):
     """Maintenance Agent class"""
 
-    default_llm: BaseLanguageModel
-    llm: BaseLanguageModel | None = None
+    llm: BaseLanguageModel
     embeddings_model: Embeddings
     tools: list[BaseTool] = Field(default_factory=list)
     _agent_executor: AgentExecutor | None = None
@@ -150,10 +115,6 @@ class MaintenanceAgent(BaseModel):
         arbitrary_types_allowed = True
         underscore_attrs_are_private = True
         ignored_types = (cached_property,)
-
-    @property
-    def llm_model(self):
-        return self.llm if self.llm else self.default_llm
 
     def create_sql_agent(self) -> AgentExecutor:
         """Create an agent for Text-2-SQL.
@@ -174,9 +135,11 @@ class MaintenanceAgent(BaseModel):
             Document(page_content=question, metadata={"sql_query": few_shots[question]})
             for question in few_shots.keys()
         ]
-        vector_db = Chroma.from_documents(
-            few_shot_docs, self.embeddings_model, collection_name="sql_few_shots"
+        vector_db = vector_store_factory(
+            "Chroma_in_Memory", embeddings_factory(), "sql_few_shots"
         )
+        vector_db.add_documents(few_shot_docs)
+
         tool_description = """
             This tool will help you understand similar examples to adapt them to the user question.
             Input to this tool should be the user question.
@@ -193,7 +156,7 @@ class MaintenanceAgent(BaseModel):
             If an example is enough to construct the query, then I build it by adapting values according to actual requests and I execute it.
             Otherwise, I look at the tables in the database to see what I can query, and I should query the schema of the most relevant tables.
             I execute the SQL query to  to retrieve the information.
-            """
+            """  # noqa: F841
 
         db = SQLDatabase.from_uri(dummy_database())
 
@@ -204,13 +167,11 @@ class MaintenanceAgent(BaseModel):
             + f"\nCurrent date is: {datetime.now().isoformat()}. DO NOT use any SQL date functions like NOW(), DATE(), DATETIME()"
         )
 
-        if app_conf().use_functions:
-            agent_type = AgentType.OPENAI_FUNCTIONS
-        else:
-            agent_type = AgentType.ZERO_SHOT_REACT_DESCRIPTION
+        agent_type = AgentType.OPENAI_FUNCTIONS  # To IMPROVE
+
         return create_sql_agent(
-            llm=self.llm_model,
-            toolkit=SQLDatabaseToolkit(db=db, llm=self.llm_model),
+            llm=self.llm,
+            toolkit=SQLDatabaseToolkit(db=db, llm=self.llm),
             agent_type=agent_type,
             prefix=prefix,
             verbose=False,
@@ -264,13 +225,17 @@ class MaintenanceAgent(BaseModel):
             The questions can ask for information about several tasks, spare parts, tools etc.
             """
 
-            qa = RetrievalQA.from_chain_type(
-                llm=self.llm_model,
-                chain_type="stuff",
-                retriever=maintenance_procedure_vectors(PROCEDURES[0]).as_retriever(),
+            system_prompt = (
+                "Use the given context to answer the question. If you don't know the answer, say you don't know. "
+                "Use three sentence maximum and keep the answer concise. \n"
+                "Context: {context}"
             )
-            result = qa.run(full_query)
-            return result
+
+            prompt = def_prompt(system_prompt, "{input}")
+            retriever = maintenance_procedure_vectors(PROCEDURES[0]).as_retriever()
+            question_answer_chain = create_stuff_documents_chain(self.llm, prompt)
+            chain = create_retrieval_chain(retriever, question_answer_chain)
+            return chain.invoke({"input": full_query})
 
         @tool
         def get_info_from_erp(tools_name: list[str], time: str) -> str:
@@ -279,11 +244,11 @@ class MaintenanceAgent(BaseModel):
 
             # Mock function . A real function would call an ERP or PLM API
             result = ""
-            for tool in tools_name:
-                availability = tool[0].lower() < "r"
-                hash = str(tool.__hash__())
+            for too_name in tools_name:
+                availability = too_name[0].lower() < "r"
+                hash = str(too_name.__hash__())
                 localization = f"R{hash[1:3]}L{hash[3:7]}"
-                result += f"{tool}:\n\t- availability: {availability} \n\t- localization:{localization}\n"
+                result += f"{too_name}:\n\t- availability: {availability} \n\t- localization:{localization}\n"
             return result
 
         @tool
@@ -298,7 +263,7 @@ class MaintenanceAgent(BaseModel):
                       WHERE  sensor IN ({ls}) and date >= '{start_time}' and date <= '{end_time}'"""
             debug(sql)
             result = db.run(sql)
-            return result
+            return str(result)  # #TODO : Correct and  test
 
         # https://python.langchain.com/docs/modules/agents/agent_types/structured_chat
         tools = [
@@ -321,24 +286,28 @@ class MaintenanceAgent(BaseModel):
     def run(
         self,
         query: str,
-        llm: BaseLanguageModel | None = None,
+        llm: BaseLanguageModel,
         verbose: bool = False,
         extra_callbacks: list[BaseCallbackHandler] | None = None,
         extra_metadata: dict | None = None,
     ) -> Tuple[str, pd.DataFrame | None]:
         """Run the maintenance agent."""
-
-        sql_interceptor = SqlToolQueryInterceptor()
-        self.llm = llm if llm else self.default_llm
-
-        if app_conf().use_functions:
-            prompt = hub.pull("hwchase17/openai-tools-agent")
-            # debug(prompt)
-            agent = create_openai_tools_agent(
-                prompt=prompt,
-                tools=self.tools,
-                llm=self.llm_model,
+        if True:
+            prompt = ChatPromptTemplate.from_messages(
+                [
+                    (
+                        "system",
+                        "You are a helpful assistant. Make sure to use the provided tool for information.",
+                    ),
+                    ("placeholder", "{chat_history}"),
+                    ("human", "{input}"),
+                    ("placeholder", "{agent_scratchpad}"),
+                ]
             )
+
+            # Construct the Tools agent
+            agent = create_tool_calling_agent(llm, self.tools, prompt)
+
         else:
             prompt = hub.pull("hwchase17/structured-chat-agent")
             debug(prompt)
@@ -349,7 +318,8 @@ class MaintenanceAgent(BaseModel):
             )
 
         extra_callbacks = extra_callbacks or []
-        callbacks = app_conf().callback_handlers + extra_callbacks
+        # callbacks = app_conf().callback_handlers + extra_callbacks
+        callbacks = extra_callbacks
 
         metadata = {"agentName": "MaintenanceAgent1"}
         metadata |= extra_metadata or {}
@@ -360,7 +330,7 @@ class MaintenanceAgent(BaseModel):
             verbose=verbose,
             handle_parsing_errors=True,
             # callbacks=callbacks,
-            callbacks=app_conf().callback_handlers,
+            # callbacks=app_conf().callback_handlers,
             metadata=metadata,
         )
 
@@ -368,7 +338,7 @@ class MaintenanceAgent(BaseModel):
         cfg["callbacks"] = callbacks
         cfg["metadata"] = metadata
         result = self._agent_executor.invoke({"input": query}, cfg)
-        return result["output"], sql_interceptor.df
+        return result["output"]
 
 
 # python_repl._globals['df'] = df

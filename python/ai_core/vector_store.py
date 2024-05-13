@@ -3,12 +3,11 @@
 
 """
 
-from functools import cache
 from pathlib import Path
 
 from langchain.embeddings.base import Embeddings
 from langchain.vectorstores.base import VectorStore
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores.chroma import Chroma
 
 from python.ai_core.embeddings import embeddings_factory
 from python.config import get_config
@@ -24,7 +23,7 @@ def get_vector_vector_store_path() -> str:
     dir = Path(get_config("vector_store", "path"))
     try:
         dir.mkdir()
-    except:
+    except Exception:
         pass  # TODO : log something
     return str(dir)
 
@@ -66,4 +65,4 @@ def document_count(vs: VectorStore):
     if isinstance(vs, Chroma):
         return vs._collection.count()
     else:
-        raise NotImplemented(f"Don'k know how to get collection count for {vs}")
+        raise NotImplementedError(f"Don'k know how to get collection count for {vs}")

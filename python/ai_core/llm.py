@@ -7,9 +7,9 @@ import os
 from functools import cache
 from typing import cast
 
-from langchain.cache import InMemoryCache, SQLiteCache
 from langchain.globals import set_llm_cache
 from langchain.schema.language_model import BaseLanguageModel
+from langchain_community.cache import InMemoryCache, SQLiteCache
 from langchain_community.chat_models.litellm import ChatLiteLLM
 from langchain_community.llms.deepinfra import DeepInfra
 from langchain_community.llms.edenai import EdenAI
@@ -48,9 +48,6 @@ KNOWN_LLM_LIST = [
     LLM_INFO(id="mixtral_7x8_groq", litellm="groq/mixtral-8x7b-32768"),
 ]
 
-KNOWN_LLM_TABLE = {llm.id: llm for llm in KNOWN_LLM_LIST}
-KNOWN_LLM = KNOWN_LLM_TABLE.keys()
-
 
 class LlmFactory(BaseModel):
     llm_id: str | None = None
@@ -58,6 +55,24 @@ class LlmFactory(BaseModel):
     max_tokens: int = MAX_TOKENS
     json_mode: bool = False
     cache: bool | None = None
+
+    @staticmethod
+    def known_llm_table() -> dict[str, LLM_INFO]:
+        return {llm.id: llm for llm in KNOWN_LLM_LIST}
+
+    @staticmethod
+    def known_llm() -> list[str]:
+        return list(LlmFactory.known_llm_table().keys())
+
+    def get_info(self, llm_id: str | None = None) -> LLM_INFO | None:
+        if llm_id is None:
+            llm_id = self.llm_id
+        if self.llm_id is None:
+            llm_id = get_config("llm", "default_model")
+        self.llm_id = llm_id
+        assert self.llm_id
+
+        return LlmFactory.known_llm_table().get(self.llm_id)
 
     def get(self, llm_id: str | None = None) -> BaseLanguageModel:
         """
@@ -67,14 +82,7 @@ class LlmFactory(BaseModel):
         we create the LLM from a LangChain LLM class
         """
 
-        if llm_id is None:
-            llm_id = self.llm_id
-        if self.llm_id is None:
-            llm_id = get_config("llm", "default_model")
-        self.llm_id = llm_id
-        assert self.llm_id
-
-        llm_info = KNOWN_LLM_TABLE.get(self.llm_id)
+        llm_info = self.get_info()
 
         if not llm_info:
             raise ValueError(f"Unknown LLM : {llm_id}")
@@ -171,6 +179,7 @@ class LlmFactory(BaseModel):
                 raise ValueError(f"json_mode  not supported for {type(llm)}")
 
         set_cache(self.cache)
+        setattr(llm, "llm_id", self.llm_id)
         return llm
 
     def get_configurable(self, with_fallback=False) -> Runnable:
@@ -181,7 +190,9 @@ class LlmFactory(BaseModel):
         if default_llm_id is None:
             default_llm_id = get_config("llm", "default_model")
         alternatives = {
-            llm: self.get(llm_id=llm) for llm in KNOWN_LLM if llm != default_llm_id
+            llm: self.get(llm_id=llm)
+            for llm in LlmFactory.known_llm()
+            if llm != default_llm_id
         }
         selected_llm = self.get(
             default_llm_id

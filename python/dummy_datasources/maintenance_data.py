@@ -4,11 +4,10 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import sqlalchemy
 from loguru import logger
 
 TABLE_NAME = "maintenance_planning"
-DATA_PATH = Path.cwd() / "data"
+DATA_PATH = Path.cwd() / "use_case_data/maintenance"
 MODEL_CACHE = Path.cwd() / ".model_cache"
 
 assert DATA_PATH.exists()

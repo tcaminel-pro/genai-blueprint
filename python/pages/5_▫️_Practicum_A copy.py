@@ -4,18 +4,14 @@ Demo of an LLM Augmented Autonomous Agent for Maintenance
 Copyright (C) 2023 Eviden. All rights reserved
 """
 
-import os
 import sys
 from datetime import datetime
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, Dict, List, Optional
 
 import pandas as pd
 import streamlit as st
-from devtools import debug
 from langchain_community.callbacks import StreamlitCallbackHandler
-from loguru import logger
 
 # fmt: off
 [sys.path.append(str(path)) for path in [Path.cwd(), Path.cwd().parent, Path.cwd().parent/"python"] if str(path) not in sys.path]  # type: ignore # fmt: on
@@ -33,10 +29,9 @@ from loguru import logger
 #         )
 
 
-from python.core.coder_agents import DiagramGeneratorTool
 from python.core.dummy_data import DATA_PATH, dummy_database
-from python.core.maintenance_agents import PROCEDURES, MaintenanceAgent
-from python.GenAI_Training import app_conf, config_sidebar, logo
+from python.core.maintenance_agents import PROCEDURES
+from python.GenAI_Training import logo_an
 from python.st_utils.clear_result import with_clear_container
 
 # fmt:off
@@ -49,9 +44,9 @@ from python.st_utils.clear_result import with_clear_container
 title_col1, title_col2 = st.columns([2, 1])
 
 title_col1.title("Practicum A")
-title_col2.image(logo, width=250)
+title_col2.image(logo_an, width=250)
 title_col1.markdown(
-    f"""
+    """
     ##  Your first exercise with a Web App
     """,
     unsafe_allow_html=True,
