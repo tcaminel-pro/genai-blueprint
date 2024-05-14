@@ -10,6 +10,7 @@ from functools import cache
 from pathlib import Path
 
 import yaml
+from loguru import logger
 
 CONFIG_FILE = "app_conf.yaml"
 
@@ -21,13 +22,13 @@ _config = defaultdict(dict)
 def _get_conf_file(fn: str = CONFIG_FILE) -> dict:
     # Read the configuration file  found either in the current directory, or its parent
 
-    toml_file = Path.cwd() / fn
-    if not toml_file.exists():
-        toml_file = Path.cwd().parent / fn
+    yml_file = Path.cwd() / fn
+    if not yml_file.exists():
+        yml_file = Path.cwd().parent / fn
 
-    assert toml_file.exists(), f"cannot find {toml_file}"
+    assert yml_file.exists(), f"cannot find {yml_file}"
 
-    with open(toml_file, "r") as f:
+    with open(yml_file, "r") as f:
         data = yaml.safe_load(f)
     return data
 
@@ -40,15 +41,28 @@ def get_config(group: str, key: str, default_value: str | None = None) -> str:
     """
     d = merge_dicts(dict(_get_conf_file()), _config, override=True)
 
+    config = os.environ.get("CONFIGURATION")
+    if config:
+        d_conf = d.get(config)
+        if d_conf is None:
+            logger.warning(
+                f"Environment variable CONFIGURATION='{config}', but no corresponding entry in {CONFIG_FILE}"
+            )
     try:
-        value = d[group][key]
-        return re.sub(r"\${(\w+)}", lambda f: os.environ.get(f.group(1), ""), value)
-
+        default_conf_value = d["default"][group][key]
     except Exception:
-        if default_value:
-            return default_value
-        else:
-            raise ValueError(f"no key {group}/{key} in file {CONFIG_FILE}")
+        default_conf_value = None
+    try:
+        conf_value = d_conf[group][key]  # type: ignore
+    except Exception:
+        conf_value = None
+
+    value = conf_value or default_conf_value or default_value
+
+    if value is None:
+        raise ValueError(f"no key {group}/{key} in file {CONFIG_FILE}")
+
+    return re.sub(r"\${(\w+)}", lambda f: os.environ.get(f.group(1), ""), value)
 
 
 def set_config(group: str, key: str, value: str):

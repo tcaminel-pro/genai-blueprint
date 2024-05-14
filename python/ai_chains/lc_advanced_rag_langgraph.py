@@ -5,6 +5,7 @@ https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_rag_a
 
 import sys
 from enum import Enum
+from functools import cache
 from operator import itemgetter
 from typing import Any, List
 
@@ -42,7 +43,7 @@ Suggested extensions :
 """
 # MODEL = "llama3_70_groq"
 MODEL = "llama3_8_groq"
-llm = LlmFactory(llm_id=MODEL, json_mode=False, cache=True).get()
+# llm = LlmFactory(llm_id=MODEL, json_mode=False, cache=True).get()
 
 
 class YesOrNo(Enum):
@@ -58,6 +59,12 @@ class DataRoute(Enum):
 yesno_enum_parser = EnumOutputParser(enum=YesOrNo)
 
 to_lower = RunnableLambda(lambda x: x.content.lower())
+
+
+@cache
+def get_llm():
+    # return LlmFactory().get_configurable()
+    return LlmFactory(llm_id=MODEL, json_mode=False, cache=True).get()
 
 
 def retriever() -> BaseRetriever:
@@ -85,9 +92,6 @@ def retriever() -> BaseRetriever:
     return retriever
 
 
-
-
-
 def retrieval_grader() -> Runnable[Any, YesOrNo]:
     ### Retrieval Grader
 
@@ -107,7 +111,7 @@ def retrieval_grader() -> Runnable[Any, YesOrNo]:
     )
 
     logger.debug("Retrieval Grader'")
-    retrieval_grader = prompt | llm | to_lower | yesno_enum_parser
+    retrieval_grader = prompt | get_llm | to_lower | yesno_enum_parser
     return retrieval_grader
 
 
@@ -122,7 +126,7 @@ def rag_chain() -> Runnable[Any, str]:
         Answer: """
     logger.debug("Rag chain'")
     prompt = def_prompt(system=system_prompt, user=user_prompt)
-    return prompt | llm | StrOutputParser()
+    return prompt | get_llm | StrOutputParser()
 
 
 def hallucination_grader() -> Runnable[Any, YesOrNo]:
@@ -137,7 +141,7 @@ def hallucination_grader() -> Runnable[Any, YesOrNo]:
     prompt = def_prompt(system_prompt, user_prompt).partial(
         instructions=yesno_enum_parser.get_format_instructions()
     )
-    return prompt | llm | to_lower | yesno_enum_parser
+    return prompt | get_llm | to_lower | yesno_enum_parser
 
 
 def answer_grader() -> Runnable[Any, YesOrNo]:
@@ -153,7 +157,7 @@ def answer_grader() -> Runnable[Any, YesOrNo]:
     prompt = def_prompt(system_prompt, user_prompt).partial(
         instructions=yesno_enum_parser.get_format_instructions()
     )
-    return prompt | llm | yesno_enum_parser
+    return prompt | get_llm | yesno_enum_parser
 
 
 def question_router() -> Runnable[Any, DataRoute]:
@@ -174,7 +178,7 @@ def question_router() -> Runnable[Any, DataRoute]:
     prompt = def_prompt(system_prompt, user_prompt).partial(
         instructions=parser.get_format_instructions()
     )
-    question_router = prompt | llm | parser
+    question_router = prompt | get_llm | parser
     return question_router
 
 

@@ -1,17 +1,31 @@
 # Makefile
 
-export PROJECT=genai-training
-export IMAGE_VERSION=1.2a
-export REGISTRY=XXXX.azurecr.io
+export APP=genai-tcl
+export IMAGE_VERSION=0.1a
+export REGISTRY_AZ=XXXX.azurecr.io
+
+export PROJECT_ID_GCP=nicolas-mathieu-0307-bine
+
 export STREAMLIT_ENTRY_POINT="python/GenAI_Training.py"
 
 #WARNING : Put the API key into the docker image. NOT RECOMMANDED IN PRODUCTION
 build: ## build the image
-	docker build --pull --rm -f "Dockerfile" -t $(PROJECT):$(IMAGE_VERSION) "." \
-      --build-arg  OPENAI_API=$(OPENAI_API_KEY) \
+	docker build --pull --rm -f "Dockerfile" -t $(APP):$(IMAGE_VERSION) "." \
+      --build-arg  OPENAI_API=$(OPENAI_API_KEY) 
+
+login_gcp:
+	gcloud auth login
+
+build_gcp: ## build the image
+	docker build -t gcr.io/$(PROJECT_ID_GCP)/$(APP):$(IMAGE_VERSION) . --build-arg OPENAI_API=$(OPENAI_API_KEY) 
+
+push_gcp:
+	gcloud auth configure-docker
+	docker push gcr.io/$(PROJECT_ID_GCP)/$(APP):$(IMAGE_VERSION)
+	gcloud run deploy --image gcr.io/$(PROJECT_ID_GCP)/$(APP):$(IMAGE_VERSION) --platform managed
 
 run: ## execute the image locally
-	docker run -it  -p 8000:8000 $(PROJECT):$(IMAGE_VERSION)
+	docker run -it  -p 8000:8000 -p 8501:8501 $(APP):$(IMAGE_VERSION)
 
 check: ## Check if the image is built
 	docker images -a
@@ -29,12 +43,15 @@ sync_time:  # Needed because WSL loose time after hibernation, and that can caus
 test:
 	pytest -s
 	
-push:  # Push to a registry
-	docker tag $(PROJECT):$(IMAGE_VERSION) $(REGISTRY)/$(PROJECT):$(IMAGE_VERSION)
-	docker push $(REGISTRY)/$(PROJECT):$(IMAGE_VERSION)
+push_az:  # Push to a registry
+	docker tag $(APP):$(IMAGE_VERSION) $(REGISTRY_AZ)/$(APP):$(IMAGE_VERSION)
+	docker push $(REGISTRY_AZ)/$(APP):$(IMAGE_VERSION)
 
 save:  # Create a zipped version of the image
-	docker save $(PROJECT):$(IMAGE_VERSION)| gzip > /tmp/$(PROJECT)_$(IMAGE_VERSION).tar.gz
+	docker save $(APP):$(IMAGE_VERSION)| gzip > /tmp/$(APP)_$(IMAGE_VERSION).tar.gz
+
+save_gcp:  # Create a zipped version of the image
+	docker save $(APP):$(IMAGE_VERSION)| gzip > /tmp/$(APP)_$(IMAGE_VERSION).tar.gz
 
 update:  # Update selected fast changing dependencies
 	poetry add 	langchain@latest langchain-experimental@latest  langchain-core@latest  langchain-community@latest langgraph@latest langserve@latest langchainhub@latest \

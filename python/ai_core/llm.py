@@ -14,6 +14,7 @@ from langchain_community.chat_models.litellm import ChatLiteLLM
 from langchain_community.llms.deepinfra import DeepInfra
 from langchain_community.llms.edenai import EdenAI
 from langchain_core.runnables import ConfigurableField, Runnable
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
 from lunary import LunaryCallbackHandler
@@ -24,9 +25,18 @@ from python.config import get_config
 MAX_TOKENS = 2048
 
 
+AGENT_TYPES = [
+    "tool-calling",
+    "openai-tools",
+    "openai-functions",
+    "zero-shot-react-description",
+]
+
+
 class LLM_INFO(BaseModel):
     id: str
     litellm: str | None = None
+    key: str
 
     def __hash__(self):
         return hash(self.id)
@@ -36,16 +46,26 @@ KNOWN_LLM_LIST = [
     # LLM id should follow Python variables constraints - ie no '-', no space, etc
     # Use pattern "{self.model name}_{version}_{inference provider or library}"
     # LiteLlm supported models are listed here: https://litellm.vercel.app/docs/providers
-    LLM_INFO(id="gpt_35_openai"),
-    LLM_INFO(id="gpt_35_openai_lite", litellm="gpt-3.5-turbo"),
-    LLM_INFO(id="gpt_35_edenai"),
+    LLM_INFO(id="gpt_35_openai", key="OPENAI_API_KEY"),
+    LLM_INFO(id="gpt_4o_openai", key="OPENAI_API_KEY"),
+    LLM_INFO(id="gpt_35_openai_lite", litellm="gpt-3.5-turbo", key="OPENAI_API_KEY"),
+    LLM_INFO(id="gpt_35_edenai", key="EDENAI_API_KEY"),
     LLM_INFO(
-        id="llama2_70_deepinfra", litellm="deepinfra/meta-llama/Llama-2-70b-chat-hf"
+        id="llama2_70_deepinfra",
+        litellm="deepinfra/meta-llama/Llama-2-70b-chat-hf",
+        key="DEEPINFRA_API_TOKEN",
     ),
-    LLM_INFO(id="llama3_70_groq", litellm=None),  # "groq/llama3-70b-8192"
-    LLM_INFO(id="llama3_8_groq", litellm=None),  # "groq/llama3-8b-8192"
-    LLM_INFO(id="mixtral_7x8_deepinfra"),
-    LLM_INFO(id="mixtral_7x8_groq", litellm="groq/mixtral-8x7b-32768"),
+    LLM_INFO(
+        id="llama3_70_groq", litellm=None, key="GROQ_API_KEY"
+    ),  # "groq/llama3-70b-8192"
+    LLM_INFO(
+        id="llama3_8_groq", litellm=None, key="GROQ_API_KEY"
+    ),  # "groq/llama3-8b-8192"
+    LLM_INFO(id="mixtral_7x8_deepinfra", key="DEEPINFRA_API_TOKEN"),
+    LLM_INFO(
+        id="mixtral_7x8_groq", litellm="groq/mixtral-8x7b-32768", key="GROQ_API_KEY"
+    ),
+    LLM_INFO(id="gemini_pro_google", key="GOOGLE_API_KEY"),
 ]
 
 
@@ -58,7 +78,7 @@ class LlmFactory(BaseModel):
 
     @staticmethod
     def known_llm_table() -> dict[str, LLM_INFO]:
-        return {llm.id: llm for llm in KNOWN_LLM_LIST}
+        return {llm.id: llm for llm in KNOWN_LLM_LIST if llm.key in os.environ}
 
     @staticmethod
     def known_llm() -> list[str]:
@@ -86,6 +106,8 @@ class LlmFactory(BaseModel):
 
         if not llm_info:
             raise ValueError(f"Unknown LLM : {llm_id}")
+        if llm_info.key not in os.environ:
+            raise ValueError("No known API key for : {llm_id}")
         if llm_info.litellm:
             llm = ChatLiteLLM(model=llm_info.litellm, client=None)
         else:
@@ -100,6 +122,13 @@ class LlmFactory(BaseModel):
         if self.llm_id == "gpt_35_openai":
             llm = ChatOpenAI(
                 model="gpt-3.5-turbo-0125",
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                model_kwargs={"seed": 42},  # Not sure that works
+            )
+        elif self.llm_id == "gpt_4o_openai":
+            llm = ChatOpenAI(
+                model="gpt-4o",
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
                 model_kwargs={"seed": 42},  # Not sure that works
@@ -126,18 +155,6 @@ class LlmFactory(BaseModel):
                     "stop": ["STOP_TOKEN"],
                 },
             )
-        elif self.llm_id == "mixtral_7x8_deepinfra_oai":
-            key = os.getenv("DEEPINFRA_API_TOKEN")
-            assert key, "No DEEPINFRA_API_TOKEN key found"
-            llm = ChatOpenAI(
-                model="gpt-3.5-turbo-0125",
-                base_url="meta-llama/Llama-2-70b-chat-hf",
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-                api_key=os.getenv("DEEPINFRA_API_TOKEN"),  # type: ignore
-                model_kwargs={"seed": 42},  # Not sure that works
-            )
-
         elif self.llm_id == "llama2_70_groq":
             llm = ChatGroq(
                 model="lLama2-70b-4096",
@@ -164,6 +181,13 @@ class LlmFactory(BaseModel):
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
             )
+        elif self.llm_id == "gemini_pro_google":
+            llm = ChatGoogleGenerativeAI(
+                model="gemini-pro",
+                convert_system_message_to_human=True,
+                temperature=self.temperature,
+                max_output_tokens=self.max_tokens,
+            )  # type: ignore
 
         else:
             raise ValueError(f"unsupported LLM: '{self.llm_id}'")
@@ -179,10 +203,9 @@ class LlmFactory(BaseModel):
                 raise ValueError(f"json_mode  not supported for {type(llm)}")
 
         set_cache(self.cache)
-        setattr(llm, "llm_id", self.llm_id)
         return llm
 
-    def get_configurable(self, with_fallback=False) -> Runnable:
+    def get_configurable(self, with_fallback=True) -> Runnable:
         #
         # see https://python.langchain.com/docs/expression_language/primitives/configure/#with-llms-1
 
@@ -208,16 +231,6 @@ class LlmFactory(BaseModel):
                 [self.get(llm_id="llama3_70_groq")]
             )
         return selected_llm
-
-    # def get_dynamic_formatted(self) -> Runnable:
-    #     if self.llm_id is None:
-    #         self.llm_id = get_config("llm", "default_model")
-    #     if self.llm_id.startswith("llama3"):
-    #         return self.get_dynamic() | RunnableLambda(
-    #             lambda x: Llama3Format().to_chat_prompt(x)
-    #         )
-    #     else:
-    #         return self.get_dynamic()
 
 
 @cache

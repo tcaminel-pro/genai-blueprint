@@ -9,6 +9,7 @@ They can  be either Cloud based or for local run with CPU
 from functools import cache
 
 from langchain.embeddings.base import Embeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_openai import OpenAIEmbeddings
 
 from python.config import get_config
@@ -29,6 +30,9 @@ def embeddings_factory(embeddings_model: str | None = None) -> Embeddings:
     match embeddings_model.partition("/")[0]:
         case "OpenAI":
             return OpenAIEmbeddings()
+
+        case "Google":
+            return GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 
         case "sentence-transformers" | "dangvantuan":
             from langchain_community.embeddings.huggingface import HuggingFaceEmbeddings

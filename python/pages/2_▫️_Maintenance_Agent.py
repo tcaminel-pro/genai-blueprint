@@ -4,7 +4,6 @@ Demo of an LLM Augmented Autonomous Agent for Maintenance
 Copyright (C) 2023 Eviden. All rights reserved
 """
 
-import sys
 from datetime import datetime
 from pathlib import Path
 from textwrap import dedent
@@ -12,29 +11,45 @@ from textwrap import dedent
 import pandas as pd
 import streamlit as st
 from langchain_community.callbacks import StreamlitCallbackHandler
+from loguru import logger  # noqa: F401
 
-# fmt: off
-[sys.path.append(str(path)) for path in [Path.cwd(), Path.cwd().parent, Path.cwd().parent/"python"] if str(path) not in sys.path]  # type: ignore # fmt: on
-
-
-# Fix issue with ChromaDB that needs recent SQLite version, not available in selected docker base image
-# st.session_state.first_time = "first_time" not in st.session_state
-# try:
-#     __import__("pysqlite3")
-#     sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
-# except Exception as ex:
-#     if st.session_state.first_time:
-#         logger.warning(
-#             "Cannot import pysqlite3; ChromaDB might work however. It not, reinstall pysqlite3-binary"
-#         )
-
-
-from python.core.dummy_data import DATA_PATH, dummy_database
-from python.core.maintenance_agents import PROCEDURES
-from python.GenAI_Training import logo_an
-from python.st_utils.clear_result import with_clear_container
+from python.ai_agents.maintenance_agents import PROCEDURES, MaintenanceAgent
+from python.ai_core.embeddings import embeddings_factory
+from python.ai_core.llm import LlmFactory
+from python.dummy_datasources.maintenance_data import DATA_PATH, dummy_database
+from python.utils.streamlit.clear_result import with_clear_container
 
 # fmt:off
+SAMPLE_PROMPTS = {
+  #  "Display a diagram" : "Display a diagram",
+
+    "Task prerequisite and required tools": 
+        "What are the required tools and prerequisite for task 'Diaphragm Inspection' of procedure 'Power Plant Steam Turbine'?",
+    "Required tools availability and localization":  """
+            Print the required tools for task 'Diaphragm Inspection' in procedure 'Power Plant Steam Turbine', 
+            check if they are available and print their localization""",
+    "Tasks assigned to an employee":
+            "print the tasks assigned to employee 'John Smith' next 2 days",
+    "Print assigned tasks to an employee, spares needed, required tools, their availability and localization": """
+        Follow these steps: 
+        -  print the tasks assigned to employee John Smith next 2 days. 
+        -  print the tools required for these tasks
+        -  print the spare parts required for these tasks. 
+        -  for each of these spare parts, print their availability and localization.
+        Print different sections for each step.""",
+    "Values from the sensor 'signal_1' last 2 weeks":
+        "Values from the sensor 'signal_1' last week ",
+}
+# fmt:on
+
+
+def agent():
+    agent = MaintenanceAgent(
+        llm=LlmFactory().get(), embeddings_model=embeddings_factory()
+    )
+    agent.create_tools()
+    # agent.add_tools([DiagramGeneratorTool()])
+    return agent
 
 
 ################################
@@ -43,12 +58,21 @@ from python.st_utils.clear_result import with_clear_container
 
 title_col1, title_col2 = st.columns([2, 1])
 
-title_col1.title("Practicum A")
-title_col2.image(logo_an, width=250)
+logo_eviden = str(Path.cwd() / "static/eviden-logo-white.png")
+
+title_col1.title("Maintenance Operation Assistant")
+title_col2.image(logo_eviden, width=250)
 title_col1.markdown(
     """
-    ##  Your first exercise with a Web App
-    """,
+    ## LLM-Augmented Autonomous Agents Demo for Maintenance Operation.
+    
+
+    The goal is to support  plant turbine maintenance operations. 
+    Currently, we gather information from:
+    - Maintenance procedures  (text document)
+    - Planning System   (SQL database)
+    - ERP and PLM (API)
+""",
     unsafe_allow_html=True,
 )
 
@@ -118,15 +142,13 @@ if with_clear_container(submit_clicked):
     )
     query = context + "\n" + user_input
 
-    answer, struct_answer = agent().run(
+    llm = LlmFactory().get()
+
+    answer = agent().run(
         query,
+        llm,
         extra_callbacks=[StreamlitCallbackHandler(answer_container)],
         extra_metadata={"st_container": ("answer_container", answer_container)},
     )
 
-    if struct_answer is not None:
-        tab1, tab2 = st.tabs(["✉️ Text", "🗃 Structured"])
-        tab1.write(answer)
-        tab2.write(struct_answer)
-    else:
-        answer_container.write(answer)
+    answer_container.write(answer)

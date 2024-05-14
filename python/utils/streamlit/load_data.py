@@ -6,14 +6,11 @@ import pandas as pd
 import streamlit as st
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
-from python.core.dummy_data import DATA_PATH
-
 FILE_FORMATS = {
     "csv": pd.read_csv,
     # "xls": pd.read_excel,  # Could be read but need additional import
     "xlsx": pd.read_excel,
     "xlsm": pd.read_excel,
-    # "xlsb": pd.read_excel,
 }
 
 

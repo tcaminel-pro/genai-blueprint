@@ -2,9 +2,12 @@ from pathlib import Path
 
 import streamlit as st
 from langchain.globals import set_debug, set_verbose
+from loguru import logger
 
-from python.ai_core.llm import set_cache
+from python.ai_core.llm import LlmFactory, set_cache
 from python.config import set_config
+
+logger.info("Start Webapp...")
 
 logo_an = str(Path.cwd() / "static" / "AcademieNumerique_Colour_RGB-150x150.jpg")
 
@@ -31,7 +34,7 @@ title_col1.markdown(
 def config_sidebar():
     with st.sidebar:
         with st.expander("LLM Configuration", expanded=True):
-            llm = st.selectbox("default", KNOWN_LLM, index=0)
+            llm = st.selectbox("default", LlmFactory.known_llm(), index=0)
             set_config("llm", "default_model", str(llm))
 
             set_debug(

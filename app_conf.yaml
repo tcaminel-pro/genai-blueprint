@@ -10,9 +10,11 @@ factories:
     - llama3_70_groq
     - mixtral_7x8_deepinfra
     - mixtral_7x8_groq
+    - gemini_pro_google
 
   embeddings:
     - OpenAI
+    - Google
     - sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 
   vector_store:
@@ -22,18 +24,23 @@ factories:
 
 
 # Agent configuration
-llm:
-  default_model: gpt_35_openai
-  default_factory: litellm
-  cache : sqlite
-embeddings:
-  default_model: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
-  cache: /home/tcl/hf_models
-vector_store:
-  default: Chroma
-  path: /home/tcl/chromadb
-  default_collection: "training_session"
-documents:
-  base: ${HOME}/prj/genai-training/use_case_data
+default:
+  llm:
+    default_model: gpt_35_openai
+    cache : sqlite
+  embeddings:
+    default_model: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+    cache: ${HOME}/hf_models
+  vector_store:
+    default: Chroma
+    path: ${HOME}/chromadb
+    default_collection: "training_session"
+  documents:
+    base: ./use_case_data
 
-    
+cloud_openai:    
+  llm:
+    default_model: gpt_35_openai
+    cache : memory
+  embeddings:
+    default_model: OpenAI

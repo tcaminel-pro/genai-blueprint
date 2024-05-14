@@ -14,7 +14,6 @@ from langchain.retrievers.self_query.base import SelfQueryRetriever
 from langchain.retrievers.self_query.chroma import ChromaTranslator
 from langchain.vectorstores.base import VectorStore
 from langchain_core.documents import Document
-from langchain_openai import ChatOpenAI
 
 from python.ai_core.chain_registry import (
     RunnableItem,
@@ -107,7 +106,7 @@ def get_retriever(config: dict):
     query_constructor = get_query_constructor(config)
     debug(query_constructor)
     retriever = SelfQueryRetriever(
-        query_constructor=query_constructor,  # TODO: Clarify
+        query_constructor=query_constructor,  # TODO: Clarify # type: ignore
         llm_chain=query_constructor,
         vectorstore=vector_store(),
         structured_query_translator=ChromaTranslator(),

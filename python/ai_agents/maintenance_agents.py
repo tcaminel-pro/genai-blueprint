@@ -26,14 +26,13 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.embeddings.base import Embeddings
 from langchain.schema import Document
 from langchain.schema.language_model import BaseLanguageModel
-from langchain.sql_database import SQLDatabase
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.tools import BaseTool, Tool, tool
 from langchain.tools.retriever import create_retriever_tool
-from langchain.utilities.sql_database import truncate_word
 from langchain.vectorstores.base import VectorStore
 from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from langchain_community.document_loaders import TextLoader
+from langchain_community.utilities.sql_database import SQLDatabase, truncate_word
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableConfig
 from loguru import logger
@@ -136,7 +135,7 @@ class MaintenanceAgent(BaseModel):
             for question in few_shots.keys()
         ]
         vector_db = vector_store_factory(
-            "Chroma_in_Memory", embeddings_factory(), "sql_few_shots"
+            "Chroma_in_memory", embeddings_factory(), "sql_few_shots"
         )
         vector_db.add_documents(few_shot_docs)
 

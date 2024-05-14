@@ -98,7 +98,6 @@ def call_functions(llm_with_tools, user_prompt):
     messages.append(ai_msg)
     historical_price_dfs = []
     symbols = []
-    debug(ai_msg)
     for tool_call in ai_msg.tool_calls:
         selected_tool = {
             "get_stock_info": get_stock_info,
@@ -130,9 +129,9 @@ def call_functions(llm_with_tools, user_prompt):
 
 
 def main():
-    # llm = LlmFactory(llm_id="llama3_70_groq").get()
+    llm = LlmFactory(llm_id="llama3_70_groq").get()
 
-    llm = LlmFactory(llm_id="gpt_35_openai").get()
+    #    llm = LlmFactory(llm_id="gpt_35_openai").get()
 
     # llm = ChatGroq(groq_api_key=os.getenv("GROQ_API_KEY"), model="llama3-70b-8192")
 
@@ -143,7 +142,7 @@ def main():
     spacer, col = st.columns([5, 1])
 
     # Display the title and introduction of the application
-    st.title("Groqing the Stock Market with Llama 3")
+    st.title("Stock Market")
     multiline_text = """
     Try to ask it "What is the current price of Meta stock?" or "Show me the historical prices of Apple vs Microsoft stock over the past 6 months.".
     """
