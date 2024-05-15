@@ -21,6 +21,10 @@ factories:
     - Chroma
     - Chroma_in_memory
   
+  monitoring:
+    - langsmith
+    - lunary
+    - none
 
 
 # Agent configuration
@@ -37,6 +41,9 @@ default:
     default_collection: "training_session"
   documents:
     base: ./use_case_data
+  monitoring: 
+    default: langsmith
+    project: GenAI_demo
 
 cloud_openai:    
   llm:

@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import streamlit as st
@@ -5,7 +6,7 @@ from langchain.globals import set_debug, set_verbose
 from loguru import logger
 
 from python.ai_core.llm import LlmFactory, set_cache
-from python.config import set_config
+from python.config import get_config, set_config
 
 logger.info("Start Webapp...")
 
@@ -54,12 +55,20 @@ def config_sidebar():
 
             set_cache(st.selectbox("Cache", ["memory", "sqlite"], index=1))
 
-            if st.checkbox(
-                label="Use Lunary.ai for monitoring",
-                value=True,
-                help="Lunary.ai is a LLM monitoring service. It's free until 1K event/day ",
-            ):
-                pass
+            if "LUNARY_APP_ID" in os.environ:
+                if st.checkbox(label="Use Lunary.ai for monitoring", value=False):
+                    set_config("monitoring", "default", "lunary")
+            if "LANGCHAIN_API_KEY" in os.environ:
+                if st.checkbox(label="Use LangSmith for monitoring", value=True):
+                    set_config("monitoring", "default", "langsmith")
+                    os.environ["LANGCHAIN_TRACING_V2"] = "true"
+                    os.environ["LANGCHAIN_PROJECT"] = get_config(
+                        "monitoring", "project"
+                    )
+                    os.environ["LANGCHAIN_TRACING_SAMPLING_RATE"] = "1.0"
+
+                else:
+                    os.environ["LANGCHAIN_TRACING_V2"] = "false"
 
 
 config_sidebar()

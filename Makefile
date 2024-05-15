@@ -11,7 +11,8 @@ export STREAMLIT_ENTRY_POINT="python/GenAI_Training.py"
 #WARNING : Put the API key into the docker image. NOT RECOMMANDED IN PRODUCTION
 build: ## build the image
 	docker build --pull --rm -f "Dockerfile" -t $(APP):$(IMAGE_VERSION) "." \
-      --build-arg  OPENAI_API=$(OPENAI_API_KEY) 
+      --build-arg OPENAI_API_KEY=$(OPENAI_API_KEY) \
+	  --build-arg GROQ_API_KEY=$(GROQ_API_KEY) 
 
 login_gcp:
 	gcloud auth login

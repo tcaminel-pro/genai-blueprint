@@ -24,6 +24,7 @@
         "langchain",
         "langgraph",
         "langserve",
+        "langsmith",
         "LCEL",
         "litellm",
         "llm",
