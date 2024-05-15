@@ -26,7 +26,7 @@ def add_field_to_class(
 
     return create_model(
         new_class_name,
-        **{field_name: field_definition}, # type: ignore
+        **{field_name: field_definition},  # type: ignore
         __base__=base_class,
     )  # type: ignore
 

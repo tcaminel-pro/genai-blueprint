@@ -10,7 +10,9 @@ from textwrap import dedent
 
 import pandas as pd
 import streamlit as st
+from langchain.callbacks import tracing_v2_enabled
 from langchain_community.callbacks import StreamlitCallbackHandler
+from langsmith import Client
 from loguru import logger  # noqa: F401
 
 from python.ai_agents.maintenance_agents import PROCEDURES, MaintenanceAgent
@@ -42,10 +44,12 @@ SAMPLE_PROMPTS = {
 }
 # fmt:on
 
+MODEL = "gemini_pro_google"
+
 
 def agent():
     agent = MaintenanceAgent(
-        llm=LlmFactory().get(), embeddings_model=embeddings_factory()
+        llm=LlmFactory(llm_id=MODEL).get(), embeddings_model=embeddings_factory()
     )
     agent.create_tools()
     # agent.add_tools([DiagramGeneratorTool()])
@@ -143,12 +147,15 @@ if with_clear_container(submit_clicked):
     query = context + "\n" + user_input
 
     llm = LlmFactory().get()
+    client = Client()
 
-    answer = agent().run(
-        query,
-        llm,
-        extra_callbacks=[StreamlitCallbackHandler(answer_container)],
-        extra_metadata={"st_container": ("answer_container", answer_container)},
-    )
-
-    answer_container.write(answer)
+    with tracing_v2_enabled() as cb:
+        answer = agent().run(
+            query,
+            llm,
+            extra_callbacks=[StreamlitCallbackHandler(answer_container)],
+            extra_metadata={"st_container": ("answer_container", answer_container)},
+        )
+        url = cb.get_run_url()
+        answer_container.write(answer)
+        answer_container.write("[trace](%s)" % url)

@@ -15,6 +15,7 @@ from langchain_community.llms.deepinfra import DeepInfra
 from langchain_community.llms.edenai import EdenAI
 from langchain_core.runnables import ConfigurableField, Runnable
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_google_vertexai import ChatVertexAI
 from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
 from lunary import LunaryCallbackHandler
@@ -84,30 +85,23 @@ class LlmFactory(BaseModel):
     def known_llm() -> list[str]:
         return list(LlmFactory.known_llm_table().keys())
 
-    def get_info(self, llm_id: str | None = None) -> LLM_INFO | None:
-        if llm_id is None:
-            llm_id = self.llm_id
-        if self.llm_id is None:
-            llm_id = get_config("llm", "default_model")
-        self.llm_id = llm_id
-        assert self.llm_id
-
-        return LlmFactory.known_llm_table().get(self.llm_id)
-
-    def get(self, llm_id: str | None = None) -> BaseLanguageModel:
+    def get(self) -> BaseLanguageModel:
         """
         Create an LLM model.
         'model' is our internal name for the model and its provider. If None, take the default one.
         We select a LiteLLM wrapper if it's defined in the KNOWN_LLM_LIST table, otherwise
         we create the LLM from a LangChain LLM class
         """
+        if self.llm_id is None:
+            self.llm_id = get_config("llm", "default_model")
+        assert self.llm_id
 
-        llm_info = self.get_info()
+        llm_info = LlmFactory.known_llm_table().get(self.llm_id)
+        assert llm_info
 
-        if not llm_info:
-            raise ValueError(f"Unknown LLM : {llm_id}")
         if llm_info.key not in os.environ:
-            raise ValueError("No known API key for : {llm_id}")
+            raise ValueError(f"No known API key for : {self.llm_id}")
+
         if llm_info.litellm:
             llm = ChatLiteLLM(model=llm_info.litellm, client=None)
         else:
@@ -181,9 +175,17 @@ class LlmFactory(BaseModel):
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
             )
-        elif self.llm_id == "gemini_pro_google":
+        elif self.llm_id == "gemini_pro_google_genai":
             llm = ChatGoogleGenerativeAI(
                 model="gemini-pro",
+                convert_system_message_to_human=True,
+                temperature=self.temperature,
+                max_output_tokens=self.max_tokens,
+            )  # type: ignore
+        elif self.llm_id == "gemini_pro_google":
+            llm = ChatVertexAI(
+                model="gemini-pro",
+                project="prj-p-eden",
                 convert_system_message_to_human=True,
                 temperature=self.temperature,
                 max_output_tokens=self.max_tokens,
