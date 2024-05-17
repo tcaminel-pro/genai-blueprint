@@ -24,7 +24,7 @@ from pydantic import BaseModel
 DEFAULT_SYSTEM_PROMPT = ""
 
 
-def def_prompt(system: str | None, user: str) -> BasePromptTemplate:
+def def_prompt(system: str | None = None, user: str = "") -> BasePromptTemplate:
     messages: list = []
     if system:
         messages.append(("system", dedent(system)))

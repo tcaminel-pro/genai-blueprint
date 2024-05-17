@@ -2380,18 +2380,18 @@ anthropic = ["anthropic[vertexai] (>=0.23.0,<1)"]
 
 [[package]]
 name = "langchain-groq"
-version = "0.1.3"
+version = "0.1.4"
 description = "An integration package connecting Groq and LangChain"
 optional = false
 python-versions = "<4.0,>=3.8.1"
 files = [
-    {file = "langchain_groq-0.1.3-py3-none-any.whl", hash = "sha256:1420c118507a85fbea560a67e3c881d880541a1e347d8c44da23dfd6bd14dcb9"},
-    {file = "langchain_groq-0.1.3.tar.gz", hash = "sha256:1fefb70b01f413b407709df97cd85a881a7bcce743b0ad9cc8514b27c15e5951"},
+    {file = "langchain_groq-0.1.4-py3-none-any.whl", hash = "sha256:83fa9252eb841dc29e7c0b77c5374fa26383b909c2e87eb54824ff0f9529f173"},
+    {file = "langchain_groq-0.1.4.tar.gz", hash = "sha256:eb7e517cfcb245b0b598f93c1e87cc15100e336eb0c1b930c43e7a19dbe131d6"},
 ]
 
 [package.dependencies]
 groq = ">=0.4.1,<1"
-langchain-core = ">=0.1.45,<0.2.0"
+langchain-core = ">=0.1.45,<0.3"
 
 [[package]]
 name = "langchain-openai"
@@ -2511,13 +2511,13 @@ regex = ["regex"]
 
 [[package]]
 name = "litellm"
-version = "1.37.9"
+version = "1.37.12"
 description = "Library to easily interface with LLM API providers"
 optional = false
 python-versions = "!=2.7.*,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,!=3.7.*,>=3.8"
 files = [
-    {file = "litellm-1.37.9-py3-none-any.whl", hash = "sha256:f5e96df4e28e302a5df4e8f5599ac35ffbeebbacf4d68f4c609155e24ba8fa03"},
-    {file = "litellm-1.37.9.tar.gz", hash = "sha256:2a2fecacde1e3a414b3865c99e5be3b5cffd21433e2648f660116f1ac9333294"},
+    {file = "litellm-1.37.12-py3-none-any.whl", hash = "sha256:5b42b3c98e329a24f48112f488dd1c5e4c635fb5b1a098b50c2cab789cb08172"},
+    {file = "litellm-1.37.12.tar.gz", hash = "sha256:2188991e9aa903c9adcec9a265b58ad3b6d9acbe0b0f194b3321d69fa4102729"},
 ]
 
 [package.dependencies]
@@ -2555,13 +2555,13 @@ dev = ["Sphinx (==7.2.5)", "colorama (==0.4.5)", "colorama (==0.4.6)", "exceptio
 
 [[package]]
 name = "lunary"
-version = "1.0.17"
+version = "1.0.19"
 description = "Observability, analytics and evaluations for AI agents and chatbots."
 optional = false
 python-versions = "<4.0.0,>=3.8.1"
 files = [
-    {file = "lunary-1.0.17-py3-none-any.whl", hash = "sha256:f2b43dfb7740ecbbe10950df318c286d7ad3c9e07d6501616becc904ddb69296"},
-    {file = "lunary-1.0.17.tar.gz", hash = "sha256:fae8796449e4e3a8780e5d22eb33e58bde787e85fabbf5e8f64952f40a2c7b9e"},
+    {file = "lunary-1.0.19-py3-none-any.whl", hash = "sha256:f99a0b3d37a50f70a9bc27504f064afc00324254e5a3fa1c45d432ca8cb8ecab"},
+    {file = "lunary-1.0.19.tar.gz", hash = "sha256:c653a70597427a7084ffe306c9fb967b4f87d4b372e30e69a19cc73f82acd18d"},
 ]
 
 [package.dependencies]
@@ -6651,4 +6651,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "9a472dde6ec8826e9f00964e1667e34cd99b3e28ece9936d0141a36a52a6672c"
+content-hash = "95089dbb64b5275dbc5ad97257b0b03c5053b9778c53fcc3d8c18bed09caa9f8"

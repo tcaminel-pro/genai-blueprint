@@ -229,12 +229,26 @@ class MaintenanceAgent(BaseModel):
                 "Use three sentence maximum and keep the answer concise. \n"
                 "Context: {context}"
             )
-
+            # See https://www.linkedin.com/pulse/beginners-guide-retrieval-chain-using-langchain-vijaykumar-kartha-kuinc/
             prompt = def_prompt(system_prompt, "{input}")
             retriever = maintenance_procedure_vectors(PROCEDURES[0]).as_retriever()
             question_answer_chain = create_stuff_documents_chain(self.llm, prompt)
             chain = create_retrieval_chain(retriever, question_answer_chain)
             return chain.invoke({"input": full_query})
+
+        # https://vijaykumarkartha.medium.com/beginners-guide-to-creating-ai-agents-with-langchain-eaa5c10973e6
+
+        retriever_tool = create_retriever_tool(
+            retriever=maintenance_procedure_vectors(PROCEDURES[0]).as_retriever(),
+            name="bla",
+            description=dedent(
+                """
+                Answer to any questions about maintenance procedures, such as tasks, prerequisite, spare parts, required tools etc.
+                Input should contain full context.
+                The questions can ask for information about several tasks, spare parts, tools etc.
+                """
+            ),
+        )
 
         @tool
         def get_info_from_erp(tools_name: list[str], time: str) -> str:
@@ -265,6 +279,7 @@ class MaintenanceAgent(BaseModel):
             return str(result)  # #TODO : Correct and  test
 
         # https://python.langchain.com/docs/modules/agents/agent_types/structured_chat
+
         tools = [
             get_maintenance_times,
             get_maintenance_issues,

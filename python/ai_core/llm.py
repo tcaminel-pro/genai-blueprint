@@ -11,6 +11,7 @@ from langchain.globals import set_llm_cache
 from langchain.schema.language_model import BaseLanguageModel
 from langchain_community.cache import InMemoryCache, SQLiteCache
 from langchain_community.chat_models.litellm import ChatLiteLLM
+from langchain_community.chat_models.ollama import ChatOllama
 from langchain_community.llms.deepinfra import DeepInfra
 from langchain_community.llms.edenai import EdenAI
 from langchain_core.runnables import ConfigurableField, Runnable
@@ -62,11 +63,27 @@ KNOWN_LLM_LIST = [
     LLM_INFO(
         id="llama3_8_groq", litellm=None, key="GROQ_API_KEY"
     ),  # "groq/llama3-8b-8192"
+    LLM_INFO(id="llama3_8_local", key=""),  # "groq/llama3-8b-8192"
     LLM_INFO(id="mixtral_7x8_deepinfra", key="DEEPINFRA_API_TOKEN"),
     LLM_INFO(
         id="mixtral_7x8_groq", litellm="groq/mixtral-8x7b-32768", key="GROQ_API_KEY"
     ),
     LLM_INFO(id="gemini_pro_google", key="GOOGLE_API_KEY"),
+]
+
+KNOWN_LLM_LIST_SHORT = [
+    # LLM id should follow Python variables constraints - ie no '-', no space, etc
+    # Use pattern "{self.model name}_{version}_{inference provider or library}"
+    # LiteLlm supported models are listed here: https://litellm.vercel.app/docs/providers
+    LLM_INFO(id="gpt_35_openai", key="OPENAI_API_KEY"),
+    LLM_INFO(
+        id="llama2_70_deepinfra",
+        litellm="deepinfra/meta-llama/Llama-2-70b-chat-hf",
+        key="DEEPINFRA_API_TOKEN",
+    ),
+    LLM_INFO(
+        id="llama3_70_groq", litellm=None, key="GROQ_API_KEY"
+    ),  # "groq/llama3-70b-8192"
 ]
 
 
@@ -79,7 +96,11 @@ class LlmFactory(BaseModel):
 
     @staticmethod
     def known_llm_table() -> dict[str, LLM_INFO]:
-        return {llm.id: llm for llm in KNOWN_LLM_LIST if llm.key in os.environ}
+        return {
+            llm.id: llm
+            for llm in KNOWN_LLM_LIST
+            if llm.key in os.environ or llm.key == ""
+        }
 
     @staticmethod
     def known_llm() -> list[str]:
@@ -99,7 +120,7 @@ class LlmFactory(BaseModel):
         llm_info = LlmFactory.known_llm_table().get(self.llm_id)
         assert llm_info
 
-        if llm_info.key not in os.environ:
+        if llm_info.key not in os.environ and llm_info.key != "":
             raise ValueError(f"No known API key for : {self.llm_id}")
 
         if llm_info.litellm:
@@ -161,6 +182,12 @@ class LlmFactory(BaseModel):
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
             )
+        elif self.llm_id == "llama3_8_groq":
+            llm = ChatGroq(
+                model="lLama3-8b-8192",
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+            )
         elif self.llm_id == "mixtral_7x8_groq":
             llm = ChatGroq(
                 model="Mixtral-8x7b-32768",
@@ -190,6 +217,9 @@ class LlmFactory(BaseModel):
                 temperature=self.temperature,
                 max_output_tokens=self.max_tokens,
             )  # type: ignore
+        elif self.llm_id == "llama3_8_local":
+            format = "json" if self.json_mode else None
+            llm = ChatOllama(model="llama3:instruct", format=format, temperature=0)
 
         else:
             raise ValueError(f"unsupported LLM: '{self.llm_id}'")
@@ -207,7 +237,7 @@ class LlmFactory(BaseModel):
         set_cache(self.cache)
         return llm
 
-    def get_configurable(self, with_fallback=True) -> Runnable:
+    def get_configurable(self, with_fallback=False) -> Runnable:
         #
         # see https://python.langchain.com/docs/expression_language/primitives/configure/#with-llms-1
 
@@ -215,22 +245,24 @@ class LlmFactory(BaseModel):
         if default_llm_id is None:
             default_llm_id = get_config("llm", "default_model")
         alternatives = {
-            llm: self.get(llm_id=llm)
+            llm: LlmFactory(llm_id=llm).get()
             for llm in LlmFactory.known_llm()
             if llm != default_llm_id
         }
-        selected_llm = self.get(
-            default_llm_id
-        ).configurable_alternatives(  # select default LLM
-            ConfigurableField(id="llm"),
-            default_key=default_llm_id,
-            prefix_keys=False,
-            **alternatives,
+        selected_llm = (
+            LlmFactory(llm_id=self.llm_id)
+            .get()
+            .configurable_alternatives(  # select default LLM
+                ConfigurableField(id="llm"),
+                default_key=default_llm_id,
+                prefix_keys=False,
+                **alternatives,
+            )
         )
         if with_fallback:
             # Not tested
             selected_llm = selected_llm.with_fallbacks(
-                [self.get(llm_id="llama3_70_groq")]
+                [LlmFactory(llm_id="llama3_70_groq").get()]
             )
         return selected_llm
 

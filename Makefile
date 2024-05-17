@@ -10,6 +10,8 @@ export PROJECT_ID_GCP=prj-p-eden
 
 export STREAMLIT_ENTRY_POINT="python/GenAI_Training.py"
 
+topdir := $(shell pwd)
+
 #WARNING : Put the API key into the docker image. NOT RECOMMANDED IN PRODUCTION
 
 ##############
@@ -19,7 +21,7 @@ build: ## build the image
 	docker build --pull --rm -f "Dockerfile" -t $(APP):$(IMAGE_VERSION) "." \
       --build-arg OPENAI_API_KEY=$(OPENAI_API_KEY) \
 	  --build-arg GROQ_API_KEY=$(GROQ_API_KEY) \
-	  --build-arg LANGCHAIN_API_KEY=$(GLANGCHAIN_API_KEYROQ_API_KEY) 
+	  --build-arg LANGCHAIN_API_KEY=$(LANGCHAIN_API_KEY) 
 
 run: ## execute the image locally
 	docker run -it  -p 8000:8000 -p 8501:8501 $(APP):$(IMAGE_VERSION)
@@ -80,7 +82,8 @@ save:  # Create a zipped version of the image
 
 update:  # Update selected fast changing dependencies
 	poetry add 	langchain@latest langchain-experimental@latest  langchain-core@latest  langchain-community@latest langgraph@latest langserve@latest langchainhub@latest \
-				lunary@latest loguru@latest devtools@latest  langchain-groq@latest  litellm@latest 
+				 loguru@latest devtools@latest  langchain-groq@latest  
+# litellm@latest lunary@latest
 
 #langchain-openai@latest
 

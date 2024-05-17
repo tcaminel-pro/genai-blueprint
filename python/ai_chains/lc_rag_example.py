@@ -2,11 +2,10 @@
 # Taken from
 
 
-import sys
 from functools import cache
 from pathlib import Path
 
-from devtools import debug
+from devtools import debug  # noqa: F401
 from langchain import hub
 from langchain_community.document_loaders.directory import DirectoryLoader
 from langchain_community.document_loaders.text import TextLoader

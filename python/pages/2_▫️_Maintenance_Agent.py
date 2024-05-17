@@ -49,7 +49,7 @@ MODEL = "gemini_pro_google"
 
 def agent():
     agent = MaintenanceAgent(
-        llm=LlmFactory(llm_id=MODEL).get(), embeddings_model=embeddings_factory()
+        llm=LlmFactory().get(), embeddings_model=embeddings_factory()
     )
     agent.create_tools()
     # agent.add_tools([DiagramGeneratorTool()])

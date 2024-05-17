@@ -18,6 +18,7 @@ from python.config import get_config
 
 # Import modules where runnables are registered
 RUNNABLES = {
+    "joke",
     "lc_rag_example",
     "lc_tools_example",
     "lc_self_query",
