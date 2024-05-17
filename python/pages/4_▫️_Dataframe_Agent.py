@@ -10,7 +10,7 @@ from langchain_experimental.agents import create_pandas_dataframe_agent
 from loguru import logger  # noqa: F401
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
-from python.ai_core.llm import LlmFactory
+from python.ai_core.llm import get_llm
 from python.utils.streamlit.load_data import FILE_FORMATS, load_data
 
 
@@ -105,7 +105,7 @@ if prompt := st.chat_input(placeholder=sample_prompt):
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.chat_message("user").write(prompt)
 
-    llm = LlmFactory().get()
+    llm = get_llm()
 
     pandas_df_agent = create_pandas_dataframe_agent(
         llm,

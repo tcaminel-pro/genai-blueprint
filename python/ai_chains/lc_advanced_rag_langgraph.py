@@ -5,7 +5,6 @@ https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_rag_a
 
 import sys
 from enum import Enum
-from functools import cache
 from operator import itemgetter
 from typing import Any, List
 
@@ -29,10 +28,8 @@ from typing_extensions import TypedDict
 from python.ai_core.chain_registry import (
     RunnableItem,
     register_runnable,
-    to_key_param_callable,
 )
-from python.ai_core.embeddings import embeddings_factory
-from python.ai_core.llm import LlmFactory
+from python.ai_core.llm import get_llm
 from python.ai_core.prompts import def_prompt
 from python.ai_core.vector_store import document_count, vector_store_factory
 
@@ -41,9 +38,6 @@ Suggested extensions :
 - Rewrite query as in https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_adaptive_rag.ipynb 
 
 """
-# MODEL = "llama3_70_groq"
-MODEL = "llama3_8_groq"
-# llm = LlmFactory(llm_id=MODEL, json_mode=False, cache=True).get()
 
 
 class YesOrNo(Enum):
@@ -61,12 +55,6 @@ yesno_enum_parser = EnumOutputParser(enum=YesOrNo)
 to_lower = RunnableLambda(lambda x: x.content.lower())
 
 
-@cache
-def get_llm():
-    # return LlmFactory().get_configurable()
-    return LlmFactory(llm_id=MODEL, json_mode=False, cache=True).get()
-
-
 def retriever() -> BaseRetriever:
     urls = [
         "https://lilianweng.github.io/posts/2023-06-23-agent/",
@@ -75,7 +63,8 @@ def retriever() -> BaseRetriever:
     ]
 
     vectorstore = vector_store_factory(
-        name="Chroma", embeddings=embeddings_factory(), collection_name="rag-chroma"
+        id="Chroma",
+        collection_name="rag-chroma",
     )
 
     if document_count(vectorstore) == 0:
@@ -419,7 +408,7 @@ register_runnable(
     RunnableItem(
         tag="Advanced RAG",
         name="Advanced-RAG-Langgraph",
-        runnable=to_key_param_callable("question", query_graph),
+        runnable=("question", query_graph),
         examples=[
             "What are the types of agent memory",
             "Who are the Bears expected to draft first in the NFL draft?",
@@ -431,7 +420,7 @@ register_runnable(
 ri = RunnableItem(
     tag="Advanced RAG",
     name="Advanced-RAG-Langgraph",
-    runnable=to_key_param_callable("question", query_graph),
+    runnable=("question", query_graph),
     examples=[
         "What are the types of agent memory",
         "Who are the Bears expected to draft first in the NFL draft?",

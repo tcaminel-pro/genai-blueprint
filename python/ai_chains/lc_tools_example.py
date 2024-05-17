@@ -3,7 +3,6 @@
 Adapted from https://blog.langchain.dev/tool-calling-with-langchain/  
 """
 
-from typing import Any, Callable
 
 from devtools import debug
 from langchain import hub
@@ -13,15 +12,14 @@ from langchain.agents import (
     create_tool_calling_agent,
 )
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import Runnable, RunnableLambda
+from langchain_core.runnables import Runnable
 from langchain_core.tools import tool
 
 from python.ai_core.chain_registry import (
     RunnableItem,
     register_runnable,
-    to_key_param_callable,
 )
-from python.ai_core.llm import LlmFactory  # ignore
+from python.ai_core.llm import get_llm
 
 
 @tool
@@ -50,7 +48,7 @@ tools = [multiply, exponentiate, add]
 
 
 def create_runnable(config: dict) -> Runnable:
-    llm = LlmFactory(llm_id=config["llm"]).get()
+    llm = get_llm(llm_id=config["llm"])
     return llm.bind_tools(tools)  # type: ignore
 
 
@@ -66,7 +64,7 @@ register_runnable(
 
 def create_executor(config: dict) -> Runnable:
     debug(config)
-    llm = LlmFactory(llm_id=config["llm"]).get()
+    llm = get_llm(llm_id=config["llm"])
 
     if False:
         prompt = hub.pull("hwchase17/openai-tools-agent")
@@ -89,7 +87,7 @@ register_runnable(
     RunnableItem(
         tag="Agent",
         name="Calculator agent",
-        runnable=to_key_param_callable("input", create_executor),
+        runnable=create_executor,
         examples=["what's 3 plus 5 raised to the 2.743. also what's 17.24 - 918.1241"],
     )
 )

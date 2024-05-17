@@ -13,9 +13,9 @@ factories:
     - gemini_pro_google
 
   embeddings:
-    - OpenAI
-    - Google
-    - sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+    - multilingual_MiniLM
+    - ada_002_openai
+    - mistral_1024_edenai 
 
   vector_store:
     - Chroma
@@ -33,7 +33,7 @@ default:
     default_model: gpt_35_openai
     cache : sqlite
   embeddings:
-    default_model: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+    default_model: mistral_1024_edenai 
     cache: ${HOME}/hf_models
   vector_store:
     default: Chroma
@@ -50,4 +50,6 @@ cloud_openai:
     default_model: gpt_35_openai
     cache : memory
   embeddings:
-    default_model: OpenAI
+    default_model: ada_002_openai
+
+  

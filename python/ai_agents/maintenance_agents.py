@@ -40,7 +40,6 @@ from loguru import logger
 # Pydantic v1 required - https://python.langchain.com/v0.1/docs/guides/development/pydantic_compatibility/
 from pydantic.v1 import BaseModel, Field
 
-from python.ai_core.embeddings import embeddings_factory
 from python.ai_core.prompts import def_prompt
 from python.ai_core.vector_store import vector_store_factory
 from python.dummy_datasources.maintenance_data import DATA_PATH, dummy_database
@@ -91,7 +90,7 @@ def maintenance_procedure_vectors(text: str) -> VectorStore:
     """
 
     vector_store = vector_store_factory(
-        "Chroma_in_memory", embeddings_factory(), "maintenance_procedure"
+        "Chroma_in_memory", get_embeddings(), "maintenance_procedure"
     )
 
     loader = TextLoader(str(DATA_PATH / text))
@@ -135,7 +134,7 @@ class MaintenanceAgent(BaseModel):
             for question in few_shots.keys()
         ]
         vector_db = vector_store_factory(
-            "Chroma_in_memory", embeddings_factory(), "sql_few_shots"
+            "Chroma_in_memory", get_embeddings(), "sql_few_shots"
         )
         vector_db.add_documents(few_shot_docs)
 

@@ -16,8 +16,7 @@ from langsmith import Client
 from loguru import logger  # noqa: F401
 
 from python.ai_agents.maintenance_agents import PROCEDURES, MaintenanceAgent
-from python.ai_core.embeddings import embeddings_factory
-from python.ai_core.llm import LlmFactory
+from python.ai_core.llm import get_llm
 from python.dummy_datasources.maintenance_data import DATA_PATH, dummy_database
 from python.utils.streamlit.clear_result import with_clear_container
 
@@ -49,7 +48,8 @@ MODEL = "gemini_pro_google"
 
 def agent():
     agent = MaintenanceAgent(
-        llm=LlmFactory().get(), embeddings_model=embeddings_factory()
+        llm=get_llm(),
+        embeddings_model=get_embeddings(),
     )
     agent.create_tools()
     # agent.add_tools([DiagramGeneratorTool()])
@@ -146,7 +146,7 @@ if with_clear_container(submit_clicked):
     )
     query = context + "\n" + user_input
 
-    llm = LlmFactory().get()
+    llm = get_llm()
     client = Client()
 
     with tracing_v2_enabled() as cb:

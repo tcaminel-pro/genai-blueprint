@@ -15,8 +15,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from loguru import logger
 
 from python.ai_core.chain_registry import RunnableItem, register_runnable
-from python.ai_core.embeddings import embeddings_factory
-from python.ai_core.llm import LlmFactory
+from python.ai_core.llm import get_llm
 from python.ai_core.vector_store import vector_store_factory
 from python.config import get_config
 
@@ -27,11 +26,11 @@ assert base_dir.exists()
 @cache
 def retriever():
     dir = base_dir / "maintenance"
-    vector_store = vector_store_factory("Chroma", embeddings_factory(), "maintenance_1")
+    vector_store = vector_store_factory(id="Chroma", collection_name="maintenance_1")
 
     found = vector_store.similarity_search("maintenance", k=3)
     if len(found) == 0:
-        logger.info(f"retrieving text document in {dir} to VectorStore")
+        logger.info(f"indexing text document from {dir} in VectorStore")
         loader = DirectoryLoader(str(dir), glob="**/*.txt", loader_cls=TextLoader)
         docs = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
@@ -53,7 +52,7 @@ def format_docs(docs):
 rag_chain = (
     {"context": retriever() | format_docs, "question": RunnablePassthrough()}
     | prompt
-    | LlmFactory().get_configurable()
+    | get_llm()
     | StrOutputParser()
 )
 

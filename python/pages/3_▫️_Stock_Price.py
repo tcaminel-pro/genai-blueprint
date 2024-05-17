@@ -6,11 +6,8 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 import yfinance as yf
-from devtools import debug
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from langchain_core.tools import tool
-
-from python.ai_core.llm import LlmFactory
 
 
 @tool

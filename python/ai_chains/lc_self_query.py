@@ -18,9 +18,8 @@ from langchain_core.documents import Document
 from python.ai_core.chain_registry import (
     RunnableItem,
     register_runnable,
-    to_key_param_callable,
 )
-from python.ai_core.llm import LlmFactory
+from python.ai_core.llm import get_llm
 from python.ai_core.vector_store import vector_store_factory
 
 docs = [
@@ -97,7 +96,7 @@ def get_query_constructor(config: dict):
     output_parser = StructuredQueryOutputParser.from_components()
 
     # model = config["llm"]
-    llm = LlmFactory().get_configurable()
+    llm = get_llm()
     query_constructor = prompt | llm | output_parser
     return query_constructor
 
@@ -120,7 +119,7 @@ register_runnable(
     RunnableItem(
         tag="self_query",
         name="self_query_constructor",
-        runnable=to_key_param_callable("query", get_query_constructor),
+        runnable=("query", get_query_constructor),
         examples=[
             "What are some sci-fi movies from the 90's directed by Luc Besson about taxi drivers"
         ],

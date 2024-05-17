@@ -1,4 +1,4 @@
-from typing import Any, Callable
+from typing import Any, Callable, Tuple
 
 from devtools import debug  # noqa: F401
 from langchain_core.runnables import Runnable, RunnableLambda
@@ -6,9 +6,24 @@ from pydantic import BaseModel
 
 
 class RunnableItem(BaseModel):
+    """
+    A LangChain 'Runnable' encapsulation to be uses in a Runnable registry.
+
+    The runnable can be given in 3 forms:
+        - As an object of class Runnable
+        - As a function that returns un object of class Runnable that has a string as parameter
+        - As a tuple, with a key (str) and  a function that returns un object of class Runnable that has a dict with given key as parameter
+
+    Additionally, it's possible to attach ti the Runnable some information to create de demo:
+        - List of prompts
+        - Diagram
+    """
+
     tag: str
     name: str
-    runnable: Runnable | Callable[[dict[str, Any]], Runnable]
+    runnable: Runnable | Tuple[str, Callable[[dict[str, Any]], Runnable]] | Callable[
+        [dict[str, Any]], Runnable
+    ]  # Either a Runnable, or ...
     examples: list[str] = []
     diagram: str | None = None
 
@@ -24,8 +39,12 @@ class RunnableItem(BaseModel):
             runnable = self.runnable
         elif isinstance(self.runnable, Callable):
             runnable = self.runnable(conf)
+        elif isinstance(self.runnable, Tuple):
+            key, func = self.runnable
+            func_runnable = _to_key_param_callable(key, func)
+            runnable = func_runnable(conf)
         else:
-            raise Exception("unknown Runnable")
+            raise Exception("unknown or ill-formatted Runnable")
         return runnable
 
     class Config:
@@ -47,7 +66,7 @@ def find_runnable(name: str) -> RunnableItem | None:
     return next((x for x in _registry if x.name == name), None)
 
 
-def to_key_param_callable(
+def _to_key_param_callable(
     key: str, function: Callable[[dict[str, Any]], Runnable]
 ) -> Callable[[Any], Runnable]:
     """

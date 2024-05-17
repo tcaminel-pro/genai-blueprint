@@ -7,7 +7,7 @@ but without the burden to create a new LLM
 """
 
 from textwrap import dedent
-from typing import Optional, cast
+from typing import Any, Optional, cast
 
 from langchain.schema import SystemMessage
 from langchain_core.prompts import (
@@ -20,6 +20,8 @@ from langchain_core.prompts import (
 from langchain_core.runnables import RunnableLambda
 from loguru import logger
 from pydantic import BaseModel
+
+from python.ai_core.llm import get_llm
 
 DEFAULT_SYSTEM_PROMPT = ""
 
@@ -46,11 +48,14 @@ class PromptFormatter(BaseModel):
     usr_0_end: Optional[str] = None
     text_end: str = ""
 
-    def to_chat_prompt(
+    def to_chat_prompt_template(
         self,
-        input_prompt: ChatPromptTemplate,
+        input_prompt: Any,
     ) -> BasePromptTemplate:
-        if not isinstance(input_prompt, ChatPromptTemplate):
+        if isinstance(input_prompt, str):
+            input_prompt = def_prompt(user=input_prompt)
+            # input_prompt = def_prompt(user=input_prompt)
+        elif not isinstance(input_prompt, ChatPromptTemplate):
             logger.warning(
                 f"ignore formatting of message of type : {type(input_prompt)}"
             )
@@ -83,13 +88,12 @@ class PromptFormatter(BaseModel):
             template=new_template, input_variables=input_prompt.input_variables
         )
 
-
-class OpenAIFormat(PromptFormatter):
-    def to_chat_prompt(
+    def to_chat_msg(
         self,
-        input_prompt: ChatPromptTemplate,
-    ) -> BasePromptTemplate:
-        return input_prompt
+        input_msg: Any,
+    ):
+        template = ChatPromptTemplate.from_messages(input_msg)
+        return self.to_chat_prompt_template(template)
 
 
 class Llama2Format(PromptFormatter):
@@ -136,8 +140,8 @@ class MixtralFormat(PromptFormatter):
     usr_0_end: str = " [/INST]"
 
 
-llama3_formatter = RunnableLambda(lambda x: Llama3Format().to_chat_prompt(x))
-mistral_formatter = RunnableLambda(lambda x: MixtralFormat().to_chat_prompt(x))
+llama3_formatter = RunnableLambda(lambda x: Llama3Format().to_chat_prompt_template(x))
+mistral_formatter = RunnableLambda(lambda x: MixtralFormat().to_chat_prompt_template(x))
 
 
 def test():
@@ -151,22 +155,17 @@ def test():
         input_variables=["topic"],
     )
 
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", """this is a system message talking about {topic}"""),
-            (
-                "user",
-                """
-             This is a long
-             user message""",
-            ),
-        ]
+    prompt = def_prompt(
+        system="this is a system message talking about {topic}",
+        user="This is a message",
     )
 
-    new_prompt = formatter.to_chat_prompt(prompt)
-    from devtools import debug
+    new_prompt = formatter.to_chat_prompt_template(prompt)
 
-    debug(prompt_original, prompt, new_prompt)
+    # debug(prompt_original, prompt, new_prompt)
+    llama3_local = get_llm(llm_id="llama3_8_local")
+    chain = new_prompt | llama3_local
+    chain.invoke("french")
 
 
 if __name__ == "__main__":

@@ -35,7 +35,7 @@ title_col1.markdown(
 def config_sidebar():
     with st.sidebar:
         with st.expander("LLM Configuration", expanded=True):
-            llm = st.selectbox("default", LlmFactory.known_llm(), index=0)
+            llm = st.selectbox("default", LlmFactory().known_items(), index=0)
             set_config("llm", "default_model", str(llm))
 
             set_debug(

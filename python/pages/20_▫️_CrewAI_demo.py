@@ -6,8 +6,6 @@ import pandas as pd
 import streamlit as st
 from crewai import Agent, Crew, Task
 
-from python.ai_core.llm import LlmFactory
-
 
 def main():
     llm = LlmFactory(llm_id="mixtral_7x8_groq").get()

@@ -4,8 +4,8 @@ LLM self.models factory and Runnable
 """
 
 import os
-from functools import cache
-from typing import cast
+from functools import cache, cached_property
+from typing import Type, cast
 
 from langchain.globals import set_llm_cache
 from langchain.schema.language_model import BaseLanguageModel
@@ -15,29 +15,22 @@ from langchain_community.chat_models.ollama import ChatOllama
 from langchain_community.llms.deepinfra import DeepInfra
 from langchain_community.llms.edenai import EdenAI
 from langchain_core.runnables import ConfigurableField, Runnable
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_google_vertexai import ChatVertexAI
 from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
 from lunary import LunaryCallbackHandler
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, computed_field, field_validator
+from typing_extensions import Annotated
 
 from python.config import get_config
 
 MAX_TOKENS = 2048
 
 
-AGENT_TYPES = [
-    "tool-calling",
-    "openai-tools",
-    "openai-functions",
-    "zero-shot-react-description",
-]
-
-
 class LLM_INFO(BaseModel):
     id: str
-    litellm: str | None = None
+    cls: Type[BaseLanguageModel]
+    model: str
     key: str
 
     def __hash__(self):
@@ -48,63 +41,88 @@ KNOWN_LLM_LIST = [
     # LLM id should follow Python variables constraints - ie no '-', no space, etc
     # Use pattern "{self.model name}_{version}_{inference provider or library}"
     # LiteLlm supported models are listed here: https://litellm.vercel.app/docs/providers
-    LLM_INFO(id="gpt_35_openai", key="OPENAI_API_KEY"),
-    LLM_INFO(id="gpt_4o_openai", key="OPENAI_API_KEY"),
-    LLM_INFO(id="gpt_35_openai_lite", litellm="gpt-3.5-turbo", key="OPENAI_API_KEY"),
-    LLM_INFO(id="gpt_35_edenai", key="EDENAI_API_KEY"),
     LLM_INFO(
-        id="llama2_70_deepinfra",
-        litellm="deepinfra/meta-llama/Llama-2-70b-chat-hf",
+        id="gpt_35_openai",
+        cls=ChatOpenAI,
+        model="gpt-3.5-turbo-0125",
+        key="OPENAI_API_KEY",
+    ),
+    LLM_INFO(
+        id="llama3_70_deepinfra",
+        cls=DeepInfra,
+        model="meta-llama/Llama-3-70b-chat-hf",
         key="DEEPINFRA_API_TOKEN",
     ),
     LLM_INFO(
-        id="llama3_70_groq", litellm=None, key="GROQ_API_KEY"
-    ),  # "groq/llama3-70b-8192"
-    LLM_INFO(
-        id="llama3_8_groq", litellm=None, key="GROQ_API_KEY"
-    ),  # "groq/llama3-8b-8192"
-    LLM_INFO(id="llama3_8_local", key=""),  # "groq/llama3-8b-8192"
-    LLM_INFO(id="mixtral_7x8_deepinfra", key="DEEPINFRA_API_TOKEN"),
-    LLM_INFO(
-        id="mixtral_7x8_groq", litellm="groq/mixtral-8x7b-32768", key="GROQ_API_KEY"
-    ),
-    LLM_INFO(id="gemini_pro_google", key="GOOGLE_API_KEY"),
-]
-
-KNOWN_LLM_LIST_SHORT = [
-    # LLM id should follow Python variables constraints - ie no '-', no space, etc
-    # Use pattern "{self.model name}_{version}_{inference provider or library}"
-    # LiteLlm supported models are listed here: https://litellm.vercel.app/docs/providers
-    LLM_INFO(id="gpt_35_openai", key="OPENAI_API_KEY"),
-    LLM_INFO(
-        id="llama2_70_deepinfra",
-        litellm="deepinfra/meta-llama/Llama-2-70b-chat-hf",
+        id="llama3_70_deepinfra_lite",
+        cls=ChatLiteLLM,
+        model="deepinfra/meta-llama/Llama-3-70b-chat-hf",
         key="DEEPINFRA_API_TOKEN",
     ),
     LLM_INFO(
-        id="llama3_70_groq", litellm=None, key="GROQ_API_KEY"
-    ),  # "groq/llama3-70b-8192"
+        id="llama3_70_groq",
+        cls=ChatGroq,
+        model="lLama3-70b-8192",
+        key="GROQ_API_KEY",
+    ),
+    LLM_INFO(
+        id="gpt_35_edenai",
+        key="EDENAI_API_KEY",
+        cls=EdenAI,
+        model="openai/gpt-3.5-turbo-instruct",
+    ),
+    LLM_INFO(
+        id="llama3_8_groq", cls=ChatGroq, model="lLama3-8b-8192", key="GROQ_API_KEY"
+    ),
+    LLM_INFO(
+        id="mixtral_7x8_groq",
+        cls=ChatGroq,
+        model="Mixtral-8x7b-32768",
+        key="GROQ_API_KEY",
+    ),
+    LLM_INFO(
+        id="gemini_pro_google",
+        cls=ChatVertexAI,
+        model="gemini-pro",
+        key="GOOGLE_API_KEY",
+    ),
+    LLM_INFO(id="llama3_8_local", cls=ChatOllama, model="llama3:instruct", key=""),
 ]
 
 
 class LlmFactory(BaseModel):
-    llm_id: str | None = None
+    llm_id: Annotated[str | None, Field(validate_default=True)] = None
     temperature: float = 0
     max_tokens: int = MAX_TOKENS
     json_mode: bool = False
     cache: bool | None = None
 
+    @computed_field
+    @cached_property
+    def info(self) -> LLM_INFO:
+        assert self.llm_id
+        return LlmFactory.known_items_dict().get(self.llm_id)  # type: ignore
+
+    @field_validator("llm_id", mode="before")
+    @classmethod
+    def check_known(cls, llm_id: str) -> str:
+        if llm_id is None:
+            llm_id = get_config("llm", "default_model")
+        if llm_id not in LlmFactory.known_items():
+            raise ValueError(f"Unknown LLM: {llm_id}")
+        return llm_id
+
     @staticmethod
-    def known_llm_table() -> dict[str, LLM_INFO]:
+    def known_items_dict() -> dict[str, LLM_INFO]:
         return {
-            llm.id: llm
-            for llm in KNOWN_LLM_LIST
-            if llm.key in os.environ or llm.key == ""
+            item.id: item
+            for item in KNOWN_LLM_LIST
+            if item.key in os.environ or item.key == ""
         }
 
     @staticmethod
-    def known_llm() -> list[str]:
-        return list(LlmFactory.known_llm_table().keys())
+    def known_items() -> list[str]:
+        return list(LlmFactory.known_items_dict().keys())
 
     def get(self) -> BaseLanguageModel:
         """
@@ -113,126 +131,78 @@ class LlmFactory(BaseModel):
         We select a LiteLLM wrapper if it's defined in the KNOWN_LLM_LIST table, otherwise
         we create the LLM from a LangChain LLM class
         """
-        if self.llm_id is None:
-            self.llm_id = get_config("llm", "default_model")
-        assert self.llm_id
-
-        llm_info = LlmFactory.known_llm_table().get(self.llm_id)
-        assert llm_info
-
-        if llm_info.key not in os.environ and llm_info.key != "":
+        if self.info.key not in os.environ and self.info.key != "":
             raise ValueError(f"No known API key for : {self.llm_id}")
-
-        if llm_info.litellm:
-            llm = ChatLiteLLM(model=llm_info.litellm, client=None)
-        else:
-            llm = self.custom_model_factory()
+        llm = self.model_factory()
         return llm
 
-    def custom_model_factory(self) -> BaseLanguageModel:
-        """
-        Create an LLM model using LangChain provided modules.
-        """
-
-        if self.llm_id == "gpt_35_openai":
+    def model_factory(self) -> BaseLanguageModel:
+        if self.info.cls == ChatOpenAI:
             llm = ChatOpenAI(
-                model="gpt-3.5-turbo-0125",
+                model=self.info.model,
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
                 model_kwargs={"seed": 42},  # Not sure that works
             )
-        elif self.llm_id == "gpt_4o_openai":
-            llm = ChatOpenAI(
-                model="gpt-4o",
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-                model_kwargs={"seed": 42},  # Not sure that works
-            )
-
-        elif self.llm_id == "llama2_70_deepinfra":
-            llm = DeepInfra(
-                model_id="meta-llama/Llama-2-70b-chat-hf",
-                model_kwargs={
-                    "temperature": self.temperature,
-                    "max_new_tokens": self.max_tokens,
-                    "repetition_penalty": 1.3,
-                    "stop": ["STOP_TOKEN"],
-                },
-            )
-
-        elif self.llm_id == "mixtral_7x8_deepinfra":
-            llm = DeepInfra(
-                model_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
-                model_kwargs={
-                    "temperature": self.temperature,
-                    "max_new_tokens": self.max_tokens,
-                    "repetition_penalty": 1.3,
-                    "stop": ["STOP_TOKEN"],
-                },
-            )
-        elif self.llm_id == "llama2_70_groq":
-            llm = ChatGroq(
-                model="lLama2-70b-4096",
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-            )
-        elif self.llm_id == "llama3_70_groq":
-            llm = ChatGroq(
-                model="lLama3-70b-8192",
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-            )
-        elif self.llm_id == "llama3_8_groq":
-            llm = ChatGroq(
-                model="lLama3-8b-8192",
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-            )
-        elif self.llm_id == "mixtral_7x8_groq":
-            llm = ChatGroq(
-                model="Mixtral-8x7b-32768",
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-            )
-        elif self.llm_id == "gpt_35_edenai":
-            llm = EdenAI(
-                feature="text",
-                provider="openai",
-                model="gpt-3.5-turbo-instruct",
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-            )
-        elif self.llm_id == "gemini_pro_google_genai":
-            llm = ChatGoogleGenerativeAI(
-                model="gemini-pro",
-                convert_system_message_to_human=True,
-                temperature=self.temperature,
-                max_output_tokens=self.max_tokens,
-            )  # type: ignore
-        elif self.llm_id == "gemini_pro_google":
-            llm = ChatVertexAI(
-                model="gemini-pro",
-                project="prj-p-eden",
-                convert_system_message_to_human=True,
-                temperature=self.temperature,
-                max_output_tokens=self.max_tokens,
-            )  # type: ignore
-        elif self.llm_id == "llama3_8_local":
-            format = "json" if self.json_mode else None
-            llm = ChatOllama(model="llama3:instruct", format=format, temperature=0)
-
-        else:
-            raise ValueError(f"unsupported LLM: '{self.llm_id}'")
-
-        if self.json_mode:  # NOT TESTED
-            # see also https://api.python.langchain.com/en/latest/chains/langchain.chains.structured_output.base.create_structured_output_runnable.html
-
-            if isinstance(llm, ChatOpenAI) or isinstance(llm, ChatGroq):
+            if self.json_mode:
                 llm = cast(
                     BaseLanguageModel, llm.bind(response_format={"type": "json_object"})
                 )
-            else:
-                raise ValueError(f"json_mode  not supported for {type(llm)}")
+        elif self.info.cls == ChatGroq:
+            llm = ChatGroq(
+                model=self.info.model,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+            )
+            if self.json_mode:
+                llm = cast(
+                    BaseLanguageModel, llm.bind(response_format={"type": "json_object"})
+                )
+        elif self.info.cls == DeepInfra:
+            llm = DeepInfra(
+                model_id=self.info.model,
+                model_kwargs={
+                    "temperature": self.temperature,
+                    "max_new_tokens": self.max_tokens,
+                    "repetition_penalty": 1.3,
+                    "stop": ["STOP_TOKEN"],
+                },
+            )
+            assert not self.json_mode, "json_mode not supported or coded"
+        elif self.info.cls == EdenAI:
+            provider, _, model = self.info.model.partition("/")
+            llm = EdenAI(
+                feature="text",
+                provider=provider,
+                model=model,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+            )
+            assert not self.json_mode, "json_mode not supported"
+        elif self.info.cls == ChatVertexAI:
+            llm = ChatVertexAI(
+                model=self.info.model,
+                project="prj-p-eden",  # TODO : set it in config
+                convert_system_message_to_human=True,
+                temperature=self.temperature,
+                max_output_tokens=self.max_tokens,
+            )  # type: ignore
+            assert not self.json_mode, "json_mode not supported or coded"
+        elif self.info.cls == ChatLiteLLM:
+            llm = ChatLiteLLM(
+                model=self.info.model,
+                temperature=self.temperature,
+            )  # type: ignore
+
+        elif self.info.cls == ChatOllama:
+            format = "json" if self.json_mode else None
+            llm = ChatOllama(
+                model=self.info.model, format=format, temperature=self.temperature
+            )
+
+            # llm = llama3_formatter | llm
+        else:
+            raise ValueError(f"unsupported LLM class {self.info.cls}")
 
         set_cache(self.cache)
         return llm
@@ -246,7 +216,7 @@ class LlmFactory(BaseModel):
             default_llm_id = get_config("llm", "default_model")
         alternatives = {
             llm: LlmFactory(llm_id=llm).get()
-            for llm in LlmFactory.known_llm()
+            for llm in LlmFactory.known_items()
             if llm != default_llm_id
         }
         selected_llm = (
@@ -265,6 +235,29 @@ class LlmFactory(BaseModel):
                 [LlmFactory(llm_id="llama3_70_groq").get()]
             )
         return selected_llm
+
+
+@cache
+def get_llm(
+    llm_id: str | None = None,
+    temperature: float = 0,
+    max_tokens: int = MAX_TOKENS,
+    json_mode: bool = False,
+    cache: bool | None = None,
+    configurable: bool = True,
+    with_fallback=False,
+) -> Runnable:
+    factory = LlmFactory(
+        llm_id=llm_id,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        json_mode=json_mode,
+        cache=cache,
+    )
+    if configurable:
+        return factory.get_configurable(with_fallback=with_fallback)
+    else:
+        return factory.get()
 
 
 @cache

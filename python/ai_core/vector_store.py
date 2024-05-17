@@ -5,11 +5,10 @@
 
 from pathlib import Path
 
-from langchain.embeddings.base import Embeddings
 from langchain.vectorstores.base import VectorStore
 from langchain_community.vectorstores.chroma import Chroma
 
-from python.ai_core.embeddings import embeddings_factory
+from python.ai_core.embeddings import EmbeddingsFactory
 from python.config import get_config
 
 # from langchain_chroma import Chroma  does not work (yet?) with self_query
@@ -29,30 +28,33 @@ def get_vector_vector_store_path() -> str:
 
 
 def vector_store_factory(
-    name: str | None = None,
-    embeddings: Embeddings | None = None,
+    id: str | None = None,
+    embeddings_factory: EmbeddingsFactory | None = None,
     collection_name: str = default_collection,
 ) -> VectorStore:
     """
     Factory for the vector database
     """
-    if name is None:
-        name = get_config("vector_store", "default")
-    if embeddings is None:
-        embeddings = embeddings_factory()  # Get default one
-    if name == "Chroma":
+    if id is None:
+        id = get_config("vector_store", "default")
+    if embeddings_factory is None:
+        embeddings_factory = EmbeddingsFactory()  # Get default one
+    embeddings = embeddings_factory.get()
+    embeddings_id = embeddings_factory.info.id
+    collection_name = f"{collection_name}_{embeddings_id}"
+    if id == "Chroma":
         vector_store = Chroma(
             embedding_function=embeddings,
             persist_directory=get_vector_vector_store_path(),
             collection_name=collection_name,
         )
-    elif name == "Chroma_in_memory":
+    elif id == "Chroma_in_memory":
         vector_store = Chroma(
             embedding_function=embeddings,
             collection_name=collection_name,
         )
     else:
-        raise ValueError(f"Unknown vector store: {name}")
+        raise ValueError(f"Unknown vector store: {id}")
     return vector_store
 
 
