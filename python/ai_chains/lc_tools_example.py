@@ -6,12 +6,7 @@ Adapted from https://blog.langchain.dev/tool-calling-with-langchain/
 
 from devtools import debug
 from langchain import hub
-from langchain.agents import (
-    AgentExecutor,
-    create_openai_tools_agent,
-    create_tool_calling_agent,
-)
-from langchain_core.prompts import ChatPromptTemplate
+from langchain.agents import AgentExecutor
 from langchain_core.runnables import Runnable
 from langchain_core.tools import tool
 
@@ -19,7 +14,7 @@ from python.ai_core.chain_registry import (
     RunnableItem,
     register_runnable,
 )
-from python.ai_core.llm import get_llm
+from python.ai_core.llm import get_llm, get_llm_info
 
 
 @tool
@@ -49,6 +44,7 @@ tools = [multiply, exponentiate, add]
 
 def create_runnable(config: dict) -> Runnable:
     llm = get_llm(llm_id=config["llm"])
+    ic(llm)
     return llm.bind_tools(tools)  # type: ignore
 
 
@@ -63,31 +59,24 @@ register_runnable(
 
 
 def create_executor(config: dict) -> Runnable:
-    debug(config)
-    llm = get_llm(llm_id=config["llm"])
+    ic(config)
+    llm_id = config["llm"]
+    llm = get_llm(llm_id)
+    info = get_llm_info(llm_id)
 
-    if False:
-        prompt = hub.pull("hwchase17/openai-tools-agent")
-        agent = create_openai_tools_agent(llm, tools, prompt)
-        return AgentExecutor(agent=agent, tools=tools, prompt=prompt)  # type: ignore
-    else:
-        prompt = ChatPromptTemplate.from_messages(
-            [
-                ("system", "you're a helpful assistant"),
-                ("human", "{input}"),
-                ("placeholder", "{agent_scratchpad}"),
-            ]
-        )
+    prompt = hub.pull(info.agent_builder.hub_prompt)
+    agent_creator = info.agent_builder.create_function
 
-        # NOT IMPLEMENTED on most LLM yet
-        agent = create_tool_calling_agent(llm, tools, prompt)  # type: ignore
+    agent = agent_creator(llm, tools, prompt)  # type: ignore
+    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)  # type: ignore
+    return agent_executor
 
 
 register_runnable(
     RunnableItem(
         tag="Agent",
         name="Calculator agent",
-        runnable=create_executor,
+        runnable=("input", create_executor),
         examples=["what's 3 plus 5 raised to the 2.743. also what's 17.24 - 918.1241"],
     )
 )

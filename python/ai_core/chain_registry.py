@@ -1,13 +1,16 @@
+"""
+A registry for Langchain Runnables 
+"""
+
 from typing import Any, Callable, Tuple
 
-from devtools import debug  # noqa: F401
 from langchain_core.runnables import Runnable, RunnableLambda
 from pydantic import BaseModel
 
 
 class RunnableItem(BaseModel):
     """
-    A LangChain 'Runnable' encapsulation to be uses in a Runnable registry.
+    A LangChain 'Runnable' encapsulation to be used in a Runnable registry.
 
     The runnable can be given in 3 forms:
         - As an object of class Runnable
@@ -28,13 +31,13 @@ class RunnableItem(BaseModel):
     diagram: str | None = None
 
     def invoke(self, input: str, conf: dict[str, Any]) -> Any:
-        runnable = self.get_runnable(conf)
+        runnable = self.get(conf)
         # is_agent = isinstance(runnable, AgentExecutor)
         runnable = runnable.with_config(configurable=conf)
         result = runnable.invoke(input)
         return result
 
-    def get_runnable(self, conf={"llm": None}) -> Runnable:
+    def get(self, conf={"llm": None}) -> Runnable:
         if isinstance(self.runnable, Runnable):
             runnable = self.runnable
         elif isinstance(self.runnable, Callable):
@@ -45,6 +48,7 @@ class RunnableItem(BaseModel):
             runnable = func_runnable(conf)
         else:
             raise Exception("unknown or ill-formatted Runnable")
+        # debug(self.runnable, runnable)
         return runnable
 
     class Config:

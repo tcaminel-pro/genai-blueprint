@@ -31,7 +31,7 @@ runnable_desc = find_runnable(selection[1])
 if not runnable_desc:
     st.stop()
 
-runnable = runnable_desc.get_runnable()
+runnable = runnable_desc.get()
 
 if diagram := runnable_desc.diagram:
     file = Path.cwd() / diagram

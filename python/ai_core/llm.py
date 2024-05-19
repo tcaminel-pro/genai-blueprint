@@ -22,6 +22,7 @@ from lunary import LunaryCallbackHandler
 from pydantic import BaseModel, Field, computed_field, field_validator
 from typing_extensions import Annotated
 
+from python.ai_core.agents_builder import AgentBuilder, get_agent_builder
 from python.config import get_config
 
 MAX_TOKENS = 2048
@@ -32,6 +33,17 @@ class LLM_INFO(BaseModel):
     cls: Type[BaseLanguageModel]
     model: str
     key: str
+    agent_builder_type: str = "tool_calling"
+
+    @computed_field
+    @property
+    def agent_builder(self) -> AgentBuilder:
+        return get_agent_builder(self.agent_builder_type)
+
+    @field_validator("agent_builder")
+    def check_known(cls, type: str) -> str:
+        _ = get_agent_builder(type)
+        return type
 
     def __hash__(self):
         return hash(self.id)
@@ -72,13 +84,17 @@ KNOWN_LLM_LIST = [
         model="openai/gpt-3.5-turbo-instruct",
     ),
     LLM_INFO(
-        id="llama3_8_groq", cls=ChatGroq, model="lLama3-8b-8192", key="GROQ_API_KEY"
+        id="llama3_8_groq",
+        cls=ChatGroq,
+        model="lLama3-8b-8192",
+        key="GROQ_API_KEY",
     ),
     LLM_INFO(
         id="mixtral_7x8_groq",
         cls=ChatGroq,
         model="Mixtral-8x7b-32768",
         key="GROQ_API_KEY",
+        agent_builder_type="openai_function",  # DOES NOT WORK # TODO : Check with new updates
     ),
     LLM_INFO(
         id="gemini_pro_google",
@@ -86,7 +102,12 @@ KNOWN_LLM_LIST = [
         model="gemini-pro",
         key="GOOGLE_API_KEY",
     ),
-    LLM_INFO(id="llama3_8_local", cls=ChatOllama, model="llama3:instruct", key=""),
+    LLM_INFO(
+        id="llama3_8_local",
+        cls=ChatOllama,
+        model="llama3:instruct",
+        key="",
+    ),
 ]
 
 
@@ -104,7 +125,6 @@ class LlmFactory(BaseModel):
         return LlmFactory.known_items_dict().get(self.llm_id)  # type: ignore
 
     @field_validator("llm_id", mode="before")
-    @classmethod
     def check_known(cls, llm_id: str) -> str:
         if llm_id is None:
             llm_id = get_config("llm", "default_model")
@@ -258,6 +278,14 @@ def get_llm(
         return factory.get_configurable(with_fallback=with_fallback)
     else:
         return factory.get()
+
+
+def get_llm_info(llm_id: str) -> LLM_INFO:
+    r = LlmFactory.known_items_dict().get(llm_id)
+    if r is None:
+        raise ValueError(f"Unknown llm_id: {llm_id} ")
+    else:
+        return r
 
 
 @cache

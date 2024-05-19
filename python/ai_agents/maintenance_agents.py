@@ -90,7 +90,7 @@ def maintenance_procedure_vectors(text: str) -> VectorStore:
     """
 
     vector_store = vector_store_factory(
-        "Chroma_in_memory", get_embeddings(), "maintenance_procedure"
+        id="Chroma_in_memory", collection_name="maintenance_procedure"
     )
 
     loader = TextLoader(str(DATA_PATH / text))
@@ -134,7 +134,7 @@ class MaintenanceAgent(BaseModel):
             for question in few_shots.keys()
         ]
         vector_db = vector_store_factory(
-            "Chroma_in_memory", get_embeddings(), "sql_few_shots"
+            id="Chroma_in_memory", collection_name="sql_few_shots"
         )
         vector_db.add_documents(few_shot_docs)
 
