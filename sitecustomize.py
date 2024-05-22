@@ -19,4 +19,4 @@ if not sys.argv[0].endswith("pytest"):
         pass
     else:
         setattr(builtins, "debug", debug)
-        debug("devtools.debug loaded")
+        # debug("devtools.debug loaded")

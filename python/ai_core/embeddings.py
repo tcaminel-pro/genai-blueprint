@@ -56,7 +56,7 @@ KNOWN_EMBEDDINGS_MODELS = [
         key="GOOGLE_API_KEY",
     ),
     EMBEDDINGS_INFO(
-        id="multilingual_MiniLM",
+        id="multilingual_MiniLM_local",
         model="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
         cls="HuggingFaceEmbeddings",
         key="",
@@ -72,6 +72,12 @@ KNOWN_EMBEDDINGS_MODELS = [
         model="mistral/1024__mistral-embed",
         cls=EdenAiEmbeddings,
         key="EDENAI_API_KEY",
+    ),
+    EMBEDDINGS_INFO(
+        id="camembert_large_local",
+        model="dangvantuan/sentence-camembert-large",
+        cls="HuggingFaceEmbeddings",
+        key="",
     ),
 ]
 

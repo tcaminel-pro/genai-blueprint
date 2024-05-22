@@ -94,7 +94,7 @@ KNOWN_LLM_LIST = [
         cls=ChatGroq,
         model="Mixtral-8x7b-32768",
         key="GROQ_API_KEY",
-        agent_builder_type="openai_function",  # DOES NOT WORK # TODO : Check with new updates
+        agent_builder_type="tool_calling",  # DOES NOT WORK # TODO : Check with new updates
     ),
     LLM_INFO(
         id="gemini_pro_google",
@@ -191,14 +191,17 @@ class LlmFactory(BaseModel):
             assert not self.json_mode, "json_mode not supported or coded"
         elif self.info.cls == EdenAI:
             provider, _, model = self.info.model.partition("/")
-            llm = EdenAI(
-                feature="text",
+            from langchain_community.chat_models.edenai import ChatEdenAI
+
+            llm = ChatEdenAI(
                 provider=provider,
                 model=model,
-                temperature=self.temperature,
                 max_tokens=self.max_tokens,
+                edenai_api_url="https://staging-api.edenai.run/v2",
+                edenai_api_key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYTczYjA4OGMtOWE5MS00ODdhLWEyNTQtODJmNDI5MDVlNjhmIiwidHlwZSI6ImFwaV90b2tlbiJ9.KGkM6Sqtd0pD-83twNtUdSFtrNJD_u9ZZX3tabcDloA",  # or use `EDENAI_API_KEY` env var
+                temperature=self.temperature,
             )
-            assert not self.json_mode, "json_mode not supported"
+
         elif self.info.cls == ChatVertexAI:
             llm = ChatVertexAI(
                 model=self.info.model,

@@ -7,7 +7,6 @@ Entry point for the Command Line Interface
 import importlib
 from typing import Callable
 
-import icecream
 import typer
 from devtools import pprint
 from langchain.globals import set_debug, set_verbose
@@ -16,8 +15,6 @@ from langchain_core.runnables import Runnable
 from python.ai_core.chain_registry import find_runnable, get_runnable_registry
 from python.ai_core.llm import set_cache
 from python.config import get_config
-
-icecream.install()
 
 # Import modules where runnables are registered
 RUNNABLES = {
@@ -92,9 +89,9 @@ def define_commands(cli_app: typer.Typer):
 
 if __name__ == "__main__":
     # _TYPER_STANDARD_TRACEBACK=1
-    debug("hello")
 
-    PRETTY_EXCEPTION = True  #  Alternative : export _TYPER_STANDARD_TRACEBACK=1  see https://typer.tiangolo.com/tutorial/exceptions/
+
+    PRETTY_EXCEPTION = False  #  Alternative : export _TYPER_STANDARD_TRACEBACK=1  see https://typer.tiangolo.com/tutorial/exceptions/
 
     cli_app = typer.Typer(
         add_completion=True,

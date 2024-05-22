@@ -6,7 +6,7 @@ https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_rag_a
 import sys
 from enum import Enum
 from operator import itemgetter
-from typing import Any, List
+from typing import Any, List, Literal
 
 from devtools import debug
 from langchain.output_parsers.enum import EnumOutputParser
@@ -16,19 +16,13 @@ from langchain_community.document_loaders.web_base import WebBaseLoader
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.retrievers import BaseRetriever
-from langchain_core.runnables import (
-    Runnable,
-    RunnableLambda,
-)
+from langchain_core.runnables import Runnable, RunnableLambda
 from langgraph.graph import END, StateGraph
 from langgraph.graph.graph import CompiledGraph
 from loguru import logger
 from typing_extensions import TypedDict
 
-from python.ai_core.chain_registry import (
-    RunnableItem,
-    register_runnable,
-)
+from python.ai_core.chain_registry import RunnableItem, register_runnable
 from python.ai_core.llm import get_llm
 from python.ai_core.prompts import def_prompt
 from python.ai_core.vector_store import document_count, vector_store_factory
@@ -281,7 +275,7 @@ def web_search(state: GraphState) -> GraphState:
 ### Conditional edges
 
 
-def route_question(state: GraphState) -> str:
+def route_question(state: GraphState) -> Literal["websearch", "vectorstore"]:
     """
     Route question to web search or RAG.
     Returns next node to call
@@ -301,7 +295,7 @@ def route_question(state: GraphState) -> str:
         raise Exception("Bug: unknown source")
 
 
-def decide_to_generate(state: GraphState) -> str:
+def decide_to_generate(state: GraphState) -> Literal["websearch", "generate"]:
     """
     Determines whether to generate an answer, or add web search
     Returns binary decision for next node to call
@@ -325,7 +319,9 @@ def decide_to_generate(state: GraphState) -> str:
         return "generate"
 
 
-def grade_generation_v_documents_and_question(state: GraphState) -> str:
+def grade_generation_v_documents_and_question(
+    state: GraphState,
+) -> Literal["useful", "not useful", "not supported"]:
     """
     Determines whether the generation is grounded in the document and answers question.
 

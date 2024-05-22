@@ -81,8 +81,9 @@ save:  # Create a zipped version of the image
 
 
 update:  # Update selected fast changing dependencies
-	poetry add 	langchain@latest langchain-experimental@latest  langchain-core@latest  langchain-community@latest langgraph@latest langserve@latest langchainhub@latest \
-				 loguru@latest devtools@latest  langchain-groq@latest  
+	poetry add 	langchain@latest  langchain-core@latest langgraph@latest langserve@latest langchainhub@latest \
+				 langchain-groq@latest  
+# langchain-experimental@latest   langchain-community@latest
 # litellm@latest lunary@latest
 
 #langchain-openai@latest
