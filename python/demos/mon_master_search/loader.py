@@ -1,6 +1,5 @@
 # cSpell: disable
 import fnmatch
-import json
 import tarfile
 from pathlib import Path
 from typing import Iterator
@@ -11,7 +10,8 @@ from langchain_core.documents import Document
 from loguru import logger
 
 from python.ai_core.embeddings import EmbeddingsFactory
-from python.ai_core.vector_store import vector_store_factory
+from python.ai_core.loaders import load_docs_from_jsonl
+from python.ai_core.vector_store import VectorStoreFactory
 from python.demos.mon_master_search.model_subset import (
     InformationsPedagogiques,
     ParcoursFormations,
@@ -92,24 +92,33 @@ class offre_formation_loader(BaseLoader):
                     yield doc
 
 
+REPO = Path("/mnt/c/Users/a184094/OneDrive - Eviden/_En cours/mon_master/")
+FILES = REPO / "synthesis.json"
+
+
 def load_embeddings():
-    EMBEDDINGS_MODEL = "camembert_large_local"
+    EMBEDDINGS_MODEL = "multilingual_MiniLM_local"
 
     embeddings_factory = EmbeddingsFactory(embeddings_id=EMBEDDINGS_MODEL)
-    vector_factory = vector_store_factory(
+    vector_factory = VectorStoreFactory(
         id="Chroma",
         embeddings_factory=embeddings_factory,
         collection_name="offres_formation",
+        index_document=True,
     )
+    docs = list(load_docs_from_jsonl(FILES))
+    logger.info(
+        f"add {len(docs)} documents to vector store: {vector_factory.description}"
+    )
+    # vector_factory.get()
+    vector_factory.add_documents(docs)
 
 
 if __name__ == "__main__":
-    REPO = Path("/mnt/c/Users/a184094/OneDrive - Eviden/_En cours/mon_master/")
     assert REPO.exists
 
-    loader = offre_formation_loader(REPO / "Offres_2024.tgz")
-    processed = list(loader.load())
+    # loader = offre_formation_loader(REPO / "Offres_2024.tgz")
+    # processed = list(loader.load())
 
-    json_data = json.dumps([item.dict() for item in processed], indent=4)
-    with open(REPO / "synthesis.json", "w") as io:
-        io.write(json_data)
+    # save_docs_to_jsonl(processed, FILES)
+    load_embeddings()
