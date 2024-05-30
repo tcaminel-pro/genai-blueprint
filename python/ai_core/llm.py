@@ -10,14 +10,15 @@ from typing import Type, cast
 from langchain.globals import set_llm_cache
 from langchain.schema.language_model import BaseLanguageModel
 from langchain_community.cache import InMemoryCache, SQLiteCache
+from langchain_community.chat_models.deepinfra import ChatDeepInfra
+from langchain_community.chat_models.edenai import ChatEdenAI
 from langchain_community.chat_models.litellm import ChatLiteLLM
 from langchain_community.chat_models.ollama import ChatOllama
-from langchain_community.llms.deepinfra import DeepInfra
-from langchain_community.llms.edenai import EdenAI
 from langchain_core.runnables import ConfigurableField, Runnable
 from langchain_google_vertexai import ChatVertexAI
 from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
+from loguru import logger
 from lunary import LunaryCallbackHandler
 from pydantic import BaseModel, Field, computed_field, field_validator
 from typing_extensions import Annotated
@@ -53,35 +54,49 @@ KNOWN_LLM_LIST = [
     # LLM id should follow Python variables constraints - ie no '-', no space, etc
     # Use pattern "{self.model name}_{version}_{inference provider or library}"
     # LiteLlm supported models are listed here: https://litellm.vercel.app/docs/providers
+    #
+    # ####  OpenAI Models  ####
     LLM_INFO(
         id="gpt_35_openai",
         cls=ChatOpenAI,
         model="gpt-3.5-turbo-0125",
         key="OPENAI_API_KEY",
     ),
+    #
+    ####  ChatDeepInfra ### https://deepinfra.com/models/text-generation
     LLM_INFO(
         id="llama3_70_deepinfra",
-        cls=DeepInfra,
-        model="meta-llama/Llama-3-70b-chat-hf",
+        cls=ChatDeepInfra,
+        model="meta-llama/Meta-Llama-3-70B-Instruct",
         key="DEEPINFRA_API_TOKEN",
     ),
+    LLM_INFO(
+        id="llama3_8_deepinfra",
+        cls=ChatDeepInfra,
+        model="meta-llama/Meta-Llama-3-8B-Instruct",
+        key="DEEPINFRA_API_TOKEN",
+    ),
+    LLM_INFO(
+        id="mixtral_7x8_deepinfra",
+        cls=ChatDeepInfra,
+        model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+        key="DEEPINFRA_API_TOKEN",
+    ),
+    #
+    ####  ChatLiteLLM Models
     LLM_INFO(
         id="llama3_70_deepinfra_lite",
         cls=ChatLiteLLM,
         model="deepinfra/meta-llama/Llama-3-70b-chat-hf",
         key="DEEPINFRA_API_TOKEN",
     ),
+    #
+    #####  GROQ  Models  #####
     LLM_INFO(
         id="llama3_70_groq",
         cls=ChatGroq,
         model="lLama3-70b-8192",
         key="GROQ_API_KEY",
-    ),
-    LLM_INFO(
-        id="gpt_35_edenai",
-        key="EDENAI_API_KEY",
-        cls=EdenAI,
-        model="openai/gpt-3.5-turbo-instruct",
     ),
     LLM_INFO(
         id="llama3_8_groq",
@@ -96,17 +111,29 @@ KNOWN_LLM_LIST = [
         key="GROQ_API_KEY",
         agent_builder_type="tool_calling",  # DOES NOT WORK # TODO : Check with new updates
     ),
+    #
+    #  Google Models
     LLM_INFO(
         id="gemini_pro_google",
         cls=ChatVertexAI,
         model="gemini-pro",
         key="GOOGLE_API_KEY",
     ),
+    #
+    #  Ollama Models
     LLM_INFO(
         id="llama3_8_local",
         cls=ChatOllama,
         model="llama3:instruct",
         key="",
+    ),
+    #
+    ###  EdenAI Endpoint
+    LLM_INFO(
+        id="gpt-4_edenai",
+        cls=ChatEdenAI,
+        model="openai/gpt-4",
+        key="EDENAI_API_KEY",
     ),
 ]
 
@@ -178,8 +205,8 @@ class LlmFactory(BaseModel):
                 llm = cast(
                     BaseLanguageModel, llm.bind(response_format={"type": "json_object"})
                 )
-        elif self.info.cls == DeepInfra:
-            llm = DeepInfra(
+        elif self.info.cls == ChatDeepInfra:
+            llm = ChatDeepInfra(
                 model_id=self.info.model,
                 model_kwargs={
                     "temperature": self.temperature,
@@ -189,9 +216,8 @@ class LlmFactory(BaseModel):
                 },
             )
             assert not self.json_mode, "json_mode not supported or coded"
-        elif self.info.cls == EdenAI:
+        elif self.info.cls == ChatEdenAI:
             provider, _, model = self.info.model.partition("/")
-            from langchain_community.chat_models.edenai import ChatEdenAI
 
             llm = ChatEdenAI(
                 provider=provider,
@@ -260,7 +286,7 @@ class LlmFactory(BaseModel):
         return selected_llm
 
 
-@cache
+# @cache
 def get_llm(
     llm_id: str | None = None,
     temperature: float = 0,
@@ -269,7 +295,7 @@ def get_llm(
     cache: bool | None = None,
     configurable: bool = True,
     with_fallback=False,
-) -> Runnable:
+) -> BaseLanguageModel:
     factory = LlmFactory(
         llm_id=llm_id,
         temperature=temperature,
@@ -278,7 +304,9 @@ def get_llm(
         cache=cache,
     )
     if configurable:
-        return factory.get_configurable(with_fallback=with_fallback)
+        return cast(
+            BaseLanguageModel, factory.get_configurable(with_fallback=with_fallback)
+        )
     else:
         return factory.get()
 
@@ -303,6 +331,7 @@ def set_cache(cache: str | None = None):
         raise ValueError(
             "incorrect [llm]/cache config. Should be 'memory' or 'sqlite' "
         )
+    logger.info(f"cache: {cache}")
 
 
 llm_monitor_handler = LunaryCallbackHandler()  # Not used yet

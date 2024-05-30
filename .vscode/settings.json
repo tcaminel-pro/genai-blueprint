@@ -4,6 +4,7 @@
       },
 
     "cSpell.words": [
+        "aload",
         "autofetch",
         "chromadb",
         "crewai",
@@ -41,6 +42,7 @@
         "pygraphviz",
         "Pylance",
         "selectbox",
+        "spacy",
         "streamlit",
         "tavily",
         "tiktoken",

@@ -8,6 +8,7 @@ but without the burden to create a new LLM
 
 from textwrap import dedent
 from typing import Any, Optional, cast
+from devtools import debug
 
 from langchain.schema import SystemMessage
 from langchain_core.prompts import (
@@ -31,6 +32,7 @@ def def_prompt(system: str | None = None, user: str = "") -> BasePromptTemplate:
     if system:
         messages.append(("system", dedent(system)))
     messages.append(("user", dedent(user)))
+
     return ChatPromptTemplate.from_messages(messages)
 
 
@@ -109,6 +111,8 @@ class Llama2Format(PromptFormatter):
     usr_n_end: str = " [/INST]"
     usr_0_beg: str = ""
     usr_0_end: str = " [/INST]"
+
+    debug(PromptFormatter)
 
 
 class Llama3Format(PromptFormatter):

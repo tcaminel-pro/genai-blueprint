@@ -36,7 +36,8 @@ class Parcour(JsonModel):
     for_inmp: str
     intitule_parcours: str
     informations_pedagogiques: InformationsPedagogiques | None = None
-    modalite_enseignement: List[str] | None = None
+    licences_conseillees: Optional[List[str]] = None
+    modalite_enseignement: List[str]| None = None
 
 
 class Dnm(JsonModel):
@@ -45,8 +46,90 @@ class Dnm(JsonModel):
     dom_libelle: List[str]
     informations_pedagogiques: Optional[InformationsPedagogiques] = None
     parcours: Optional[List[Parcour]] = None
+    licences_conseillees: Optional[List[str]] = None
+    modalite_enseignement: List[str] | None = None
 
 
 class ParcoursFormations(JsonModel):
     etab: Etab
     dnms: List[Dnm]
+
+
+LICENCES_CONSEILLEES = [
+    "Administration économique et sociale",
+    "Administration et échanges internationaux",
+    "Administration publique",
+    "Arts",
+    "Arts du spectacle",
+    "Arts plastiques",
+    "Chimie",
+    "Cinéma",
+    "Droit",
+    "Droit canonique",
+    "Droit français - Droits étrangers",
+    "Droit, histoire de l'art",
+    "Economie",
+    "Economie et gestion",
+    "Economie, science politique",
+    "Electronique, énergie électrique, automatique",
+    "Environnements océaniens",
+    "Etudes culturelles",
+    "Etudes Européennes et Internationales",
+    "Frontières du vivant",
+    "Génie civil",
+    "Géographie et aménagement",
+    "Gestion",
+    "Histoire",
+    "Histoire de l'art et archéologie",
+    "Humanités",
+    "Information-communication",
+    "Informatique",
+    "Langues étrangères appliquées",
+    "Langues, littératures et civilisations étrangères et régionales",
+    "Lettres",
+    "Lettres, langues",
+    "Licence intégrée franco-allemande en droit",
+    "Mathématiques",
+    "Mathématiques et informatique appliquées aux sciences humaines et sociales",
+    "Mécanique",
+    "Métiers de l'enseignement du premier degré",
+    "Musicologie",
+    "Philosophie",
+    "Physique",
+    "Physique, chimie",
+    "Psychologie",
+    "Science politique",
+    "Sciences de la Terre",
+    "Sciences de la vie",
+    "Sciences de la vie et de la Terre",
+    "Sciences de l'éducation",
+    "Sciences de l'Homme, anthropologie, ethnologie",
+    "Sciences du langage",
+    "Sciences et Humanités",
+    "Sciences et techniques des activités physiques et sportives",
+    "Sciences et techniques des activités physiques et sportives : activité physique adaptée et santé",
+    "Sciences et techniques des activités physiques et sportives : éducation et motricité",
+    "Sciences et techniques des activités physiques et sportives : entraînement sportif",
+    "Sciences et techniques des activités physiques et sportives : ergonomie du sport et performance motrice",
+    "Sciences et techniques des activités physiques et sportives : management du sport",
+    "Sciences et technologies",
+    "Sciences pour la santé",
+    "Sciences pour l'ingénieur",
+    "Sciences sanitaires et sociales",
+    "Sciences sociales",
+    "Sociologie",
+    "Théologie",
+    "Théologie catholique",
+    "Théologie protestante",
+    "Tourisme",
+    "Toutes licences",
+]
+
+MODELITE_ENSEIGNEMENT = [
+    "Formation initiale",
+    "Formation continue",
+    "Formation à distance",
+    "Alternance - Contrat de professionnalisation",
+    "Alternance - Apprentissage",
+    "Hybride",
+]

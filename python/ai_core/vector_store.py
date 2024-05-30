@@ -5,9 +5,9 @@
 
 from functools import cached_property
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Literal, get_args
 
-from langchain.indexes import SQLRecordManager, index
+from langchain.indexes import IndexingResult, SQLRecordManager, index
 from langchain.schema import Document
 from langchain.vectorstores.base import VectorStore
 from langchain_community.vectorstores.chroma import Chroma
@@ -34,12 +34,16 @@ def get_vector_vector_store_path() -> str:
     return str(dir)
 
 
+VectorStoreLiterals = Literal["Chroma", "Chroma_in_memory"]
+
+
 class VectorStoreFactory(BaseModel):
-    id: Annotated[str | None, Field(validate_default=True)] = None
+    id: Annotated[VectorStoreLiterals | None, Field(validate_default=True)] = None
     # id_: Literal["Chroma", "Chroma_in_memory"] | None = None
     embeddings_factory: EmbeddingsFactory | None = None
     collection_name: str = default_collection
     index_document: bool = False
+    collection_metadata: dict[str, str] | None = None
     _record_manager: SQLRecordManager | None = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -54,17 +58,14 @@ class VectorStoreFactory(BaseModel):
     def description(self) -> str:
         r = f"{str(self.id)}/{self.collection_full_name}"
         if self.id == "Chroma":
-            r += f"storage: {get_vector_vector_store_path()}"
+            r += f" => store: {get_vector_vector_store_path()}"
         if self.index_document == Chroma and self._record_manager:
-            r += f"indexer: {self._record_manager}"
+            r += f" indexer: {self._record_manager}"
         return r
 
     @staticmethod
     def known_items() -> list[str]:
-        return [
-            "Chroma",
-            "Chroma_in_memory",
-        ]  # TODO: create Literal from that (with Python 11)
+        return list(get_args(VectorStoreLiterals))
 
     @field_validator("id", mode="before")
     def check_known(cls, id: str) -> str:
@@ -87,11 +88,13 @@ class VectorStoreFactory(BaseModel):
                 embedding_function=embeddings,
                 persist_directory=get_vector_vector_store_path(),
                 collection_name=self.collection_full_name,
+                collection_metadata=self.collection_metadata,
             )
         elif self.id == "Chroma_in_memory":
             vector_store = Chroma(
                 embedding_function=embeddings,
                 collection_name=self.collection_full_name,
+                collection_metadata=self.collection_metadata,
             )
         else:
             raise ValueError(f"Unknown vector store: {self.id}")
@@ -108,40 +111,42 @@ class VectorStoreFactory(BaseModel):
                 db_url=db_url,  # @TODO: To improve !!
             )
             self._record_manager.create_schema()
-            index(
-                [],
-                self._record_manager,
-                vector_store,
-                cleanup="incremental",
-                source_id_key="source",
-            )
+            # index(
+            #     [],
+            #     self._record_manager,
+            #     vector_store,
+            #     cleanup="incremental",
+            #     source_id_key="source",
+            # )
 
         return vector_store
 
-    def add_documents(self, docs: Iterable[Document]):
+    def add_documents(self, docs: Iterable[Document]) -> IndexingResult | list[str]:
         # TODO : accept BaseLoader
         if not self.index_document:
-            self.vector_store.add_documents(list(docs))
+            return self.vector_store.add_documents(list(docs))
         else:
             vector_store = self.vector_store
             assert self._record_manager
 
-            index(
+            info = index(
                 docs,
                 self._record_manager,
                 vector_store,
                 cleanup="incremental",
                 source_id_key="source",
             )
+            return info
+
+    def document_count(self):
+        # It seems there's no generic way to get the number of docs stored in a Vector Store.
+        if self.id == "Chroma":
+            return self.vector_store._collection.count()
+        else:
+            raise NotImplementedError(
+                f"Don'k know how to get collection count for {self.vector_store}"
+            )
 
 
 def search_one(vc: VectorStore, query: str):
     return vc.similarity_search(query, k=1)
-
-
-def document_count(vs: VectorStore):
-    # It seems there's no generic way to get the number of docs stored in a Vector Store.
-    if isinstance(vs, Chroma):
-        return vs._collection.count()
-    else:
-        raise NotImplementedError(f"Don'k know how to get collection count for {vs}")

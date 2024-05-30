@@ -10,14 +10,12 @@ from langchain_core.documents import Document
 from loguru import logger
 
 from python.ai_core.embeddings import EmbeddingsFactory
-from python.ai_core.loaders import load_docs_from_jsonl
+from python.ai_core.loaders import load_docs_from_jsonl, save_docs_to_jsonl
 from python.ai_core.vector_store import VectorStoreFactory
 from python.demos.mon_master_search.model_subset import (
     InformationsPedagogiques,
     ParcoursFormations,
 )
-
-# cSpell:disable
 
 
 def format_info_pedago(intitule: str, info_pedago: InformationsPedagogiques):
@@ -38,7 +36,6 @@ def process_json(source: str, formation: ParcoursFormations) -> Iterator[Documen
     logger.debug(f"load {source}")
 
     metadata_offre = {
-        "source": source,
         "eta_uai": formation.etab.desgn_etab.eta_uai,
         "eta_libelle": formation.etab.desgn_etab.eta_libelle,
         "eta_name": formation.etab.desgn_etab.eta_name,
@@ -46,7 +43,12 @@ def process_json(source: str, formation: ParcoursFormations) -> Iterator[Documen
     for dmn in formation.dnms:
         if dmn.parcours:
             for partour in dmn.parcours:
-                metadata_for = {"inmp": partour.for_inmp}
+                metadata_for = {
+                    "title": partour.intitule_parcours,
+                    "source": f"inmp:{partour.for_inmp}",
+                    "modalite_enseignement": str(partour.modalite_enseignement),
+                    "licences_conseillees": str(partour.licences_conseillees),
+                }
                 if partour.informations_pedagogiques:
                     content = format_info_pedago(
                         partour.intitule_parcours,
@@ -63,7 +65,12 @@ def process_json(source: str, formation: ParcoursFormations) -> Iterator[Documen
         dmn_info_pedago = dmn.informations_pedagogiques
         if dmn_info_pedago:
             content = format_info_pedago("".join(dmn.dom_libelle), dmn_info_pedago)
-            metadata_for = {"inm": dmn.for_inm}
+            metadata_for = {
+                "source": f"inm:{dmn.for_inm}",
+                "title": dmn.dom_libelle,
+                "modalite_enseignement": str(dmn.modalite_enseignement),
+                "licences_conseillees": str(dmn.licences_conseillees),
+            }
             if lien := dmn_info_pedago.lien_fiche:
                 metadata_for |= {"lien_fiche": lien}
             yield Document(
@@ -97,7 +104,8 @@ FILES = REPO / "synthesis.json"
 
 
 def load_embeddings():
-    EMBEDDINGS_MODEL = "multilingual_MiniLM_local"
+    #    EMBEDDINGS_MODEL = "multilingual_MiniLM_local"
+    EMBEDDINGS_MODEL = "camembert_large_local"
 
     embeddings_factory = EmbeddingsFactory(embeddings_id=EMBEDDINGS_MODEL)
     vector_factory = VectorStoreFactory(
@@ -107,18 +115,28 @@ def load_embeddings():
         index_document=True,
     )
     docs = list(load_docs_from_jsonl(FILES))
+
+    logger.info(
+        f"There are {vector_factory.document_count()} documents in  vector store"
+    )
+
     logger.info(
         f"add {len(docs)} documents to vector store: {vector_factory.description}"
     )
     # vector_factory.get()
-    vector_factory.add_documents(docs)
+    for doc in docs:
+        try:
+            vector_factory.add_documents([doc])
+        except Exception as ex:
+            logger.warning(f"cannot add {doc.metadata['source']} - {ex}")
 
 
 if __name__ == "__main__":
     assert REPO.exists
 
-    # loader = offre_formation_loader(REPO / "Offres_2024.tgz")
-    # processed = list(loader.load())
+    if True:
+        loader = offre_formation_loader(REPO / "Offres_2024.tgz")
+        processed = list(loader.load())
+        save_docs_to_jsonl(processed, FILES)
 
-    # save_docs_to_jsonl(processed, FILES)
-    load_embeddings()
+    # load_embeddings()
