@@ -4,6 +4,8 @@ Demo of Semantic Search
 Copyright (C) 2024 Eviden. All rights reserved
 """
 
+# cSpell: disable
+
 from pathlib import Path
 
 import pandas as pd
@@ -21,8 +23,6 @@ from python.demos.mon_master_search.model_subset import (
     LICENCES_CONSEILLEES,
     MODELITE_ENSEIGNEMENT,
 )
-
-# cSpell: disable
 
 LLM = "gemini_pro_google"
 
@@ -58,10 +58,6 @@ filter1.multiselect("licence", LICENCES_CONSEILLEES)
 filter2.multiselect("modalité", MODELITE_ENSEIGNEMENT)
 filter3.multiselect("Villes", [])
 
-# EMBEDDINGS_MODEL = "multilingual_MiniLM_local"
-EMBEDDINGS_MODEL = "camembert_large_local"
-
-
 with st.sidebar:
     search_method = st.radio("Search Method", ["Vector", "Keyword", "Hybrid"])
     if search_method == "Hybrid":
@@ -87,7 +83,7 @@ with st.sidebar:
 
 with st.form(key="form"):
     user_input = st.text_area(label="Recherche:", value="", height=150)
-    submit_clicked = st.form_submit_button("Submit Question")
+    submit_clicked = st.form_submit_button("Rechercher")
 
 
 @st.cache_resource(show_spinner="Load vector store...")

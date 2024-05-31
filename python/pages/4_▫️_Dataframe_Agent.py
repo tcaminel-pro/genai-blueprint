@@ -39,7 +39,9 @@ SAMPLE_PROMPTS = [
 ]
 
 
-# st.set_page_config(page_title="LangChain: Chat with pandas DataFrame", page_icon="🦜")
+st.set_page_config(
+    page_title="LangChain: Chat with pandas DataFrame", layout="wide", page_icon="🦜"
+)
 title_col1, title_col2 = st.columns([2, 1])
 
 logo_eviden = str(Path.cwd() / "static/eviden-logo-white.png")

@@ -23,7 +23,6 @@ from langchain.agents import (
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.embeddings.base import Embeddings
 from langchain.schema import Document
 from langchain.schema.language_model import BaseLanguageModel
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -40,8 +39,11 @@ from loguru import logger
 # Pydantic v1 required - https://python.langchain.com/v0.1/docs/guides/development/pydantic_compatibility/
 from pydantic.v1 import BaseModel, Field
 
+# from pydantic import BaseModel, Field
+from python.ai_core.embeddings import EmbeddingsFactory
+from python.ai_core.llm import LlmFactory
 from python.ai_core.prompts import def_prompt
-from python.ai_core.vector_store import vector_store_factory
+from python.ai_core.vector_store import VectorStoreFactory
 from python.dummy_datasources.maintenance_data import DATA_PATH, dummy_database
 
 # Tools setup
@@ -89,23 +91,25 @@ def maintenance_procedure_vectors(text: str) -> VectorStore:
     Embeddings are stored in a vector-store.
     """
 
-    vector_store = vector_store_factory(
-        id="Chroma_in_memory", collection_name="maintenance_procedure"
+    vs_factory = VectorStoreFactory(
+        id="Chroma_in_memory",
+        collection_name="maintenance_procedure",
+        embeddings_factory=EmbeddingsFactory(),
     )
 
     loader = TextLoader(str(DATA_PATH / text))
     documents = loader.load()
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     texts = text_splitter.split_documents(documents)
-    vector_store.add_documents(texts)
-    return vector_store
+    vs_factory.add_documents(texts)
+    return vs_factory.vector_store
 
 
 class MaintenanceAgent(BaseModel):
     """Maintenance Agent class"""
 
-    llm: BaseLanguageModel
-    embeddings_model: Embeddings
+    llm_factory: LlmFactory
+    embeddings_factory: EmbeddingsFactory
     tools: list[BaseTool] = Field(default_factory=list)
     _agent_executor: AgentExecutor | None = None
 
@@ -133,9 +137,12 @@ class MaintenanceAgent(BaseModel):
             Document(page_content=question, metadata={"sql_query": few_shots[question]})
             for question in few_shots.keys()
         ]
-        vector_db = vector_store_factory(
-            id="Chroma_in_memory", collection_name="sql_few_shots"
-        )
+
+        vector_db = VectorStoreFactory(
+            id="Chroma_in_memory",
+            collection_name="test_maintenance",
+            embeddings_factory=self.embeddings_factory,
+        ).vector_store
         vector_db.add_documents(few_shot_docs)
 
         tool_description = """
@@ -167,9 +174,10 @@ class MaintenanceAgent(BaseModel):
 
         agent_type = AgentType.OPENAI_FUNCTIONS  # To IMPROVE
 
+        llm = self.llm_factory.get()
         return create_sql_agent(
-            llm=self.llm,
-            toolkit=SQLDatabaseToolkit(db=db, llm=self.llm),
+            llm=llm,
+            toolkit=SQLDatabaseToolkit(db=db, llm=llm),
             agent_type=agent_type,
             prefix=prefix,
             verbose=False,
@@ -231,7 +239,9 @@ class MaintenanceAgent(BaseModel):
             # See https://www.linkedin.com/pulse/beginners-guide-retrieval-chain-using-langchain-vijaykumar-kartha-kuinc/
             prompt = def_prompt(system_prompt, "{input}")
             retriever = maintenance_procedure_vectors(PROCEDURES[0]).as_retriever()
-            question_answer_chain = create_stuff_documents_chain(self.llm, prompt)
+            question_answer_chain = create_stuff_documents_chain(
+                self.llm_factory.get(), prompt
+            )
             chain = create_retrieval_chain(retriever, question_answer_chain)
             return chain.invoke({"input": full_query})
 

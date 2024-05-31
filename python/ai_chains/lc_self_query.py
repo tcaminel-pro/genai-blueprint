@@ -25,8 +25,9 @@ from python.ai_core.chain_registry import (
     RunnableItem,
     register_runnable,
 )
+from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.llm import get_llm
-from python.ai_core.vector_store import vector_store_factory
+from python.ai_core.vector_store import VectorStoreFactory
 
 docs = [
     Document(
@@ -87,7 +88,11 @@ document_content_description = "Brief summary of a movie"
 
 @cache
 def vector_store() -> VectorStore:
-    vector_store = vector_store_factory("Chroma_in_memory")
+    vector_store = VectorStoreFactory(
+        id="Chroma_in_memory",
+        collection_name="test_self_query",
+        embeddings_factory=EmbeddingsFactory(),
+    ).vector_store  # take default one
     vector_store.add_documents(docs)
     return vector_store
 

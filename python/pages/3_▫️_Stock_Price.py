@@ -9,6 +9,10 @@ import yfinance as yf
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from langchain_core.tools import tool
 
+from python.ai_core.llm import get_llm
+
+st.set_page_config(layout="wide")
+
 
 @tool
 def get_stock_info(symbol: str, key: str):
@@ -126,7 +130,7 @@ def call_functions(llm_with_tools, user_prompt):
 
 
 def main():
-    llm = LlmFactory(llm_id="llama3_70_groq").get()
+    llm = get_llm(llm_id="llama3_70_groq")
 
     #    llm = LlmFactory(llm_id="gpt_35_openai").get()
 

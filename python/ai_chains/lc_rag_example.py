@@ -15,8 +15,9 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from loguru import logger
 
 from python.ai_core.chain_registry import RunnableItem, register_runnable
+from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.llm import get_llm
-from python.ai_core.vector_store import vector_store_factory
+from python.ai_core.vector_store import VectorStoreFactory
 from python.config import get_config
 
 base_dir = Path(get_config("documents", "base"))
@@ -26,7 +27,11 @@ assert base_dir.exists()
 @cache
 def retriever():
     dir = base_dir / "maintenance"
-    vector_store = vector_store_factory(id="Chroma", collection_name="maintenance_1")
+    vector_store = VectorStoreFactory(
+        id="Chroma",
+        collection_name="maintenance_1",
+        embeddings_factory=EmbeddingsFactory(),  # take default one
+    ).vector_store
 
     found = vector_store.similarity_search("maintenance", k=3)
     if len(found) == 0:

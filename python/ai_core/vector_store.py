@@ -40,7 +40,7 @@ VectorStoreLiterals = Literal["Chroma", "Chroma_in_memory"]
 class VectorStoreFactory(BaseModel):
     id: Annotated[VectorStoreLiterals | None, Field(validate_default=True)] = None
     # id_: Literal["Chroma", "Chroma_in_memory"] | None = None
-    embeddings_factory: EmbeddingsFactory | None = None
+    embeddings_factory: EmbeddingsFactory
     collection_name: str = default_collection
     index_document: bool = False
     collection_metadata: dict[str, str] | None = None
@@ -51,6 +51,7 @@ class VectorStoreFactory(BaseModel):
     @computed_field
     @property
     def collection_full_name(self) -> str:
+        assert self.embeddings_factory
         embeddings_id = self.embeddings_factory.info.id
         return f"{self.collection_name}_{embeddings_id}"
 
@@ -141,7 +142,7 @@ class VectorStoreFactory(BaseModel):
     def document_count(self):
         # It seems there's no generic way to get the number of docs stored in a Vector Store.
         if self.id == "Chroma":
-            return self.vector_store._collection.count()
+            return self.vector_store._collection.count()  # type: ignore
         else:
             raise NotImplementedError(
                 f"Don'k know how to get collection count for {self.vector_store}"

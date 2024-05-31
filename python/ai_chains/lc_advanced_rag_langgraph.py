@@ -23,9 +23,10 @@ from loguru import logger
 from typing_extensions import TypedDict
 
 from python.ai_core.chain_registry import RunnableItem, register_runnable
+from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.llm import get_llm
 from python.ai_core.prompts import def_prompt
-from python.ai_core.vector_store import document_count, vector_store_factory
+from python.ai_core.vector_store import VectorStoreFactory
 
 """
 Suggested extensions :
@@ -56,12 +57,14 @@ def retriever() -> BaseRetriever:
         "https://lilianweng.github.io/posts/2023-10-25-adv-attack-llm/",
     ]
 
-    vectorstore = vector_store_factory(
-        id="Chroma",
+    vs_factory = VectorStoreFactory(
+        id="Chroma_in_memory",
         collection_name="rag-chroma",
+        embeddings_factory=EmbeddingsFactory(),
     )
+    vectorstore = vs_factory.vector_store
 
-    if document_count(vectorstore) == 0:
+    if vs_factory.document_count == 0:
         logger.info("indexing documents...")
 
         docs = [WebBaseLoader(url).load() for url in urls]

@@ -312,7 +312,8 @@ def get_llm(
 
 
 def get_llm_info(llm_id: str) -> LLM_INFO:
-    r = LlmFactory.known_items_dict().get(llm_id)
+    factory = LlmFactory(llm_id=llm_id)
+    r = factory.known_items_dict().get(llm_id)
     if r is None:
         raise ValueError(f"Unknown llm_id: {llm_id} ")
     else:
