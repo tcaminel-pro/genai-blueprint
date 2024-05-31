@@ -11,10 +11,11 @@ from python.config import get_config, set_config
 logger.info("Start Webapp...")
 
 logo_an = str(Path.cwd() / "static" / "AcademieNumerique_Colour_RGB-150x150.jpg")
+logo_eviden = str(Path.cwd() / "static/eviden-logo-white.png")
 
 
 st.set_page_config(
-    page_title="GenAI Practicum",
+    page_title="GenAI Lab and Practicum",
     page_icon="🛠️",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -22,11 +23,12 @@ st.set_page_config(
 
 st.sidebar.success("Select a demo above.")
 
-title_col1, title_col2 = st.columns([2, 1])
+title_col1, title_col2, title_col3 = st.columns([3, 1, 1])
+title_col2.image(logo_eviden, width=120)
 title_col2.image(logo_an, width=120)
 title_col1.markdown(
     """
-    ## Demos and exercise<br>
+    ## Demos and practicum floor<br>
     **👈 Select one from the sidebar** """,
     unsafe_allow_html=True,
 )

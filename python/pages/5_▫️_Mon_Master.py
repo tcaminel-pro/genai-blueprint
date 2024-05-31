@@ -10,9 +10,9 @@ import pandas as pd
 import spacy
 import streamlit as st
 from langchain.retrievers import EnsembleRetriever
-from langchain.vectorstores.base import VectorStoreRetriever
 from langchain_community.retrievers import BM25Retriever
 from langchain_core.documents import Document
+from langchain_core.runnables import ConfigurableField, Runnable
 
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.loaders import load_docs_from_jsonl
@@ -26,10 +26,17 @@ from python.demos.mon_master_search.model_subset import (
 
 LLM = "gemini_pro_google"
 
+REPO = Path("/mnt/c/Users/a184094/OneDrive - Eviden/_En cours/mon_master/")
+FILES = REPO / "synthesis.json"
+
+DEFAULT_RESULT_COUNT = 25
+
 
 ################################
 #  UI
 ################################
+
+st.set_page_config(layout="wide")
 
 title_col1, title_col2 = st.columns([2, 1])
 
@@ -67,6 +74,15 @@ with st.sidebar:
         options=["multilingual_MiniLM_local", "camembert_large_local"],
         captions=["Small multilingual model", "Large model for French"],
     )
+    result_count = int(
+        st.number_input(
+            "Nombre de parcours recherchés",
+            min_value=1,
+            max_value=60,
+            value=DEFAULT_RESULT_COUNT,
+        )
+    )
+    show_dmm_only = st.toggle("Regrouper par mention", False)
 
 
 with st.form(key="form"):
@@ -75,14 +91,21 @@ with st.form(key="form"):
 
 
 @st.cache_resource(show_spinner="Load vector store...")
-def get_sparse_retriever(embeddings_model_id: str) -> VectorStoreRetriever:
+def get_sparse_retriever(embeddings_model_id: str) -> Runnable:
     embeddings_factory = EmbeddingsFactory(embeddings_id=embeddings_model_id)
     vector_store = VectorStoreFactory(
         id="Chroma",
         embeddings_factory=embeddings_factory,
         collection_name="offres_formation",
     ).vector_store
-    return vector_store.as_retriever(search_kwargs={"k": 20})
+    retriever = vector_store.as_retriever(
+        search_kwargs={"k": DEFAULT_RESULT_COUNT}
+    ).configurable_fields(
+        search_kwargs=ConfigurableField(
+            id="search_kwargs",
+        )
+    )
+    return retriever
 
 
 @st.cache_resource(show_spinner="load NLP model...")
@@ -97,39 +120,48 @@ def preprocess_text(text) -> list[str]:
     nlp, stop_words = spacy_model()
     lemmas = [token.lemma_.lower() for token in nlp(text)]
     filtered = [token for token in lemmas if token not in stop_words]
+    debug(filtered)
     return filtered
 
 
 @st.cache_resource(show_spinner="index documents for keyword search...")
-def get_bm25_retriever() -> BM25Retriever:
-    REPO = Path("/mnt/c/Users/a184094/OneDrive - Eviden/_En cours/mon_master/")
-    FILES = REPO / "synthesis.json"
-
+def get_bm25_retriever() -> Runnable:
     docs_for_bm25 = []
     for doc in load_docs_from_jsonl(FILES):
         docs_for_bm25.append(
-            Document(page_content=str(doc.metadata["title"]), metadata=doc.metadata)
+            Document(
+                page_content=str(doc.metadata["for_intitule"]), metadata=doc.metadata
+            )
         )
 
-    return BM25Retriever.from_documents(
+    retriever = BM25Retriever.from_documents(
         documents=docs_for_bm25,
         preprocess_func=preprocess_text,
-        k=20,
-    )
+        k=DEFAULT_RESULT_COUNT,
+    ).configurable_fields(k=ConfigurableField(id="k"))
+    return retriever
 
 
 @st.cache_resource(show_spinner="load hybrid model...")
 def get_ensemble_retriever(
     embeddings_model_id: str, ratio_sparse: float
 ) -> EnsembleRetriever:
-    debug([1.0 - ratio_sparse, ratio_sparse])
     return EnsembleRetriever(
         retrievers=[get_bm25_retriever(), get_sparse_retriever(embeddings_model_id)],
         weights=[1.0 - ratio_sparse, ratio_sparse],
     )
 
 
+def regroup_results(docs: list[Document]):
+    d = {}
+    for doc in docs:
+        for_intitule = doc.metadata["for_intitule"]
+        if not d.get("for_intitule"):
+            d |= {for_intitule: doc}
+
+
 df = pd.DataFrame()
+knwon_set: set[str] = set()
 if submit_clicked:
     assert embeddings_model is not None
     if search_method == "Vector":
@@ -139,18 +171,28 @@ if submit_clicked:
     elif search_method == "Hybrid":
         retriever = get_ensemble_retriever(embeddings_model, ratio_sparse=ratio_spinner)
 
-    result = retriever.invoke(user_input)
+    count = result_count * 2 if show_dmm_only else result_count  #  quick and dirty hack
 
+    config = {"configurable": {"k": count, "search_kwargs": {"k": count}}}
+    result = retriever.invoke(user_input, config=config)  # type: ignore
     for doc in result:
         # obj = json.loads(doc.page_content)
         intitule = doc.page_content.removeprefix("intitulé: ")
         eta = doc.metadata.get("eta_name")
         inm = doc.metadata.get("source")
+        for_intitule = doc.metadata["for_intitule"]
 
-        row = {
-            "intitulé": intitule,
-            "eta": eta,
-            "inm": inm,
-        }
-        df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
+        if show_dmm_only and for_intitule in knwon_set:
+            pass
+        else:
+            row = {
+                "Intitulé formation:": for_intitule,
+                "Intitulé parcours ou DMM": intitule,
+                "ETA": eta,
+                "INM(P)": inm,
+                "Content": doc.page_content,
+            }
+            df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
+        knwon_set.add(for_intitule)
+
     st.dataframe(df)

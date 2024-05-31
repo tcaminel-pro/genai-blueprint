@@ -17,7 +17,7 @@ from langchain_experimental.agents.agent_toolkits import (
 )
 from langchain_experimental.tools.python.tool import PythonAstREPLTool
 
-from python.GenAI_Training import app_conf
+from python.GenAI_Lab import app_conf
 
 PREFIX = """
     You are an agent designed to write and execute python code to generate a diagram using streamlit and matplotlib.

@@ -61,4 +61,4 @@ EXPOSE 8501
 
 ENV PYTHONPATH "${PYTHONPATH}:/python"
 
-ENTRYPOINT ["streamlit", "run", "python/GenAI_Training.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["streamlit", "run", "python/GenAI_Lab.py", "--server.port=8501", "--server.address=0.0.0.0"]

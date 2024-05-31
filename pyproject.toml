@@ -15,8 +15,8 @@ Repository = "https://github.com/tcaminel-pro/genai-training"
 python = ">=3.10,<3.12"
 pydantic = "^2.7.0"
 langchain = "^0.2.1"
-langchain-core = "^0.2.2"
-langgraph = "^0.0.57"
+langchain-core = "^0.2.3"
+langgraph = "^0.0.59"
 langchain-community = {git = "https://github.com/edenai/langchain.git", rev = "feat/edenai-chat_models-tools", subdirectory = "libs/community"}
 langchain-experimental = {git = "https://github.com/edenai/langchain.git", rev = "feat/edenai-chat_models-tools", subdirectory = "libs/experimental"}
 langchainhub = "^0.1.17"
@@ -54,12 +54,9 @@ langchain-google-vertexai = "^1.0.3"
 huggingface-hub = "^0.23.0"
 tiktoken = "^0.7.0"
 json-repair = "^0.19.2"
-llmlingua = "^0.2.2"
 accelerate = "^0.30.1"
 
 sentencepiece = "^0.2.0"
-pyenchant = "^3.2.2"
-unidecode = "^1.3.8"
 rank-bm25 = "^0.2.2"
 spacy = "^3.7.4"
 

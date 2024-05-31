@@ -8,7 +8,7 @@ export REGISTRY_NAME=eden-prod-eden-api
 export LOCATION=europe-west4
 export PROJECT_ID_GCP=prj-p-eden
 
-export STREAMLIT_ENTRY_POINT="python/GenAI_Training.py"
+export STREAMLIT_ENTRY_POINT="python/GenAI_Lab.py"
 
 topdir := $(shell pwd)
 

@@ -31,7 +31,7 @@ from langchain_community.callbacks import StreamlitCallbackHandler
 
 from python.core.dummy_data import DATA_PATH, dummy_database
 from python.core.maintenance_agents import PROCEDURES
-from python.GenAI_Training import logo_an
+from python.GenAI_Lab import logo_an
 from python.st_utils.clear_result import with_clear_container
 
 # fmt:off

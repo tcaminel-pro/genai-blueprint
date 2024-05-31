@@ -41,20 +41,23 @@ def process_json(source: str, formation: ParcoursFormations) -> Iterator[Documen
         "eta_name": formation.etab.desgn_etab.eta_name,
     }
     for dmn in formation.dnms:
+        parcours_list = []
         if dmn.parcours:
-            for partour in dmn.parcours:
+            for parcours in dmn.parcours:
+                parcours_list.append(parcours.for_inmp)
                 metadata_for = {
-                    "title": partour.intitule_parcours,
-                    "source": f"inmp:{partour.for_inmp}",
-                    "modalite_enseignement": str(partour.modalite_enseignement),
-                    "licences_conseillees": str(partour.licences_conseillees),
+                    "title": parcours.intitule_parcours,
+                    "source": f"inmp:{parcours.for_inmp}",
+                    "modalite_enseignement": str(parcours.modalite_enseignement),
+                    "licences_conseillees": str(parcours.licences_conseillees),
+                    "for_intitule": dmn.for_intitule,
                 }
-                if partour.informations_pedagogiques:
+                if parcours.informations_pedagogiques:
                     content = format_info_pedago(
-                        partour.intitule_parcours,
-                        partour.informations_pedagogiques,
+                        parcours.intitule_parcours,
+                        parcours.informations_pedagogiques,
                     )
-                    if lien := partour.informations_pedagogiques.lien_fiche:
+                    if lien := parcours.informations_pedagogiques.lien_fiche:
                         metadata_for |= {"lien_fiche": lien}
 
                     yield Document(
@@ -67,7 +70,7 @@ def process_json(source: str, formation: ParcoursFormations) -> Iterator[Documen
             content = format_info_pedago("".join(dmn.dom_libelle), dmn_info_pedago)
             metadata_for = {
                 "source": f"inm:{dmn.for_inm}",
-                "title": dmn.dom_libelle,
+                "for_intitule": dmn.for_intitule,
                 "modalite_enseignement": str(dmn.modalite_enseignement),
                 "licences_conseillees": str(dmn.licences_conseillees),
             }
@@ -104,7 +107,7 @@ FILES = REPO / "synthesis.json"
 
 
 def load_embeddings():
-    #    EMBEDDINGS_MODEL = "multilingual_MiniLM_local"
+    EMBEDDINGS_MODEL = "multilingual_MiniLM_local"
     EMBEDDINGS_MODEL = "camembert_large_local"
 
     embeddings_factory = EmbeddingsFactory(embeddings_id=EMBEDDINGS_MODEL)
@@ -139,4 +142,4 @@ if __name__ == "__main__":
         processed = list(loader.load())
         save_docs_to_jsonl(processed, FILES)
 
-    # load_embeddings()
+    load_embeddings()
