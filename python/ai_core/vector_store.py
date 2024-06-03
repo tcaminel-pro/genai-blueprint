@@ -11,6 +11,7 @@ from langchain.indexes import IndexingResult, SQLRecordManager, index
 from langchain.schema import Document
 from langchain.vectorstores.base import VectorStore
 from langchain_community.vectorstores.chroma import Chroma
+from langchain_core.runnables import ConfigurableField, Runnable
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 from typing_extensions import Annotated
@@ -112,15 +113,25 @@ class VectorStoreFactory(BaseModel):
                 db_url=db_url,  # @TODO: To improve !!
             )
             self._record_manager.create_schema()
-            # index(
-            #     [],
-            #     self._record_manager,
-            #     vector_store,
-            #     cleanup="incremental",
-            #     source_id_key="source",
-            # )
 
         return vector_store
+
+    def get_configurable_retriever(self, default_k: int = 4) -> Runnable:
+        """
+        Return a retriever where we can configure k at run-time.
+
+        Should be called as:
+            config = {"configurable": {"search_kwargs": {"k": count}}}
+            result = retriever.invoke(user_input, config=config)
+        """
+        retriever = self.vector_store.as_retriever(
+            search_kwargs={"k": default_k}
+        ).configurable_fields(
+            search_kwargs=ConfigurableField(
+                id="search_kwargs",
+            )
+        )
+        return retriever
 
     def add_documents(self, docs: Iterable[Document]) -> IndexingResult | list[str]:
         # TODO : accept BaseLoader

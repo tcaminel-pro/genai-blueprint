@@ -67,8 +67,16 @@ with st.sidebar:
 
     embeddings_model = st.radio(
         "Embedding Model",
-        options=["multilingual_MiniLM_local", "camembert_large_local"],
-        captions=["Small multilingual model", "Large model for French"],
+        options=[
+            "multilingual_MiniLM_local",
+            "camembert_large_local",
+            "solon-large_local",
+        ],
+        captions=[
+            "Small multilingual model",
+            "Large model for French",
+            "SOTA model for French",
+        ],
     )
     result_count = int(
         st.number_input(
@@ -89,23 +97,16 @@ with st.form(key="form"):
 @st.cache_resource(show_spinner="Load vector store...")
 def get_sparse_retriever(embeddings_model_id: str) -> Runnable:
     embeddings_factory = EmbeddingsFactory(embeddings_id=embeddings_model_id)
-    vector_store = VectorStoreFactory(
+    retriever = VectorStoreFactory(
         id="Chroma",
         embeddings_factory=embeddings_factory,
         collection_name="offres_formation",
-    ).vector_store
-    retriever = vector_store.as_retriever(
-        search_kwargs={"k": DEFAULT_RESULT_COUNT}
-    ).configurable_fields(
-        search_kwargs=ConfigurableField(
-            id="search_kwargs",
-        )
-    )
+    ).get_configurable_retriever(default_k=DEFAULT_RESULT_COUNT)
     return retriever
 
 
 @st.cache_resource(show_spinner="load NLP model...")
-def spacy_model(model="fr_core_news_sm"):
+def spacy_model(model="fr_core_news_sm") -> tuple[spacy.language.Language, set[str]]:
     nlp = spacy.load(model)
     stop_words = nlp.Defaults.stop_words
     stop_words.update({",", ";", "(", ")", ":", "[", "]"})
@@ -116,20 +117,19 @@ def preprocess_text(text) -> list[str]:
     nlp, stop_words = spacy_model()
     lemmas = [token.lemma_.lower() for token in nlp(text)]
     filtered = [token for token in lemmas if token not in stop_words]
-    debug(filtered)
     return filtered
 
 
 @st.cache_resource(show_spinner="index documents for keyword search...")
 def get_bm25_retriever() -> Runnable:
-    docs_for_bm25 = []
-    for doc in load_docs_from_jsonl(FILES):
-        docs_for_bm25.append(
-            Document(
-                page_content=str(doc.metadata["for_intitule"]), metadata=doc.metadata
-            )
-        )
-
+    # docs_for_bm25 = []
+    # for doc in load_docs_from_jsonl(FILES):
+    #     docs_for_bm25.append(
+    #         Document(
+    #             page_content=str(doc.metadata["for_intitule"]), metadata=doc.metadata
+    #         )
+    #     )
+    docs_for_bm25 = load_docs_from_jsonl(FILES)
     retriever = BM25Retriever.from_documents(
         documents=docs_for_bm25,
         preprocess_func=preprocess_text,
@@ -167,7 +167,8 @@ if submit_clicked:
     elif search_method == "Hybrid":
         retriever = get_ensemble_retriever(embeddings_model, ratio_sparse=ratio_spinner)
 
-    count = result_count * 2 if show_dmm_only else result_count  #  quick and dirty hack
+    #  quick and dirty hack to have enough results
+    count = result_count * 2 if show_dmm_only else result_count
 
     config = {"configurable": {"k": count, "search_kwargs": {"k": count}}}
     result = retriever.invoke(user_input, config=config)  # type: ignore

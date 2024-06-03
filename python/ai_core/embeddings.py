@@ -25,6 +25,7 @@ class EMBEDDINGS_INFO(BaseModel):
     cls: Type[Embeddings] | str
     model: str
     key: str
+    prefix: str = ""
 
     def get_key(self):
         key = os.environ.get(self.key)
@@ -79,6 +80,13 @@ KNOWN_EMBEDDINGS_MODELS = [
         cls="HuggingFaceEmbeddings",
         key="",
     ),
+    EMBEDDINGS_INFO(
+        id="solon-large_local",
+        model="OrdalieTech/Solon-embeddings-large-0.1",
+        cls="HuggingFaceEmbeddings",
+        key="",
+        prefix="Query : ",
+    ),
 ]
 
 
@@ -104,6 +112,7 @@ class EmbeddingsFactory(BaseModel):
 
     @staticmethod
     def known_items_dict() -> dict[str, EMBEDDINGS_INFO]:
+        debug(KNOWN_EMBEDDINGS_MODELS)
         return {
             item.id: item
             for item in KNOWN_EMBEDDINGS_MODELS
@@ -153,7 +162,7 @@ def get_embeddings(
     embeddings_id: str | None = None,
     encoding_str: str | None = None,
     retrieving_str: str | None = None,
-):
+) -> Embeddings:
     factory = EmbeddingsFactory(
         embeddings_id=embeddings_id,
         encoding_str=encoding_str,

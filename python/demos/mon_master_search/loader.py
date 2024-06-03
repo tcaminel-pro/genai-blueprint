@@ -109,6 +109,7 @@ FILES = REPO / "synthesis.json"
 def load_embeddings():
     EMBEDDINGS_MODEL = "multilingual_MiniLM_local"
     EMBEDDINGS_MODEL = "camembert_large_local"
+    EMBEDDINGS_MODEL = "solon-large_local"
 
     embeddings_factory = EmbeddingsFactory(embeddings_id=EMBEDDINGS_MODEL)
     vector_factory = VectorStoreFactory(
