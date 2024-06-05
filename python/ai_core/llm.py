@@ -1,6 +1,11 @@
 """
-LLM self.models factory and Runnable
+LLM model factory.
 
+Facilitate the creation of Llm objects, that are :
+- Configurable (we can change the LLM)
+ -With fallback
+
+The LLM can be given, or taken from the configuration
 """
 
 import os
@@ -23,10 +28,10 @@ MAX_TOKENS = 2048
 
 
 class LLM_INFO(BaseModel):
-    id: str
-    cls: str
-    model: str
-    key: str
+    id: str  # an ID for the LLM; should follow Python variables constraints
+    cls: str  # Name of the LangChain class for the constructor
+    model: str  # Name of the model for the constructor
+    key: str  # API key.  "" if it not needed.
     agent_builder_type: str = "tool_calling"
 
     @computed_field
@@ -42,10 +47,13 @@ class LLM_INFO(BaseModel):
     def __hash__(self):
         return hash(self.id)
 
+    # DODO: add validator for LLM id name.
+
 
 KNOWN_LLM_LIST = [
     # LLM id should follow Python variables constraints - ie no '-', no space, etc
-    # Use pattern "{self.model name}_{version}_{inference provider or library}"
+    # Use pattern "{self.model_name}_{version}_{inference provider or library}"
+    # model_name is provider specific.  It can contains several fields decoded in the factory.
     # LiteLlm supported models are listed here: https://litellm.vercel.app/docs/providers
     #
     # ####  OpenAI Models  ####
@@ -300,12 +308,14 @@ class LlmFactory(BaseModel):
         return llm
 
     def get_configurable(self, with_fallback=False) -> Runnable:
-        #
+        # Make the LLM configurable at run time
         # see https://python.langchain.com/docs/expression_language/primitives/configure/#with-llms-1
 
         default_llm_id = self.llm_id
         if default_llm_id is None:
             default_llm_id = get_config_str("llm", "default_model")
+
+        # The field alternatives is created from our list of LLM
         alternatives = {
             llm: LlmFactory(llm_id=llm).get()
             for llm in LlmFactory.known_items()
@@ -322,7 +332,7 @@ class LlmFactory(BaseModel):
             )
         )
         if with_fallback:
-            # Not tested
+            # Not well tested !!!
             selected_llm = selected_llm.with_fallbacks(
                 [LlmFactory(llm_id="llama3_70_groq").get()]
             )
@@ -338,6 +348,14 @@ def get_llm(
     configurable: bool = True,
     with_fallback=False,
 ) -> BaseLanguageModel:
+    """
+    Create a BaseLanguageModel object according to a given llm_id.\n
+    - If 'llm_id' is None, the LLM is selected from the configuration.
+    - 'json_mode' is not supported or tested for all models
+    - 'configurable' make the LLM configurable at run-time
+    - 'with_fallback' add a fallback mechanism (not well tested)
+
+    """
     factory = LlmFactory(
         llm_id=llm_id,
         temperature=temperature,
@@ -359,6 +377,9 @@ def get_selected_llm(args) -> BaseLanguageModel:
 
 
 def get_llm_info(llm_id: str) -> LLM_INFO:
+    """
+    Return information on given LLM
+    """
     factory = LlmFactory(llm_id=llm_id)
     r = factory.known_items_dict().get(llm_id)
     if r is None:
@@ -369,6 +390,9 @@ def get_llm_info(llm_id: str) -> LLM_INFO:
 
 @cache
 def set_cache(cache: str | None = None):
+    """
+    Define caching strategy.  If 'None', take the one defined in configuration
+    """
     if not cache:
         cache = get_config_str("llm", "cache")
     elif cache == "memory":
@@ -379,7 +403,7 @@ def set_cache(cache: str | None = None):
         raise ValueError(
             "incorrect [llm]/cache config. Should be 'memory' or 'sqlite' "
         )
-    logger.info(f"cache: {cache}")
+    # logger.info(f"cache: {cache}")
 
 
 llm_monitor_handler = LunaryCallbackHandler()  # Not used yet

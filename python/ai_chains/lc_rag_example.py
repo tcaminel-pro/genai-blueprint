@@ -1,6 +1,6 @@
-#
-# Taken from
-
+""" 
+A simple RAG chain
+"""
 
 from pathlib import Path
 
@@ -60,10 +60,6 @@ def get_rag_chain(config: dict):
         | StrOutputParser()
     )
     return chain
-
-
-# base_dir = Path(get_config("documents", "base"))
-# assert base_dir.exists()
 
 
 register_runnable(

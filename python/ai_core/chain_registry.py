@@ -13,6 +13,8 @@ from python.config import get_config_list, get_config_str
 
 
 class Example(BaseModel):
+    """Define prompt examples. Can also point to a file (for RAG)"""
+
     query: list[str]
     path: Path | None = None
     # ext: str | None = None
@@ -27,8 +29,8 @@ class RunnableItem(BaseModel):
         - As a function that returns un object of class Runnable that has a string as parameter
         - As a tuple, with a key (str) and  a function that returns un object of class Runnable that has a dict with given key as parameter
 
-    Additionally, it's possible to attach ti the Runnable some information to create de demo:
-        - List of prompts
+    Additionally, it's possible to attach to the Runnable some information to create de demo:
+        - Examples of prompts
         - Diagram
     """
 
@@ -65,6 +67,7 @@ class RunnableItem(BaseModel):
         arbitrary_types_allowed = True
 
 
+# Global registry
 _registry: list[RunnableItem] = []
 
 
@@ -77,6 +80,7 @@ def get_runnable_registry():
 
 
 def find_runnable(name: str) -> RunnableItem | None:
+    # return the 'RunnableItem' from its name. Case is ignored
     return next(
         (x for x in _registry if x.name.strip().lower() == name.strip().lower()), None
     )
@@ -86,6 +90,7 @@ def _to_key_param_callable(
     key: str, function: Callable[[dict[str, Any]], Runnable]
 ) -> Callable[[Any], Runnable]:
     """
+    Tricky function :
     Take a function having a config parameter and returning a Runnable whose input is a string,
     and return a function where the same Runnable takes a dict instead of the string.
     """
@@ -93,6 +98,9 @@ def _to_key_param_callable(
 
 
 def load_modules_with_chains():
+    """
+    Import modules given in configuration that contains Chains to be registered
+    """
     path = get_config_str("chains", "path")
     modules = get_config_list("chains", "modules")
     assert Path(path).exists

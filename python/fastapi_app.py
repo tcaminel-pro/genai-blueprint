@@ -14,10 +14,11 @@ from loguru import logger  # type: ignore
 # fmt: off
 [sys.path.append(str(path)) for path in [Path.cwd(), Path.cwd().parent, Path.cwd().parent/"python"] if str(path) not in sys.path]  # type: ignore # fmt: on
 
-
 app = FastAPI()
 
 @app.get("/echo/{message}")
 def read_root(message:str):
     logger.info(f"received /echo/{message}")
     return {"msg": message}
+
+# TO BE COMPLETED !!

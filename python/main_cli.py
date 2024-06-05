@@ -72,6 +72,7 @@ def define_commands(cli_app: typer.Typer):
 
     @cli_app.command()
     def chain_info(name: str):
+        """Return information on a given chain, such as input and output schema"""
         runnable_desc = find_runnable(name)
         if runnable_desc:
             r = runnable_desc.runnable
@@ -93,8 +94,6 @@ def define_commands(cli_app: typer.Typer):
 
 
 if __name__ == "__main__":
-    # _TYPER_STANDARD_TRACEBACK=1
-
     PRETTY_EXCEPTION = False  #  Alternative : export _TYPER_STANDARD_TRACEBACK=1  see https://typer.tiangolo.com/tutorial/exceptions/
 
     cli_app = typer.Typer(

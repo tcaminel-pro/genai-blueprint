@@ -1,5 +1,12 @@
 """
-Read the TOML configuration file
+Manage the application configuration. 
+
+First we read a YAML file "app_conf.yaml". 
+All configuration parameters are read from "default" section.
+The  configuration is then overwritten by the one on section given though the "CONFIGURATION" encironment variable
+(for example for a  deployment on a specific target).
+
+Last, the configuration can be overwritten through an call to 'set_config_str' (typically for test or config through UI)
 
 """
 
@@ -65,7 +72,6 @@ def _get_config(group: str, key: str, default_value: Any | None = None) -> Any:
         runtime_value = None
 
     value = runtime_value or conf_value or default_conf_value or default_value
-    debug(runtime_value, conf_value, default_conf_value, default_value)
     if value is None:
         raise ValueError(f"no key {group}/{key} in file {CONFIG_FILE}")
     return value
@@ -104,7 +110,7 @@ def get_config_list(
 
 def set_config_str(group: str, key: str, value: str):
     """
-    Add of override a key value
+    Add or override a key value
     """
     _modified_fields[group][key] = value
     assert get_config_str(group, key) == value

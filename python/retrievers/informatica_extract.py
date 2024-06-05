@@ -1,9 +1,12 @@
+"""
+retrieve relevant data from Informatica XML file
+"""
+
 from pathlib import Path
 from typing import Tuple
 
 import graphviz
 import xmltodict
-from devtools import debug
 from loguru import logger
 
 INDENT = 4 * " "

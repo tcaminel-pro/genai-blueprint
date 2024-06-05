@@ -37,7 +37,7 @@ class Parcour(JsonModel):
     intitule_parcours: str
     informations_pedagogiques: InformationsPedagogiques | None = None
     licences_conseillees: Optional[List[str]] = None
-    modalite_enseignement: List[str]| None = None
+    modalite_enseignement: List[str] | None = None
 
 
 class Dnm(JsonModel):

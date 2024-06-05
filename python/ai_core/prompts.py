@@ -1,9 +1,7 @@
 """ 
-Format a list od Messages to a prompt adapted to LLM specific format.
-Supported : LLama2, LLama3, Mistral, ...
-Inspired by : https://python.langchain.com/docs/integrations/chat/llama2_chat/
-  (https://api.python.langchain.com/en/latest/chat_models/langchain_experimental.chat_models.llm_wrapper.Llama2Chat.html )
-but without the burden to create a new LLM
+Wrapper and utilities around prompts.
+
+
 """
 
 from textwrap import dedent
@@ -27,6 +25,9 @@ DEFAULT_SYSTEM_PROMPT = ""
 
 
 def def_prompt(system: str | None = None, user: str = "") -> BasePromptTemplate:
+    """
+    Small wrapper around 'ChatPromptTemplate.from_messages" with just a user  and optional system prompt.
+    """
     messages: list = []
     if system:
         messages.append(("system", dedent(system)))
@@ -36,6 +37,16 @@ def def_prompt(system: str | None = None, user: str = "") -> BasePromptTemplate:
 
 
 class PromptFormatter(BaseModel):
+    """
+    Format a list off Messages to a prompt adapted to LLM specific format.
+    Supported : LLama2, LLama3, Mistral, ...
+    Inspired by : https://python.langchain.com/docs/integrations/chat/llama2_chat/
+      (https://api.python.langchain.com/en/latest/chat_models/langchain_experimental.chat_models.llm_wrapper.Llama2Chat.html )
+    but without the burden to create a new LLM
+
+    NOT FULLY TESTED - WIP...
+    """
+
     system_message: SystemMessage = SystemMessage(content=DEFAULT_SYSTEM_PROMPT)
 
     text_beg: str = ""

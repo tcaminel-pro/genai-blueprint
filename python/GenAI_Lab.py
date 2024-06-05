@@ -45,14 +45,14 @@ def config_sidebar():
             set_debug(
                 st.checkbox(
                     label="Debug",
-                    value=True,
+                    value=False,
                     help="LangChain debug mode",
                 )
             )
             set_verbose(
                 st.checkbox(
                     label="Verbose",
-                    value=False,
+                    value=True,
                     help="LangChain verbose mode",
                 )
             )

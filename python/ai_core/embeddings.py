@@ -17,11 +17,11 @@ from python.config import get_config_str
 
 
 class EMBEDDINGS_INFO(BaseModel):
-    id: str
-    cls: str
-    model: str
-    key: str
-    prefix: str = ""
+    id: str  # a given ID for the embeddings
+    cls: str  # Name of the constructor
+    model: str  # Provider name of the model
+    key: str  # API key
+    prefix: str = ""  # Some LLM requires a prefix in the call.  To be improved.
 
     def get_key(self):
         key = os.environ.get(self.key)
@@ -114,10 +114,8 @@ class EmbeddingsFactory(BaseModel):
 
     def get(self) -> Embeddings:
         """
-        Create an LLM model.
-        'model' is our internal name for the model and its provider. If None, take the default one.
-        We select a LiteLLM wrapper if it's defined in the KNOWN_LLM_LIST table, otherwise
-        we create the LLM from a LangChain LLM class
+        Create an embeddings model object.
+
         """
         if self.info.key not in os.environ and self.info.key != "":
             raise ValueError(f"No known API key for : {self.info.id}")
@@ -158,6 +156,11 @@ def get_embeddings(
     encoding_str: str | None = None,
     retrieving_str: str | None = None,
 ) -> Embeddings:
+    """
+    Get an embeddings model.
+    - embeddings_id is its id.  If None, take the model defined in configuration
+    - encoding_str, retrieving_str : not used yet
+    """
     factory = EmbeddingsFactory(
         embeddings_id=embeddings_id,
         encoding_str=encoding_str,

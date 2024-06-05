@@ -1,3 +1,7 @@
+"""
+The usual "tell me a joke" LLM call.
+"""
+
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 
@@ -13,7 +17,7 @@ user_prompt = """Tell me a joke on {topic}"""
 joke_chain = (
     {"topic": RunnablePassthrough()}
     | def_prompt(user=user_prompt)
-    | get_llm()
+    | get_llm()  # get a LLM from configuration
     | StrOutputParser()
 )
 
