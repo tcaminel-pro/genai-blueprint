@@ -21,4 +21,14 @@ def read_root(message:str):
     logger.info(f"received /echo/{message}")
     return {"msg": message}
 
+from python.ai_chains.joke import joke_chain
+
+
+@app.post("/joke")
+async def tell_a_joke(topic: str):
+    """return a joke on a given topic"""
+    result = joke_chain.invoke(input={"topic": topic})
+    return result
+
+
 # TO BE COMPLETED !!

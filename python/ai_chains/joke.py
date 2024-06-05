@@ -21,6 +21,7 @@ joke_chain = (
     | StrOutputParser()
 )
 
+# Register the chain
 register_runnable(
     RunnableItem(
         tag="Agent",
