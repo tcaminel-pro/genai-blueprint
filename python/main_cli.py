@@ -18,7 +18,7 @@ from python.ai_core.chain_registry import (
     load_modules_with_chains,
 )
 from python.ai_core.llm import set_cache
-from python.config import get_config
+from python.config import get_config_str
 
 # Import modules where runnables are registered
 
@@ -33,7 +33,7 @@ def define_commands(cli_app: typer.Typer):
     @cli_app.command()
     def run(
         name: str,  # name (description) of the Runnable
-        query: str | None = None,  # input
+        input: str | None = None,  # input
         path: Path | None = None,  # input
         verbose: bool = False,
         debug: bool = False,
@@ -55,16 +55,17 @@ def define_commands(cli_app: typer.Typer):
         runnable_desc = find_runnable(name)
         if runnable_desc:
             first_example = runnable_desc.examples[0]
-            if not llm_id:
-                config |= {"llm": str(get_config("llm", "default_model"))}
+            config |= {
+                "llm": llm_id if llm_id else get_config_str("llm", "default_model")
+            }
             if path:
                 config |= {"path": path}
             elif first_example.path:
                 config |= {"path": first_example.path}
-            if not query:
-                query = first_example.query[0]
+            if not input:
+                input = first_example.query[0]
 
-            result = runnable_desc.invoke(query, config)
+            result = runnable_desc.invoke(input, config)
             pprint(result)
         else:
             print(f"Runnable not found: '{name}'. Should be in: {runnables_list_str}")

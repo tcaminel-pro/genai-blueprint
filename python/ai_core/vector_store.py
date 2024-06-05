@@ -17,17 +17,17 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validat
 from typing_extensions import Annotated
 
 from python.ai_core.embeddings import EmbeddingsFactory
-from python.config import get_config
+from python.config import get_config_str
 
 # from langchain_chroma import Chroma  does not work (yet?) with self_query
 
 
-default_collection = get_config("vector_store", "default_collection")
+default_collection = get_config_str("vector_store", "default_collection")
 
 
 def get_vector_vector_store_path() -> str:
     # get path to store vector database, as specified in configuration file
-    dir = Path(get_config("vector_store", "path"))
+    dir = Path(get_config_str("vector_store", "path"))
     try:
         dir.mkdir()
     except Exception:
@@ -72,7 +72,7 @@ class VectorStoreFactory(BaseModel):
     @field_validator("id", mode="before")
     def check_known(cls, id: str) -> str:
         if id is None:
-            id = get_config("vector_store", "default")
+            id = get_config_str("vector_store", "default")
         if id not in VectorStoreFactory.known_items():
             raise ValueError(f"Unknown Vector Store: {id}")
         return id

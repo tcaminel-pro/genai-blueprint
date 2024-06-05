@@ -8,6 +8,7 @@ import re
 from collections import defaultdict
 from functools import cache
 from pathlib import Path
+from typing import Any
 
 import yaml
 from loguru import logger
@@ -33,10 +34,9 @@ def yaml_file_config(fn: str = CONFIG_FILE) -> dict:
     return data
 
 
-def get_config(group: str, key: str, default_value: str | None = None) -> str | list:
+def _get_config(group: str, key: str, default_value: Any | None = None) -> Any:
     """
     Return the value of a key, either set by 'set_config', or found in the configuration file.
-    If it contains an environment variable in the form $(XXX), then replace it.
     Raise an exception if key not found and if not default value is given
     """
 
@@ -65,18 +65,46 @@ def get_config(group: str, key: str, default_value: str | None = None) -> str | 
         runtime_value = None
 
     value = runtime_value or conf_value or default_conf_value or default_value
+    debug(runtime_value, conf_value, default_conf_value, default_value)
     if value is None:
         raise ValueError(f"no key {group}/{key} in file {CONFIG_FILE}")
+    return value
+
+
+def get_config_str(group: str, key: str, default_value: str | None = None) -> str:
+    """
+    Return the value of a key of type string, either set by 'set_config', or found in the configuration file.
+    If it contains an environment variable in the form $(XXX), then replace it.
+    Raise an exception if key not found and if not default value is given
+    """
+    value = _get_config(group, key, default_value)
 
     if isinstance(value, str):
         # replace environment variable name by its value
         value = re.sub(r"\${(\w+)}", lambda f: os.environ.get(f.group(1), ""), value)
+    else:
+        raise ValueError("configuration key {group}/{key} is not a string")
     return value
 
 
-def set_config(group: str, key: str, value: str):
+def get_config_list(
+    group: str, key: str, default_value: list[str] | None = None
+) -> list:
+    """
+    Return the value of a key of type list, either set by 'set_config', or found in the configuration file.
+    Raise an exception if key not found and if not default value is given
+    """
+    value = _get_config(group, key, default_value)
+
+    if isinstance(value, list):
+        return value
+    else:
+        raise ValueError("configuration key {group}/{key} is not a string")
+
+
+def set_config_str(group: str, key: str, value: str):
     """
     Add of override a key value
     """
     _modified_fields[group][key] = value
-    assert get_config(group, key) == value
+    assert get_config_str(group, key) == value

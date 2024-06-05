@@ -13,7 +13,7 @@ from langchain.embeddings.base import Embeddings
 from pydantic import BaseModel, Field, computed_field, field_validator
 from typing_extensions import Annotated
 
-from python.config import get_config
+from python.config import get_config_str
 
 
 class EMBEDDINGS_INFO(BaseModel):
@@ -95,7 +95,7 @@ class EmbeddingsFactory(BaseModel):
     @classmethod
     def check_known(cls, embeddings_id: str) -> str:
         if embeddings_id is None:
-            embeddings_id = get_config("embeddings", "default_model")
+            embeddings_id = get_config_str("embeddings", "default_model")
         if embeddings_id not in EmbeddingsFactory.known_items():
             raise ValueError(f"Unknown Embeddings: {embeddings_id}")
         return embeddings_id
@@ -136,7 +136,7 @@ class EmbeddingsFactory(BaseModel):
         elif self.info.cls == "HuggingFaceEmbeddings":
             from langchain_community.embeddings.huggingface import HuggingFaceEmbeddings
 
-            cache = get_config("embeddings", "cache")
+            cache = get_config_str("embeddings", "cache")
             emb = HuggingFaceEmbeddings(
                 model_name=self.info.model,
                 model_kwargs={"device": "cpu"},

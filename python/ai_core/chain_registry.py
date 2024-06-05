@@ -9,7 +9,7 @@ from typing import Any, Callable, Tuple
 from langchain_core.runnables import Runnable, RunnableLambda
 from pydantic import BaseModel
 
-from python.config import get_config
+from python.config import get_config_list, get_config_str
 
 
 class Example(BaseModel):
@@ -93,11 +93,9 @@ def _to_key_param_callable(
 
 
 def load_modules_with_chains():
-    path = get_config("chains", "path")
-    modules = get_config("chains", "modules")
-    assert isinstance(path, str)
+    path = get_config_str("chains", "path")
+    modules = get_config_list("chains", "modules")
     assert Path(path).exists
-    assert isinstance(modules, list)
 
     for module in modules:
         importlib.import_module(f"{path}.{module}")

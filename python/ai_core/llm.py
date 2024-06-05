@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field, computed_field, field_validator
 from typing_extensions import Annotated
 
 from python.ai_core.agents_builder import AgentBuilder, get_agent_builder
-from python.config import get_config
+from python.config import get_config_str
 
 MAX_TOKENS = 2048
 
@@ -171,7 +171,7 @@ class LlmFactory(BaseModel):
     @field_validator("llm_id", mode="before")
     def check_known(cls, llm_id: str) -> str:
         if llm_id is None:
-            llm_id = get_config("llm", "default_model")
+            llm_id = get_config_str("llm", "default_model")
         if llm_id not in LlmFactory.known_items():
             raise ValueError(f"Unknown LLM: {llm_id}")
         return llm_id
@@ -305,7 +305,7 @@ class LlmFactory(BaseModel):
 
         default_llm_id = self.llm_id
         if default_llm_id is None:
-            default_llm_id = get_config("llm", "default_model")
+            default_llm_id = get_config_str("llm", "default_model")
         alternatives = {
             llm: LlmFactory(llm_id=llm).get()
             for llm in LlmFactory.known_items()
@@ -370,7 +370,7 @@ def get_llm_info(llm_id: str) -> LLM_INFO:
 @cache
 def set_cache(cache: str | None = None):
     if not cache:
-        cache = get_config("llm", "cache")
+        cache = get_config_str("llm", "cache")
     elif cache == "memory":
         set_llm_cache(InMemoryCache())
     elif cache == "sqlite":
