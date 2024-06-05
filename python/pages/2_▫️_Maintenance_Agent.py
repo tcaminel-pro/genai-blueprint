@@ -19,6 +19,7 @@ from python.ai_agents.maintenance_agents import PROCEDURES, MaintenanceAgent
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.llm import LlmFactory, get_llm
 from python.dummy_datasources.maintenance_data import DATA_PATH, dummy_database
+from python.GenAI_Lab import config_sidebar
 from python.utils.streamlit.clear_result import with_clear_container
 
 # fmt:off
@@ -46,12 +47,16 @@ SAMPLE_PROMPTS = {
 
 MODEL = "gemini_pro_google"
 
+config_sidebar()
+
 
 def agent():
     # llm = get_llm()
     # embeddings_model = EmbeddingsFactory().get()
 
-    agent = MaintenanceAgent(llm_factory=LlmFactory(), embeddings_factory=EmbeddingsFactory())
+    agent = MaintenanceAgent(
+        llm_factory=LlmFactory(), embeddings_factory=EmbeddingsFactory()
+    )
     agent.create_tools()
     # agent.add_tools([DiagramGeneratorTool()])
     return agent

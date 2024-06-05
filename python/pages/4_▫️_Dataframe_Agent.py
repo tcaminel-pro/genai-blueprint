@@ -11,6 +11,7 @@ from loguru import logger  # noqa: F401
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from python.ai_core.llm import get_llm
+from python.GenAI_Lab import config_sidebar
 from python.utils.streamlit.load_data import FILE_FORMATS, load_data
 
 
@@ -44,6 +45,7 @@ st.set_page_config(
 )
 title_col1, title_col2 = st.columns([2, 1])
 
+config_sidebar()
 logo_eviden = str(Path.cwd() / "static/eviden-logo-white.png")
 
 title_col1.title("DataFrame Agent")
@@ -108,6 +110,7 @@ if prompt := st.chat_input(placeholder=sample_prompt):
     st.chat_message("user").write(prompt)
 
     llm = get_llm()
+    debug(llm)
 
     pandas_df_agent = create_pandas_dataframe_agent(
         llm,

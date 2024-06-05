@@ -6,10 +6,13 @@ Adapted from https://blog.langchain.dev/tool-calling-with-langchain/
 
 from langchain import hub
 from langchain.agents import AgentExecutor
+from langchain.prompts import ChatPromptTemplate
+from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.runnables import Runnable
 from langchain_core.tools import tool
 
 from python.ai_core.chain_registry import (
+    Example,
     RunnableItem,
     register_runnable,
 )
@@ -36,10 +39,6 @@ def add(x: float, y: float) -> float:
 
 tools = [multiply, exponentiate, add]
 
-
-from langchain_community.tools.tavily_search import TavilySearchResults
-from langchain_core.tools import tool
-
 tavily_tool = TavilySearchResults(max_results=5)
 
 tools = [tavily_tool]
@@ -59,10 +58,9 @@ register_runnable(
         tag="Tool",
         name="Calculator tool",
         runnable=create_runnable,
-        examples=["what's 5 raised to the 3"],
+        examples=[Example(query=["what's 5 raised to the 3"])],
     )
 )
-from langchain.prompts import ChatPromptTemplate
 
 
 def create_executor(config: dict) -> Runnable:
@@ -95,6 +93,12 @@ register_runnable(
         tag="Agent",
         name="Calculator agent",
         runnable=("input", create_executor),
-        examples=["what's 3 plus 5 raised to the 2.743. also what's 17.24 - 918.1241"],
+        examples=[
+            Example(
+                query=[
+                    "what's 3 plus 5 raised to the 2.743. also what's 17.24 - 918.1241"
+                ]
+            )
+        ],
     )
 )

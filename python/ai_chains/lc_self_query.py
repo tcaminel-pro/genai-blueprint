@@ -17,17 +17,22 @@ from langchain.chains.query_constructor.base import (
 )
 from langchain.chains.query_constructor.schema import AttributeInfo
 from langchain.retrievers.self_query.base import SelfQueryRetriever
-from langchain.retrievers.self_query.chroma import ChromaTranslator
+
+# from langchain.retrievers.self_query import ChromaTranslator
 from langchain.vectorstores.base import VectorStore
+from langchain_community.query_constructors.chroma import ChromaTranslator
 from langchain_core.documents import Document
 
 from python.ai_core.chain_registry import (
+    Example,
     RunnableItem,
     register_runnable,
 )
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.llm import get_llm
 from python.ai_core.vector_store import VectorStoreFactory
+
+# cSpell:disable
 
 docs = [
     Document(
@@ -83,6 +88,7 @@ metadata_field_info = [
     ),
 ]
 
+# cSpell:enable
 document_content_description = "Brief summary of a movie"
 
 
@@ -132,7 +138,11 @@ register_runnable(
         name="self_query_constructor",
         runnable=("query", get_query_constructor),
         examples=[
-            "What are some sci-fi movies from the 90's directed by Luc Besson about taxi drivers"
+            Example(
+                query=[
+                    "What are some sci-fi movies from the 90's directed by Luc Besson about taxi drivers"
+                ],
+            )
         ],
     )
 )
@@ -144,10 +154,14 @@ register_runnable(
         name="self_query_retriever",
         runnable=get_retriever,
         examples=[
-            "What's a movie after 1990 but before 2005 that's all about toys, and preferably is animated",
-            "I want to watch a movie rated higher than 8.5",
-            "Has Greta Gerwig directed any movies about women",
-            "What's a highly rated (above 8.5) science fiction film?",
+            Example(
+                query=[
+                    "What's a movie after 1990 but before 2005 that's all about toys, and preferably is animated",
+                    "I want to watch a movie rated higher than 8.5",
+                    "Has Greta Gerwig directed any movies about women",
+                    "What's a highly rated (above 8.5) science fiction film?",
+                ]
+            )
         ],
     )
 )

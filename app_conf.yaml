@@ -13,9 +13,10 @@ factories:
     - gemini_pro_google
 
   embeddings:
-    - multilingual_MiniLM
+    - multilingual_MiniLM_local
     - ada_002_openai
     - mistral_1024_edenai 
+    - camembert_large_local
 
   vector_store:
     - Chroma
@@ -30,10 +31,10 @@ factories:
 # Agent configuration
 default:
   llm:
-    default_model: gpt_35_openai
+    default_model:  gpt_4o_edenai   # #gpt_35_openai
     cache : sqlite
   embeddings:
-    default_model: mistral_1024_edenai 
+    default_model: multilingual_MiniLM_local 
     cache: ${HOME}/hf_models
   vector_store:
     default: Chroma
@@ -45,6 +46,15 @@ default:
     default: langsmith
     project: GenAI_demo
 
+  chains:
+    path: python.ai_chains
+    modules:
+      - joke 
+      - lc_rag_example
+      - lc_tools_example
+      - lc_self_query
+      - lc_advanced_rag_langgraph
+
 cloud_openai:    
   llm:
     default_model: gpt_35_openai
@@ -52,4 +62,3 @@ cloud_openai:
   embeddings:
     default_model: ada_002_openai
 
-  

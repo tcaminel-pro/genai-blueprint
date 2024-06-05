@@ -22,9 +22,9 @@ from langgraph.graph.graph import CompiledGraph
 from loguru import logger
 from typing_extensions import TypedDict
 
-from python.ai_core.chain_registry import RunnableItem, register_runnable
+from python.ai_core.chain_registry import Example, RunnableItem, register_runnable
 from python.ai_core.embeddings import EmbeddingsFactory
-from python.ai_core.llm import get_llm
+from python.ai_core.llm import get_selected_llm
 from python.ai_core.prompts import def_prompt
 from python.ai_core.vector_store import VectorStoreFactory
 
@@ -64,7 +64,8 @@ def retriever() -> BaseRetriever:
     )
     vectorstore = vs_factory.vector_store
 
-    if vs_factory.document_count == 0:
+    debug(vs_factory.document_count())
+    if vs_factory.document_count() == 0:
         logger.info("indexing documents...")
 
         docs = [WebBaseLoader(url).load() for url in urls]
@@ -97,7 +98,7 @@ def retrieval_grader() -> Runnable[Any, YesOrNo]:
     )
 
     logger.debug("Retrieval Grader'")
-    retrieval_grader = prompt | get_llm | to_lower | yesno_enum_parser
+    retrieval_grader = prompt | get_selected_llm | to_lower | yesno_enum_parser
     return retrieval_grader
 
 
@@ -112,7 +113,7 @@ def rag_chain() -> Runnable[Any, str]:
         Answer: """
     logger.debug("Rag chain'")
     prompt = def_prompt(system=system_prompt, user=user_prompt)
-    return prompt | get_llm | StrOutputParser()
+    return prompt | get_selected_llm | StrOutputParser()
 
 
 def hallucination_grader() -> Runnable[Any, YesOrNo]:
@@ -127,7 +128,7 @@ def hallucination_grader() -> Runnable[Any, YesOrNo]:
     prompt = def_prompt(system_prompt, user_prompt).partial(
         instructions=yesno_enum_parser.get_format_instructions()
     )
-    return prompt | get_llm | to_lower | yesno_enum_parser
+    return prompt | get_selected_llm | to_lower | yesno_enum_parser
 
 
 def answer_grader() -> Runnable[Any, YesOrNo]:
@@ -143,7 +144,7 @@ def answer_grader() -> Runnable[Any, YesOrNo]:
     prompt = def_prompt(system_prompt, user_prompt).partial(
         instructions=yesno_enum_parser.get_format_instructions()
     )
-    return prompt | get_llm | yesno_enum_parser
+    return prompt | get_selected_llm | yesno_enum_parser
 
 
 def question_router() -> Runnable[Any, DataRoute]:
@@ -164,14 +165,11 @@ def question_router() -> Runnable[Any, DataRoute]:
     prompt = def_prompt(system_prompt, user_prompt).partial(
         instructions=parser.get_format_instructions()
     )
-    question_router = prompt | get_llm | parser
+    question_router = prompt | get_selected_llm | parser
     return question_router
 
 
 web_search_tool = TavilySearchResults(max_results=3)  # Search tool
-
-
-# We'll implement these as a control flow in LangGraph.
 
 
 ### State
@@ -409,8 +407,12 @@ register_runnable(
         name="Advanced-RAG-Langgraph",
         runnable=("question", query_graph),
         examples=[
-            "What are the types of agent memory",
-            "Who are the Bears expected to draft first in the NFL draft?",
+            Example(
+                query=[
+                    "What are the types of agent memory",
+                    "Who are the Bears expected to draft first in the NFL draft?",
+                ]
+            )
         ],
         diagram="static/adaptative_rag_fallback.png",
     )
@@ -421,8 +423,12 @@ ri = RunnableItem(
     name="Advanced-RAG-Langgraph",
     runnable=("question", query_graph),
     examples=[
-        "What are the types of agent memory",
-        "Who are the Bears expected to draft first in the NFL draft?",
+        Example(
+            query=[
+                "What are the types of agent memory",
+                "Who are the Bears expected to draft first in the NFL draft?",
+            ]
+        )
     ],
 )
 
@@ -458,6 +464,7 @@ def test_graph():
 def test_nodes():
     question = "agent memory"
     docs = retriever().invoke(question)
+    assert len(docs) > 0
     doc_txt = docs[1].page_content
     debug(retrieval_grader().invoke({"question": question, "document": doc_txt}))
 
@@ -492,5 +499,5 @@ if __name__ == "__main__":
         format="<blue>{level}</blue> | <green>{message}</green>",
         colorize=True,
     )
-    # test_nodes()
-    test_graph()
+    test_nodes()
+    # test_graph()

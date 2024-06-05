@@ -8,7 +8,6 @@ but without the burden to create a new LLM
 
 from textwrap import dedent
 from typing import Any, Optional, cast
-from devtools import debug
 
 from langchain.schema import SystemMessage
 from langchain_core.prompts import (
@@ -111,8 +110,6 @@ class Llama2Format(PromptFormatter):
     usr_n_end: str = " [/INST]"
     usr_0_beg: str = ""
     usr_0_end: str = " [/INST]"
-
-    debug(PromptFormatter)
 
 
 class Llama3Format(PromptFormatter):

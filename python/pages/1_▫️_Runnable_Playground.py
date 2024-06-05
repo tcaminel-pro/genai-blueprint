@@ -3,21 +3,22 @@ import importlib.util
 from pathlib import Path
 
 import streamlit as st
+from langchain.callbacks import tracing_v2_enabled
 
-from python.ai_core.chain_registry import find_runnable, get_runnable_registry
+from python.ai_core.chain_registry import (
+    find_runnable,
+    get_runnable_registry,
+    load_modules_with_chains,
+)
 from python.config import get_config
+from python.GenAI_Lab import config_sidebar
 
 st.title("💬 Runnable Playground")
 
+config_sidebar()
 
-RUNNABLES = {
-    "lc_rag_example",
-    "lc_tools_example",
-    "lc_self_query",
-    "lc_advanced_rag_langgraph",
-}
-for r in RUNNABLES:
-    importlib.import_module(f"python.ai_chains.{r}")
+load_modules_with_chains()
+
 
 runnables_list = sorted([f"'{o.name}'" for o in get_runnable_registry()])
 
@@ -59,5 +60,9 @@ with st.form("my_form"):
         if not input:
             input = runnable_desc.examples[0]
 
+    with tracing_v2_enabled() as cb:
         result = runnable_desc.invoke(input, {"llm": llm})
         st.write(result)
+        url = cb.get_run_url()
+
+        st.write("[trace](%s)" % url)

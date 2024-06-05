@@ -8,12 +8,8 @@ They can  be either Cloud based or for local run with CPU
 
 import os
 from functools import cache, cached_property
-from typing import Type
 
 from langchain.embeddings.base import Embeddings
-from langchain_community.embeddings.edenai import EdenAiEmbeddings
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_openai import OpenAIEmbeddings
 from pydantic import BaseModel, Field, computed_field, field_validator
 from typing_extensions import Annotated
 
@@ -22,7 +18,7 @@ from python.config import get_config
 
 class EMBEDDINGS_INFO(BaseModel):
     id: str
-    cls: Type[Embeddings] | str
+    cls: str
     model: str
     key: str
     prefix: str = ""
@@ -41,19 +37,13 @@ KNOWN_EMBEDDINGS_MODELS = [
     EMBEDDINGS_INFO(
         id="ada_002_openai",
         model="text-embedding-ada-002",
-        cls=OpenAIEmbeddings,
+        cls="OpenAIEmbeddings",
         key="OPENAI_API_KEY",
     ),
     EMBEDDINGS_INFO(
         id="embedding_001_google",
         model="text-embedding-ada-002",
-        cls=GoogleGenerativeAIEmbeddings,
-        key="GOOGLE_API_KEY",
-    ),
-    EMBEDDINGS_INFO(
-        id="embedding_001_google",
-        model="text-embedding-ada-002",
-        cls=GoogleGenerativeAIEmbeddings,
+        cls="GoogleGenerativeAIEmbeddings",
         key="GOOGLE_API_KEY",
     ),
     EMBEDDINGS_INFO(
@@ -65,13 +55,13 @@ KNOWN_EMBEDDINGS_MODELS = [
     EMBEDDINGS_INFO(
         id="ada_002_edenai",
         model="openai/1536__text-embedding-ada-002",
-        cls=EdenAiEmbeddings,
+        cls="EdenAiEmbeddings",
         key="EDENAI_API_KEY",
     ),
     EMBEDDINGS_INFO(
         id="mistral_1024_edenai",
         model="mistral/1024__mistral-embed",
-        cls=EdenAiEmbeddings,
+        cls="EdenAiEmbeddings",
         key="EDENAI_API_KEY",
     ),
     EMBEDDINGS_INFO(
@@ -81,7 +71,7 @@ KNOWN_EMBEDDINGS_MODELS = [
         key="",
     ),
     EMBEDDINGS_INFO(
-        id="solon-large_local",
+        id="solon-large",
         model="OrdalieTech/Solon-embeddings-large-0.1",
         cls="HuggingFaceEmbeddings",
         key="",
@@ -112,7 +102,6 @@ class EmbeddingsFactory(BaseModel):
 
     @staticmethod
     def known_items_dict() -> dict[str, EMBEDDINGS_INFO]:
-        debug(KNOWN_EMBEDDINGS_MODELS)
         return {
             item.id: item
             for item in KNOWN_EMBEDDINGS_MODELS
@@ -136,9 +125,13 @@ class EmbeddingsFactory(BaseModel):
         return llm
 
     def model_factory(self) -> Embeddings:
-        if self.info.cls == OpenAIEmbeddings:
+        if self.info.cls == "OpenAIEmbeddings":
+            from langchain_openai import OpenAIEmbeddings
+
             emb = OpenAIEmbeddings()
-        elif self.info.cls == GoogleGenerativeAIEmbeddings:
+        elif self.info.cls == "GoogleGenerativeAIEmbeddings":
+            from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
             emb = GoogleGenerativeAIEmbeddings(model=self.info.model)  # type: ignore
         elif self.info.cls == "HuggingFaceEmbeddings":
             from langchain_community.embeddings.huggingface import HuggingFaceEmbeddings
@@ -149,7 +142,9 @@ class EmbeddingsFactory(BaseModel):
                 model_kwargs={"device": "cpu"},
                 cache_folder=cache,
             )
-        elif self.info.cls == EdenAiEmbeddings:
+        elif self.info.cls == "EdenAiEmbeddings":
+            from langchain_community.embeddings.edenai import EdenAiEmbeddings
+
             provider, _, model = self.info.model.partition("/")
             emb = EdenAiEmbeddings(model=model, provider=provider, edenai_api_key=None)
         else:

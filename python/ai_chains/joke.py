@@ -2,6 +2,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 
 from python.ai_core.chain_registry import (
+    Example,
     RunnableItem,
     register_runnable,
 )
@@ -21,6 +22,6 @@ register_runnable(
         tag="Agent",
         name="Joke",
         runnable=joke_chain,
-        examples=["French"],
+        examples=[Example(query=["French"])],
     )
 )

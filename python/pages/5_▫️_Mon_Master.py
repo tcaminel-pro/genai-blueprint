@@ -6,6 +6,7 @@ Copyright (C) 2024 Eviden. All rights reserved
 
 # cSpell: disable
 
+import timeit
 from pathlib import Path
 
 import pandas as pd
@@ -19,10 +20,6 @@ from langchain_core.runnables import ConfigurableField, Runnable
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.loaders import load_docs_from_jsonl
 from python.ai_core.vector_store import VectorStoreFactory
-from python.demos.mon_master_search.model_subset import (
-    LICENCES_CONSEILLEES,
-    MODELITE_ENSEIGNEMENT,
-)
 
 LLM = "gemini_pro_google"
 
@@ -46,31 +43,26 @@ st.logo(logo_eviden)
 
 title_col1.title("Recherche Sémantique de Masters")
 title_col2.image(logo_eviden, width=250)
-title_col1.markdown(
-    """
-    Démo
-    """,
-    unsafe_allow_html=True,
-)
 
-filter1, filter2, filter3 = st.columns(3)
-filter1.multiselect("licence", LICENCES_CONSEILLEES)
-filter2.multiselect("modalité", MODELITE_ENSEIGNEMENT)
-filter3.multiselect("Villes", [])
+
+# filter1, filter2, filter3 = st.columns(3)
+# filter1.multiselect("licence", LICENCES_CONSEILLEES)
+# filter2.multiselect("modalité", MODELITE_ENSEIGNEMENT)
+# filter3.multiselect("Villes", [])
 
 with st.sidebar:
-    search_method = st.radio("Search Method", ["Vector", "Keyword", "Hybrid"])
+    search_method = st.radio("Search Method:", ["Vector", "Keyword", "Hybrid"])
     if search_method == "Hybrid":
         ratio_spinner = st.slider(
             "Keyword  / Vector ratio", min_value=0.0, max_value=1.0, value=0.7, step=0.1
         )
 
     embeddings_model = st.radio(
-        "Embedding Model",
+        "Embedding Model:",
         options=[
             "multilingual_MiniLM_local",
             "camembert_large_local",
-            "solon-large_local",
+            "solon-large",
         ],
         captions=[
             "Small multilingual model",
@@ -90,7 +82,7 @@ with st.sidebar:
 
 
 with st.form(key="form"):
-    user_input = st.text_area(label="Recherche:", value="", height=150)
+    user_input = st.text_area(label="Recherche:", value="", height=30)
     submit_clicked = st.form_submit_button("Rechercher")
 
 
@@ -109,7 +101,9 @@ def get_sparse_retriever(embeddings_model_id: str) -> Runnable:
 def spacy_model(model="fr_core_news_sm") -> tuple[spacy.language.Language, set[str]]:
     nlp = spacy.load(model)
     stop_words = nlp.Defaults.stop_words
-    stop_words.update({",", ";", "(", ")", ":", "[", "]"})
+    stop_words.update(
+        {",", ";", "(", ")", ":", "[", "]", "master", "mastère", "formation", "\n"}
+    )
     return nlp, stop_words
 
 
@@ -122,13 +116,6 @@ def preprocess_text(text) -> list[str]:
 
 @st.cache_resource(show_spinner="index documents for keyword search...")
 def get_bm25_retriever() -> Runnable:
-    # docs_for_bm25 = []
-    # for doc in load_docs_from_jsonl(FILES):
-    #     docs_for_bm25.append(
-    #         Document(
-    #             page_content=str(doc.metadata["for_intitule"]), metadata=doc.metadata
-    #         )
-    #     )
     docs_for_bm25 = load_docs_from_jsonl(FILES)
     retriever = BM25Retriever.from_documents(
         documents=docs_for_bm25,
@@ -171,7 +158,11 @@ if submit_clicked:
     count = result_count * 2 if show_dmm_only else result_count
 
     config = {"configurable": {"k": count, "search_kwargs": {"k": count}}}
+    user_input = "query : " + user_input  # supposed to work well for Solon Embeddings
+
+    start_time = timeit.default_timer()
     result = retriever.invoke(user_input, config=config)  # type: ignore
+    delta_t = timeit.default_timer() - start_time
     for doc in result:
         # obj = json.loads(doc.page_content)
         intitule = doc.page_content.removeprefix("intitulé: ")
@@ -193,3 +184,4 @@ if submit_clicked:
         knwon_set.add(for_intitule)
 
     st.dataframe(df)
+    st.write(f"search duration : {delta_t:9.5f} s")

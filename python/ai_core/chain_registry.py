@@ -2,10 +2,20 @@
 A registry for Langchain Runnables 
 """
 
+import importlib
+from pathlib import Path
 from typing import Any, Callable, Tuple
 
 from langchain_core.runnables import Runnable, RunnableLambda
 from pydantic import BaseModel
+
+from python.config import get_config
+
+
+class Example(BaseModel):
+    query: list[str]
+    path: Path | None = None
+    # ext: str | None = None
 
 
 class RunnableItem(BaseModel):
@@ -27,7 +37,7 @@ class RunnableItem(BaseModel):
     runnable: Runnable | Tuple[str, Callable[[dict[str, Any]], Runnable]] | Callable[
         [dict[str, Any]], Runnable
     ]  # Either a Runnable, or ...
-    examples: list[str] = []
+    examples: list[Example] = []
     diagram: str | None = None
 
     def invoke(self, input: str, conf: dict[str, Any]) -> Any:
@@ -67,7 +77,9 @@ def get_runnable_registry():
 
 
 def find_runnable(name: str) -> RunnableItem | None:
-    return next((x for x in _registry if x.name == name), None)
+    return next(
+        (x for x in _registry if x.name.strip().lower() == name.strip().lower()), None
+    )
 
 
 def _to_key_param_callable(
@@ -78,3 +90,14 @@ def _to_key_param_callable(
     and return a function where the same Runnable takes a dict instead of the string.
     """
     return lambda conf: RunnableLambda(lambda x: {key: x}) | function(conf)
+
+
+def load_modules_with_chains():
+    path = get_config("chains", "path")
+    modules = get_config("chains", "modules")
+    assert isinstance(path, str)
+    assert Path(path).exists
+    assert isinstance(modules, list)
+
+    for module in modules:
+        importlib.import_module(f"{path}.{module}")

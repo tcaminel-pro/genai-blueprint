@@ -121,12 +121,36 @@ KNOWN_LLM_LIST = [
         key="",
     ),
     #
-    ###  EdenAI Endpoint
+    ###  EdenAI Endpoint - see https://app.edenai.run/bricks/text/chat
     LLM_INFO(
-        id="gpt-4_edenai",
+        id="gpt_4o_edenai",
+        cls="ChatEdenAI",
+        model="openai/gpt-4o",
+        key="EDENAI_API_KEY",
+    ),
+    LLM_INFO(
+        id="gpt_4_edenai",
         cls="ChatEdenAI",
         model="openai/gpt-4",
         key="EDENAI_API_KEY",
+    ),
+    LLM_INFO(
+        id="gpt_35_edenai",
+        cls="ChatEdenAI",
+        model="openai/gpt-3.5-turbo-0125",
+        key="EDENAI_API_KEY",
+    ),
+    LLM_INFO(
+        id="mistral_large_edenai",
+        cls="ChatEdenAI",
+        model="mistral/large-latest",
+        key="EDENAI_API_KEY",
+    ),
+    LLM_INFO(
+        id="gpt_4o_azure",
+        cls="AzureChatOpenAI",
+        model="gpt-4o/024-05-13",
+        key="AZURE_OPENAI_API_KEY",
     ),
 ]
 
@@ -257,6 +281,18 @@ class LlmFactory(BaseModel):
             )
 
             # llm = llama3_formatter | llm
+        elif self.info.cls == "AzureChatOpenAI":
+            from langchain_openai import AzureChatOpenAI
+
+            name, _, version = self.info.model.partition("/")
+
+            llm = AzureChatOpenAI(
+                name=name,
+                api_version=version,
+                model=self.info.model,
+                temperature=self.temperature,
+            )
+
         else:
             raise ValueError(f"unsupported LLM class {self.info.cls}")
 
@@ -293,7 +329,6 @@ class LlmFactory(BaseModel):
         return selected_llm
 
 
-# @cache
 def get_llm(
     llm_id: str | None = None,
     temperature: float = 0,
@@ -310,12 +345,17 @@ def get_llm(
         json_mode=json_mode,
         cache=cache,
     )
+    logger.info(f"get LLM : {factory.llm_id} - configurable: {configurable}")
     if configurable:
         return cast(
             BaseLanguageModel, factory.get_configurable(with_fallback=with_fallback)
         )
     else:
         return factory.get()
+
+
+def get_selected_llm(args) -> BaseLanguageModel:
+    return get_llm()
 
 
 def get_llm_info(llm_id: str) -> LLM_INFO:

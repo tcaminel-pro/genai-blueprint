@@ -152,7 +152,7 @@ class VectorStoreFactory(BaseModel):
 
     def document_count(self):
         # It seems there's no generic way to get the number of docs stored in a Vector Store.
-        if self.id == "Chroma":
+        if self.id in ["Chroma", "Chroma_in_memory"]:
             return self.vector_store._collection.count()  # type: ignore
         else:
             raise NotImplementedError(
