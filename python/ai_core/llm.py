@@ -155,9 +155,21 @@ KNOWN_LLM_LIST = [
         key="EDENAI_API_KEY",
     ),
     LLM_INFO(
+        id="gpt_4_azure",
+        cls="AzureChatOpenAI",
+        model="gpt4-turbo/2023-05-15",
+        key="AZURE_OPENAI_API_KEY",
+    ),
+    LLM_INFO(
+        id="gpt_35_azure",
+        cls="AzureChatOpenAI",
+        model="gpt-35-turbo/2023-05-15",
+        key="AZURE_OPENAI_API_KEY",
+    ),
+    LLM_INFO(
         id="gpt_4o_azure",
         cls="AzureChatOpenAI",
-        model="gpt-4o/024-05-13",
+        model="gpt4o/2023-05-15",
         key="AZURE_OPENAI_API_KEY",
     ),
 ]
@@ -293,13 +305,19 @@ class LlmFactory(BaseModel):
             from langchain_openai import AzureChatOpenAI
 
             name, _, version = self.info.model.partition("/")
+            debug(name, version)
 
             llm = AzureChatOpenAI(
                 name=name,
+                azure_deployment=name,
                 api_version=version,
-                model=self.info.model,
+                model=name,
                 temperature=self.temperature,
             )
+            if self.json_mode:
+                llm = cast(
+                    BaseLanguageModel, llm.bind(response_format={"type": "json_object"})
+                )
 
         else:
             raise ValueError(f"unsupported LLM class {self.info.cls}")
@@ -355,7 +373,7 @@ def get_llm(
     """
     Create a BaseLanguageModel object according to a given llm_id.\n
     - If 'llm_id' is None, the LLM is selected from the configuration.
-    - 'json_mode' is not supported or tested for all models
+    - 'json_mode' is not supported or tested for all models (and NOT WELL TESTED)
     - 'configurable' make the LLM configurable at run-time
     - 'with_fallback' add a fallback mechanism (not well tested)
 

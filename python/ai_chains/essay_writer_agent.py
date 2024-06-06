@@ -1,15 +1,20 @@
 import os
 import sys
+from operator import itemgetter
 from typing import List, Literal, TypedDict
 
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.pydantic_v1 import BaseModel
-from langchain_core.runnables import RunnableConfig
+from langchain_core.runnables import (
+    RunnableConfig,
+    RunnablePassthrough,
+)
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, StateGraph
 from loguru import logger
 from tavily import TavilyClient
 
+from python.ai_core.chain_registry import Example, RunnableItem, register_runnable
 from python.ai_core.llm import get_llm
 from python.ai_core.prompts import def_prompt
 
@@ -39,8 +44,9 @@ def plan_node(state: AgentState) -> AgentState:
         Write such an outline for the user provided topic. Give an outline of the essay along with any relevant notes 
         or instructions for the sections."""
 
-    prompt = def_prompt(system=PLAN_PROMPT, user=state["task"])
-    chain = prompt | model | StrOutputParser()
+    chain = (
+        def_prompt(system=PLAN_PROMPT, user=state["task"]) | model | StrOutputParser()
+    )
     plan = chain.invoke({})
     debug(plan)
     return {"plan": plan}
@@ -151,9 +157,41 @@ def create_graph():
     builder.add_edge("reflect", "research_critique")
     builder.add_edge("research_critique", "generate")
 
-    memory = SqliteSaver.from_conn_string(":memory:")
+    #memory = SqliteSaver.from_conn_string(":memory:")
+    memory = None
     graph = builder.compile(checkpointer=memory)
     return graph
+
+
+def query_graph(config: dict):
+    # chain = RunnablePassthrough.assign()
+
+    chain = (
+        #        RunnablePassthrough.assign({"max_revisions": 2, "revision_number": 1})
+        RunnablePassthrough.assign(
+            max_revisions=lambda x: 2, revision_number=lambda x: 1
+        )
+        | create_graph()
+        | itemgetter("draft")
+    )
+    return chain
+
+
+register_runnable(
+    RunnableItem(
+        tag="essay-writer-agent",
+        name="essay-writer-agent",
+        runnable=("task", query_graph),
+        examples=[
+            Example(
+                query=[
+                    "what is the difference between Quantization and Finetuning?",
+                ]
+            )
+        ],
+        diagram="static/adaptative_rag_fallback.png",
+    )
+)
 
 
 def test():
@@ -167,7 +205,7 @@ def test():
         },
         thread,
     ):
-        print(s)
+        debug(s)
 
 
 if __name__ == "__main__":

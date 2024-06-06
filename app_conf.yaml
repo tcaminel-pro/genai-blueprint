@@ -54,6 +54,7 @@ default:
       - lc_tools_example
       - lc_self_query
       - lc_advanced_rag_langgraph
+      - essay_writer_agent
 
 cloud_openai:    
   llm:
