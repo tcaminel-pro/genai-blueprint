@@ -316,11 +316,15 @@ class LlmFactory(BaseModel):
             default_llm_id = get_config_str("llm", "default_model")
 
         # The field alternatives is created from our list of LLM
-        alternatives = {
-            llm: LlmFactory(llm_id=llm).get()
-            for llm in LlmFactory.known_items()
-            if llm != default_llm_id
-        }
+        alternatives = {}
+        for llm_id in LlmFactory.known_items():
+            if llm_id != default_llm_id:
+                try:
+                    llm_obj = LlmFactory(llm_id=llm_id).get()
+                    alternatives |= {llm_id: llm_obj}
+                except Exception as ex:
+                    logger.info(f"Cannot load {llm_id}: {ex}")
+
         selected_llm = (
             LlmFactory(llm_id=self.llm_id)
             .get()

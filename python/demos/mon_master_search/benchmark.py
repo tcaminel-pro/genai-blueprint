@@ -1,17 +1,8 @@
-"""
-Demo of Semantic Search
-
-Copyright (C) 2024 Eviden. All rights reserved
-"""
-
-# cSpell: disable
-
-import timeit
+from functools import cache
 from pathlib import Path
 
 import pandas as pd
 import spacy
-import streamlit as st
 from langchain.retrievers import EnsembleRetriever
 from langchain_community.retrievers import BM25Retriever
 from langchain_core.runnables import ConfigurableField, Runnable
@@ -20,72 +11,14 @@ from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.loaders import load_docs_from_jsonl
 from python.ai_core.vector_store import VectorStoreFactory
 
-LLM = "gemini_pro_google"
-
+DEFAULT_RESULT_COUNT = 15
+RATIO_SPARSE = 60
+EMBEDDINGS_MODEL_ID = "solon-large"
 REPO = Path("/mnt/c/Users/a184094/OneDrive - Eviden/_En cours/mon_master/")
 FILES = REPO / "synthesis.json"
 
-DEFAULT_RESULT_COUNT = 25
 
-
-################################
-#  UI
-################################
-
-st.set_page_config(layout="wide")
-
-title_col1, title_col2 = st.columns([2, 1])
-
-logo_eviden = str(Path.cwd() / "static/eviden-logo-white.png")
-
-st.logo(logo_eviden)
-
-title_col1.title("Recherche Sémantique de Masters")
-title_col2.image(logo_eviden, width=250)
-
-
-# filter1, filter2, filter3 = st.columns(3)
-# filter1.multiselect("licence", LICENCES_CONSEILLEES)
-# filter2.multiselect("modalité", MODELITE_ENSEIGNEMENT)
-# filter3.multiselect("Villes", [])
-
-with st.sidebar:
-    search_method = st.radio("Search Method:", ["Vector", "Keyword", "Hybrid"])
-    if search_method == "Hybrid":
-        ratio_spinner = st.slider(
-            "Keyword  / Vector ratio", min_value=0.0, max_value=1.0, value=0.7, step=0.1
-        )
-
-    embeddings_model = st.radio(
-        "Embedding Model:",
-        options=[
-            "multilingual_MiniLM_local",
-            "camembert_large_local",
-            "solon-large",
-        ],
-        captions=[
-            "Small multilingual model",
-            "Large model for French",
-            "SOTA model for French",
-        ],
-    )
-    result_count = int(
-        st.number_input(
-            "Nombre de parcours recherchés",
-            min_value=1,
-            max_value=60,
-            value=DEFAULT_RESULT_COUNT,
-        )
-    )
-    show_dmm_only = st.toggle("Regrouper par mention", False)
-
-
-with st.form(key="form"):
-    user_input = st.text_area(label="Recherche:", value="", height=30)
-    submit_clicked = st.form_submit_button("Rechercher")
-
-
-@st.cache_resource(show_spinner="Load vector store...")
+@cache
 def get_sparse_retriever(embeddings_model_id: str) -> Runnable:
     embeddings_factory = EmbeddingsFactory(embeddings_id=embeddings_model_id)
     retriever = VectorStoreFactory(
@@ -96,7 +29,7 @@ def get_sparse_retriever(embeddings_model_id: str) -> Runnable:
     return retriever
 
 
-@st.cache_resource(show_spinner="load NLP model...")
+@cache
 def spacy_model(model="fr_core_news_sm") -> tuple[spacy.language.Language, set[str]]:
     nlp = spacy.load(model)
     stop_words = nlp.Defaults.stop_words
@@ -113,7 +46,7 @@ def preprocess_text(text) -> list[str]:
     return filtered
 
 
-@st.cache_resource(show_spinner="index documents for keyword search...")
+@cache
 def get_bm25_retriever() -> Runnable:
     docs_for_bm25 = load_docs_from_jsonl(FILES)
     retriever = BM25Retriever.from_documents(
@@ -124,7 +57,7 @@ def get_bm25_retriever() -> Runnable:
     return retriever
 
 
-@st.cache_resource(show_spinner="load hybrid model...")
+@cache
 def get_ensemble_retriever(
     embeddings_model_id: str, ratio_sparse: float
 ) -> EnsembleRetriever:
@@ -134,26 +67,19 @@ def get_ensemble_retriever(
     )
 
 
-df = pd.DataFrame()
-knwon_set: set[str] = set()
-if submit_clicked:
-    assert embeddings_model is not None
-    if search_method == "Vector":
-        retriever = get_sparse_retriever(embeddings_model)
-    elif search_method == "Keyword":
-        retriever = get_bm25_retriever()
-    elif search_method == "Hybrid":
-        retriever = get_ensemble_retriever(embeddings_model, ratio_sparse=ratio_spinner)
+def search(query: str) -> pd.DataFrame:
+    known_set: set[str] = set()
+    df = pd.DataFrame()
+    retriever = get_ensemble_retriever(EMBEDDINGS_MODEL_ID, ratio_sparse=RATIO_SPARSE)
 
     #  quick and dirty hack to have enough results
-    count = result_count * 2 if show_dmm_only else result_count
+    count = DEFAULT_RESULT_COUNT * 2
 
     config = {"configurable": {"k": count, "search_kwargs": {"k": count}}}
-    user_input = "query : " + user_input  # supposed to work well for Solon Embeddings
+    user_input = "query : " + query  # supposed to work well for Solon Embeddings
 
-    start_time = timeit.default_timer()
     result = retriever.invoke(user_input, config=config)  # type: ignore
-    delta_t = timeit.default_timer() - start_time
+
     for doc in result:
         # obj = json.loads(doc.page_content)
         intitule = doc.page_content.removeprefix("intitulé: ")
@@ -161,7 +87,7 @@ if submit_clicked:
         inm = doc.metadata.get("source")
         for_intitule = doc.metadata["for_intitule"]
 
-        if show_dmm_only and for_intitule in knwon_set:
+        if for_intitule in known_set:
             pass
         else:
             row = {
@@ -172,7 +98,6 @@ if submit_clicked:
                 "Content": doc.page_content,
             }
             df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
-        knwon_set.add(for_intitule)
+        known_set.add(for_intitule)
 
-    st.dataframe(df)
-    st.write(f"search duration : {delta_t:9.5f} s")
+    return df

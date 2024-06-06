@@ -71,6 +71,8 @@ with st.expander("Runnable Graph", expanded=False):
     else:
         runnable = runnable_desc.get(config)
         drawing = runnable.get_graph().draw_png()  # type: ignore
+        #drawing = runnable.get_graph().draw_mermaid_png()
+
         st.image(drawing)
         st.write("")
 
