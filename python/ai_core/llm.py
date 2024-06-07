@@ -63,6 +63,12 @@ KNOWN_LLM_LIST = [
         model="gpt-3.5-turbo-0125",
         key="OPENAI_API_KEY",
     ),
+    LLM_INFO(
+        id="gpt_4o_openai",
+        cls="ChatOpenAI",
+        model="gpt-4o",
+        key="OPENAI_API_KEY",
+    ),
     #
     ####  ChatDeepInfra ### https://deepinfra.com/models/text-generation
     LLM_INFO(
@@ -169,7 +175,7 @@ KNOWN_LLM_LIST = [
     LLM_INFO(
         id="gpt_4o_azure",
         cls="AzureChatOpenAI",
-        model="gpt4o/2023-05-15",
+        model="gpt-4o/2023-05-15",
         key="AZURE_OPENAI_API_KEY",
     ),
 ]
@@ -305,8 +311,6 @@ class LlmFactory(BaseModel):
             from langchain_openai import AzureChatOpenAI
 
             name, _, api_version = self.info.model.partition("/")
-            debug(name, api_version)
-
             llm = AzureChatOpenAI(
                 name=name,
                 azure_deployment=name,

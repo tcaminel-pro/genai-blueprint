@@ -1,5 +1,5 @@
 """
-Entry point for the Command Line Interface
+Entry point for the Command Line Interface,  and commands
 
 
 """
@@ -96,6 +96,7 @@ def define_commands(cli_app: typer.Typer):
 
     @cli_app.command()
     def list_models():
+        """List the LLMs, embeddings models and vector stores that we know"""
         print("factories:")
         tab = 2 * " "
         print(f"{tab}llm:")
