@@ -1397,13 +1397,13 @@ test = ["coverage[toml]", "ddt (>=1.1.1,!=1.4.3)", "mock", "mypy", "pre-commit",
 
 [[package]]
 name = "google-auth"
-version = "2.29.0"
+version = "2.30.0"
 description = "Google Authentication Library"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "google-auth-2.29.0.tar.gz", hash = "sha256:672dff332d073227550ffc7457868ac4218d6c500b155fe6cc17d2b13602c360"},
-    {file = "google_auth-2.29.0-py2.py3-none-any.whl", hash = "sha256:d452ad095688cd52bae0ad6fafe027f6a6d6f560e810fec20914e17a09526415"},
+    {file = "google-auth-2.30.0.tar.gz", hash = "sha256:ab630a1320f6720909ad76a7dbdb6841cdf5c66b328d690027e4867bdfb16688"},
+    {file = "google_auth-2.30.0-py2.py3-none-any.whl", hash = "sha256:8df7da660f62757388b8a7f249df13549b3373f24388cb5d2f1dd91cc18180b5"},
 ]
 
 [package.dependencies]
@@ -2242,13 +2242,13 @@ files = [
 
 [[package]]
 name = "kubernetes"
-version = "29.0.0"
+version = "30.1.0"
 description = "Kubernetes python client"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "kubernetes-29.0.0-py2.py3-none-any.whl", hash = "sha256:ab8cb0e0576ccdfb71886366efb102c6a20f268d817be065ce7f9909c631e43e"},
-    {file = "kubernetes-29.0.0.tar.gz", hash = "sha256:c4812e227ae74d07d53c88293e564e54b850452715a59a927e7e1bc6b9a60459"},
+    {file = "kubernetes-30.1.0-py2.py3-none-any.whl", hash = "sha256:e212e8b7579031dd2e512168b617373bc1e03888d41ac4e04039240a292d478d"},
+    {file = "kubernetes-30.1.0.tar.gz", hash = "sha256:41e4c77af9f28e7a6c314e3bd06a8c6229ddd787cad684e0ab9f69b498e98ebc"},
 ]
 
 [package.dependencies]
@@ -2268,13 +2268,13 @@ adal = ["adal (>=1.0.2)"]
 
 [[package]]
 name = "langchain"
-version = "0.2.2"
+version = "0.2.3"
 description = "Building applications with LLMs through composability"
 optional = false
 python-versions = "<4.0,>=3.8.1"
 files = [
-    {file = "langchain-0.2.2-py3-none-any.whl", hash = "sha256:58ca0c47bcdd156da66f50a0a4fcedc49bf6950827f4a6b06c8c4842d55805f3"},
-    {file = "langchain-0.2.2.tar.gz", hash = "sha256:9d61e50e9cdc2bea659bc5e6c03650ba048fda63a307490ae368e539f61a0d3a"},
+    {file = "langchain-0.2.3-py3-none-any.whl", hash = "sha256:5dc33cd9c8008693d328b7cb698df69073acecc89ad9c2a95f243b3314f8d834"},
+    {file = "langchain-0.2.3.tar.gz", hash = "sha256:81962cc72cce6515f7bd71e01542727870789bf8b666c6913d85559080c1a201"},
 ]
 
 [package.dependencies]
@@ -2289,20 +2289,6 @@ PyYAML = ">=5.3"
 requests = ">=2,<3"
 SQLAlchemy = ">=1.4,<3"
 tenacity = ">=8.1.0,<9.0.0"
-
-[package.extras]
-azure = ["azure-ai-formrecognizer (>=3.2.1,<4.0.0)", "azure-ai-textanalytics (>=5.3.0,<6.0.0)", "azure-cognitiveservices-speech (>=1.28.0,<2.0.0)", "azure-core (>=1.26.4,<2.0.0)", "azure-cosmos (>=4.4.0b1,<5.0.0)", "azure-identity (>=1.12.0,<2.0.0)", "azure-search-documents (==11.4.0b8)", "openai (<2)"]
-clarifai = ["clarifai (>=9.1.0)"]
-cli = ["typer (>=0.9.0,<0.10.0)"]
-cohere = ["cohere (>=4,<6)"]
-docarray = ["docarray[hnswlib] (>=0.32.0,<0.33.0)"]
-embeddings = ["sentence-transformers (>=2,<3)"]
-extended-testing = ["aiosqlite (>=0.19.0,<0.20.0)", "aleph-alpha-client (>=2.15.0,<3.0.0)", "anthropic (>=0.3.11,<0.4.0)", "arxiv (>=1.4,<2.0)", "assemblyai (>=0.17.0,<0.18.0)", "atlassian-python-api (>=3.36.0,<4.0.0)", "beautifulsoup4 (>=4,<5)", "bibtexparser (>=1.4.0,<2.0.0)", "cassio (>=0.1.0,<0.2.0)", "chardet (>=5.1.0,<6.0.0)", "cohere (>=4,<6)", "couchbase (>=4.1.9,<5.0.0)", "dashvector (>=1.0.1,<2.0.0)", "databricks-vectorsearch (>=0.21,<0.22)", "datasets (>=2.15.0,<3.0.0)", "dgml-utils (>=0.3.0,<0.4.0)", "esprima (>=4.0.1,<5.0.0)", "faiss-cpu (>=1,<2)", "feedparser (>=6.0.10,<7.0.0)", "fireworks-ai (>=0.9.0,<0.10.0)", "geopandas (>=0.13.1,<0.14.0)", "gitpython (>=3.1.32,<4.0.0)", "google-cloud-documentai (>=2.20.1,<3.0.0)", "gql (>=3.4.1,<4.0.0)", "hologres-vector (>=0.0.6,<0.0.7)", "html2text (>=2020.1.16,<2021.0.0)", "javelin-sdk (>=0.1.8,<0.2.0)", "jinja2 (>=3,<4)", "jq (>=1.4.1,<2.0.0)", "jsonschema (>1)", "langchain-openai (>=0.1,<0.2)", "lxml (>=4.9.3,<6.0)", "markdownify (>=0.11.6,<0.12.0)", "motor (>=3.3.1,<4.0.0)", "msal (>=1.25.0,<2.0.0)", "mwparserfromhell (>=0.6.4,<0.7.0)", "mwxml (>=0.3.3,<0.4.0)", "newspaper3k (>=0.2.8,<0.3.0)", "numexpr (>=2.8.6,<3.0.0)", "openai (<2)", "openapi-pydantic (>=0.3.2,<0.4.0)", "pandas (>=2.0.1,<3.0.0)", "pdfminer-six (>=20221105,<20221106)", "pgvector (>=0.1.6,<0.2.0)", "praw (>=7.7.1,<8.0.0)", "psychicapi (>=0.8.0,<0.9.0)", "py-trello (>=0.19.0,<0.20.0)", "pymupdf (>=1.22.3,<2.0.0)", "pypdf (>=3.4.0,<4.0.0)", "pypdfium2 (>=4.10.0,<5.0.0)", "pyspark (>=3.4.0,<4.0.0)", "rank-bm25 (>=0.2.2,<0.3.0)", "rapidfuzz (>=3.1.1,<4.0.0)", "rapidocr-onnxruntime (>=1.3.2,<2.0.0)", "rdflib (==7.0.0)", "requests-toolbelt (>=1.0.0,<2.0.0)", "rspace_client (>=2.5.0,<3.0.0)", "scikit-learn (>=1.2.2,<2.0.0)", "sqlite-vss (>=0.1.2,<0.2.0)", "streamlit (>=1.18.0,<2.0.0)", "sympy (>=1.12,<2.0)", "telethon (>=1.28.5,<2.0.0)", "timescale-vector (>=0.0.1,<0.0.2)", "tqdm (>=4.48.0)", "upstash-redis (>=0.15.0,<0.16.0)", "xata (>=1.0.0a7,<2.0.0)", "xmltodict (>=0.13.0,<0.14.0)"]
-javascript = ["esprima (>=4.0.1,<5.0.0)"]
-llms = ["clarifai (>=9.1.0)", "cohere (>=4,<6)", "huggingface_hub (>=0,<1)", "manifest-ml (>=0.0.1,<0.0.2)", "nlpcloud (>=1,<2)", "openai (<2)", "openlm (>=0.0.5,<0.0.6)", "torch (>=1,<3)", "transformers (>=4,<5)"]
-openai = ["openai (<2)", "tiktoken (>=0.7,<1.0)"]
-qdrant = ["qdrant-client (>=1.3.1,<2.0.0)"]
-text-helpers = ["chardet (>=5.1.0,<6.0.0)"]
 
 [[package]]
 name = "langchain-chroma"
@@ -2323,45 +2309,36 @@ numpy = ">=1,<2"
 
 [[package]]
 name = "langchain-community"
-version = "0.2.1"
+version = "0.2.4"
 description = "Community contributed LangChain integrations."
 optional = false
-python-versions = ">=3.8.1,<4.0"
-files = []
-develop = false
+python-versions = "<4.0,>=3.8.1"
+files = [
+    {file = "langchain_community-0.2.4-py3-none-any.whl", hash = "sha256:8582e9800f4837660dc297cccd2ee1ddc1d8c440d0fe8b64edb07620f0373b0e"},
+    {file = "langchain_community-0.2.4.tar.gz", hash = "sha256:2bb6a1a36b8500a564d25d76469c02457b1a7c3afea6d4a609a47c06b993e3e4"},
+]
 
 [package.dependencies]
-aiohttp = "^3.8.3"
-dataclasses-json = ">= 0.5.7, < 0.7"
-langchain = "^0.2.0"
-langchain-core = "^0.2.0"
-langsmith = "^0.1.0"
-numpy = "^1"
+aiohttp = ">=3.8.3,<4.0.0"
+dataclasses-json = ">=0.5.7,<0.7"
+langchain = ">=0.2.0,<0.3.0"
+langchain-core = ">=0.2.0,<0.3.0"
+langsmith = ">=0.1.0,<0.2.0"
+numpy = ">=1,<2"
 PyYAML = ">=5.3"
-requests = "^2"
+requests = ">=2,<3"
 SQLAlchemy = ">=1.4,<3"
-tenacity = "^8.1.0"
-
-[package.extras]
-cli = ["typer (>=0.9.0,<0.10.0)"]
-extended-testing = ["aiosqlite (>=0.19.0,<0.20.0)", "aleph-alpha-client (>=2.15.0,<3.0.0)", "anthropic (>=0.3.11,<0.4.0)", "arxiv (>=1.4,<2.0)", "assemblyai (>=0.17.0,<0.18.0)", "atlassian-python-api (>=3.36.0,<4.0.0)", "azure-ai-documentintelligence (>=1.0.0b1,<2.0.0)", "azure-identity (>=1.15.0,<2.0.0)", "azure-search-documents (==11.4.0)", "beautifulsoup4 (>=4,<5)", "bibtexparser (>=1.4.0,<2.0.0)", "cassio (>=0.1.6,<0.2.0)", "chardet (>=5.1.0,<6.0.0)", "cloudpathlib (>=0.18,<0.19)", "cloudpickle (>=2.0.0)", "cloudpickle (>=2.0.0)", "cohere (>=4,<5)", "databricks-vectorsearch (>=0.21,<0.22)", "datasets (>=2.15.0,<3.0.0)", "dgml-utils (>=0.3.0,<0.4.0)", "elasticsearch (>=8.12.0,<9.0.0)", "esprima (>=4.0.1,<5.0.0)", "faiss-cpu (>=1,<2)", "feedparser (>=6.0.10,<7.0.0)", "fireworks-ai (>=0.9.0,<0.10.0)", "friendli-client (>=1.2.4,<2.0.0)", "geopandas (>=0.13.1,<0.14.0)", "gitpython (>=3.1.32,<4.0.0)", "google-cloud-documentai (>=2.20.1,<3.0.0)", "gql (>=3.4.1,<4.0.0)", "gradientai (>=1.4.0,<2.0.0)", "hdbcli (>=2.19.21,<3.0.0)", "hologres-vector (>=0.0.6,<0.0.7)", "html2text (>=2020.1.16,<2021.0.0)", "httpx (>=0.24.1,<0.25.0)", "httpx-sse (>=0.4.0,<0.5.0)", "javelin-sdk (>=0.1.8,<0.2.0)", "jinja2 (>=3,<4)", "jq (>=1.4.1,<2.0.0)", "jsonschema (>1)", "lxml (>=4.9.3,<6.0)", "markdownify (>=0.11.6,<0.12.0)", "motor (>=3.3.1,<4.0.0)", "msal (>=1.25.0,<2.0.0)", "mwparserfromhell (>=0.6.4,<0.7.0)", "mwxml (>=0.3.3,<0.4.0)", "newspaper3k (>=0.2.8,<0.3.0)", "numexpr (>=2.8.6,<3.0.0)", "nvidia-riva-client (>=2.14.0,<3.0.0)", "oci (>=2.119.1,<3.0.0)", "openai (<2)", "openapi-pydantic (>=0.3.2,<0.4.0)", "oracle-ads (>=2.9.1,<3.0.0)", "oracledb (>=2.2.0,<3.0.0)", "pandas (>=2.0.1,<3.0.0)", "pdfminer-six (>=20221105,<20221106)", "pgvector (>=0.1.6,<0.2.0)", "praw (>=7.7.1,<8.0.0)", "premai (>=0.3.25,<0.4.0)", "psychicapi (>=0.8.0,<0.9.0)", "py-trello (>=0.19.0,<0.20.0)", "pyjwt (>=2.8.0,<3.0.0)", "pymupdf (>=1.22.3,<2.0.0)", "pypdf (>=3.4.0,<4.0.0)", "pypdfium2 (>=4.10.0,<5.0.0)", "pyspark (>=3.4.0,<4.0.0)", "rank-bm25 (>=0.2.2,<0.3.0)", "rapidfuzz (>=3.1.1,<4.0.0)", "rapidocr-onnxruntime (>=1.3.2,<2.0.0)", "rdflib (==7.0.0)", "requests-toolbelt (>=1.0.0,<2.0.0)", "rspace_client (>=2.5.0,<3.0.0)", "scikit-learn (>=1.2.2,<2.0.0)", "sqlite-vss (>=0.1.2,<0.2.0)", "streamlit (>=1.18.0,<2.0.0)", "sympy (>=1.12,<2.0)", "telethon (>=1.28.5,<2.0.0)", "tidb-vector (>=0.0.3,<1.0.0)", "timescale-vector (>=0.0.1,<0.0.2)", "tqdm (>=4.48.0)", "tree-sitter (>=0.20.2,<0.21.0)", "tree-sitter-languages (>=1.8.0,<2.0.0)", "upstash-redis (>=0.15.0,<0.16.0)", "vdms (>=0.0.20,<0.0.21)", "xata (>=1.0.0a7,<2.0.0)", "xmltodict (>=0.13.0,<0.14.0)"]
-
-[package.source]
-type = "git"
-url = "https://github.com/edenai/langchain.git"
-reference = "feat/edenai-chat_models-tools"
-resolved_reference = "9f7fdd76c8dad4e9e1b408686209114e5d6cb19f"
-subdirectory = "libs/community"
+tenacity = ">=8.1.0,<9.0.0"
 
 [[package]]
 name = "langchain-core"
-version = "0.2.4"
+version = "0.2.5"
 description = "Building applications with LLMs through composability"
 optional = false
 python-versions = "<4.0,>=3.8.1"
 files = [
-    {file = "langchain_core-0.2.4-py3-none-any.whl", hash = "sha256:5212f7ec78a525e88a178ed3aefe2fd7134b03fb92573dfbab9914f1d92d6ec5"},
-    {file = "langchain_core-0.2.4.tar.gz", hash = "sha256:82bdcc546eb0341cefcf1f4ecb3e49836fff003903afddda2d1312bb8491ef81"},
+    {file = "langchain_core-0.2.5-py3-none-any.whl", hash = "sha256:abe5138f22acff23a079ec538be5268bbf97cf023d51987a0dd474d2a16cae3e"},
+    {file = "langchain_core-0.2.5.tar.gz", hash = "sha256:4a5c2f56b22396a63ef4790043660e393adbfa6832b978f023ca996a04b8e752"},
 ]
 
 [package.dependencies]
@@ -2372,31 +2349,23 @@ pydantic = ">=1,<3"
 PyYAML = ">=5.3"
 tenacity = ">=8.1.0,<9.0.0"
 
-[package.extras]
-extended-testing = ["jinja2 (>=3,<4)"]
-
 [[package]]
 name = "langchain-experimental"
-version = "0.0.59"
+version = "0.0.60"
 description = "Building applications with LLMs through composability"
 optional = false
-python-versions = ">=3.8.1,<4.0"
-files = []
-develop = false
+python-versions = "<4.0,>=3.8.1"
+files = [
+    {file = "langchain_experimental-0.0.60-py3-none-any.whl", hash = "sha256:ef3b6b6b84fe2bfe19eba6d1a98005e27d96576514c6415f5afe4ace5bf477d8"},
+    {file = "langchain_experimental-0.0.60.tar.gz", hash = "sha256:a16cbcd18cda6b86be8f41fed7963c13569295def0d8b4c6324b806d878d442c"},
+]
 
 [package.dependencies]
-langchain-community = "^0.2"
-langchain-core = "^0.2"
+langchain-community = ">=0.2,<0.3"
+langchain-core = ">=0.2,<0.3"
 
 [package.extras]
 extended-testing = ["faker (>=19.3.1,<20.0.0)", "jinja2 (>=3,<4)", "pandas (>=2.0.1,<3.0.0)", "presidio-analyzer (>=2.2.352,<3.0.0)", "presidio-anonymizer (>=2.2.352,<3.0.0)", "sentence-transformers (>=2,<3)", "tabulate (>=0.9.0,<0.10.0)", "vowpal-wabbit-next (==0.6.0)"]
-
-[package.source]
-type = "git"
-url = "https://github.com/edenai/langchain.git"
-reference = "feat/edenai-chat_models-tools"
-resolved_reference = "9f7fdd76c8dad4e9e1b408686209114e5d6cb19f"
-subdirectory = "libs/experimental"
 
 [[package]]
 name = "langchain-groq"
@@ -2481,13 +2450,13 @@ test = ["pytest", "pytest-cov"]
 
 [[package]]
 name = "langgraph"
-version = "0.0.62"
+version = "0.0.64"
 description = "langgraph"
 optional = false
 python-versions = "<4.0,>=3.9.0"
 files = [
-    {file = "langgraph-0.0.62-py3-none-any.whl", hash = "sha256:6cbf0e074dec4217aa5642b0cdc98863966f008b41ce339beb34bd5b99c24d8d"},
-    {file = "langgraph-0.0.62.tar.gz", hash = "sha256:565ec7e3cb699626fe9643391c63bc4f07d2cdc5a37a38b1a4e258d6ea5b6c40"},
+    {file = "langgraph-0.0.64-py3-none-any.whl", hash = "sha256:607c15a1292619ca1d0ce4bdcc65dade48a3e9cd604c966ecba47621d9842daf"},
+    {file = "langgraph-0.0.64.tar.gz", hash = "sha256:e8e9904ac1515848b19b72d44013955fffc2deca1f81a486377f617c1f6ae725"},
 ]
 
 [package.dependencies]
@@ -2517,13 +2486,13 @@ server = ["fastapi (>=0.90.1,<1)", "sse-starlette (>=1.3.0,<2.0.0)"]
 
 [[package]]
 name = "langsmith"
-version = "0.1.74"
+version = "0.1.75"
 description = "Client library to connect to the LangSmith LLM Tracing and Evaluation Platform."
 optional = false
 python-versions = "<4.0,>=3.8.1"
 files = [
-    {file = "langsmith-0.1.74-py3-none-any.whl", hash = "sha256:c47e5f2d7a01939c7e1fb94328759e5d0158f89cbd411fcb185c4176a9a75e44"},
-    {file = "langsmith-0.1.74.tar.gz", hash = "sha256:a9457731caf3001c76b909af8b0649a6bf4f265d5ebdeeb023cd253967ef1de8"},
+    {file = "langsmith-0.1.75-py3-none-any.whl", hash = "sha256:d08b08dd6b3fa4da170377f95123d77122ef4c52999d10fff4ae08ff70d07aed"},
+    {file = "langsmith-0.1.75.tar.gz", hash = "sha256:61274e144ea94c297dd78ce03e6dfae18459fe9bd8ab5094d61a0c4816561279"},
 ]
 
 [package.dependencies]
@@ -3654,13 +3623,13 @@ sympy = "*"
 
 [[package]]
 name = "openai"
-version = "1.31.1"
+version = "1.32.0"
 description = "The official Python library for the openai API"
 optional = false
 python-versions = ">=3.7.1"
 files = [
-    {file = "openai-1.31.1-py3-none-any.whl", hash = "sha256:a746cf070798a4048cfea00b0fc7cb9760ee7ead5a08c48115b914d1afbd1b53"},
-    {file = "openai-1.31.1.tar.gz", hash = "sha256:a15266827de20f407d4bf9837030b168074b5b29acd54f10bb38d5f53e95f083"},
+    {file = "openai-1.32.0-py3-none-any.whl", hash = "sha256:953d57669f309002044fd2f678aba9f07a43256d74b3b00cd04afb5b185568ea"},
+    {file = "openai-1.32.0.tar.gz", hash = "sha256:a6df15a7ab9344b1bc2bc8d83639f68b7a7e2453c0f5e50c1666547eee86f0bd"},
 ]
 
 [package.dependencies]
@@ -6310,22 +6279,22 @@ optree = ["optree (>=0.9.1)"]
 
 [[package]]
 name = "tornado"
-version = "6.4"
+version = "6.4.1"
 description = "Tornado is a Python web framework and asynchronous networking library, originally developed at FriendFeed."
 optional = false
-python-versions = ">= 3.8"
+python-versions = ">=3.8"
 files = [
-    {file = "tornado-6.4-cp38-abi3-macosx_10_9_universal2.whl", hash = "sha256:02ccefc7d8211e5a7f9e8bc3f9e5b0ad6262ba2fbb683a6443ecc804e5224ce0"},
-    {file = "tornado-6.4-cp38-abi3-macosx_10_9_x86_64.whl", hash = "sha256:27787de946a9cffd63ce5814c33f734c627a87072ec7eed71f7fc4417bb16263"},
-    {file = "tornado-6.4-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:f7894c581ecdcf91666a0912f18ce5e757213999e183ebfc2c3fdbf4d5bd764e"},
-    {file = "tornado-6.4-cp38-abi3-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:e43bc2e5370a6a8e413e1e1cd0c91bedc5bd62a74a532371042a18ef19e10579"},
-    {file = "tornado-6.4-cp38-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f0251554cdd50b4b44362f73ad5ba7126fc5b2c2895cc62b14a1c2d7ea32f212"},
-    {file = "tornado-6.4-cp38-abi3-musllinux_1_1_aarch64.whl", hash = "sha256:fd03192e287fbd0899dd8f81c6fb9cbbc69194d2074b38f384cb6fa72b80e9c2"},
-    {file = "tornado-6.4-cp38-abi3-musllinux_1_1_i686.whl", hash = "sha256:88b84956273fbd73420e6d4b8d5ccbe913c65d31351b4c004ae362eba06e1f78"},
-    {file = "tornado-6.4-cp38-abi3-musllinux_1_1_x86_64.whl", hash = "sha256:71ddfc23a0e03ef2df1c1397d859868d158c8276a0603b96cf86892bff58149f"},
-    {file = "tornado-6.4-cp38-abi3-win32.whl", hash = "sha256:6f8a6c77900f5ae93d8b4ae1196472d0ccc2775cc1dfdc9e7727889145c45052"},
-    {file = "tornado-6.4-cp38-abi3-win_amd64.whl", hash = "sha256:10aeaa8006333433da48dec9fe417877f8bcc21f48dda8d661ae79da357b2a63"},
-    {file = "tornado-6.4.tar.gz", hash = "sha256:72291fa6e6bc84e626589f1c29d90a5a6d593ef5ae68052ee2ef000dfd273dee"},
+    {file = "tornado-6.4.1-cp38-abi3-macosx_10_9_universal2.whl", hash = "sha256:163b0aafc8e23d8cdc3c9dfb24c5368af84a81e3364745ccb4427669bf84aec8"},
+    {file = "tornado-6.4.1-cp38-abi3-macosx_10_9_x86_64.whl", hash = "sha256:6d5ce3437e18a2b66fbadb183c1d3364fb03f2be71299e7d10dbeeb69f4b2a14"},
+    {file = "tornado-6.4.1-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e2e20b9113cd7293f164dc46fffb13535266e713cdb87bd2d15ddb336e96cfc4"},
+    {file = "tornado-6.4.1-cp38-abi3-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:8ae50a504a740365267b2a8d1a90c9fbc86b780a39170feca9bcc1787ff80842"},
+    {file = "tornado-6.4.1-cp38-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:613bf4ddf5c7a95509218b149b555621497a6cc0d46ac341b30bd9ec19eac7f3"},
+    {file = "tornado-6.4.1-cp38-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:25486eb223babe3eed4b8aecbac33b37e3dd6d776bc730ca14e1bf93888b979f"},
+    {file = "tornado-6.4.1-cp38-abi3-musllinux_1_2_i686.whl", hash = "sha256:454db8a7ecfcf2ff6042dde58404164d969b6f5d58b926da15e6b23817950fc4"},
+    {file = "tornado-6.4.1-cp38-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:a02a08cc7a9314b006f653ce40483b9b3c12cda222d6a46d4ac63bb6c9057698"},
+    {file = "tornado-6.4.1-cp38-abi3-win32.whl", hash = "sha256:d9a566c40b89757c9aa8e6f032bcdb8ca8795d7c1a9762910c722b1635c9de4d"},
+    {file = "tornado-6.4.1-cp38-abi3-win_amd64.whl", hash = "sha256:b24b8982ed444378d7f21d563f4180a2de31ced9d8d84443907a0a64da2072e7"},
+    {file = "tornado-6.4.1.tar.gz", hash = "sha256:92d3ab53183d8c50f8204a51e6f91d18a15d5ef261e84d452800d4ff6fc504e9"},
 ]
 
 [[package]]
@@ -7214,4 +7183,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "6bd09228703bd6d3b127624bfaeb0730f7386cabc1271a8a4161f146bbbf84c1"
+content-hash = "b24b6b0f6c61d415bd9b1363bdd4ccfa5776a43bef772160785e809edd30cb84"

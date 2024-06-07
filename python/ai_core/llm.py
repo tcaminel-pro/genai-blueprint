@@ -304,14 +304,14 @@ class LlmFactory(BaseModel):
         elif self.info.cls == "AzureChatOpenAI":
             from langchain_openai import AzureChatOpenAI
 
-            name, _, version = self.info.model.partition("/")
-            debug(name, version)
+            name, _, api_version = self.info.model.partition("/")
+            debug(name, api_version)
 
             llm = AzureChatOpenAI(
                 name=name,
                 azure_deployment=name,
-                api_version=version,
-                model=name,
+                model=name,  # Not sure it's needed
+                api_version=api_version,
                 temperature=self.temperature,
             )
             if self.json_mode:

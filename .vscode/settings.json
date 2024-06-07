@@ -2,6 +2,8 @@
     "terminal.integrated.env.linux": {
         "PYTHONPATH": "${env:PYTHONPATH}:${workspaceFolder}/python:${env:PYTHONPATH}:${workspaceFolder}/notebooks:${workspaceFolder}/test",
       },
+    
+    "jupyter.notebookFileRoot": "${workspaceFolder}", 
 
     "cSpell.words": [
         "abatch",

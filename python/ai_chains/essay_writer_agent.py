@@ -1,3 +1,11 @@
+"""
+
+Taken from :    https://learn.deeplearning.ai/courses/ai-agents-in-langgraph/lesson/7/essay-writer 
+Full source code with UI is here : https://s172-31-15-23p21826.lab-aws-production.deeplearning.ai/edit/helper.py 
+
+Also of interest: https://github.com/langchain-ai/langgraph/blob/main/examples/multi_agent/multi-agent-collaboration.ipynb 
+"""
+
 import os
 import sys
 from operator import itemgetter
@@ -9,7 +17,6 @@ from langchain_core.runnables import (
     RunnableConfig,
     RunnablePassthrough,
 )
-from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, StateGraph
 from loguru import logger
 from tavily import TavilyClient
@@ -33,7 +40,7 @@ class Queries(BaseModel):
     queries: List[str]
 
 
-model = get_llm(temperature=0.5, cache=True)
+model = get_llm(temperature=0.0, cache=True)
 
 tavily = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
 
@@ -157,9 +164,9 @@ def create_graph():
     builder.add_edge("reflect", "research_critique")
     builder.add_edge("research_critique", "generate")
 
-    #memory = SqliteSaver.from_conn_string(":memory:")
+    # memory = SqliteSaver.from_conn_string(":memory:")
     memory = None
-    graph = builder.compile(checkpointer=memory)
+    graph = builder.compile(checkpointer=memory, interrupt_after=None)
     return graph
 
 
@@ -167,7 +174,6 @@ def query_graph(config: dict):
     # chain = RunnablePassthrough.assign()
 
     chain = (
-        #        RunnablePassthrough.assign({"max_revisions": 2, "revision_number": 1})
         RunnablePassthrough.assign(
             max_revisions=lambda x: 2, revision_number=lambda x: 1
         )
@@ -186,10 +192,11 @@ register_runnable(
             Example(
                 query=[
                     "what is the difference between Quantization and Finetuning?",
+                    "what is the difference between langchain and langsmith",
                 ]
             )
         ],
-        diagram="static/adaptative_rag_fallback.png",
+        diagram="static/essay_writer_agent_screenshot.png",
     )
 )
 

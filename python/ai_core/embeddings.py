@@ -77,6 +77,13 @@ KNOWN_EMBEDDINGS_MODELS = [
         key="",
         prefix="Query : ",
     ),
+    EMBEDDINGS_INFO(
+        id="ada_002_azure",
+        model="text-embedding-ada-002/2023-05-15",
+        cls="AzureOpenAIEmbeddings",
+        key="AZURE_OPENAI_API_KEY",
+        prefix="Query : ",
+    ),
 ]
 
 
@@ -145,6 +152,15 @@ class EmbeddingsFactory(BaseModel):
 
             provider, _, model = self.info.model.partition("/")
             emb = EdenAiEmbeddings(model=model, provider=provider, edenai_api_key=None)
+        elif self.info.cls == "AzureOpenAIEmbeddings":
+            from langchain_openai import AzureOpenAIEmbeddings
+
+            name, _, api_version = self.info.model.partition("/")
+            emb = AzureOpenAIEmbeddings(
+                azure_deployment=name,
+                model=name,  # Not sure it's needed
+                api_version=api_version,
+            )
         else:
             raise ValueError(f"unsupported Embeddings class {self.info.cls}")
         return emb

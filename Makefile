@@ -5,9 +5,9 @@ export APP=genai-tcl
 export IMAGE_VERSION=0.2a
 export REGISTRY_AZ=XXXX.azurecr.io
 
-export REGISTRY_NAME=eden-prod-eden-api
+export REGISTRY_NAME=XXX
 export LOCATION=europe-west4
-export PROJECT_ID_GCP=prj-p-eden
+export PROJECT_ID_GCP=XXX
 
 export STREAMLIT_ENTRY_POINT="python/GenAI_Lab.py"
 
@@ -55,6 +55,8 @@ save:  # Create a zipped version of the image
 ##  GCP  ###
 ##############
 
+# To be commeted...
+
 login_gcp:
 	gcloud auth login
 	gcloud config set project  $(PROJECT_ID_GCP)
@@ -91,15 +93,15 @@ push_az:  # Push to a registry
 ##############
 
 
-update:  # Update selected fast changing dependencies
+update:  # Update selected fast changing dependencies 
 	poetry add 	langchain@latest  langchain-core@latest langgraph@latest langserve@latest langchainhub@latest \
-				 langchain-groq@latest  
-# langchain-experimental@latest   langchain-community@latest
+				 langchain-groq@latest  \
+				 langchain-experimental@latest   langchain-community@latest
 # litellm@latest lunary@latest
 
 #langchain-openai@latest
 
-clean:  # remove byte code
+clean:  # remove byte code  DOES NOT WORK
 # find . -type f -name "*.py[co]" -delete -or -type d -name "__pycache__" -delete
 	find ./python/ai/__pycache__ -type f -delete
 	find ./python/ai/__pycache__ -type d -empty -delete

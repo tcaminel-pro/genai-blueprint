@@ -1,40 +1,49 @@
-# Selectable LLM, embedding models, vector store etc HARD CODED in the code
+# Selectable LLM, embedding models, vector store etc that HARD CODED in the code.
+# Generated with 'list-models' command.
 # DO NOT EDIT, except if you add new stuff in code !
-# In the future, that could be generated, or useless if everything is configured in YAML
+# WARNING : might not be usable if there's no API key or dependencies
+
 factories:
-  llm: 
+  llm:
     - gpt_35_openai
-    - gpt_35_edenai
-    - llama2_70_deepinfra
-    - llama2_70_groq
-    - llama3_70_groq
+    - llama3_70_deepinfra
+    - llama3_8_deepinfra
     - mixtral_7x8_deepinfra
+    - llama3_70_deepinfra_lite
+    - llama3_70_groq
+    - llama3_8_groq
     - mixtral_7x8_groq
     - gemini_pro_google
-
+    - llama3_8_local
+    - gpt_4o_edenai
+    - gpt_4_edenai
+    - gpt_35_edenai
+    - mistral_large_edenai
+    - gpt_4_azure
+    - gpt_35_azure
+    - gpt_4o_azure
   embeddings:
-    - multilingual_MiniLM_local
     - ada_002_openai
-    - mistral_1024_edenai 
+    - embedding_001_google
+    - multilingual_MiniLM_local
+    - ada_002_edenai
+    - mistral_1024_edenai
     - camembert_large_local
-
+    - solon-large
+    - ada_002_azure
   vector_store:
     - Chroma
     - Chroma_in_memory
   
-  monitoring:
-    - langsmith
-    - lunary
-    - none
 
 
 # Agent configuration
 default:
   llm:
-    default_model:  gpt_4o_edenai   # #gpt_35_openai
+    default_model:  gpt_35_azure
     cache : sqlite
   embeddings:
-    default_model: multilingual_MiniLM_local 
+    default_model: ada_002_azure # multilingual_MiniLM_local 
     cache: ${HOME}/hf_models
   vector_store:
     default: Chroma
