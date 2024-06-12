@@ -83,9 +83,12 @@ with st.form("my_form"):
     input = st.text_area("Enter input:", first_example.query[0], placeholder="")
     submitted = st.form_submit_button("Submit")
     if submitted:
-        with tracing_v2_enabled() as cb:
+        if get_config_str("monitoring", "default") == "langsmith": 
+            # use Langsmith context manager to get the UTL to the trace
+            with tracing_v2_enabled() as cb:
+                result = runnable_desc.invoke(input, config)
+                url = cb.get_run_url()
+                st.write("[trace](%s)" % url)
+        else:
             result = runnable_desc.invoke(input, config)
-            st.write(result)
-            url = cb.get_run_url()
-
-        st.write("[trace](%s)" % url)
+        st.write(result)

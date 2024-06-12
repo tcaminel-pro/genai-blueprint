@@ -40,6 +40,7 @@ def define_commands(cli_app: typer.Typer):
         verbose: bool = False,
         debug: bool = False,
         cache: str = "sqlite",
+        temperature: float = 0.0,
         llm_id: str | None = None,  # id (our name) of the LLM
     ):
         """

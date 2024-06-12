@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Callable, Tuple
 
 from langchain_core.runnables import Runnable, RunnableLambda
+from loguru import logger
 from pydantic import BaseModel
 
 from python.config import get_config_list, get_config_str
@@ -106,4 +107,7 @@ def load_modules_with_chains():
     assert Path(path).exists
 
     for module in modules:
-        importlib.import_module(f"{path}.{module}")
+        try:
+            importlib.import_module(f"{path}.{module}")
+        except Exception as ex:
+            logger.warning(f"Cannot load module {module}: {ex}")

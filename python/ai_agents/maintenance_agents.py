@@ -44,7 +44,7 @@ from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.llm import LlmFactory
 from python.ai_core.prompts import def_prompt
 from python.ai_core.vector_store import VectorStoreFactory
-from python.dummy_datasources.maintenance_data import DATA_PATH, dummy_database
+from python.demos.maintenance_agent.maintenance_data import DATA_PATH, dummy_database
 
 # Tools setup
 PROCEDURES = [

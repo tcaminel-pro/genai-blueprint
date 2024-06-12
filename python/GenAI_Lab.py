@@ -60,7 +60,9 @@ def config_sidebar():
             set_cache(st.selectbox("Cache", ["memory", "sqlite"], index=1))
 
             if "LUNARY_APP_ID" in os.environ:
-                if st.checkbox(label="Use Lunary.ai for monitoring", value=False):
+                if st.checkbox(
+                    label="Use Lunary.ai for monitoring", value=False, disabled=True
+                ):
                     set_config_str("monitoring", "default", "lunary")
             if "LANGCHAIN_API_KEY" in os.environ:
                 if st.checkbox(label="Use LangSmith for monitoring", value=True):
@@ -73,6 +75,7 @@ def config_sidebar():
 
                 else:
                     os.environ["LANGCHAIN_TRACING_V2"] = "false"
+                    set_config_str("monitoring", "default", "none")
 
 
 config_sidebar()

@@ -274,8 +274,8 @@ class LlmFactory(BaseModel):
                 provider=provider,
                 model=model,
                 max_tokens=self.max_tokens,
-                edenai_api_url="https://staging-api.edenai.run/v2",
-                edenai_api_key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYTczYjA4OGMtOWE5MS00ODdhLWEyNTQtODJmNDI5MDVlNjhmIiwidHlwZSI6ImFwaV90b2tlbiJ9.KGkM6Sqtd0pD-83twNtUdSFtrNJD_u9ZZX3tabcDloA",  # or use `EDENAI_API_KEY` env var
+                # edenai_api_url="https://staging-api.edenai.run/v2",
+                edenai_api_key=None,  # set in env. variable
                 temperature=self.temperature,
             )
 
@@ -324,7 +324,10 @@ class LlmFactory(BaseModel):
                 )
 
         else:
-            raise ValueError(f"unsupported LLM class {self.info.cls}")
+            if self.info.cls in LlmFactory.known_items():
+                raise ValueError(f"No API key found for LLM: {self.info.cls}")
+            else:
+                raise ValueError(f"unsupported LLM class {self.info.cls}")
 
         set_cache(self.cache)
         return llm

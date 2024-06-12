@@ -40,10 +40,10 @@ factories:
 # Agent configuration
 default:
   llm:
-    default_model:  gpt_35_azure
+    default_model:  gpt_35_edenai
     cache : sqlite
   embeddings:
-    default_model: ada_002_azure # multilingual_MiniLM_local 
+    default_model: mistral_1024_edenai # multilingual_MiniLM_local 
     cache: ${HOME}/hf_models
   vector_store:
     default: Chroma
@@ -60,10 +60,10 @@ default:
     modules:
       - joke 
       - lc_rag_example
-      - lc_tools_example
-      - lc_self_query
-      - lc_advanced_rag_langgraph
-      - essay_writer_agent
+      # - lc_tools_example
+      # - lc_self_query
+      # - lc_advanced_rag_langgraph
+      # - essay_writer_agent
 
 cloud_openai:    
   llm:

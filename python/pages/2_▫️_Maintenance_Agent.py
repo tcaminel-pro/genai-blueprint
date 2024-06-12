@@ -18,7 +18,7 @@ from loguru import logger  # noqa: F401
 from python.ai_agents.maintenance_agents import PROCEDURES, MaintenanceAgent
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.llm import LlmFactory, get_llm
-from python.dummy_datasources.maintenance_data import DATA_PATH, dummy_database
+from python.demos.maintenance_agent.maintenance_data import DATA_PATH, dummy_database
 from python.GenAI_Lab import config_sidebar
 from python.utils.streamlit.clear_result import with_clear_container
 
