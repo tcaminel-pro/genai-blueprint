@@ -13,7 +13,7 @@ from langchain.output_parsers.enum import EnumOutputParser
 from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders.web_base import WebBaseLoader
-from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain_community.tools import DuckDuckGoSearchResults
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.runnables import Runnable, RunnableLambda
@@ -169,7 +169,9 @@ def question_router() -> Runnable[Any, DataRoute]:
     return question_router
 
 
-web_search_tool = TavilySearchResults(max_results=3)  # Search tool
+# web_search_tool = TavilySearchResults(max_results=3)  # Search tool
+
+web_search_tool = DuckDuckGoSearchResults()
 
 
 ### State
