@@ -65,9 +65,9 @@ elif first_example.path:
 
 with st.expander("Runnable Graph", expanded=False):
     if importlib.util.find_spec("pygraphviz") is None:
-        st.warning(
-            "cannot draw the Runnable graph because pygraphviz and Graphviz are not installed"
-        )
+        runnable = runnable_desc.get(config)
+        drawing = runnable.get_graph().draw_ascii()
+        st.write(drawing)
     else:
         runnable = runnable_desc.get(config)
         drawing = runnable.get_graph().draw_png()  # type: ignore
@@ -83,7 +83,7 @@ with st.form("my_form"):
     input = st.text_area("Enter input:", first_example.query[0], placeholder="")
     submitted = st.form_submit_button("Submit")
     if submitted:
-        if get_config_str("monitoring", "default") == "langsmith": 
+        if get_config_str("monitoring", "default") == "langsmith":
             # use Langsmith context manager to get the UTL to the trace
             with tracing_v2_enabled() as cb:
                 result = runnable_desc.invoke(input, config)
