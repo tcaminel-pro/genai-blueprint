@@ -12,12 +12,10 @@ from typing import Literal, Tuple, Union
 import pandas as pd
 import streamlit as st
 from devtools import debug
-from langchain import hub
 from langchain.agents import (
     AgentExecutor,
     AgentType,
     create_sql_agent,
-    create_structured_chat_agent,
     create_tool_calling_agent,
 )
 from langchain.callbacks.base import BaseCallbackHandler
@@ -315,30 +313,21 @@ class MaintenanceAgent(BaseModel):
         extra_metadata: dict | None = None,
     ) -> Tuple[str, pd.DataFrame | None]:
         """Run the maintenance agent."""
-        if True:
-            prompt = ChatPromptTemplate.from_messages(
-                [
-                    (
-                        "system",
-                        "You are a helpful assistant. Make sure to use the provided tool for information.",
-                    ),
-                    ("placeholder", "{chat_history}"),
-                    ("human", "{input}"),
-                    ("placeholder", "{agent_scratchpad}"),
-                ]
-            )
 
-            # Construct the Tools agent
-            agent = create_tool_calling_agent(llm, self.tools, prompt)
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    "You are a helpful assistant. Make sure to use the provided tool for information.",
+                ),
+                ("placeholder", "{chat_history}"),
+                ("human", "{input}"),
+                ("placeholder", "{agent_scratchpad}"),
+            ]
+        )
 
-        else:
-            prompt = hub.pull("hwchase17/structured-chat-agent")
-            debug(prompt)
-            agent = create_structured_chat_agent(
-                prompt=prompt,
-                tools=self.tools,
-                llm=self.llm_model,
-            )
+        # Construct the Tools agent
+        agent = create_tool_calling_agent(llm, self.tools, prompt)
 
         extra_callbacks = extra_callbacks or []
         # callbacks = app_conf().callback_handlers + extra_callbacks
@@ -348,7 +337,7 @@ class MaintenanceAgent(BaseModel):
         metadata |= extra_metadata or {}
 
         self._agent_executor = AgentExecutor(
-            agent=agent,
+            agent=agent,  # type: ignore
             tools=self.tools,
             verbose=verbose,
             handle_parsing_errors=True,

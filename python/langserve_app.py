@@ -10,6 +10,8 @@ from pathlib import Path
 from fastapi import FastAPI
 from langserve import add_routes
 
+from python.ai_chains.joke import joke_chain
+
 # fmt: off
 [sys.path.append(str(path)) for path in [Path.cwd(), Path.cwd().parent, Path.cwd().parent/"python"] if str(path) not in sys.path]  # type: ignore # fmt: on
 
@@ -19,7 +21,7 @@ app = FastAPI(
     description="A simple api server using Langchain's Runnable interfaces",
 )
 
-from python.ai_chains.joke import joke_chain
+
 
 # test at : http://localhost:8000/joke/playground/
 

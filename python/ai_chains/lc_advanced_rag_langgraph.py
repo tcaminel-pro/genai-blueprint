@@ -1,5 +1,6 @@
 """
 https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_rag_agent_llama3_local.ipynb
+https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_agentic_rag.ipynb
 """
 
 
@@ -13,7 +14,7 @@ from langchain.output_parsers.enum import EnumOutputParser
 from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders.web_base import WebBaseLoader
-from langchain_community.tools import DuckDuckGoSearchResults
+from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.runnables import Runnable, RunnableLambda
@@ -24,7 +25,7 @@ from typing_extensions import TypedDict
 
 from python.ai_core.chain_registry import Example, RunnableItem, register_runnable
 from python.ai_core.embeddings import EmbeddingsFactory
-from python.ai_core.llm import get_selected_llm
+from python.ai_core.llm import get_llm
 from python.ai_core.prompts import def_prompt
 from python.ai_core.vector_store import VectorStoreFactory
 
@@ -98,7 +99,7 @@ def retrieval_grader() -> Runnable[Any, YesOrNo]:
     )
 
     logger.debug("Retrieval Grader'")
-    retrieval_grader = prompt | get_selected_llm | to_lower | yesno_enum_parser
+    retrieval_grader = prompt | get_llm() | to_lower | yesno_enum_parser
     return retrieval_grader
 
 
@@ -113,7 +114,7 @@ def rag_chain() -> Runnable[Any, str]:
         Answer: """
     logger.debug("Rag chain'")
     prompt = def_prompt(system=system_prompt, user=user_prompt)
-    return prompt | get_selected_llm | StrOutputParser()
+    return prompt | get_llm() | StrOutputParser()
 
 
 def hallucination_grader() -> Runnable[Any, YesOrNo]:
@@ -128,7 +129,7 @@ def hallucination_grader() -> Runnable[Any, YesOrNo]:
     prompt = def_prompt(system_prompt, user_prompt).partial(
         instructions=yesno_enum_parser.get_format_instructions()
     )
-    return prompt | get_selected_llm | to_lower | yesno_enum_parser
+    return prompt | get_llm() | to_lower | yesno_enum_parser
 
 
 def answer_grader() -> Runnable[Any, YesOrNo]:
@@ -144,7 +145,7 @@ def answer_grader() -> Runnable[Any, YesOrNo]:
     prompt = def_prompt(system_prompt, user_prompt).partial(
         instructions=yesno_enum_parser.get_format_instructions()
     )
-    return prompt | get_selected_llm | yesno_enum_parser
+    return prompt | get_llm() | yesno_enum_parser
 
 
 def question_router() -> Runnable[Any, DataRoute]:
@@ -165,13 +166,15 @@ def question_router() -> Runnable[Any, DataRoute]:
     prompt = def_prompt(system_prompt, user_prompt).partial(
         instructions=parser.get_format_instructions()
     )
-    question_router = prompt | get_selected_llm | parser
+    question_router = prompt | get_llm() | parser
     return question_router
 
 
-# web_search_tool = TavilySearchResults(max_results=3)  # Search tool
+web_search_tool = TavilySearchResults(max_results=3)  # Search tool
 
-web_search_tool = DuckDuckGoSearchResults()
+from langchain_community.tools import DuckDuckGoSearchResults
+
+web_search_tool = DuckDuckGoSearchResults(num_results=3)
 
 
 ### State
@@ -266,8 +269,11 @@ def web_search(state: GraphState) -> GraphState:
 
     # Web search
     docs = web_search_tool.invoke({"query": question})
-    web_results = "\n".join([d["content"] for d in docs])
-    web_results = Document(page_content=web_results)
+    debug(docs)
+    # web_results = "\n".join([d["content"] for d in docs])
+    # web_results = "\n".join([d["content"] for d in docs])
+    # web_results = Document(page_content=web_results)
+    web_results = docs
     if documents is not None:
         documents.append(web_results)
     else:
