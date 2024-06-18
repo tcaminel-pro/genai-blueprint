@@ -1,3 +1,4 @@
+from enum import Enum
 from functools import cache
 from pathlib import Path
 
@@ -5,17 +6,24 @@ import pandas as pd
 import spacy
 from langchain.retrievers import EnsembleRetriever
 from langchain_community.retrievers import BM25Retriever
-from langchain_core.runnables import ConfigurableField, Runnable
+from langchain_core.runnables import Runnable
+from loguru import logger
 
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.loaders import load_docs_from_jsonl
 from python.ai_core.vector_store import VectorStoreFactory
 
-DEFAULT_RESULT_COUNT = 15
-RATIO_SPARSE = 60
+DEFAULT_RESULT_COUNT = 20
+RATIO_SPARSE = 50
 EMBEDDINGS_MODEL_ID = "solon-large"
 REPO = Path("/mnt/c/Users/a184094/OneDrive - Eviden/_En cours/mon_master/")
 FILES = REPO / "synthesis.json"
+
+
+class SearchMode(Enum):
+    VECTOR = "Vector"
+    KEYWORD = "Keyword"
+    HYBRID = "Hybrid"
 
 
 @cache
@@ -53,7 +61,7 @@ def get_bm25_retriever() -> Runnable:
         documents=docs_for_bm25,
         preprocess_func=preprocess_text,
         k=DEFAULT_RESULT_COUNT,
-    ).configurable_fields(k=ConfigurableField(id="k"))
+    )
     return retriever
 
 
@@ -67,10 +75,17 @@ def get_ensemble_retriever(
     )
 
 
-def search(query: str) -> pd.DataFrame:
+def search(query: str, mode: SearchMode = SearchMode.VECTOR) -> pd.DataFrame:
     known_set: set[str] = set()
     df = pd.DataFrame()
-    retriever = get_ensemble_retriever(EMBEDDINGS_MODEL_ID, ratio_sparse=RATIO_SPARSE)
+    if mode == SearchMode.VECTOR:
+        retriever = get_sparse_retriever(EMBEDDINGS_MODEL_ID)
+    elif mode == SearchMode.KEYWORD:
+        retriever = get_bm25_retriever()
+    else:
+        retriever = get_ensemble_retriever(
+            EMBEDDINGS_MODEL_ID, ratio_sparse=RATIO_SPARSE
+        )
 
     #  quick and dirty hack to have enough results
     count = DEFAULT_RESULT_COUNT * 2
@@ -101,3 +116,57 @@ def search(query: str) -> pd.DataFrame:
         known_set.add(for_intitule)
 
     return df
+
+
+# cSpell: disable
+def process_questions(
+    queries: list[str], mode: SearchMode = SearchMode.VECTOR
+) -> list[dict]:
+    result = []
+    for q in queries:
+        df = search(q, mode)
+        d = {"question": q}
+        i = 1
+        for answer in df.itertuples():
+            line = f"{answer[3]}: {answer[1]} ({answer[4]})"
+            d |= {i: line}
+            i += 1
+        result.append(d)
+    return result
+
+
+def format_sheet(worksheet):
+    for column in worksheet.columns:
+        column_letter = column[0].column_letter  # Get the column letter
+        if column_letter > "A":
+            worksheet.column_dimensions[column_letter].width = 100
+
+
+if __name__ == "__main__":
+    # cSpell: disable
+    _questions = [
+        "Linguistique informatique",
+        "Phys nucléaire fusion",
+        "Lettres modernes en occitanie",
+        "Biologie cellulaire avancée",
+        "IA architecture perf",
+        "Droit constitutionnel",
+        "Politique etrangere chine",
+        "Recherche thermodynamique et applications",
+        "Energies renouvel. et économie",
+        "Gestion de l'entreprise droit du travail internationa",
+    ]
+
+    with pd.ExcelWriter("master_search_v0.xlsx") as writer:
+        logger.info("Vector Search (Solon-large)...")
+        d_vector = process_questions(_questions, SearchMode.VECTOR)
+        pd.DataFrame(d_vector).to_excel(
+            writer, sheet_name="Vector_search", freeze_panes=(0, 2)
+        )
+        format_sheet(writer.sheets["Vector_search"])
+
+        logger.info("Hybrid Search 50/50...")
+        d_vector = process_questions(_questions, SearchMode.HYBRID)
+        sheet = "Hybrid_search_50_50"
+        pd.DataFrame(d_vector).to_excel(writer, sheet_name=sheet, freeze_panes=(0, 2))
+        format_sheet(writer.sheets[sheet])

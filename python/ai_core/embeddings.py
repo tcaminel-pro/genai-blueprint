@@ -139,7 +139,7 @@ class EmbeddingsFactory(BaseModel):
 
             emb = GoogleGenerativeAIEmbeddings(model=self.info.model)  # type: ignore
         elif self.info.cls == "HuggingFaceEmbeddings":
-            from langchain_community.embeddings.huggingface import HuggingFaceEmbeddings
+            from langchain_huggingface import HuggingFaceEmbeddings
 
             cache = get_config_str("embeddings", "cache")
             emb = HuggingFaceEmbeddings(

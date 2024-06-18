@@ -10,15 +10,11 @@ import timeit
 from pathlib import Path
 
 import pandas as pd
-import spacy
 import streamlit as st
 from langchain.retrievers import EnsembleRetriever
-from langchain_community.retrievers import BM25Retriever
-from langchain_core.runnables import ConfigurableField, Runnable
+from langchain_core.runnables import Runnable
 
-from python.ai_core.embeddings import EmbeddingsFactory
-from python.ai_core.loaders import load_docs_from_jsonl
-from python.ai_core.vector_store import VectorStoreFactory
+import python.demos.mon_master_search.search as master_search
 
 LLM = "gemini_pro_google"
 
@@ -86,52 +82,20 @@ with st.form(key="form"):
 
 
 @st.cache_resource(show_spinner="Load vector store...")
-def get_sparse_retriever(embeddings_model_id: str) -> Runnable:
-    embeddings_factory = EmbeddingsFactory(embeddings_id=embeddings_model_id)
-    retriever = VectorStoreFactory(
-        id="Chroma",
-        embeddings_factory=embeddings_factory,
-        collection_name="offres_formation",
-    ).get_configurable_retriever(default_k=DEFAULT_RESULT_COUNT)
-    return retriever
-
-
-@st.cache_resource(show_spinner="load NLP model...")
-def spacy_model(model="fr_core_news_sm") -> tuple[spacy.language.Language, set[str]]:
-    nlp = spacy.load(model)
-    stop_words = nlp.Defaults.stop_words
-    stop_words.update(
-        {",", ";", "(", ")", ":", "[", "]", "master", "mastère", "formation", "\n"}
-    )
-    return nlp, stop_words
-
-
-def preprocess_text(text) -> list[str]:
-    nlp, stop_words = spacy_model()
-    lemmas = [token.lemma_.lower() for token in nlp(text)]
-    filtered = [token for token in lemmas if token not in stop_words]
-    return filtered
+def _get_sparse_retriever(embeddings_model_id: str) -> Runnable:
+    return master_search.get_sparse_retriever(embeddings_model_id)
 
 
 @st.cache_resource(show_spinner="index documents for keyword search...")
-def get_bm25_retriever() -> Runnable:
-    docs_for_bm25 = load_docs_from_jsonl(FILES)
-    retriever = BM25Retriever.from_documents(
-        documents=docs_for_bm25,
-        preprocess_func=preprocess_text,
-        k=DEFAULT_RESULT_COUNT,
-    ).configurable_fields(k=ConfigurableField(id="k"))
-    return retriever
+def _get_bm25_retriever() -> Runnable:
+    return master_search.get_bm25_retriever()
 
 
 @st.cache_resource(show_spinner="load hybrid model...")
 def get_ensemble_retriever(
     embeddings_model_id: str, ratio_sparse: float
 ) -> EnsembleRetriever:
-    return EnsembleRetriever(
-        retrievers=[get_bm25_retriever(), get_sparse_retriever(embeddings_model_id)],
-        weights=[1.0 - ratio_sparse, ratio_sparse],
-    )
+    return master_search.get_ensemble_retriever(embeddings_model_id, ratio_sparse)
 
 
 df = pd.DataFrame()
@@ -139,9 +103,9 @@ knwon_set: set[str] = set()
 if submit_clicked:
     assert embeddings_model is not None
     if search_method == "Vector":
-        retriever = get_sparse_retriever(embeddings_model)
+        retriever = _get_sparse_retriever(embeddings_model)
     elif search_method == "Keyword":
-        retriever = get_bm25_retriever()
+        retriever = _get_bm25_retriever()
     elif search_method == "Hybrid":
         retriever = get_ensemble_retriever(embeddings_model, ratio_sparse=ratio_spinner)
 
