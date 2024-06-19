@@ -151,24 +151,30 @@ fn = get_spacy_preprocess_fn(model="fr_core_news_sm", more_stop_words=stop_words
 
 
 @app.command()
-def create_bm25_index():
+def create_bm25_index(k: int = 20):
     logger.info("create BM25 index")
     docs_for_bm25 = list(load_docs_from_jsonl(FILES))
-    docs = docs_for_bm25[0:3]
-    path = get_config_str("vector_store", "path")
-    BM25FastRetriever.from_documents(
-        documents=docs, preprocess_func=fn, k=100, cache_dir=Path(path)
+    docs = docs_for_bm25
+    path = Path(get_config_str("vector_store", "path")) / "bm25"
+    retriever = BM25FastRetriever.from_documents(
+        documents=docs, preprocess_func=fn, k=k, cache_dir=path
     )
+    return retriever
 
 
 @app.command()
-def bm25_search(query: str):
-    path = get_config_str("vector_store", "path")
+def bm25_index_search(query: str, k: int = 20):
+    retriever = create_bm25_index(k)
+    r = retriever.invoke(query)
+    debug(r)
+
+
+@app.command()
+def bm25_search(query: str, k: int = 10):
+    path = Path(get_config_str("vector_store", "path")) / "bm25"
 
     fn = get_spacy_preprocess_fn(model="fr_core_news_sm", more_stop_words=stop_words)  # noqa: F821
-    retriever = BM25FastRetriever.from_cache(
-        preprocess_func=fn, k=20, cache_dir=Path(path)
-    )
+    retriever = BM25FastRetriever.from_cache(preprocess_func=fn, k=k, cache_dir=path)
     retriever.invoke(query)
 
 

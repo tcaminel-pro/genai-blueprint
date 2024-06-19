@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 from langchain.retrievers import EnsembleRetriever
+from langchain_community.retrievers import BM25Retriever
 from langchain_core.runnables import Runnable
 from loguru import logger
 
@@ -11,7 +12,6 @@ from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.loaders import load_docs_from_jsonl
 from python.ai_core.vector_store import VectorStoreFactory
 from python.ai_retrievers.bm25s_retriever import (
-    BM25FastRetriever,
     get_spacy_preprocess_fn,
 )
 
@@ -48,11 +48,18 @@ def get_bm25_retriever():
         "diplome",
     ]
     fn = get_spacy_preprocess_fn(model="fr_core_news_sm", more_stop_words=stop_words)  # noqa: F821
-    docs_for_bm25 = load_docs_from_jsonl(FILES)
-    retriever = BM25FastRetriever.from_cache(
-        preprocess_func=fn,
-        k=DEFAULT_RESULT_COUNT,
+    logger.info("create BM25 index")
+    docs_for_bm25 = list(load_docs_from_jsonl(FILES))
+    docs = docs_for_bm25
+
+    retriever = BM25Retriever.from_documents(
+        documents=docs, preprocess_func=fn, k=DEFAULT_RESULT_COUNT
     )
+    # path = Path(get_config_str("vector_store", "path")) / "bm25"
+    # retriever = BM25FastRetriever.from_cache(
+    #     preprocess_func=fn,
+    #     k=DEFAULT_RESULT_COUNT,
+    # )
     return retriever
 
 
@@ -148,16 +155,21 @@ if __name__ == "__main__":
         "Gestion de l'entreprise droit du travail internationa",
     ]
 
-    with pd.ExcelWriter("master_search_v0.xlsx") as writer:
+    OUT_FILE = "master_search_v0_2.xlsx"
+
+    logger.info(f"write Exel file : {OUT_FILE}")
+    with pd.ExcelWriter(OUT_FILE) as writer:
         logger.info("Vector Search (Solon-large)...")
         d_vector = process_questions(_questions, SearchMode.VECTOR)
+        debug(d_vector)
         pd.DataFrame(d_vector).to_excel(
             writer, sheet_name="Vector_search", freeze_panes=(0, 2)
         )
         format_sheet(writer.sheets["Vector_search"])
 
         logger.info("Hybrid Search 50/50...")
-        d_vector = process_questions(_questions, SearchMode.HYBRID)
+        d_hybrid = process_questions(_questions, SearchMode.HYBRID)
+        debug(d_hybrid)
         sheet = "Hybrid_search_50_50"
-        pd.DataFrame(d_vector).to_excel(writer, sheet_name=sheet, freeze_panes=(0, 2))
+        pd.DataFrame(d_hybrid).to_excel(writer, sheet_name=sheet, freeze_panes=(0, 2))
         format_sheet(writer.sheets[sheet])

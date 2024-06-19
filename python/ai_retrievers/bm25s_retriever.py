@@ -7,52 +7,23 @@ from langchain_core.callbacks import CallbackManagerForRetrieverRun
 from langchain_core.documents import Document
 from langchain_core.pydantic_v1 import Field
 from langchain_core.retrievers import BaseRetriever
+from loguru import logger
 
 
 def default_preprocessing_func(text: str) -> List[str]:
     return text.split()
 
 
-import spacy
-
-
-def spacy_model(model="fr_core_news_sm") -> tuple[spacy.language.Language, set[str]]:
-    nlp = spacy.load(model)
-    stop_words = nlp.Defaults.stop_words
-    stop_words.update(
-        {
-            ",",
-            ";",
-            "(",
-            ")",
-            ":",
-            "[",
-            "]",
-            "master",
-            "mastère",
-            "formation",
-            "diplome" "\n",
-        }
-    )
-    return nlp, stop_words
-
-
-def preprocess_text(text) -> list[str]:
-    nlp, stop_words = spacy_model()
-    lemmas = [token.lemma_.lower() for token in nlp(text)]
-    filtered = [token for token in lemmas if token not in stop_words]
-    return filtered
-
-
 def get_spacy_preprocess_fn(model: str, more_stop_words: list[str] = []):
     import spacy
+
+    logger.info(f"load spacy model {model}")
 
     nlp = spacy.load(model)
     stop_words = nlp.Defaults.stop_words
     stop_words.update(more_stop_words or [])
 
     def preprocess_text(text) -> list[str]:
-        nlp, stop_words = spacy_model()
         lemmas = [token.lemma_.lower() for token in nlp(text)]
         filtered = [token for token in lemmas if token not in stop_words]
         return filtered
@@ -109,14 +80,13 @@ class BM25FastRetriever(BaseRetriever):
         texts_processed = [preprocess_func(t) for t in texts]
         bm25_params = bm25_params or {}
         vectorizer = bm25s.BM25(**bm25_params)
-        debug(texts_processed)
         vectorizer.index(texts_processed, show_progress=True)
-        debug("end")
         metadatas = metadatas or ({} for _ in texts)
         docs = [Document(page_content=t, metadata=m) for t, m in zip(texts, metadatas)]
 
         if cache_path is not None:
-            vectorizer.save(cache_path, corpus=texts_processed)
+            logger.info("Save BM25 cache")
+            vectorizer.save(cache_path, corpus=None, allow_pickle=True)
 
         return cls(
             vectorizer=vectorizer, docs=docs, preprocess_func=preprocess_func, **kwargs
@@ -144,7 +114,6 @@ class BM25FastRetriever(BaseRetriever):
             A BM25S_Retriever instance.
         """
         texts, metadatas = zip(*((d.page_content, d.metadata) for d in documents))
-        debug(texts)
         return cls.from_texts(
             texts=texts,
             bm25_params=bm25_params,
@@ -168,7 +137,8 @@ class BM25FastRetriever(BaseRetriever):
                 "Could not import bm25s, please install with `pip install bm25s"
             )
 
-        vectorizer = bm25s.BM25.load(cache_dir, mmap=True)
+        logger.info("Load BM25 cache")
+        vectorizer = bm25s.BM25.load(cache_dir, mmap=False, allow_pickle=True)
         return cls(
             vectorizer=vectorizer, preprocess_func=preprocess_func, docs=[], **kwargs
         )
@@ -182,4 +152,5 @@ class BM25FastRetriever(BaseRetriever):
             processed_query, corpus=self.docs, k=self.k, return_as="documents"
         )
         return_docs = [results[0, i] for i in range(results.shape[1])]
+        logger.debug(f"search : {query=} {return_docs=}")
         return return_docs

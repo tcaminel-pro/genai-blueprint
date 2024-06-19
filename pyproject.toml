@@ -15,7 +15,7 @@ Repository = "https://github.com/tcaminel-pro/genai-training"
 python = ">=3.10,<3.12"
 pydantic = "^2.7.0"
 langchain = "^0.2.5"
-langchain-core = "^0.2.8"
+langchain-core = "^0.2.9"
 #langchain = "<0.2.0"
 #langchain-core = "<0.2.0"
 #langchain-community = {git = "https://github.com/edenai/langchain.git", rev = "feat/edenai-chat_models-tools", subdirectory = "libs/community"}
