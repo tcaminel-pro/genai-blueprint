@@ -3,15 +3,17 @@ from functools import cache
 from pathlib import Path
 
 import pandas as pd
-import spacy
 from langchain.retrievers import EnsembleRetriever
-from langchain_community.retrievers import BM25Retriever
 from langchain_core.runnables import Runnable
 from loguru import logger
 
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.loaders import load_docs_from_jsonl
 from python.ai_core.vector_store import VectorStoreFactory
+from python.ai_retrievers.bm25s_retriever import (
+    BM25FastRetriever,
+    get_spacy_preprocess_fn,
+)
 
 DEFAULT_RESULT_COUNT = 20
 RATIO_SPARSE = 50
@@ -38,28 +40,17 @@ def get_sparse_retriever(embeddings_model_id: str) -> Runnable:
 
 
 @cache
-def spacy_model(model="fr_core_news_sm") -> tuple[spacy.language.Language, set[str]]:
-    nlp = spacy.load(model)
-    stop_words = nlp.Defaults.stop_words
-    stop_words.update(
-        {",", ";", "(", ")", ":", "[", "]", "master", "mastère", "formation", "\n"}
-    )
-    return nlp, stop_words
-
-
-def preprocess_text(text) -> list[str]:
-    nlp, stop_words = spacy_model()
-    lemmas = [token.lemma_.lower() for token in nlp(text)]
-    filtered = [token for token in lemmas if token not in stop_words]
-    return filtered
-
-
-@cache
-def get_bm25_retriever() -> Runnable:
+def get_bm25_retriever():
+    stop_words = [
+        "master",
+        "mastère",
+        "formation",
+        "diplome",
+    ]
+    fn = get_spacy_preprocess_fn(model="fr_core_news_sm", more_stop_words=stop_words)  # noqa: F821
     docs_for_bm25 = load_docs_from_jsonl(FILES)
-    retriever = BM25Retriever.from_documents(
-        documents=docs_for_bm25,
-        preprocess_func=preprocess_text,
+    retriever = BM25FastRetriever.from_cache(
+        preprocess_func=fn,
         k=DEFAULT_RESULT_COUNT,
     )
     return retriever

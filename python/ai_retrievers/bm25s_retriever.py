@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional
 
 from langchain_core.callbacks import CallbackManagerForRetrieverRun
@@ -12,7 +13,54 @@ def default_preprocessing_func(text: str) -> List[str]:
     return text.split()
 
 
-class BM25Retriever(BaseRetriever):
+import spacy
+
+
+def spacy_model(model="fr_core_news_sm") -> tuple[spacy.language.Language, set[str]]:
+    nlp = spacy.load(model)
+    stop_words = nlp.Defaults.stop_words
+    stop_words.update(
+        {
+            ",",
+            ";",
+            "(",
+            ")",
+            ":",
+            "[",
+            "]",
+            "master",
+            "mastère",
+            "formation",
+            "diplome" "\n",
+        }
+    )
+    return nlp, stop_words
+
+
+def preprocess_text(text) -> list[str]:
+    nlp, stop_words = spacy_model()
+    lemmas = [token.lemma_.lower() for token in nlp(text)]
+    filtered = [token for token in lemmas if token not in stop_words]
+    return filtered
+
+
+def get_spacy_preprocess_fn(model: str, more_stop_words: list[str] = []):
+    import spacy
+
+    nlp = spacy.load(model)
+    stop_words = nlp.Defaults.stop_words
+    stop_words.update(more_stop_words or [])
+
+    def preprocess_text(text) -> list[str]:
+        nlp, stop_words = spacy_model()
+        lemmas = [token.lemma_.lower() for token in nlp(text)]
+        filtered = [token for token in lemmas if token not in stop_words]
+        return filtered
+
+    return preprocess_text
+
+
+class BM25FastRetriever(BaseRetriever):
     """`BM25` retriever without Elasticsearch."""
 
     vectorizer: Any
@@ -36,10 +84,11 @@ class BM25Retriever(BaseRetriever):
         metadatas: Optional[Iterable[dict]] = None,
         bm25_params: Optional[Dict[str, Any]] = None,
         preprocess_func: Callable[[str], List[str]] = default_preprocessing_func,
+        cache_path: Optional[Path] = None,
         **kwargs: Any,
-    ) -> BM25Retriever:
+    ) -> BM25FastRetriever:
         """
-        Create a BM25Retriever from a list of texts.
+        Create a BM25S_Retriever from a list of texts.
         Args:
             texts: A list of texts to vectorize.
             metadatas: A list of metadata dicts to associate with each text.
@@ -48,21 +97,27 @@ class BM25Retriever(BaseRetriever):
             **kwargs: Any other arguments to pass to the retriever.
 
         Returns:
-            A BM25Retriever instance.
+            A BM25S_Retriever instance.
         """
         try:
-            from rank_bm25 import BM25Okapi
+            import bm25s
         except ImportError:
             raise ImportError(
-                "Could not import rank_bm25, please install with `pip install "
-                "rank_bm25`."
+                "Could not import bm25s, please install with `pip install bm25s"
             )
 
         texts_processed = [preprocess_func(t) for t in texts]
         bm25_params = bm25_params or {}
-        vectorizer = BM25Okapi(texts_processed, **bm25_params)
+        vectorizer = bm25s.BM25(**bm25_params)
+        debug(texts_processed)
+        vectorizer.index(texts_processed, show_progress=True)
+        debug("end")
         metadatas = metadatas or ({} for _ in texts)
         docs = [Document(page_content=t, metadata=m) for t, m in zip(texts, metadatas)]
+
+        if cache_path is not None:
+            vectorizer.save(cache_path, corpus=texts_processed)
+
         return cls(
             vectorizer=vectorizer, docs=docs, preprocess_func=preprocess_func, **kwargs
         )
@@ -74,10 +129,11 @@ class BM25Retriever(BaseRetriever):
         *,
         bm25_params: Optional[Dict[str, Any]] = None,
         preprocess_func: Callable[[str], List[str]] = default_preprocessing_func,
+        cache_dir: Optional[Path] = None,
         **kwargs: Any,
-    ) -> BM25Retriever:
+    ) -> BM25FastRetriever:
         """
-        Create a BM25Retriever from a list of Documents.
+        Create a BM25S_Retriever from a list of Documents.
         Args:
             documents: A list of Documents to vectorize.
             bm25_params: Parameters to pass to the BM25 vectorizer.
@@ -85,20 +141,45 @@ class BM25Retriever(BaseRetriever):
             **kwargs: Any other arguments to pass to the retriever.
 
         Returns:
-            A BM25Retriever instance.
+            A BM25S_Retriever instance.
         """
         texts, metadatas = zip(*((d.page_content, d.metadata) for d in documents))
+        debug(texts)
         return cls.from_texts(
             texts=texts,
             bm25_params=bm25_params,
             metadatas=metadatas,
             preprocess_func=preprocess_func,
+            cache_path=cache_dir,
             **kwargs,
+        )
+
+    @classmethod
+    def from_cache(
+        cls,
+        cache_dir: Path,
+        preprocess_func: Callable[[str], List[str]] = default_preprocessing_func,
+        **kwargs: Any,
+    ) -> BM25FastRetriever:
+        try:
+            import bm25s
+        except ImportError:
+            raise ImportError(
+                "Could not import bm25s, please install with `pip install bm25s"
+            )
+
+        vectorizer = bm25s.BM25.load(cache_dir, mmap=True)
+        return cls(
+            vectorizer=vectorizer, preprocess_func=preprocess_func, docs=[], **kwargs
         )
 
     def _get_relevant_documents(
         self, query: str, *, run_manager: CallbackManagerForRetrieverRun
     ) -> List[Document]:
         processed_query = self.preprocess_func(query)
-        return_docs = self.vectorizer.get_top_n(processed_query, self.docs, n=self.k)
+        # return_docs = self.vectorizer.get_top_n(processed_query, self.docs, n=self.k)
+        results = self.vectorizer.retrieve(
+            processed_query, corpus=self.docs, k=self.k, return_as="documents"
+        )
+        return_docs = [results[0, i] for i in range(results.shape[1])]
         return return_docs

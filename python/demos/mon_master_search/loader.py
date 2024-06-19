@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Iterator
 
 import json_repair
+import typer
 from langchain_community.document_loaders.base import BaseLoader
 from langchain_core.documents import Document
 from loguru import logger
@@ -12,10 +13,17 @@ from loguru import logger
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.loaders import load_docs_from_jsonl, save_docs_to_jsonl
 from python.ai_core.vector_store import VectorStoreFactory
+from python.ai_retrievers.bm25s_retriever import (
+    BM25FastRetriever,
+    get_spacy_preprocess_fn,
+)
+from python.config import get_config_str
 from python.demos.mon_master_search.model_subset import (
     InformationsPedagogiques,
     ParcoursFormations,
 )
+
+app = typer.Typer()
 
 
 def format_info_pedago(intitule: str, info_pedago: InformationsPedagogiques):
@@ -106,12 +114,9 @@ REPO = Path("/mnt/c/Users/a184094/OneDrive - Eviden/_En cours/mon_master/")
 FILES = REPO / "synthesis.json"
 
 
-def load_embeddings():
-    EMBEDDINGS_MODEL = "multilingual_MiniLM_local"
-    EMBEDDINGS_MODEL = "camembert_large_local"
-    EMBEDDINGS_MODEL = "solon-large"
-
-    embeddings_factory = EmbeddingsFactory(embeddings_id=EMBEDDINGS_MODEL)
+@app.command()
+def create_embeddings(embeddings_id: str):
+    embeddings_factory = EmbeddingsFactory(embeddings_id=embeddings_id)
     vector_factory = VectorStoreFactory(
         id="Chroma",
         embeddings_factory=embeddings_factory,
@@ -135,12 +140,50 @@ def load_embeddings():
             logger.warning(f"cannot add {doc.metadata['source']} - {ex}")
 
 
+stop_words = [
+    "master",
+    "mastère",
+    "formation",
+    "diplome",
+]
+
+fn = get_spacy_preprocess_fn(model="fr_core_news_sm", more_stop_words=stop_words)
+
+
+@app.command()
+def create_bm25_index():
+    logger.info("create BM25 index")
+    docs_for_bm25 = list(load_docs_from_jsonl(FILES))
+    docs = docs_for_bm25[0:3]
+    path = get_config_str("vector_store", "path")
+    BM25FastRetriever.from_documents(
+        documents=docs, preprocess_func=fn, k=100, cache_dir=Path(path)
+    )
+
+
+@app.command()
+def bm25_search(query: str):
+    path = get_config_str("vector_store", "path")
+
+    fn = get_spacy_preprocess_fn(model="fr_core_news_sm", more_stop_words=stop_words)  # noqa: F821
+    retriever = BM25FastRetriever.from_cache(
+        preprocess_func=fn, k=20, cache_dir=Path(path)
+    )
+    retriever.invoke(query)
+
+
+@app.command()
+def save_to_jsonl():
+    loader = offre_formation_loader(REPO / "Offres_2024.tgz")
+    processed = list(loader.load())
+    save_docs_to_jsonl(processed, FILES)
+
+
+EMBEDDINGS_MODEL = "multilingual_MiniLM_local"
+EMBEDDINGS_MODEL = "camembert_large_local"
+EMBEDDINGS_MODEL = "solon-large"
+
+
 if __name__ == "__main__":
     assert REPO.exists
-
-    if True:
-        loader = offre_formation_loader(REPO / "Offres_2024.tgz")
-        processed = list(loader.load())
-        save_docs_to_jsonl(processed, FILES)
-
-    load_embeddings()
+    app()

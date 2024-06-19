@@ -47,7 +47,7 @@ default:
     cache: ${HOME}/hf_models
   vector_store:
     default: Chroma
-    path: ${HOME}/chromadb
+    path: ${HOME}/vector_store
     default_collection: "training_session"
   documents:
     base: ./use_case_data

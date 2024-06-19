@@ -49,6 +49,9 @@ giskard = "^2.14.0"
 pypdf = "^4.2.0"
 langchain-huggingface = "^0.0.3"
 openpyxl = "^3.1.4"
+bm25s = "^0.1.3"
+pystemmer = "^2.2.0.1"
+json-repair = "^0.25.0"
 
 
 

@@ -405,6 +405,28 @@ files = [
 numpy = {version = ">=1.19.0", markers = "python_version >= \"3.9\""}
 
 [[package]]
+name = "bm25s"
+version = "0.1.3"
+description = "An ultra-fast implementation of BM25 based on sparse matrices."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "bm25s-0.1.3-py3-none-any.whl", hash = "sha256:a3eab2e517e069b9909e5688648da358483983f659f4f97a2ffba59c2d9c01cc"},
+    {file = "bm25s-0.1.3.tar.gz", hash = "sha256:028b927c9e90a1a4581513cd64c50f3e784ae6e903bb45ba894e3c86de55c83b"},
+]
+
+[package.dependencies]
+numpy = "*"
+scipy = "*"
+
+[package.extras]
+core = ["PyStemmer", "jax[cpu]", "tqdm", "ujson"]
+dev = ["black"]
+full = ["PyStemmer", "black", "huggingface-hub", "jax[cpu]", "tqdm", "ujson"]
+hf = ["huggingface-hub"]
+stem = ["PyStemmer"]
+
+[[package]]
 name = "bs4"
 version = "0.0.2"
 description = "Dummy package for Beautiful Soup (beautifulsoup4)"
@@ -2229,6 +2251,17 @@ python-versions = ">=3.8"
 files = [
     {file = "joblib-1.4.2-py3-none-any.whl", hash = "sha256:06d478d5674cbc267e7496a410ee875abd68e4340feff4490bcb7afb88060ae6"},
     {file = "joblib-1.4.2.tar.gz", hash = "sha256:2382c5816b2636fbd20a09e0f4e9dad4736765fdfb7dca582943b9c1366b3f0e"},
+]
+
+[[package]]
+name = "json-repair"
+version = "0.25.0"
+description = "A package to repair broken json strings"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "json_repair-0.25.0-py3-none-any.whl", hash = "sha256:0993a43470ac66be9c73e1d1dad679246a4a9e333ce0ce569a48b11cd9cf1352"},
+    {file = "json_repair-0.25.0.tar.gz", hash = "sha256:faf690cc495c7cdfcdf9f88d05208460cde74c204f8d2205e90f070955731acf"},
 ]
 
 [[package]]
@@ -5083,6 +5116,16 @@ files = [
 dev = ["pytest (>=8.1.1)"]
 
 [[package]]
+name = "pystemmer"
+version = "2.2.0.1"
+description = "Snowball stemming algorithms, for information retrieval"
+optional = false
+python-versions = "*"
+files = [
+    {file = "PyStemmer-2.2.0.1.tar.gz", hash = "sha256:9f3b366f1ed06b49dc1868bf0aefd884423db80f3431be442d0f993e448cc67b"},
+]
+
+[[package]]
 name = "pytest"
 version = "8.2.2"
 description = "pytest: simple powerful testing with Python"
@@ -7884,4 +7927,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "6b51fb004c939479de9313ffea26ed5d7f4c0b36bf76c155d484bf32ab642fa3"
+content-hash = "e96bb3f63c0534f559d66685c047a43fbbf3945c55580982fdcaa0138948dddf"

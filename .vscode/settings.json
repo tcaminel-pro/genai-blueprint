@@ -39,6 +39,7 @@
         "llms",
         "loguru",
         "lunary",
+        "metadatas",
         "mistralai",
         "Mixtral",
         "mult",

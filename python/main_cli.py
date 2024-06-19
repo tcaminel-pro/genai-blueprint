@@ -24,6 +24,7 @@ from python.config import get_config_str
 
 # Import modules where runnables are registered
 
+
 load_modules_with_chains()
 
 
@@ -112,6 +113,15 @@ def define_commands(cli_app: typer.Typer):
 
 
 if __name__ == "__main__":
+
+    import typer
+
+
+@app.command()
+def hello(name: str):
+    print(f"Hello {name}")
+
+
     PRETTY_EXCEPTION = False  #  Alternative : export _TYPER_STANDARD_TRACEBACK=1  see https://typer.tiangolo.com/tutorial/exceptions/
 
     cli_app = typer.Typer(
