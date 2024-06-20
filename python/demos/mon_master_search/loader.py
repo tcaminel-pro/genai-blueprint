@@ -1,17 +1,26 @@
 # cSpell: disable
+import codecs
 import fnmatch
+import re
 import tarfile
 from pathlib import Path
 from typing import Iterator
 
+import enchant
 import json_repair
+import pandas as pd
 import typer
+from abbreviations import schwartz_hearst
 from langchain_community.document_loaders.base import BaseLoader
 from langchain_core.documents import Document
+from langchain_core.output_parsers import StrOutputParser
 from loguru import logger
+from unidecode import unidecode
 
 from python.ai_core.embeddings import EmbeddingsFactory
+from python.ai_core.llm import get_llm
 from python.ai_core.loaders import load_docs_from_jsonl, save_docs_to_jsonl
+from python.ai_core.prompts import def_prompt
 from python.ai_core.vector_store import VectorStoreFactory
 from python.ai_retrievers.bm25s_retriever import (
     BM25FastRetriever,
@@ -41,6 +50,56 @@ def format_info_pedago(intitule: str, info_pedago: InformationsPedagogiques):
 
 
 def process_json(source: str, formation: ParcoursFormations) -> Iterator[Document]:
+    logger.debug(f"load {source}")
+
+    metadata_offre = {
+        "eta_uai": formation.etab.desgn_etab.eta_uai,
+        "eta_libelle": formation.etab.desgn_etab.eta_libelle,
+        "eta_name": formation.etab.desgn_etab.eta_name,
+    }
+    for dmn in formation.dnms:
+        parcours_list = []
+        if dmn.parcours:
+            for parcours in dmn.parcours:
+                parcours_list.append(parcours.for_inmp)
+                metadata_for = {
+                    "title": parcours.intitule_parcours,
+                    "source": f"inmp:{parcours.for_inmp}",
+                    "modalite_enseignement": str(parcours.modalite_enseignement),
+                    "licences_conseillees": str(parcours.licences_conseillees),
+                    "for_intitule": dmn.for_intitule,
+                }
+                if parcours.informations_pedagogiques:
+                    content = format_info_pedago(
+                        parcours.intitule_parcours,
+                        parcours.informations_pedagogiques,
+                    )
+                    if lien := parcours.informations_pedagogiques.lien_fiche:
+                        metadata_for |= {"lien_fiche": lien}
+
+                    yield Document(
+                        page_content=content,
+                        metadata=metadata_for | metadata_offre,
+                    )
+
+        dmn_info_pedago = dmn.informations_pedagogiques
+        if dmn_info_pedago:
+            content = format_info_pedago("".join(dmn.dom_libelle), dmn_info_pedago)
+            metadata_for = {
+                "source": f"inm:{dmn.for_inm}",
+                "for_intitule": dmn.for_intitule,
+                "modalite_enseignement": str(dmn.modalite_enseignement),
+                "licences_conseillees": str(dmn.licences_conseillees),
+            }
+            if lien := dmn_info_pedago.lien_fiche:
+                metadata_for |= {"lien_fiche": lien}
+            yield Document(
+                page_content=content,
+                metadata=metadata_for | metadata_offre,
+            )
+
+
+def process_json_v2(source: str, formation: ParcoursFormations) -> Iterator[Document]:
     logger.debug(f"load {source}")
 
     metadata_offre = {
@@ -183,6 +242,91 @@ def save_to_jsonl():
     loader = offre_formation_loader(REPO / "Offres_2024.tgz")
     processed = list(loader.load())
     save_docs_to_jsonl(processed, FILES)
+
+
+french_dict = enchant.Dict("fr")
+english_dict = enchant.Dict("en")
+
+
+@app.command()
+def find_acronyms():
+    acronyms = set()
+    candidates = set()
+
+    logger.info("extract abbreviations defintion fom text")
+
+    pairs = schwartz_hearst.extract_abbreviation_definition_pairs(
+        file_path=FILES, most_common_definition=True
+    )
+    known_abbrev = {
+        codecs.decode(k, "unicode_escape"): codecs.decode(v, "unicode_escape")
+        for k, v in pairs.items()
+    }
+
+    logger.info("extract possible abbreviations")
+    docs = load_docs_from_jsonl(FILES)
+    for doc in docs:
+        regexp = r"(?<!\()\b[A-Z]{2,}\b(?!\))"  # r"\b[A-Z]{2,}\b"
+
+        candidates.update(re.findall(regexp, doc.page_content))
+        # debug(candidates)
+    for word in candidates:
+        if not french_dict.check(word) and not english_dict.check(word):
+            suggested = [unidecode(w).lower() for w in french_dict.suggest(word)]
+            if unidecode(word).lower() not in suggested:
+                acronyms.add(word)
+
+    d = {token: known_abbrev.get(token) or "" for token in acronyms}
+    df = pd.DataFrame.from_dict(d, orient="index")
+    logger.info("save to Excel")
+    df.to_excel("abbreviations.xlsx", sheet_name="extracted")
+    return df
+
+
+@app.command()
+def llm_for_abbrev():
+    df_extract = pd.read_excel("abbreviations.xlsx", index_col=0)
+    # df_extract = find_acronyms()
+    unknown = df_extract[df_extract.iloc[:, 0].isnull()]
+    unknown_list = "\n".join(unknown.index.tolist())
+    first = unknown.index.to_list()[0]
+
+    system = """ 
+    Vous êtes expert du domaine de l'enseignement supérieur en France.
+    Repondez uniquement en Francais.
+    Pour chacune des abréviations suivantes, completez par la signification si vous la connaissez.
+    Si vous ne savez pas, répondez "?".
+    N'ajoutez pas de commentaires et autres information.
+    """
+
+    user = """
+    ###  ABBREVIATIONS ###
+    {abrev}
+    ### REPONSE: ###
+    - {first_one}: ...
+    - ...
+    """
+
+    llm_mistral = get_llm("mistral_large_edenai")
+
+    prompt = def_prompt(system, user)
+    chain = prompt | llm_mistral | StrOutputParser()
+
+    logger.info("call llm")
+    rep = chain.invoke({"abrev": unknown_list, "first_one": first})
+
+    d = dict()
+    for line in rep.split("\n"):
+        print(line)
+        k, _, v = line.partition(":")
+        d |= {k.strip("- "): v.strip()}
+
+    OUT_FILE = "abbreviation_llm.xlsx"
+    logger.info(f"write Exel file : {OUT_FILE}")
+    df_llm = pd.DataFrame.from_dict(d, orient="index")
+    with pd.ExcelWriter(OUT_FILE) as writer:
+        df_extract.to_excel(writer, sheet_name="extracted")
+        df_llm.to_excel(writer, sheet_name="llm")
 
 
 EMBEDDINGS_MODEL = "multilingual_MiniLM_local"

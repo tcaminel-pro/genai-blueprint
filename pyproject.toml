@@ -52,6 +52,9 @@ openpyxl = "^3.1.4"
 bm25s = "^0.1.3"
 pystemmer = "^2.2.0.1"
 json-repair = "^0.25.0"
+unidecode = "^1.3.8"
+pyenchant = "^3.2.2"
+abbreviations = "^0.2.5"
 
 
 
