@@ -15,6 +15,7 @@ from langchain_community.document_loaders.base import BaseLoader
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
 from loguru import logger
+from pydantic import BaseModel
 from unidecode import unidecode
 
 from python.ai_core.embeddings import EmbeddingsFactory
@@ -28,25 +29,47 @@ from python.ai_retrievers.bm25s_retriever import (
 )
 from python.config import get_config_str
 from python.demos.mon_master_search.model_subset import (
-    InformationsPedagogiques,
+    ACRONYMS,
     ParcoursFormations,
 )
 
 app = typer.Typer()
 
 
-def format_info_pedago(intitule: str, info_pedago: InformationsPedagogiques):
-    content = []
-    content.append(f"intitulé: {intitule}")
-    if info := info_pedago.mot_cle_disciplinaire:
-        content.append(f"disciplines: {','.join(info)}")
-    if info := info_pedago.mot_cle_sectoriel:
-        content.append(f"secteurs: {','.join(info)}")
-    if info := info_pedago.mot_cle_metier:
-        content.append(f"métier: {','.join(info)}")
-    if info := info_pedago.mot_cle_libre:
-        content.append(f"autre: {','.join(info)}")
-    return "\n".join(content)
+class Metadata(BaseModel):
+    inm: str
+    for_intitule: str
+    source: str
+    parcours: set[str] = set()
+    intitule_parcours: set[str] = set()
+    modalite_enseignement: set[str] = set()
+    licences_conseillees: set[str] = set()
+    for_intitules: set[str] = set()
+
+
+class Content(BaseModel):
+    libeles: set[str] = set()
+    disciplines: set[str] = set()
+    secteurs: set[str] = set()
+    metiers: set[str] = set()
+    autre: set[str] = set()
+    lien_fiche: set[str] = set()
+
+
+REGEXP_ACRONYMS = r"(?<!\()\b[A-Z]{2,}\b(?!\))"
+
+
+def add_abrev(s: str) -> str:
+    accronyms = re.findall(REGEXP_ACRONYMS, s)
+    result = s
+
+    pairs = schwartz_hearst.extract_abbreviation_definition_pairs(doc_text=s)
+    for a in accronyms:
+        if pairs.get(a) is None:
+            if found := ACRONYMS.get(a):
+                if set(found.split(" ")).isdisjoint(set(s.split(" "))):
+                    result += f" ({found})"
+    return result
 
 
 def process_json(source: str, formation: ParcoursFormations) -> Iterator[Document]:
@@ -58,95 +81,59 @@ def process_json(source: str, formation: ParcoursFormations) -> Iterator[Documen
         "eta_name": formation.etab.desgn_etab.eta_name,
     }
     for dmn in formation.dnms:
-        parcours_list = []
-        if dmn.parcours:
-            for parcours in dmn.parcours:
-                parcours_list.append(parcours.for_inmp)
-                metadata_for = {
-                    "title": parcours.intitule_parcours,
-                    "source": f"inmp:{parcours.for_inmp}",
-                    "modalite_enseignement": str(parcours.modalite_enseignement),
-                    "licences_conseillees": str(parcours.licences_conseillees),
-                    "for_intitule": dmn.for_intitule,
-                }
-                if parcours.informations_pedagogiques:
-                    content = format_info_pedago(
-                        parcours.intitule_parcours,
-                        parcours.informations_pedagogiques,
-                    )
-                    if lien := parcours.informations_pedagogiques.lien_fiche:
-                        metadata_for |= {"lien_fiche": lien}
+        content = Content()
+        metadata = Metadata(
+            inm=dmn.for_inm,
+            for_intitule=dmn.for_intitule,
+            source=f"inm:{dmn.for_inm}",
+        )
 
-                    yield Document(
-                        page_content=content,
-                        metadata=metadata_for | metadata_offre,
-                    )
+        metadata.inm = dmn.for_inm
+        info_pedago = dmn.informations_pedagogiques
+        if info_pedago:
+            content.libeles.update([dmn.for_intitule] + dmn.dom_libelle)
+            content.disciplines.update(info_pedago.mot_cle_disciplinaire or [])
+            content.metiers.update(info_pedago.mot_cle_metier or {})
+            content.secteurs.update(info_pedago.mot_cle_sectoriel or {})
+            content.autre.update(info_pedago.mot_cle_libre or {})
+            content.lien_fiche.update(info_pedago.lien_fiche or {})
 
-        dmn_info_pedago = dmn.informations_pedagogiques
-        if dmn_info_pedago:
-            content = format_info_pedago("".join(dmn.dom_libelle), dmn_info_pedago)
-            metadata_for = {
-                "source": f"inm:{dmn.for_inm}",
-                "for_intitule": dmn.for_intitule,
-                "modalite_enseignement": str(dmn.modalite_enseignement),
-                "licences_conseillees": str(dmn.licences_conseillees),
-            }
-            if lien := dmn_info_pedago.lien_fiche:
-                metadata_for |= {"lien_fiche": lien}
-            yield Document(
-                page_content=content,
-                metadata=metadata_for | metadata_offre,
-            )
+        for parcours in dmn.parcours or []:
+            metadata.intitule_parcours.update([parcours.intitule_parcours] or {})
+            metadata.modalite_enseignement.update(parcours.modalite_enseignement or {})
+            metadata.licences_conseillees.update(parcours.licences_conseillees or {})
 
+            if info_pedago := parcours.informations_pedagogiques:
+                intitule_p = add_abrev(parcours.intitule_parcours)
+                content.libeles.update(intitule_p)
+                content.disciplines.update(info_pedago.mot_cle_disciplinaire or [])
+                content.metiers.update(info_pedago.mot_cle_metier or [])
+                content.secteurs.update(info_pedago.mot_cle_sectoriel or [])
+                content.autre.update(info_pedago.mot_cle_libre or [])
+                content.lien_fiche.update(info_pedago.lien_fiche or [])
 
-def process_json_v2(source: str, formation: ParcoursFormations) -> Iterator[Document]:
-    logger.debug(f"load {source}")
+        content_fmt = []
+        if content.libeles:
+            content_fmt.append(f"intitulés: {';'.join(content.libeles)}")
+        if content.disciplines:
+            content_fmt.append(f"disciplines: {';'.join(content.disciplines)}")
+        if content.secteurs:
+            content_fmt.append(f"secteurs: {';'.join(content.secteurs)}")
+        if content.metiers:
+            content_fmt.append(f"métiers: {';'.join(content.metiers)}")
+        if content.autre:
+            content_fmt.append(f"autre: {';'.join(content.autre)}")
 
-    metadata_offre = {
-        "eta_uai": formation.etab.desgn_etab.eta_uai,
-        "eta_libelle": formation.etab.desgn_etab.eta_libelle,
-        "eta_name": formation.etab.desgn_etab.eta_name,
-    }
-    for dmn in formation.dnms:
-        parcours_list = []
-        if dmn.parcours:
-            for parcours in dmn.parcours:
-                parcours_list.append(parcours.for_inmp)
-                metadata_for = {
-                    "title": parcours.intitule_parcours,
-                    "source": f"inmp:{parcours.for_inmp}",
-                    "modalite_enseignement": str(parcours.modalite_enseignement),
-                    "licences_conseillees": str(parcours.licences_conseillees),
-                    "for_intitule": dmn.for_intitule,
-                }
-                if parcours.informations_pedagogiques:
-                    content = format_info_pedago(
-                        parcours.intitule_parcours,
-                        parcours.informations_pedagogiques,
-                    )
-                    if lien := parcours.informations_pedagogiques.lien_fiche:
-                        metadata_for |= {"lien_fiche": lien}
+        content_str = "\n".join(content_fmt)
+        content_str = codecs.decode(content_str, "unicode_escape")
 
-                    yield Document(
-                        page_content=content,
-                        metadata=metadata_for | metadata_offre,
-                    )
-
-        dmn_info_pedago = dmn.informations_pedagogiques
-        if dmn_info_pedago:
-            content = format_info_pedago("".join(dmn.dom_libelle), dmn_info_pedago)
-            metadata_for = {
-                "source": f"inm:{dmn.for_inm}",
-                "for_intitule": dmn.for_intitule,
-                "modalite_enseignement": str(dmn.modalite_enseignement),
-                "licences_conseillees": str(dmn.licences_conseillees),
-            }
-            if lien := dmn_info_pedago.lien_fiche:
-                metadata_for |= {"lien_fiche": lien}
-            yield Document(
-                page_content=content,
-                metadata=metadata_for | metadata_offre,
-            )
+        meta = metadata_offre | {
+            "source": metadata.source,
+            "modalite_enseignement": ";".join(metadata.modalite_enseignement),
+            "licences_conseillees": ";".join(metadata.licences_conseillees),
+        }
+        doc = Document(page_content=content_str, metadata=meta)
+        yield doc
 
 
 class offre_formation_loader(BaseLoader):
@@ -170,11 +157,16 @@ class offre_formation_loader(BaseLoader):
 
 
 REPO = Path("/mnt/c/Users/a184094/OneDrive - Eviden/_En cours/mon_master/")
-FILES = REPO / "synthesis.json"
+FILES = REPO / "synthesis_v2.json"
+
+
+EMBEDDINGS_MODEL = "multilingual_MiniLM_local"
+EMBEDDINGS_MODEL = "camembert_large_local"
+EMBEDDINGS_MODEL = "solon-large"
 
 
 @app.command()
-def create_embeddings(embeddings_id: str):
+def create_embeddings(embeddings_id: str = EMBEDDINGS_MODEL):
     embeddings_factory = EmbeddingsFactory(embeddings_id=embeddings_id)
     vector_factory = VectorStoreFactory(
         id="Chroma",
@@ -204,6 +196,13 @@ stop_words = [
     "mastère",
     "formation",
     "diplome",
+    "parcours",
+    "intitulé",
+    "license",
+    "enseignement",
+    "discipline",
+    "secteur",
+    "metier",
 ]
 
 fn = get_spacy_preprocess_fn(model="fr_core_news_sm", more_stop_words=stop_words)
@@ -266,9 +265,7 @@ def find_acronyms():
     logger.info("extract possible abbreviations")
     docs = load_docs_from_jsonl(FILES)
     for doc in docs:
-        regexp = r"(?<!\()\b[A-Z]{2,}\b(?!\))"  # r"\b[A-Z]{2,}\b"
-
-        candidates.update(re.findall(regexp, doc.page_content))
+        candidates.update(re.findall(REGEXP_ACRONYMS, doc.page_content))
         # debug(candidates)
     for word in candidates:
         if not french_dict.check(word) and not english_dict.check(word):
@@ -308,9 +305,10 @@ def llm_for_abbrev():
     """
 
     llm_mistral = get_llm("mistral_large_edenai")
+    llm_gpt4 = get_llm("gpt_4o_edenai")
 
     prompt = def_prompt(system, user)
-    chain = prompt | llm_mistral | StrOutputParser()
+    chain = prompt | llm_gpt4 | StrOutputParser()
 
     logger.info("call llm")
     rep = chain.invoke({"abrev": unknown_list, "first_one": first})
@@ -321,17 +319,12 @@ def llm_for_abbrev():
         k, _, v = line.partition(":")
         d |= {k.strip("- "): v.strip()}
 
-    OUT_FILE = "abbreviation_llm.xlsx"
+    OUT_FILE = "abbreviation_llm_2.xlsx"
     logger.info(f"write Exel file : {OUT_FILE}")
     df_llm = pd.DataFrame.from_dict(d, orient="index")
     with pd.ExcelWriter(OUT_FILE) as writer:
         df_extract.to_excel(writer, sheet_name="extracted")
-        df_llm.to_excel(writer, sheet_name="llm")
-
-
-EMBEDDINGS_MODEL = "multilingual_MiniLM_local"
-EMBEDDINGS_MODEL = "camembert_large_local"
-EMBEDDINGS_MODEL = "solon-large"
+        df_llm.to_excel(writer, sheet_name="llm_openai")
 
 
 if __name__ == "__main__":
