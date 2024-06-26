@@ -4,6 +4,7 @@ Entry point for the Command Line Interface,  and commands
 
 """
 
+import os
 from pathlib import Path
 from typing import Callable
 
@@ -113,16 +114,11 @@ def define_commands(cli_app: typer.Typer):
 
 
 if __name__ == "__main__":
-
     import typer
 
-
-@app.command()
-def hello(name: str):
-    print(f"Hello {name}")
-
-
     PRETTY_EXCEPTION = False  #  Alternative : export _TYPER_STANDARD_TRACEBACK=1  see https://typer.tiangolo.com/tutorial/exceptions/
+
+    os.environ["ANONYMIZED_TELEMETRY"] = "False"
 
     cli_app = typer.Typer(
         add_completion=True,

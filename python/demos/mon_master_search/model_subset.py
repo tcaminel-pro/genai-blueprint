@@ -237,3 +237,20 @@ ACRONYMS = {
     "VFX": "Visual Effects",
     "VNP": "Valorisation des nouveaux patrimoines",
 }
+
+
+
+STOP_WORDS = [
+    "master",
+    "mastère",
+    "formation",
+    "diplome",
+    "parcours",
+    "intitulé",
+    "libelés",
+    "license",
+    "enseignement",
+    "discipline",
+    "secteur",
+    "metier",
+]

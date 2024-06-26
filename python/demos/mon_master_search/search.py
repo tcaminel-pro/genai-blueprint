@@ -63,7 +63,6 @@ def get_bm25_retriever():
     return retriever
 
 
-@cache
 def get_ensemble_retriever(
     embeddings_model_id: str, ratio_sparse: float
 ) -> EnsembleRetriever:
@@ -73,7 +72,9 @@ def get_ensemble_retriever(
     )
 
 
-def search(query: str, mode: SearchMode = SearchMode.VECTOR) -> pd.DataFrame:
+def search(
+    query: str, mode: SearchMode = SearchMode.VECTOR, ratio: int = RATIO_SPARSE
+) -> pd.DataFrame:
     known_set: set[str] = set()
     df = pd.DataFrame()
     if mode == SearchMode.VECTOR:
@@ -81,9 +82,7 @@ def search(query: str, mode: SearchMode = SearchMode.VECTOR) -> pd.DataFrame:
     elif mode == SearchMode.KEYWORD:
         retriever = get_bm25_retriever()
     else:
-        retriever = get_ensemble_retriever(
-            EMBEDDINGS_MODEL_ID, ratio_sparse=RATIO_SPARSE
-        )
+        retriever = get_ensemble_retriever(EMBEDDINGS_MODEL_ID, ratio_sparse=ratio)
 
     #  quick and dirty hack to have enough results
     count = DEFAULT_RESULT_COUNT * 2
@@ -118,11 +117,11 @@ def search(query: str, mode: SearchMode = SearchMode.VECTOR) -> pd.DataFrame:
 
 # cSpell: disable
 def process_questions(
-    queries: list[str], mode: SearchMode = SearchMode.VECTOR
+    queries: list[str], mode: SearchMode = SearchMode.VECTOR, ratio: int = RATIO_SPARSE
 ) -> list[dict]:
     result = []
     for q in queries:
-        df = search(q, mode)
+        df = search(q, mode, ratio)
         d = {"question": q}
         i = 1
         for answer in df.itertuples():
@@ -172,21 +171,25 @@ if __name__ == "__main__":
         "PCS",
     ]
 
-    OUT_FILE = "master_search_v0_2.xlsx"
+    OUT_FILE = REPO / "master_search_v0_3.xlsx"
 
     logger.info(f"write Exel file : {OUT_FILE}")
     with pd.ExcelWriter(OUT_FILE) as writer:
         logger.info("Vector Search (Solon-large)...")
         d_vector = process_questions(_questions, SearchMode.VECTOR)
-        debug(d_vector)
         pd.DataFrame(d_vector).to_excel(
             writer, sheet_name="Vector_search", freeze_panes=(0, 2)
         )
         format_sheet(writer.sheets["Vector_search"])
 
         logger.info("Hybrid Search 50/50...")
-        d_hybrid = process_questions(_questions, SearchMode.HYBRID)
-        debug(d_hybrid)
+        d_hybrid = process_questions(_questions, SearchMode.HYBRID, 50)
         sheet = "Hybrid_search_50_50"
         pd.DataFrame(d_hybrid).to_excel(writer, sheet_name=sheet, freeze_panes=(0, 2))
         format_sheet(writer.sheets[sheet])
+
+        # logger.info("Hybrid Search 70/30...")
+        # d_hybrid = process_questions(_questions, SearchMode.HYBRID, 70)
+        # sheet = "Hybrid_search_70_30"
+        # pd.DataFrame(d_hybrid).to_excel(writer, sheet_name=sheet, freeze_panes=(0, 2))
+        # format_sheet(writer.sheets[sheet])

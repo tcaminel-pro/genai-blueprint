@@ -30,25 +30,21 @@ from python.ai_retrievers.bm25s_retriever import (
 from python.config import get_config_str
 from python.demos.mon_master_search.model_subset import (
     ACRONYMS,
+    STOP_WORDS,
     ParcoursFormations,
 )
 
 app = typer.Typer()
 
 
-class Metadata(BaseModel):
+class Description(BaseModel):
     inm: str
     for_intitule: str
-    source: str
-    parcours: set[str] = set()
+    libeles: set[str] = set()
     intitule_parcours: set[str] = set()
     modalite_enseignement: set[str] = set()
     licences_conseillees: set[str] = set()
-    for_intitules: set[str] = set()
-
-
-class Content(BaseModel):
-    libeles: set[str] = set()
+    intitule_parcours: set[str] = set()
     disciplines: set[str] = set()
     secteurs: set[str] = set()
     metiers: set[str] = set()
@@ -81,56 +77,56 @@ def process_json(source: str, formation: ParcoursFormations) -> Iterator[Documen
         "eta_name": formation.etab.desgn_etab.eta_name,
     }
     for dmn in formation.dnms:
-        content = Content()
-        metadata = Metadata(
+        desc = Description(
             inm=dmn.for_inm,
             for_intitule=dmn.for_intitule,
-            source=f"inm:{dmn.for_inm}",
         )
 
-        metadata.inm = dmn.for_inm
+        desc.inm = dmn.for_inm
         info_pedago = dmn.informations_pedagogiques
+        # debug(dmn.for_intitule, dmn.dom_libelle)
         if info_pedago:
-            content.libeles.update([dmn.for_intitule] + dmn.dom_libelle)
-            content.disciplines.update(info_pedago.mot_cle_disciplinaire or [])
-            content.metiers.update(info_pedago.mot_cle_metier or {})
-            content.secteurs.update(info_pedago.mot_cle_sectoriel or {})
-            content.autre.update(info_pedago.mot_cle_libre or {})
-            content.lien_fiche.update(info_pedago.lien_fiche or {})
+            desc.libeles.update(dmn.dom_libelle)
+            desc.disciplines.update(info_pedago.mot_cle_disciplinaire or [])
+            desc.metiers.update(info_pedago.mot_cle_metier or {})
+            desc.secteurs.update(info_pedago.mot_cle_sectoriel or {})
+            desc.autre.update(info_pedago.mot_cle_libre or {})
+            desc.lien_fiche.update([info_pedago.lien_fiche] or {})
 
         for parcours in dmn.parcours or []:
-            metadata.intitule_parcours.update([parcours.intitule_parcours] or {})
-            metadata.modalite_enseignement.update(parcours.modalite_enseignement or {})
-            metadata.licences_conseillees.update(parcours.licences_conseillees or {})
+            desc.intitule_parcours.update([parcours.intitule_parcours] or {})
+            desc.modalite_enseignement.update(parcours.modalite_enseignement or {})
+            desc.licences_conseillees.update(parcours.licences_conseillees or {})
 
             if info_pedago := parcours.informations_pedagogiques:
                 intitule_p = add_abrev(parcours.intitule_parcours)
-                content.libeles.update(intitule_p)
-                content.disciplines.update(info_pedago.mot_cle_disciplinaire or [])
-                content.metiers.update(info_pedago.mot_cle_metier or [])
-                content.secteurs.update(info_pedago.mot_cle_sectoriel or [])
-                content.autre.update(info_pedago.mot_cle_libre or [])
-                content.lien_fiche.update(info_pedago.lien_fiche or [])
+                desc.intitule_parcours.update([intitule_p])
+                desc.disciplines.update(info_pedago.mot_cle_disciplinaire or [])
+                desc.metiers.update(info_pedago.mot_cle_metier or [])
+                desc.secteurs.update(info_pedago.mot_cle_sectoriel or [])
+                desc.autre.update(info_pedago.mot_cle_libre or [])
+                desc.lien_fiche.update(info_pedago.lien_fiche or [])
 
-        content_fmt = []
-        if content.libeles:
-            content_fmt.append(f"intitulés: {';'.join(content.libeles)}")
-        if content.disciplines:
-            content_fmt.append(f"disciplines: {';'.join(content.disciplines)}")
-        if content.secteurs:
-            content_fmt.append(f"secteurs: {';'.join(content.secteurs)}")
-        if content.metiers:
-            content_fmt.append(f"métiers: {';'.join(content.metiers)}")
-        if content.autre:
-            content_fmt.append(f"autre: {';'.join(content.autre)}")
+        content_fmt = [desc.for_intitule]
+        if desc.libeles:
+            content_fmt.append(f"libelés: {'; '.join(desc.libeles)}")
+        if desc.intitule_parcours:
+            content_fmt.append(f"parcours: {'; '.join(desc.intitule_parcours)}")
+        if desc.disciplines:
+            content_fmt.append(f"disciplines: {'; '.join(desc.disciplines)}")
+        if desc.secteurs:
+            content_fmt.append(f"secteurs: {'; '.join(desc.secteurs)}")
+        if desc.metiers:
+            content_fmt.append(f"métiers: {' '.join(desc.metiers)}")
+        if desc.autre:
+            content_fmt.append(f"autre: {'; '.join(desc.autre)}")
 
         content_str = "\n".join(content_fmt)
-        content_str = codecs.decode(content_str, "unicode_escape")
-
         meta = metadata_offre | {
-            "source": metadata.source,
-            "modalite_enseignement": ";".join(metadata.modalite_enseignement),
-            "licences_conseillees": ";".join(metadata.licences_conseillees),
+            "source": desc.inm,
+            "for_intitule": desc.for_intitule,
+            "modalite_enseignement": ";".join(desc.modalite_enseignement),
+            "licences_conseillees": ";".join(desc.licences_conseillees),
         }
         doc = Document(page_content=content_str, metadata=meta)
         yield doc
@@ -186,26 +182,14 @@ def create_embeddings(embeddings_id: str = EMBEDDINGS_MODEL):
     # vector_factory.get()
     for doc in docs:
         try:
+            print(".", end="", flus=True)
             vector_factory.add_documents([doc])
         except Exception as ex:
             logger.warning(f"cannot add {doc.metadata['source']} - {ex}")
+    print("done")
 
 
-stop_words = [
-    "master",
-    "mastère",
-    "formation",
-    "diplome",
-    "parcours",
-    "intitulé",
-    "license",
-    "enseignement",
-    "discipline",
-    "secteur",
-    "metier",
-]
-
-fn = get_spacy_preprocess_fn(model="fr_core_news_sm", more_stop_words=stop_words)
+fn = get_spacy_preprocess_fn(model="fr_core_news_sm", more_stop_words=STOP_WORDS)
 
 
 @app.command()
@@ -231,7 +215,7 @@ def bm25_index_search(query: str, k: int = 20):
 def bm25_search(query: str, k: int = 10):
     path = Path(get_config_str("vector_store", "path")) / "bm25"
 
-    fn = get_spacy_preprocess_fn(model="fr_core_news_sm", more_stop_words=stop_words)  # noqa: F821
+    fn = get_spacy_preprocess_fn(model="fr_core_news_sm", more_stop_words=STOP_WORDS)  # noqa: F821
     retriever = BM25FastRetriever.from_cache(preprocess_func=fn, k=k, cache_dir=path)
     retriever.invoke(query)
 
