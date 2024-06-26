@@ -17,6 +17,8 @@
         "datasources",
         "deepinfra",
         "edenai",
+        "embedder",
+        "embedders",
         "Eviden",
         "exponentiate",
         "fastapi",

@@ -19,7 +19,7 @@ DEFAULT_RESULT_COUNT = 20
 RATIO_SPARSE = 50
 EMBEDDINGS_MODEL_ID = "solon-large"
 REPO = Path("/mnt/c/Users/a184094/OneDrive - Eviden/_En cours/mon_master/")
-FILES = REPO / "synthesis.json"
+FILES = REPO / "synthesis_v2.json"
 
 
 class SearchMode(Enum):
@@ -99,16 +99,14 @@ def search(
         inm = doc.metadata.get("source")
         for_intitule = doc.metadata["for_intitule"]
 
-        if for_intitule in known_set:
-            pass
-        else:
-            row = {
-                "Intitulé formation:": for_intitule,
-                "Intitulé parcours ou DMM": intitule,
-                "ETA": eta,
-                "INM(P)": inm,
-                "Content": doc.page_content,
-            }
+        row = {
+            "Intitulé formation:": for_intitule,
+            "Intitulé parcours ou DMM": intitule,
+            "ETA": eta,
+            "INM(P)": inm,
+            "Content": doc.page_content,
+        }
+        if for_intitule not in known_set:
             df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
         known_set.add(for_intitule)
 
@@ -171,7 +169,7 @@ if __name__ == "__main__":
         "PCS",
     ]
 
-    OUT_FILE = REPO / "master_search_v0_3.xlsx"
+    OUT_FILE = REPO / "master_search_v0_4.xlsx"
 
     logger.info(f"write Exel file : {OUT_FILE}")
     with pd.ExcelWriter(OUT_FILE) as writer:

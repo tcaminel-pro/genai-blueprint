@@ -19,7 +19,7 @@ import python.demos.mon_master_search.search as master_search
 LLM = "gemini_pro_google"
 
 REPO = Path("/mnt/c/Users/a184094/OneDrive - Eviden/_En cours/mon_master/")
-FILES = REPO / "synthesis.json"
+FILES = REPO / "synthesis_v2.json"
 
 DEFAULT_RESULT_COUNT = 25
 
@@ -46,7 +46,7 @@ title_col2.image(logo_eviden, width=250)
 # filter3.multiselect("Villes", [])
 
 with st.sidebar:
-    search_method = st.radio("Search Method:", ["Vector", "Keyword", "Hybrid"])
+    search_method = st.radio("Search Method:", ["Vector", "Keyword", "Hybrid"], index=2)
     if search_method == "Hybrid":
         ratio_spinner = st.slider(
             "Keyword  / Vector ratio", min_value=0.0, max_value=1.0, value=0.7, step=0.1
@@ -64,6 +64,7 @@ with st.sidebar:
             "Large model for French",
             "SOTA model for French",
         ],
+        index=2,
     )
     result_count = int(
         st.number_input(
@@ -73,7 +74,6 @@ with st.sidebar:
             value=DEFAULT_RESULT_COUNT,
         )
     )
-    show_dmm_only = st.toggle("Regrouper par mention", False)
 
 
 with st.form(key="form"):
@@ -110,7 +110,7 @@ if submit_clicked:
         retriever = get_ensemble_retriever(embeddings_model, ratio_sparse=ratio_spinner)
 
     #  quick and dirty hack to have enough results
-    count = result_count * 2 if show_dmm_only else result_count
+    count = result_count * 2
 
     config = {"configurable": {"k": count, "search_kwargs": {"k": count}}}
     user_input = "query : " + user_input  # supposed to work well for Solon Embeddings
@@ -125,17 +125,14 @@ if submit_clicked:
         eta = doc.metadata.get("eta_name")
         inm = doc.metadata.get("source")
         for_intitule = doc.metadata["for_intitule"]
-
-        if show_dmm_only and for_intitule in knwon_set:
-            pass
-        else:
-            row = {
-                "Intitulé formation:": for_intitule,
-                "Intitulé parcours ou DMM": intitule,
-                "ETA": eta,
-                "INM(P)": inm,
-                "Content": doc.page_content,
-            }
+        row = {
+            "Intitulé formation:": for_intitule,
+            "Intitulé parcours ou DMM": intitule,
+            "ETA": eta,
+            "INM(P)": inm,
+            "Content": doc.page_content,
+        }
+        if for_intitule not in knwon_set:
             df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
         knwon_set.add(for_intitule)
 
