@@ -17,8 +17,6 @@ from langchain.chains.query_constructor.base import (
 )
 from langchain.chains.query_constructor.schema import AttributeInfo
 from langchain.retrievers.self_query.base import SelfQueryRetriever
-
-# from langchain.retrievers.self_query import ChromaTranslator
 from langchain.vectorstores.base import VectorStore
 from langchain_community.query_constructors.chroma import ChromaTranslator
 from langchain_core.documents import Document

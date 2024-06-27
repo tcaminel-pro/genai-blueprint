@@ -1,14 +1,14 @@
 [tool.poetry]
-name = "genai-training"
-version = "0.1.0"
+name = "genai-blueprint"
+version = "0.1.1"
 description = ""
 authors = ["Thierry Caminel <thierry.caminel@eviden.com>"]
 readme = "README.md"
 #packages = [{include = "genai-training"}]
 
 [tool.poetry.urls]
-Homepage = "https://github.com/tcaminel-pro/genai-training"
-Repository = "https://github.com/tcaminel-pro/genai-training"
+Homepage = "https://github.com/tcaminel-pro/genai-blueprint"
+Repository = "https://github.com/tcaminel-pro/genai-blueprint"
 
 
 [tool.poetry.dependencies]
@@ -18,12 +18,12 @@ langchain = "^0.2.5"
 langchain-core = "^0.2.9"
 #langchain = "<0.2.0"
 #langchain-core = "<0.2.0"
-#langchain-community = {git = "https://github.com/edenai/langchain.git", rev = "feat/edenai-chat_models-tools", subdirectory = "libs/community"}
-#langchain-experimental = {git = "https://github.com/edenai/langchain.git", rev = "feat/edenai-chat_models-tools", subdirectory = "libs/experimental"}
+langchain-community = {git = "https://github.com/edenai/langchain.git", rev = "feat/edenai-chat_models-tools", subdirectory = "libs/community"}
+langchain-experimental = {git = "https://github.com/edenai/langchain.git", rev = "feat/edenai-chat_models-tools", subdirectory = "libs/experimental"}
 langgraph = "^0.0.69"
 langserve = "^0.2.2"
-langchain-community = "^0.2.5"
-langchain-experimental = "^0.0.61"
+#langchain-community = "^0.2.5"
+#langchain-experimental = "^0.0.61"
 langchainhub = "^0.1.20"
 langchain-groq = "^0.1.5"
 langchain-openai = "^0.1.3"
