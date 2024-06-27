@@ -35,6 +35,11 @@ sync_time:  # Needed because WSL loose time after hibernation, and that can caus
 test:
 	pytest -s
 
+rebase:
+	git fetch origin
+	git stash
+	git rebase origin/main
+
 ######################
 ##  Build Docker, and run locally
 #####################

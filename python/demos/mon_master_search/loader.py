@@ -55,7 +55,7 @@ class Description(BaseModel):
 REGEXP_ACRONYMS = r"(?<!\()\b[A-Z]{2,}\b(?!\))"
 
 
-def add_abrev(s: str) -> str:
+def add_accronym(s: str) -> str:
     accronyms = re.findall(REGEXP_ACRONYMS, s)
     result = s
 
@@ -99,7 +99,7 @@ def process_json(source: str, formation: ParcoursFormations) -> Iterator[Documen
             desc.licences_conseillees.update(parcours.licences_conseillees or {})
 
             if info_pedago := parcours.informations_pedagogiques:
-                intitule_p = add_abrev(parcours.intitule_parcours)
+                intitule_p = add_accronym(parcours.intitule_parcours)
                 desc.intitule_parcours.update([intitule_p])
                 desc.disciplines.update(info_pedago.mot_cle_disciplinaire or [])
                 desc.metiers.update(info_pedago.mot_cle_metier or [])
@@ -107,7 +107,7 @@ def process_json(source: str, formation: ParcoursFormations) -> Iterator[Documen
                 desc.autre.update(info_pedago.mot_cle_libre or [])
                 desc.lien_fiche.update(info_pedago.lien_fiche or [])
 
-        content_fmt = [desc.for_intitule]
+        content_fmt = [f'"{desc.for_intitule}" : {add_accronym(desc.for_intitule)}']
         if desc.libeles:
             content_fmt.append(f"libelés: {'; '.join(desc.libeles)}")
         if desc.intitule_parcours:
@@ -180,9 +180,9 @@ def create_embeddings(embeddings_id: str = EMBEDDINGS_MODEL):
         f"add {len(docs)} documents to vector store: {vector_factory.description}"
     )
     # vector_factory.get()
-    for doc in docs:
+    for doc in docs: 
         try:
-            print(".", end="", flus=True)
+            print(".", end="", flush=True)
             vector_factory.add_documents([doc])
         except Exception as ex:
             logger.warning(f"cannot add {doc.metadata['source']} - {ex}")
@@ -260,13 +260,13 @@ def find_acronyms():
     d = {token: known_abbrev.get(token) or "" for token in acronyms}
     df = pd.DataFrame.from_dict(d, orient="index")
     logger.info("save to Excel")
-    df.to_excel("abbreviations.xlsx", sheet_name="extracted")
+    df.to_excel(REPO / "abbreviations.xlsx", sheet_name="extracted")
     return df
 
 
 @app.command()
 def llm_for_abbrev():
-    df_extract = pd.read_excel("abbreviations.xlsx", index_col=0)
+    df_extract = pd.read_excel(REPO / "abbreviations.xlsx", index_col=0)
     # df_extract = find_acronyms()
     unknown = df_extract[df_extract.iloc[:, 0].isnull()]
     unknown_list = "\n".join(unknown.index.tolist())
@@ -303,7 +303,7 @@ def llm_for_abbrev():
         k, _, v = line.partition(":")
         d |= {k.strip("- "): v.strip()}
 
-    OUT_FILE = "abbreviation_llm_2.xlsx"
+    OUT_FILE = REPO / "abbreviation_llm_2.xlsx"
     logger.info(f"write Exel file : {OUT_FILE}")
     df_llm = pd.DataFrame.from_dict(d, orient="index")
     with pd.ExcelWriter(OUT_FILE) as writer:

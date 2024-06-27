@@ -15,13 +15,15 @@ from langchain.retrievers import EnsembleRetriever
 from langchain_core.runnables import Runnable
 
 import python.demos.mon_master_search.search as master_search
+from python.demos.mon_master_search.loader import add_accronym
+from python.demos.mon_master_search.model_subset import EXAMPLE_QUERIES
 
 LLM = "gemini_pro_google"
 
 REPO = Path("/mnt/c/Users/a184094/OneDrive - Eviden/_En cours/mon_master/")
 FILES = REPO / "synthesis_v2.json"
 
-DEFAULT_RESULT_COUNT = 25
+DEFAULT_RESULT_COUNT = 100
 
 
 ################################
@@ -49,7 +51,7 @@ with st.sidebar:
     search_method = st.radio("Search Method:", ["Vector", "Keyword", "Hybrid"], index=2)
     if search_method == "Hybrid":
         ratio_spinner = st.slider(
-            "Keyword  / Vector ratio", min_value=0.0, max_value=1.0, value=0.7, step=0.1
+            "Keyword  / Vector ratio", min_value=0.0, max_value=1.0, value=0.5, step=0.1
         )
 
     embeddings_model = st.radio(
@@ -70,14 +72,14 @@ with st.sidebar:
         st.number_input(
             "Nombre de parcours recherchés",
             min_value=1,
-            max_value=60,
+            max_value=100,
             value=DEFAULT_RESULT_COUNT,
         )
     )
 
-
+example = st.selectbox("Examples:", EXAMPLE_QUERIES, index=None)
 with st.form(key="form"):
-    user_input = st.text_area(label="Recherche:", value="", height=30)
+    user_input = st.text_area(label="Recherche:", value=example or "", height=30)
     submit_clicked = st.form_submit_button("Rechercher")
 
 
@@ -99,7 +101,7 @@ def get_ensemble_retriever(
 
 
 df = pd.DataFrame()
-knwon_set: set[str] = set()
+known_set: set[str] = set()
 if submit_clicked:
     assert embeddings_model is not None
     if search_method == "Vector":
@@ -113,7 +115,9 @@ if submit_clicked:
     count = result_count * 2
 
     config = {"configurable": {"k": count, "search_kwargs": {"k": count}}}
-    user_input = "query : " + user_input  # supposed to work well for Solon Embeddings
+    user_input = "query : " + add_accronym(
+        user_input
+    )  # supposed to work well for Solon Embeddings
 
     start_time = timeit.default_timer()
     result = retriever.invoke(user_input, config=config)  # type: ignore
@@ -125,16 +129,20 @@ if submit_clicked:
         eta = doc.metadata.get("eta_name")
         inm = doc.metadata.get("source")
         for_intitule = doc.metadata["for_intitule"]
+        key = doc.metadata["for_intitule"] + doc.metadata["eta_uai"]
+        parcours = intitule.partition('" : ')[2]
+        parcours = parcours.replace("parcours: ", "=> ").replace("libelés:", " -- ")
+
         row = {
             "Intitulé formation:": for_intitule,
-            "Intitulé parcours ou DMM": intitule,
+            "Formation => Parcours -- libelés": parcours.lower(),
             "ETA": eta,
             "INM(P)": inm,
             "Content": doc.page_content,
         }
-        if for_intitule not in knwon_set:
+        if key not in known_set:
             df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
-        knwon_set.add(for_intitule)
+        known_set.add(key)
 
     st.dataframe(df)
     st.write(f"search duration : {delta_t:9.5f} s")

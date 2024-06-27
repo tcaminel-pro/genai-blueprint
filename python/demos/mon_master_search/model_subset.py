@@ -239,7 +239,6 @@ ACRONYMS = {
 }
 
 
-
 STOP_WORDS = [
     "master",
     "mastère",
@@ -253,4 +252,36 @@ STOP_WORDS = [
     "discipline",
     "secteur",
     "metier",
+]
+
+
+EXAMPLE_QUERIES = [
+    "Linguistique informatique",
+    "Phys nucléaire fusion",
+    "IA architecture perf",
+    "LEA",
+    "allemant",
+    "Droit civil",
+    "Biologie cellulaire avancée",
+    "Lettres modernes",
+    "Droit constitutionnel",
+    "Politique etrangere chine",
+    "Recherche thermodynamique et applications",
+    "Energies renouvel. et économie",
+    "Gestion de l'entreprise droit du travail international",
+    "Espagnol",
+    "Italienne",
+    "Ecologie",
+    "Ecology",
+    "Environnement",
+    "Plastique",
+    "Veille techno",
+    "Professeur des écoles",
+    "Langues étrangères",
+    "Management",
+    "FLE",
+    "FLE FLS",
+    "FLE FLES",
+    "LLCER",
+    "PCS",
 ]

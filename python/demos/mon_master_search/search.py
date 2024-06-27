@@ -14,6 +14,7 @@ from python.ai_core.vector_store import VectorStoreFactory
 from python.ai_retrievers.bm25s_retriever import (
     get_spacy_preprocess_fn,
 )
+from python.demos.mon_master_search.model_subset import EXAMPLE_QUERIES
 
 DEFAULT_RESULT_COUNT = 20
 RATIO_SPARSE = 50
@@ -99,16 +100,19 @@ def search(
         inm = doc.metadata.get("source")
         for_intitule = doc.metadata["for_intitule"]
 
+        key = doc.metadata["for_intitule"] + doc.metadata["eta_uai"]
+        parcours = intitule.partition('" : ')[2]
+        parcours = parcours.replace("parcours: ", "=> ")
         row = {
             "Intitulé formation:": for_intitule,
-            "Intitulé parcours ou DMM": intitule,
+            "Parcours": parcours,
             "ETA": eta,
             "INM(P)": inm,
             "Content": doc.page_content,
         }
-        if for_intitule not in known_set:
+        if key not in known_set:
             df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
-        known_set.add(for_intitule)
+        known_set.add(key)
 
     return df
 
@@ -139,42 +143,13 @@ def format_sheet(worksheet):
 
 if __name__ == "__main__":
     # cSpell: disable
-    _questions = [
-        "Linguistique informatique",
-        "Phys nucléaire fusion",
-        "Lettres modernes",
-        "Biologie cellulaire avancée",
-        "IA architecture perf",
-        "Droit constitutionnel",
-        "Politique etrangere chine",
-        "Recherche thermodynamique et applications",
-        "Energies renouvel. et économie",
-        "Gestion de l'entreprise droit du travail international",
-        "Espagnol",
-        "Italienne",
-        "Droit civil",
-        "Ecologie",
-        "Ecology",
-        "Environnement",
-        "Plastique",
-        "Veille techno",
-        "Professeur des écoles",
-        "Langues étrangères",
-        "Management",
-        "FLE",
-        "FLE FLS",
-        "FLE FLES",
-        "LEA",
-        "LLCER",
-        "PCS",
-    ]
 
-    OUT_FILE = REPO / "master_search_v0_4.xlsx"
+    OUT_FILE = REPO / "master_search_v0_5.xlsx"
 
     logger.info(f"write Exel file : {OUT_FILE}")
     with pd.ExcelWriter(OUT_FILE) as writer:
         logger.info("Vector Search (Solon-large)...")
-        d_vector = process_questions(_questions, SearchMode.VECTOR)
+        d_vector = process_questions(EXAMPLE_QUERIES, SearchMode.VECTOR)
         pd.DataFrame(d_vector).to_excel(
             writer, sheet_name="Vector_search", freeze_panes=(0, 2)
         )
