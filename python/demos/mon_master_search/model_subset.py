@@ -259,7 +259,7 @@ EXAMPLE_QUERIES = [
     "Linguistique informatique",
     "Phys nucléaire fusion",
     "IA architecture perf",
-    "LEA",
+    "LLCER",
     "allemant",
     "Droit civil",
     "Biologie cellulaire avancée",
@@ -282,6 +282,6 @@ EXAMPLE_QUERIES = [
     "FLE",
     "FLE FLS",
     "FLE FLES",
-    "LLCER",
+    "LEA",
     "PCS",
 ]

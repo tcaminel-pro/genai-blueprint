@@ -106,19 +106,16 @@ def get_query_constructor(config: dict):
         document_content_description,
         metadata_field_info,
     )
-    # debug(prompt.format(query="dummy question"))
-
     output_parser = StructuredQueryOutputParser.from_components()
-
-    # model = config["llm"]
     llm = get_llm()
+    debug(llm)
     query_constructor = prompt | llm | output_parser
     return query_constructor
 
 
 def get_retriever(config: dict):
     query_constructor = get_query_constructor(config)
-    debug(query_constructor)
+    #    debug(query_constructor)
     retriever = SelfQueryRetriever(
         query_constructor=query_constructor,  # TODO: Clarify # type: ignore
         llm_chain=query_constructor,
@@ -126,7 +123,7 @@ def get_retriever(config: dict):
         structured_query_translator=ChromaTranslator(),
         verbose=True,
     )
-    debug(query_constructor, retriever)
+    # debug(query_constructor, retriever)
     return retriever
 
 

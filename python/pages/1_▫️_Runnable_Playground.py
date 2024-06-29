@@ -65,6 +65,7 @@ elif first_example.path:
 
 with st.expander("Runnable Graph", expanded=False):
     if importlib.util.find_spec("pygraphviz") is None:
+        #st.graphviz_chart
         runnable = runnable_desc.get(config)
         drawing = runnable.get_graph().draw_ascii()
         st.write(drawing)
