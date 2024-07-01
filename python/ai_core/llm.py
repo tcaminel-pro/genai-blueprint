@@ -28,6 +28,8 @@ MAX_TOKENS = 2048
 
 
 class LLM_INFO(BaseModel):
+    """Description of LLM ( model  + endpoint)"""
+
     id: str  # an ID for the LLM; should follow Python variables constraints
     cls: str  # Name of the LangChain class for the constructor
     model: str  # Name of the model for the constructor
@@ -51,9 +53,10 @@ class LLM_INFO(BaseModel):
 
 
 KNOWN_LLM_LIST = [
-    # LLM id should follow Python variables constraints - ie no '-', no space, etc
-    # Use pattern "{self.model_name}_{version}_{inference provider or library}"
-    # model_name is provider specific.  It can contains several fields decoded in the factory.
+    # LLM and endpoints in the factory.
+    # LLM_id should follow Python variables constraints - ie no '-', no space, etc
+    #  Use pattern "{self.model_name}_{version}_{inference provider or library}"
+    #  model_name is provider specific.  It can contains several fields decoded in the factory.
     # LiteLlm supported models are listed here: https://litellm.vercel.app/docs/providers
     #
     # ####  OpenAI Models  ####
@@ -182,6 +185,8 @@ KNOWN_LLM_LIST = [
 
 
 class LlmFactory(BaseModel):
+    """Factory for LLM"""
+
     llm_id: Annotated[str | None, Field(validate_default=True)] = None
     temperature: float = 0
     max_tokens: int = MAX_TOKENS
@@ -191,6 +196,7 @@ class LlmFactory(BaseModel):
     @computed_field
     @cached_property
     def info(self) -> LLM_INFO:
+        """Return LLM_INFO information on LLM"""
         assert self.llm_id
         return LlmFactory.known_items_dict().get(self.llm_id)  # type: ignore
 
@@ -204,6 +210,7 @@ class LlmFactory(BaseModel):
 
     @staticmethod
     def known_items_dict() -> dict[str, LLM_INFO]:
+        """Return known LLM in the registry whose API key environment variable is known"""
         return {
             item.id: item
             for item in KNOWN_LLM_LIST
@@ -212,6 +219,8 @@ class LlmFactory(BaseModel):
 
     @staticmethod
     def known_items() -> list[str]:
+        """Return id of known LLM in the registry whose API key environment variable is known"""
+
         return list(LlmFactory.known_items_dict().keys())
 
     def get(self) -> BaseLanguageModel:
@@ -227,6 +236,7 @@ class LlmFactory(BaseModel):
         return llm
 
     def model_factory(self) -> BaseLanguageModel:
+        """Model factory, according to the model class"""
         if self.info.cls == "ChatOpenAI":
             from langchain_openai import ChatOpenAI
 

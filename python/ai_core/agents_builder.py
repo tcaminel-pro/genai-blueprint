@@ -1,3 +1,4 @@
+# WIP to make agents more generic
 # might be incomplete
 # see https://python.langchain.com/v0.1/docs/modules/agents/agent_types/
 

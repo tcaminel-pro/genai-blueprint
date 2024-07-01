@@ -64,18 +64,14 @@ elif first_example.path:
     config |= {"path": first_example.path}
 
 with st.expander("Runnable Graph", expanded=False):
+    runnable = runnable_desc.get(config)
     if importlib.util.find_spec("pygraphviz") is None:
-        #st.graphviz_chart
-        runnable = runnable_desc.get(config)
-        drawing = runnable.get_graph().draw_ascii()
-        st.write(drawing)
+        # st.graphviz_chart
+        # drawing = runnable.get_graph().draw_ascii()
+        drawing = runnable.get_graph().draw_mermaid_png()
     else:
-        runnable = runnable_desc.get(config)
         drawing = runnable.get_graph().draw_png()  # type: ignore
-        # drawing = runnable.get_graph().draw_mermaid_png()
-
-        st.image(drawing)
-        st.write("")
+    st.write(drawing)
 
 # selected_runnable = st.selectbox("Select a Runnable", list(RUNNABLES.keys()))
 
