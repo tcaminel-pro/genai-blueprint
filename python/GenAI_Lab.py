@@ -2,11 +2,15 @@ import os
 from pathlib import Path
 
 import streamlit as st
+from devtools import debug
+from dotenv import load_dotenv
 from langchain.globals import set_debug, set_verbose
 from loguru import logger
 
 from python.ai_core.llm import LlmFactory, set_cache
-from python.config import get_config_str, set_config_str
+from python.config import get_config_str
+
+load_dotenv()
 
 logger.info("Start Webapp...")
 

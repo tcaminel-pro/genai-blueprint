@@ -10,6 +10,9 @@ from typing import Callable
 
 import typer
 from devtools import pprint
+
+# Import modules where runnables are registered
+from dotenv import load_dotenv
 from langchain.globals import set_debug, set_verbose
 from langchain_core.runnables import Runnable
 
@@ -23,7 +26,7 @@ from python.ai_core.llm import LlmFactory, set_cache
 from python.ai_core.vector_store import VectorStoreFactory
 from python.config import get_config_str
 
-# Import modules where runnables are registered
+load_dotenv()
 
 
 load_modules_with_chains()

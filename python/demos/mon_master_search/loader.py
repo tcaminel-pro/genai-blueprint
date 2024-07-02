@@ -180,7 +180,7 @@ def create_embeddings(embeddings_id: str = EMBEDDINGS_MODEL):
         f"add {len(docs)} documents to vector store: {vector_factory.description}"
     )
     # vector_factory.get()
-    for doc in docs: 
+    for doc in docs:
         try:
             print(".", end="", flush=True)
             vector_factory.add_documents([doc])

@@ -16,6 +16,7 @@
         "dataframe",
         "datasources",
         "deepinfra",
+        "dotenv",
         "edenai",
         "embedder",
         "embedders",

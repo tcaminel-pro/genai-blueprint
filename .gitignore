@@ -162,9 +162,5 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 test_graph.png
-.langchain.db
-.langchain.db
-.langchain.db
 use_case_data/maintenance/demo.db
-.langchain.db
 .langchain.db
