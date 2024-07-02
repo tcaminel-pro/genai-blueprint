@@ -58,8 +58,8 @@ default:
   chains:
     path: python.ai_chains
     modules:
-      - 1-1_joke 
-      - 2-1_naive_rag_example
+      - A_1_joke 
+      - B_1_naive_rag_example
       # - lc_tools_example
       # - lc_self_query
       # - lc_advanced_rag_langgraph

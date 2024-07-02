@@ -53,8 +53,6 @@ def define_commands(cli_app: typer.Typer):
         set_verbose(verbose)
         set_cache(cache)
 
-        if llm_id and llm_id not in LlmFactory.check_known()
-            
         runnables_list = sorted([f"'{o.name}'" for o in get_runnable_registry()])
         runnables_list_str = ", ".join(runnables_list)
 
