@@ -56,7 +56,7 @@ def define_commands(cli_app: typer.Typer):
         set_verbose(verbose)
         set_cache(cache)
 
-        if llm_id not in LlmFactory.known_items() :
+        if llm_id is not None and  llm_id not in LlmFactory.known_items()  :
             print(f"Error: unknown llm_id. \n Should be in {LlmFactory.known_items()}")
             return
 

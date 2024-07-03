@@ -205,7 +205,7 @@ class LlmFactory(BaseModel):
         if llm_id is None:
             llm_id = get_config_str("llm", "default_model")
         if llm_id not in LlmFactory.known_items():
-            raise ValueError(f"Unknown LLM: {llm_id}")
+            raise ValueError(f"Unknown LLM: {llm_id}; Should be in {LlmFactory.known_items()}")
         return llm_id
 
     @staticmethod
