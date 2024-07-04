@@ -62,7 +62,7 @@ default:
       - B_1_naive_rag_example
       # - B_2_self_query
       #- C_1_tools_example
-      # - C_2_advanced_rag_langgraph
+      - C_2_advanced_rag_langgraph
       # - essay_writer_agent
 
 cloud_openai:    

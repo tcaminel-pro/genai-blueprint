@@ -10,6 +10,7 @@ from operator import itemgetter
 from typing import Any, List, Literal
 
 from devtools import debug
+from dotenv import load_dotenv
 from langchain.output_parsers.enum import EnumOutputParser
 from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -34,6 +35,8 @@ Suggested extensions :
 - Rewrite query as in https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_adaptive_rag.ipynb 
 
 """
+
+load_dotenv()
 
 
 class YesOrNo(Enum):
@@ -172,9 +175,8 @@ def question_router() -> Runnable[Any, DataRoute]:
 
 web_search_tool = TavilySearchResults(max_results=3)  # Search tool
 
-from langchain_community.tools import DuckDuckGoSearchResults
 
-web_search_tool = DuckDuckGoSearchResults(num_results=3)
+# web_search_tool = DuckDuckGoSearchResults(num_results=3)
 
 
 ### State
@@ -269,9 +271,9 @@ def web_search(state: GraphState) -> GraphState:
 
     # Web search
     # docs = web_search_tool.invoke({"query": question})
-    docs = web_search_tool.run({"query": question})
-    # web_results = "\n".join([d["content"] for d in docs])
-    web_results = Document(page_content=docs)
+    docs = web_search_tool.invoke({"query": question})
+    web_results = ["\n".join([d["content"] for d in docs])]
+    #  web_results = Document(page_content=docs)
 
     if documents is not None:
         documents.append(web_results)
@@ -341,12 +343,12 @@ def grade_generation_v_documents_and_question(
     documents = state["documents"]
     generation = state["generation"]
 
-    hallucination = hallucination_grader().invoke(
+    grounded = hallucination_grader().invoke(
         {"documents": documents, "generation": generation}
     )
 
     # Check hallucination
-    if hallucination == YesOrNo.YES:
+    if grounded == YesOrNo.YES:
         logger.debug("---DECISION: GENERATION IS GROUNDED IN DOCUMENTS---")
         # Check question-answering
         logger.debug("---GRADE GENERATION vs QUESTION---")

@@ -11,7 +11,6 @@ st.set_page_config(
 )
 
 
-from devtools import debug
 from dotenv import load_dotenv
 from langchain.globals import set_debug, set_verbose
 from loguru import logger
@@ -25,7 +24,6 @@ logger.info("Start Webapp...")
 
 logo_an = str(Path.cwd() / "static" / "AcademieNumerique_Colour_RGB-150x150.jpg")
 logo_eviden = str(Path.cwd() / "static/eviden-logo-white.png")
-
 
 
 st.sidebar.success("Select a demo above.")
