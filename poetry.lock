@@ -4884,6 +4884,16 @@ files = [
 windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
+name = "pygraphviz"
+version = "1.13"
+description = "Python interface to Graphviz"
+optional = false
+python-versions = ">=3.10"
+files = [
+    {file = "pygraphviz-1.13.tar.gz", hash = "sha256:6ad8aa2f26768830a5a1cfc8a14f022d13df170a8f6fdfd68fd1aa1267000964"},
+]
+
+[[package]]
 name = "pyhumps"
 version = "3.8.0"
 description = "🐫  Convert strings (and dictionary keys) between snake case, camel case and pascal case in Python. Inspired by Humps for Node"
@@ -7840,4 +7850,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "5bfef26ff7ac0a09806c7b6def5fe5ecdfdad5e81d5576fef375bc7ae792e037"
+content-hash = "61e9116ece42b5c2f90e589bc6211431d2583f918c096cb110601cddf0c51f55"

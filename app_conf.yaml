@@ -60,9 +60,9 @@ default:
     modules:
       - A_1_joke 
       - B_1_naive_rag_example
-      # - lc_tools_example
-      # - lc_self_query
-      # - lc_advanced_rag_langgraph
+      - B_2_self_query
+      #- C_1_tools_example
+      # - C_2_advanced_rag_langgraph
       # - essay_writer_agent
 
 cloud_openai:    

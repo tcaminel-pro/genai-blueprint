@@ -56,6 +56,10 @@ def define_commands(cli_app: typer.Typer):
         set_verbose(verbose)
         set_cache(cache)
 
+        if llm_id not in LlmFactory.known_items() :
+            print(f"Error: unknown llm_id. \n Should be in {LlmFactory.known_items()}")
+            return
+
         runnables_list = sorted([f"'{o.name}'" for o in get_runnable_registry()])
         runnables_list_str = ", ".join(runnables_list)
 

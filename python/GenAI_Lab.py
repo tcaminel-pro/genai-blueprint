@@ -2,13 +2,22 @@ import os
 from pathlib import Path
 
 import streamlit as st
+
+st.set_page_config(
+    page_title="GenAI Lab and Practicum",
+    page_icon="🛠️",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+
 from devtools import debug
 from dotenv import load_dotenv
 from langchain.globals import set_debug, set_verbose
 from loguru import logger
 
 from python.ai_core.llm import LlmFactory, set_cache
-from python.config import get_config_str
+from python.config import get_config_str, set_config_str
 
 load_dotenv()
 
@@ -18,12 +27,6 @@ logo_an = str(Path.cwd() / "static" / "AcademieNumerique_Colour_RGB-150x150.jpg"
 logo_eviden = str(Path.cwd() / "static/eviden-logo-white.png")
 
 
-st.set_page_config(
-    page_title="GenAI Lab and Practicum",
-    page_icon="🛠️",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
 
 st.sidebar.success("Select a demo above.")
 

@@ -3,6 +3,8 @@ import importlib.util
 from pathlib import Path
 
 import streamlit as st
+#st.set_page_config(layout="wide")
+
 from langchain.callbacks import tracing_v2_enabled
 
 from python.ai_core.chain_registry import (
@@ -13,7 +15,6 @@ from python.ai_core.chain_registry import (
 from python.config import get_config_str
 from python.GenAI_Lab import config_sidebar
 
-st.set_page_config(layout="wide")
 st.title("💬 Runnable Playground")
 
 config_sidebar()
@@ -64,14 +65,19 @@ elif first_example.path:
     config |= {"path": first_example.path}
 
 with st.expander("Runnable Graph", expanded=False):
-    runnable = runnable_desc.get(config)
-    if importlib.util.find_spec("pygraphviz") is None:
-        # st.graphviz_chart
-        # drawing = runnable.get_graph().draw_ascii()
-        drawing = runnable.get_graph().draw_mermaid_png()
-    else:
-        drawing = runnable.get_graph().draw_png()  # type: ignore
-    st.write(drawing)
+    graph = runnable_desc.get(config).get_graph()
+    try :
+        if importlib.util.find_spec("pygraphviz") is None:
+            # st.graphviz_chart
+            st.image(graph.draw_mermaid_png())
+        else:
+            st.image(graph.draw_png())  # type: ignore
+    except Exception as ex:
+            try:
+                st.write(graph.draw_ascii())
+            except Exception as ex:
+                st.write("cannot draw graph")
+
 
 # selected_runnable = st.selectbox("Select a Runnable", list(RUNNABLES.keys()))
 
