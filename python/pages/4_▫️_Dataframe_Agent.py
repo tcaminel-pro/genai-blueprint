@@ -110,7 +110,7 @@ if prompt := st.chat_input(placeholder=sample_prompt):
     st.chat_message("user").write(prompt)
 
     llm = get_llm()
-    debug(llm)
+    #    debug(llm)
 
     pandas_df_agent = create_pandas_dataframe_agent(
         llm,
@@ -118,6 +118,7 @@ if prompt := st.chat_input(placeholder=sample_prompt):
         verbose=True,
         agent_type="tool-calling",
         handle_parsing_errors=True,
+        allow_dangerous_code=True,
     )
 
     with st.chat_message("assistant"):
