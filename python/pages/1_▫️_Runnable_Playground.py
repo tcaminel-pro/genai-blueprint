@@ -3,8 +3,6 @@ import importlib.util
 from pathlib import Path
 
 import streamlit as st
-#st.set_page_config(layout="wide")
-
 from langchain.callbacks import tracing_v2_enabled
 
 from python.ai_core.chain_registry import (
@@ -22,8 +20,6 @@ config_sidebar()
 load_modules_with_chains()
 
 
-runnables_list = sorted([f"'{o.name}'" for o in get_runnable_registry()])
-
 runnables_list = sorted([(o.tag, o.name) for o in get_runnable_registry()])
 selection = st.selectbox(
     "Runnable", runnables_list, index=0, format_func=lambda x: f"[{x[0]}] {x[1]}"
@@ -39,7 +35,6 @@ first_example = runnable_desc.examples[0]
 if diagram := runnable_desc.diagram:
     file = Path.cwd() / diagram
     st.image(str(file))
-    st.write("")
 
 if path := first_example.path:
     sel_col1, sel_col2 = st.columns(2)
@@ -66,17 +61,17 @@ elif first_example.path:
 
 with st.expander("Runnable Graph", expanded=False):
     graph = runnable_desc.get(config).get_graph()
-    try :
+    try:
         if importlib.util.find_spec("pygraphviz") is None:
             # st.graphviz_chart
             st.image(graph.draw_mermaid_png())
         else:
             st.image(graph.draw_png())  # type: ignore
-    except Exception as ex:
-            try:
-                st.write(graph.draw_ascii())
-            except Exception as ex:
-                st.write("cannot draw graph")
+    except Exception:
+        try:
+            st.write(graph.draw_ascii())
+        except Exception as ex:
+            st.write(f"cannot draw graph: {ex}")
 
 
 # selected_runnable = st.selectbox("Select a Runnable", list(RUNNABLES.keys()))

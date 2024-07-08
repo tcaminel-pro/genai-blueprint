@@ -130,7 +130,7 @@ def call_functions(llm_with_tools, user_prompt):
 
 
 def main():
-    llm = get_llm(llm_id="llama3_70_groq")
+    llm = get_llm(llm_id="llama3_70_groq", cache=False)
 
     #    llm = LlmFactory(llm_id="gpt_35_openai").get()
 

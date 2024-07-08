@@ -7,3 +7,8 @@ secondaryBackgroundColor="#19323B"
 [runner]
 magicEnabled = false
 
+[browser]
+gatherUsageStats = false
+
+[server]
+runOnSave = true

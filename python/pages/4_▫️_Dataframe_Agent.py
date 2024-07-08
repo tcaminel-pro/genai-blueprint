@@ -12,7 +12,10 @@ from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from python.ai_core.llm import get_llm
 from python.GenAI_Lab import config_sidebar
-from python.utils.streamlit.load_data import TABULAR_FILE_FORMATS, load_tabular_data
+from python.utils.streamlit.load_data import (
+    TABULAR_FILE_FORMATS_READERS,
+    load_tabular_data,
+)
 
 
 def clear_submit():
@@ -25,8 +28,10 @@ def clear_submit():
 
 
 @st.cache_data(show_spinner=True)
-def get_dataframe(file_or_filename: Path | UploadedFile) -> pd.DataFrame | None:
-    return load_tabular_data(file_or_filename)
+def get_dataframe(
+    file_or_filename: Path | UploadedFile, **kwargs
+) -> pd.DataFrame | None:
+    return load_tabular_data(file_or_filename=file_or_filename, **kwargs)
 
 
 SAMPLE_PROMPTS = [
@@ -62,7 +67,7 @@ title_col1.markdown(
 sel_col1, sel_col2 = st.columns(2)
 uploaded_file = sel_col1.file_uploader(
     "Upload a Data file",
-    type=list(TABULAR_FILE_FORMATS.keys()),
+    type=list(TABULAR_FILE_FORMATS_READERS.keys()),
     on_change=clear_submit,
 )
 sel_col2.write("Or else use:")
@@ -72,14 +77,26 @@ default_file_name = sel_col2.radio(
 
 DATA_PATH = Path.cwd() / "use_case_data/other"
 
+df_0: pd.DataFrame | None = None
 df: pd.DataFrame | None = None
-if uploaded_file:
-    df = get_dataframe(uploaded_file)
-elif default_file_name:
-    df = get_dataframe(DATA_PATH / default_file_name)
-if df is not None:
-    with st.expander(label="Loaded Dataframe", expanded=False):
-        st.dataframe(df)
+
+
+with st.expander(label="Loaded Dataframe", expanded=True):
+    skiprows = (
+        st.number_input(
+            "skip rows:",
+            min_value=0,
+            max_value=99,
+            value=0,
+            step=1,
+        )
+        - 1
+    )
+    args = {"skiprows": skiprows}
+    file = uploaded_file or DATA_PATH / default_file_name
+    df = get_dataframe(file, **args)
+    st.data_editor(df)
+
 
 sample_prompt = None
 if default_file_name == "titanic.csv":

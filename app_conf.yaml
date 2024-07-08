@@ -59,10 +59,10 @@ default:
     path: python.ai_chains
     modules:
       - A_1_joke 
-      - B_1_naive_rag_example
+      # - B_1_naive_rag_example
       # - B_2_self_query
-      #- C_1_tools_example
-      - C_2_advanced_rag_langgraph
+      # - C_1_tools_example
+      # - C_2_advanced_rag_langgraph
       # - essay_writer_agent
 
 cloud_openai:    
@@ -72,3 +72,9 @@ cloud_openai:
   embeddings:
     default_model: ada_002_openai
 
+cloud_aws:
+  llm:
+    default_model: anthropic_claude35_bedrock
+    cache : memory
+  embeddings:
+    default_model: ???
