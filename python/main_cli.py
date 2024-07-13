@@ -5,6 +5,7 @@ Entry point for the Command Line Interface,  and commands
 """
 
 import os
+import sys
 from pathlib import Path
 from typing import Callable
 
@@ -15,7 +16,9 @@ from devtools import pprint
 from dotenv import load_dotenv
 from langchain.globals import set_debug, set_verbose
 from langchain_core.runnables import Runnable
+from typing_extensions import Annotated
 
+from python.ai_chains.fabric import get_fabric_chain
 from python.ai_core.chain_registry import (
     find_runnable,
     get_runnable_registry,
@@ -44,7 +47,7 @@ def define_commands(cli_app: typer.Typer):
         path: Path | None = None,  # input
         verbose: bool = False,
         debug: bool = False,
-        cache: str = "sqlite",
+        cache: str = "memory",
         temperature: float = 0.0,
         llm_id: str | None = None,  # id (our name) of the LLM
     ):
@@ -118,6 +121,37 @@ def define_commands(cli_app: typer.Typer):
         print(f"{tab}vector_store:")
         for vc in VectorStoreFactory.known_items():
             print(f"{tab}{tab}- {vc}")
+
+    @cli_app.command()
+    def fabric(
+        pattern: Annotated[str, typer.Option("--pattern", "-p")],
+        verbose: Annotated[bool, typer.Option("--verbose", "-v")] = False,
+        debug: Annotated[bool, typer.Option("--debug", "-d")] = False,
+        cache: str = "memory",
+        temperature: float = 0.0,
+        llm_id: str | None = None,  # id (our name) of the LLM
+    ):
+        """
+        Run 'fabric' pattern on standard input
+
+        Pattern list is here: https://github.com/danielmiessler/fabric/tree/main/patterns
+        Also described here : https://github.com/danielmiessler/fabric/blob/main/patterns/suggest_pattern/user.md
+
+        ex: echo "artificial intelligence" | python python/main_cli.py fabric create_aphorisms --llm-id llama-70-groq
+        """
+        set_debug(debug)
+        set_verbose(verbose)
+        set_cache(cache)
+
+        if llm_id is not None and llm_id not in LlmFactory.known_items():
+            print(f"Error: unknown llm_id. \n Should be in {LlmFactory.known_items()}")
+            return
+
+        config = {"llm": llm_id if llm_id else get_config_str("llm", "default_model")}
+        chain = get_fabric_chain(config)
+        input = "\n".join(sys.stdin)
+        result = chain.invoke({"pattern": pattern, "input_data": input}, config)
+        print(result)
 
 
 if __name__ == "__main__":

@@ -17,7 +17,6 @@ from langchain.schema.language_model import BaseLanguageModel
 from langchain_community.cache import InMemoryCache, SQLiteCache
 from langchain_core.runnables import ConfigurableField, Runnable
 from loguru import logger
-from lunary import LunaryCallbackHandler
 from pydantic import BaseModel, Field, computed_field, field_validator
 from typing_extensions import Annotated
 
@@ -205,7 +204,9 @@ class LlmFactory(BaseModel):
         if llm_id is None:
             llm_id = get_config_str("llm", "default_model")
         if llm_id not in LlmFactory.known_items():
-            raise ValueError(f"Unknown LLM: {llm_id}; Should be in {LlmFactory.known_items()}")
+            raise ValueError(
+                f"Unknown LLM: {llm_id}; Should be in {LlmFactory.known_items()}"
+            )
         return llm_id
 
     @staticmethod
@@ -443,6 +444,3 @@ def set_cache(cache: str | None = None):
             "incorrect [llm]/cache config. Should be 'memory' or 'sqlite' "
         )
     # logger.info(f"cache: {cache}")
-
-
-llm_monitor_handler = LunaryCallbackHandler()  # Not used yet
