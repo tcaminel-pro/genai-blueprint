@@ -14,13 +14,13 @@ Repository = "https://github.com/tcaminel-pro/genai-blueprint"
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
 pydantic = "^2.7.0"
-langchain = "^0.2.6"
-langchain-core = "^0.2.10"
+langchain = "^0.2.7"
+langchain-core = "^0.2.17"
 #langchain-community = {git = "https://github.com/edenai/langchain.git", rev = "feat/edenai-chat_models-tools", subdirectory = "libs/community"}
 #langchain-experimental = {git = "https://github.com/edenai/langchain.git", rev = "feat/edenai-chat_models-tools", subdirectory = "libs/experimental"}
-langchain-community = "^0.2.6"
+langchain-community = "^0.2.7"
 langchain-experimental = "^0.0.62"
-langgraph = "^0.1.5"
+langgraph = "^0.1.8"
 langserve = "^0.2.2"
 langchainhub = "^0.1.20"
 langchain-groq = "^0.1.6"
@@ -48,6 +48,14 @@ pypdf = "^4.2.0"
 openpyxl = "^3.1.4"
 python-dotenv = "^1.0.1"
 # pygraphviz = "^1.13"
+
+
+[tool.poetry.group.crewai]  # Install : poetry install --with transformers 
+optional = false
+
+[tool.poetry.group.crewai.dependencies]
+crewai = "^0.36.1"
+crewai-tools = "^0.4.8"
 
 
 [tool.poetry.group.transformers]  # Install : poetry install --with transformers 

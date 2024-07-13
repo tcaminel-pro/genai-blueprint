@@ -26,7 +26,7 @@ from python.ai_core.llm import LlmFactory, set_cache
 from python.ai_core.vector_store import VectorStoreFactory
 from python.config import get_config_str
 
-load_dotenv()
+load_dotenv(verbose=True)
 
 
 load_modules_with_chains()
@@ -56,7 +56,7 @@ def define_commands(cli_app: typer.Typer):
         set_verbose(verbose)
         set_cache(cache)
 
-        if llm_id is not None and  llm_id not in LlmFactory.known_items()  :
+        if llm_id is not None and llm_id not in LlmFactory.known_items():
             print(f"Error: unknown llm_id. \n Should be in {LlmFactory.known_items()}")
             return
 

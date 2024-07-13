@@ -7,7 +7,7 @@ from langchain_core.messages import AnyMessage, HumanMessage, SystemMessage, Too
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, StateGraph
 
-_ = load_dotenv()
+_ = load_dotenv(verbose=True)
 
 tool = TavilySearchResults(max_results=4)
 print(type(tool))

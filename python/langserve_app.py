@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from langserve import add_routes
 
-load_dotenv()
+load_dotenv(verbose=True)
 
 from python.ai_core.chain_registry import (
     get_runnable_registry,

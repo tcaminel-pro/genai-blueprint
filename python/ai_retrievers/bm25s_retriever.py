@@ -1,5 +1,7 @@
 """
 A replacement of the BM25Retriever with , much faster
+
+**  NOT WELL TESTED ** 
 """
 
 from __future__ import annotations
@@ -18,12 +20,26 @@ def default_preprocessing_func(text: str) -> List[str]:
     return text.split()
 
 
-def get_spacy_preprocess_fn(model: str, more_stop_words: list[str] = []):
+def get_spacy_preprocess_fn(
+    model: str, more_stop_words: list[str] = []
+) -> Callable[[str], list[str]]:
+    """
+    Return a function that preprocess a string for search :  lemmanisation, lower_case, and strop word removal.
+
+    Args:
+    - model: spacy model for lemmanisation
+    - more_stop_words : additional stop words
+    """
     import spacy
 
     logger.info(f"load spacy model {model}")
 
-    nlp = spacy.load(model)
+    try:
+        nlp = spacy.load(model)
+    except IOError:
+        logger.exception(
+            f"Cannot load Spacy model.  Try install it with : 'python -m spacy download {model}'"
+        )
     stop_words = nlp.Defaults.stop_words
     stop_words.update(more_stop_words or [])
 

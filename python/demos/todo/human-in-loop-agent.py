@@ -13,7 +13,7 @@ from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, StateGraph
 
-_ = load_dotenv()
+_ = load_dotenv(verbose=True)
 
 
 memory = SqliteSaver.from_conn_string(":memory:")

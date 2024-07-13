@@ -15,7 +15,7 @@ from loguru import logger  # type: ignore
 # fmt: off
 [sys.path.append(str(path)) for path in [Path.cwd(), Path.cwd().parent, Path.cwd().parent/"python"] if str(path) not in sys.path]  # type: ignore # fmt: on
 
-load_dotenv()
+load_dotenv(verbose=True)
 app = FastAPI()
 
 @app.get("/echo/{message}")

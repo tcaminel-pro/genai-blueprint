@@ -189,9 +189,6 @@ def create_embeddings(embeddings_id: str = EMBEDDINGS_MODEL):
     print("done")
 
 
-fn = get_spacy_preprocess_fn(model="fr_core_news_sm", more_stop_words=STOP_WORDS)
-
-
 @app.command()
 def create_bm25_index(k: int = 20):
     logger.info("create BM25 index")

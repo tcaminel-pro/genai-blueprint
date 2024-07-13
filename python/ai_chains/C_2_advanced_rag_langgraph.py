@@ -36,7 +36,7 @@ Suggested extensions :
 
 """
 
-load_dotenv()
+load_dotenv(verbose=True)
 
 
 class YesOrNo(Enum):

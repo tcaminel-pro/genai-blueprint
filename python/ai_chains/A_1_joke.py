@@ -14,7 +14,8 @@ from python.ai_core.chain_registry import (
 from python.ai_core.llm import get_llm
 from python.ai_core.prompts import def_prompt
 
-load_dotenv()
+load_dotenv(verbose=True)
+
 
 simple_prompt = """Tell me a joke on {topic}"""
 joke_chain = (

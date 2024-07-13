@@ -18,7 +18,7 @@ from loguru import logger
 from python.ai_core.llm import LlmFactory, set_cache
 from python.config import get_config_str, set_config_str
 
-load_dotenv()
+load_dotenv(verbose=True)
 
 logger.info("Start Webapp...")
 
