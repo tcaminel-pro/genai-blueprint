@@ -7,15 +7,16 @@ Entry point for the Command Line Interface,  and commands
 import os
 import sys
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Optional
 
 import typer
 from devtools import pprint
-
-# Import modules where runnables are registered
 from dotenv import load_dotenv
 from langchain.globals import set_debug, set_verbose
 from langchain_core.runnables import Runnable
+
+# Import modules where runnables are registered
+from typer import Option
 from typing_extensions import Annotated
 
 from python.ai_chains.fabric import get_fabric_chain
@@ -45,11 +46,12 @@ def define_commands(cli_app: typer.Typer):
         name: str,  # name (description) of the Runnable
         input: str | None = None,  # input
         path: Path | None = None,  # input
-        verbose: bool = False,
-        debug: bool = False,
         cache: str = "memory",
         temperature: float = 0.0,
-        llm_id: str | None = None,  # id (our name) of the LLM
+        stream: Annotated[bool, Option("--stream", "-s")] = False,
+        verbose: Annotated[bool, Option("--verbose", "-v")] = False,
+        debug: Annotated[bool, Option("--debug", "-d")] = False,
+        llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
     ):
         """
         Run a given Runnable with parameter 'input". LLM can be changed, otherwise the default one is selected.
@@ -80,8 +82,13 @@ def define_commands(cli_app: typer.Typer):
             if not input:
                 input = first_example.query[0]
 
-            result = runnable_desc.invoke(input, config)
-            pprint(result)
+            if stream:
+                for s in runnable_desc.stream(input, config):
+                    print(s, end="", flush=True)
+                print("\n")
+            else:
+                result = runnable_desc.invoke(input, config)
+                pprint(result)
         else:
             print(f"Runnable not found: '{name}'. Should be in: {runnables_list_str}")
 
@@ -124,12 +131,13 @@ def define_commands(cli_app: typer.Typer):
 
     @cli_app.command()
     def fabric(
-        pattern: Annotated[str, typer.Option("--pattern", "-p")],
-        verbose: Annotated[bool, typer.Option("--verbose", "-v")] = False,
-        debug: Annotated[bool, typer.Option("--debug", "-d")] = False,
+        pattern: Annotated[str, Option("--pattern", "-p")],
+        verbose: Annotated[bool, Option("--verbose", "-v")] = False,
+        debug: Annotated[bool, Option("--debug", "-d")] = False,
         cache: str = "memory",
+        stream: Annotated[bool, Option("--stream", "-s")] = False,
         temperature: float = 0.0,
-        llm_id: str | None = None,  # id (our name) of the LLM
+        llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
     ):
         """
         Run 'fabric' pattern on standard input
@@ -150,8 +158,13 @@ def define_commands(cli_app: typer.Typer):
         config = {"llm": llm_id if llm_id else get_config_str("llm", "default_model")}
         chain = get_fabric_chain(config)
         input = "\n".join(sys.stdin)
-        result = chain.invoke({"pattern": pattern, "input_data": input}, config)
-        print(result)
+        if stream:
+            for s in chain.stream({"pattern": pattern, "input_data": input}, config):
+                print(s, end="", flush=True)
+                print("\n")
+        else:
+            result = chain.invoke({"pattern": pattern, "input_data": input}, config)
+            print(result)
 
 
 if __name__ == "__main__":

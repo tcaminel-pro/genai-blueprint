@@ -4,7 +4,7 @@ A registry for Langchain Runnables
 
 import importlib
 from pathlib import Path
-from typing import Any, Callable, Tuple
+from typing import Any, Callable, Iterator, Tuple
 
 from langchain_core.runnables import Runnable, RunnableLambda
 from loguru import logger
@@ -48,6 +48,13 @@ class RunnableItem(BaseModel):
         # is_agent = isinstance(runnable, AgentExecutor)
         runnable = runnable.with_config(configurable=conf)
         result = runnable.invoke(input)
+        return result
+
+    def stream(self, input: str, conf: dict[str, Any]) -> Iterator:
+        runnable = self.get(conf)
+        # is_agent = isinstance(runnable, AgentExecutor)
+        runnable = runnable.with_config(configurable=conf)
+        result = runnable.stream(input)
         return result
 
     def get(self, conf={"llm": None}) -> Runnable:
