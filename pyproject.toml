@@ -59,6 +59,7 @@ crewai-tools = "^0.4.8"
 
 
 [tool.poetry.group.transformers]  # Install : poetry install --with transformers 
+# Warning : reguire 5 GB at least + storage for models 
 optional = false
 
 [tool.poetry.group.transformers.dependencies]

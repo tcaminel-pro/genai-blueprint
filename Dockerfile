@@ -7,10 +7,11 @@ FROM python:3.11-bookworm  as builder
 
 RUN apt-get update && apt-get install -y git
 
+# Project specific install 
 RUN apt-get install -y graphviz-dev
 
-RUN pip install poetry==1.5.1
-
+# Install and configure Poetry
+RUN pip install poetry==1.8.3
 ENV POETRY_NO_INTERACTION=1 \
     POETRY_VIRTUALENVS_IN_PROJECT=1 \
     POETRY_VIRTUALENVS_CREATE=1 \
