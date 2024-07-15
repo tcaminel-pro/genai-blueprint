@@ -11,8 +11,6 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from langserve import add_routes
 
-load_dotenv(verbose=True)
-
 from python.ai_core.chain_registry import (
     get_runnable_registry,
     load_modules_with_chains,
@@ -21,6 +19,7 @@ from python.ai_core.chain_registry import (
 # fmt: off
 [sys.path.append(str(path)) for path in [Path.cwd(), Path.cwd().parent, Path.cwd().parent/"python"] if str(path) not in sys.path]  # type: ignore # fmt: on
 
+load_dotenv(verbose=True)
 load_modules_with_chains()
 
 app = FastAPI(

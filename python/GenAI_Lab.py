@@ -2,6 +2,13 @@ import os
 from pathlib import Path
 
 import streamlit as st
+from dotenv import load_dotenv
+from langchain.globals import set_debug, set_verbose
+from loguru import logger
+
+from python.ai_core.cache import LlmCache
+from python.ai_core.llm import LlmFactory, set_cache
+from python.config import get_config_str, set_config_str
 
 st.set_page_config(
     page_title="GenAI Lab and Practicum",
@@ -9,14 +16,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
-
-from dotenv import load_dotenv
-from langchain.globals import set_debug, set_verbose
-from loguru import logger
-
-from python.ai_core.llm import LlmFactory, set_cache
-from python.config import get_config_str, set_config_str
 
 load_dotenv(verbose=True)
 
@@ -62,7 +61,11 @@ def config_sidebar():
                 )
             )
 
-            set_cache(st.selectbox("Cache", ["memory", "sqlite"], index=1))
+            set_cache(
+                LlmCache.from_value(
+                    st.selectbox("Cache", ["memory", "sqlite"], index=1)
+                )
+            )
 
             if "LUNARY_APP_ID" in os.environ:
                 if st.checkbox(

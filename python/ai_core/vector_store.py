@@ -6,9 +6,7 @@ Support:
 -  Indexing 
 -  Returning a configurable retriever
 
- 
-
-"""
+ """
 
 from functools import cached_property
 from pathlib import Path

@@ -24,14 +24,26 @@ from python.ai_core.llm import get_llm
 DEFAULT_SYSTEM_PROMPT = ""
 
 
+def dedent_ws(text: str) -> str:
+    """'detent' function replacement to remove any common leading whitespace from every line in `text`.
+    It address 'dedent' choice to not consider tabs and space as equivalent, by replacing tabs by 4 whitespace,
+    so "   hello" and "\\thello" are considered to have common leading whitespace.
+    It also remove the first new_line if any"""
+
+    if text.startswith("\n"):
+        text = text[1:]
+    text = text.replace("\t", "    ")
+    return dedent(text)
+
+
 def def_prompt(system: str | None = None, user: str = "") -> BasePromptTemplate:
     """
     Small wrapper around 'ChatPromptTemplate.from_messages" with just a user  and optional system prompt.
     """
     messages: list = []
     if system:
-        messages.append(("system", dedent(system)))
-    messages.append(("user", dedent(user)))
+        messages.append(("system", dedent_ws(system)))
+    messages.append(("user", dedent_ws(user)))
 
     return ChatPromptTemplate.from_messages(messages)
 
@@ -177,7 +189,7 @@ def test():
     # debug(prompt_original, prompt, new_prompt)
     llama3_local = get_llm(llm_id="llama3_8_local")
     chain = new_prompt | llama3_local
-    chain.invoke("french")
+    chain.invoke("french") # type: ignore
 
 
 if __name__ == "__main__":

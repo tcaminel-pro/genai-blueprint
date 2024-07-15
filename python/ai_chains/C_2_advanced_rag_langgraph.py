@@ -103,7 +103,7 @@ def retrieval_grader() -> Runnable[Any, YesOrNo]:
 
     logger.debug("Retrieval Grader'")
     retrieval_grader = prompt | get_llm() | to_lower | yesno_enum_parser
-    return retrieval_grader
+    return retrieval_grader # type: ignore
 
 
 def rag_chain() -> Runnable[Any, str]:
@@ -132,7 +132,7 @@ def hallucination_grader() -> Runnable[Any, YesOrNo]:
     prompt = def_prompt(system_prompt, user_prompt).partial(
         instructions=yesno_enum_parser.get_format_instructions()
     )
-    return prompt | get_llm() | to_lower | yesno_enum_parser
+    return prompt | get_llm() | to_lower | yesno_enum_parser # type: ignore
 
 
 def answer_grader() -> Runnable[Any, YesOrNo]:

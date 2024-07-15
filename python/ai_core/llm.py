@@ -9,19 +9,22 @@ The LLM can be given, or taken from the configuration
 """
 
 import os
-from functools import cache, cached_property
+from functools import cached_property
 from typing import cast
 
-from langchain.globals import set_llm_cache
+from dotenv import load_dotenv
 from langchain.schema.language_model import BaseLanguageModel
-from langchain_community.cache import InMemoryCache, SQLiteCache
 from langchain_core.runnables import ConfigurableField, Runnable
 from loguru import logger
 from pydantic import BaseModel, Field, computed_field, field_validator
 from typing_extensions import Annotated
 
 from python.ai_core.agents_builder import AgentBuilder, get_agent_builder
+from python.ai_core.cache import LlmCache, set_cache
 from python.config import get_config_str
+
+load_dotenv(verbose=True)
+
 
 MAX_TOKENS = 2048
 
@@ -190,7 +193,7 @@ class LlmFactory(BaseModel):
     temperature: float = 0
     max_tokens: int = MAX_TOKENS
     json_mode: bool = False
-    cache: bool | None = None
+    cache: LlmCache | None = None
 
     @computed_field
     @cached_property
@@ -258,6 +261,8 @@ class LlmFactory(BaseModel):
                 model=self.info.model,
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
+                stop_sequences=None,
+                streaming=True,
             )
             if self.json_mode:
                 llm = cast(
@@ -291,7 +296,7 @@ class LlmFactory(BaseModel):
             )
 
         elif self.info.cls == "ChatVertexAI":
-            from langchain_google_vertexai import ChatVertexAI
+            from langchain_google_vertexai import ChatVertexAI  # type: ignore  # noqa: I001
 
             llm = ChatVertexAI(
                 model=self.info.model,
@@ -384,8 +389,8 @@ def get_llm(
     temperature: float = 0,
     max_tokens: int = MAX_TOKENS,
     json_mode: bool = False,
-    cache: bool | None = None,
-    configurable: bool = True,
+    cache: LlmCache | None = None,
+    configurable: bool = False,
     with_fallback=False,
 ) -> BaseLanguageModel:
     """
@@ -426,21 +431,3 @@ def get_llm_info(llm_id: str) -> LLM_INFO:
         raise ValueError(f"Unknown llm_id: {llm_id} ")
     else:
         return r
-
-
-@cache
-def set_cache(cache: str | None = None):
-    """
-    Define caching strategy.  If 'None', take the one defined in configuration
-    """
-    if not cache:
-        cache = get_config_str("llm", "cache")
-    elif cache == "memory":
-        set_llm_cache(InMemoryCache())
-    elif cache == "sqlite":
-        set_llm_cache(SQLiteCache(database_path=".langchain.db"))
-    else:
-        raise ValueError(
-            "incorrect [llm]/cache config. Should be 'memory' or 'sqlite' "
-        )
-    # logger.info(f"cache: {cache}")

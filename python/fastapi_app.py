@@ -23,7 +23,7 @@ def read_root(message:str):
     logger.info(f"received /echo/{message}")
     return {"msg": message}
 
-from python.ai_chains.A_1_joke import joke_chain
+from python.ai_chains.A_1_joke import joke_chain  # noqa: E402
 
 
 @app.post("/joke")

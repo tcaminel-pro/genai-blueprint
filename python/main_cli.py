@@ -20,13 +20,14 @@ from typer import Option
 from typing_extensions import Annotated
 
 from python.ai_chains.fabric import get_fabric_chain
+from python.ai_core.cache import LlmCache, set_cache
 from python.ai_core.chain_registry import (
     find_runnable,
     get_runnable_registry,
     load_modules_with_chains,
 )
 from python.ai_core.embeddings import EmbeddingsFactory
-from python.ai_core.llm import LlmFactory, set_cache
+from python.ai_core.llm import LlmFactory
 from python.ai_core.vector_store import VectorStoreFactory
 from python.config import get_config_str
 
@@ -46,8 +47,10 @@ def define_commands(cli_app: typer.Typer):
         name: str,  # name (description) of the Runnable
         input: str | None = None,  # input
         path: Path | None = None,  # input
-        cache: str = "memory",
-        temperature: float = 0.0,
+        cache: LlmCache = LlmCache.MEMORY,
+        temperature: Annotated[
+            float, Option("--temperature", "--temp", min=0.0, max=1.0)
+        ] = 0.0,
         stream: Annotated[bool, Option("--stream", "-s")] = False,
         verbose: Annotated[bool, Option("--verbose", "-v")] = False,
         debug: Annotated[bool, Option("--debug", "-d")] = False,
@@ -72,9 +75,12 @@ def define_commands(cli_app: typer.Typer):
         runnable_desc = find_runnable(name)
         if runnable_desc:
             first_example = runnable_desc.examples[0]
+            llm_args = {"temperature": temperature}
             config |= {
-                "llm": llm_id if llm_id else get_config_str("llm", "default_model")
+                "llm": llm_id if llm_id else get_config_str("llm", "default_model"),
+                "llm_args": llm_args,
             }
+            # TODO: Use llm_args and temperature in runnable_desc.invoke etc
             if path:
                 config |= {"path": path}
             elif first_example.path:
@@ -134,9 +140,9 @@ def define_commands(cli_app: typer.Typer):
         pattern: Annotated[str, Option("--pattern", "-p")],
         verbose: Annotated[bool, Option("--verbose", "-v")] = False,
         debug: Annotated[bool, Option("--debug", "-d")] = False,
-        cache: str = "memory",
+        cache: LlmCache = LlmCache.MEMORY,
         stream: Annotated[bool, Option("--stream", "-s")] = False,
-        temperature: float = 0.0,
+        # temperature: float = 0.0,
         llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
     ):
         """

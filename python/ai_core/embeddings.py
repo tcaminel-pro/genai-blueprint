@@ -9,11 +9,14 @@ They can  be either Cloud based or for local run with CPU
 import os
 from functools import cache, cached_property
 
+from dotenv import load_dotenv
 from langchain.embeddings.base import Embeddings
 from pydantic import BaseModel, Field, computed_field, field_validator
 from typing_extensions import Annotated
 
 from python.config import get_config_str
+
+_ = load_dotenv(verbose=True)
 
 
 class EMBEDDINGS_INFO(BaseModel):
@@ -135,7 +138,7 @@ class EmbeddingsFactory(BaseModel):
 
             emb = OpenAIEmbeddings()
         elif self.info.cls == "GoogleGenerativeAIEmbeddings":
-            from langchain_google_genai import GoogleGenerativeAIEmbeddings
+            from langchain_google_genai import GoogleGenerativeAIEmbeddings  # type: ignore  # noqa: I001
 
             emb = GoogleGenerativeAIEmbeddings(model=self.info.model)  # type: ignore
         elif self.info.cls == "HuggingFaceEmbeddings":

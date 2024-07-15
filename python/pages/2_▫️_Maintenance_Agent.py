@@ -6,7 +6,6 @@ Copyright (C) 2023 Eviden. All rights reserved
 
 from datetime import datetime
 from pathlib import Path
-from textwrap import dedent
 
 import pandas as pd
 import streamlit as st
@@ -134,7 +133,7 @@ sample_prompt_key = st.selectbox(
 )
 sample_prompt = ""
 if sample_prompt_key:
-    sample_prompt = dedent(SAMPLE_PROMPTS.get(sample_prompt_key, "").strip())
+    sample_prompt = dedent_ws(SAMPLE_PROMPTS.get(sample_prompt_key, "").strip())
 with st.form(key="form"):
     user_input = st.text_area(
         label="Or, ask your own question / prompt", value=sample_prompt, height=150

@@ -6,7 +6,6 @@ Copyright (C) 2023 Eviden. All rights reserved
 
 from datetime import datetime
 from functools import cached_property
-from textwrap import dedent
 from typing import Literal, Tuple, Union
 
 import pandas as pd
@@ -40,7 +39,7 @@ from pydantic.v1 import BaseModel, Field
 # from pydantic import BaseModel, Field
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.llm import LlmFactory
-from python.ai_core.prompts import def_prompt
+from python.ai_core.prompts import dedent_ws, def_prompt
 from python.ai_core.vector_store import VectorStoreFactory
 from python.demos.maintenance_agent.maintenance_data import DATA_PATH, dummy_database
 
@@ -150,7 +149,7 @@ class MaintenanceAgent(BaseModel):
         retriever_tool = create_retriever_tool(
             vector_db.as_retriever(search_kwargs={"k": 1}),
             name="sql_get_similar_examples",
-            description=dedent(tool_description),
+            description=dedent_ws(tool_description),
         )
 
         custom_suffix = """
@@ -180,7 +179,7 @@ class MaintenanceAgent(BaseModel):
             prefix=prefix,
             verbose=False,
             extra_tools=[retriever_tool],
-            # suffix=dedent(custom_suffix),
+            # suffix=dedent_ws(custom_suffix),
             max_iterations=5,
         )
 
@@ -211,7 +210,7 @@ class MaintenanceAgent(BaseModel):
             -16/05/2019  10:00
             -22/07/2020  9:45
             """
-            return dedent(result)
+            return dedent_ws(result)
 
         @tool
         def get_maintenance_issues(area: str, time: str) -> str:
@@ -248,7 +247,7 @@ class MaintenanceAgent(BaseModel):
         retriever_tool = create_retriever_tool(
             retriever=maintenance_procedure_vectors(PROCEDURES[0]).as_retriever(),
             name="bla",
-            description=dedent(
+            description=dedent_ws(
                 """
                 Answer to any questions about maintenance procedures, such as tasks, prerequisite, spare parts, required tools etc.
                 Input should contain full context.

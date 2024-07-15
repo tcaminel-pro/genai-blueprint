@@ -13,6 +13,7 @@ tool = TavilySearchResults(max_results=4)
 print(type(tool))
 print(tool.name)
 
+return  # noqa: F706
 
 class AgentState(TypedDict):
     messages: Annotated[list[AnyMessage], operator.add]

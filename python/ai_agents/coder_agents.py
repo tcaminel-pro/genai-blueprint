@@ -4,7 +4,6 @@
 Copyright (C) 2023 Eviden. All rights reserved
 """
 
-from textwrap import dedent
 from typing import Optional
 
 from devtools import debug
@@ -12,7 +11,6 @@ from langchain.agents.agent_types import AgentType
 from langchain.callbacks.manager import CallbackManagerForToolRun
 from langchain.tools import BaseTool
 from langchain_experimental.agents.agent_toolkits import (
-    create_pandas_dataframe_agent,
     create_python_agent,
 )
 from langchain_experimental.tools.python.tool import PythonAstREPLTool
