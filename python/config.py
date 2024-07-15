@@ -84,7 +84,6 @@ def get_config_str(group: str, key: str, default_value: str | None = None) -> st
     Raise an exception if key not found and if not default value is given
     """
     value = _get_config(group, key, default_value)
-
     if isinstance(value, str):
         # replace environment variable name by its value
         value = re.sub(r"\${(\w+)}", lambda f: os.environ.get(f.group(1), ""), value)

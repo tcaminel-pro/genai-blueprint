@@ -17,13 +17,15 @@ from python.ai_core.prompts import def_prompt
 load_dotenv(verbose=True)
 
 
-simple_prompt = """Tell me a joke on {topic}"""
-joke_chain = (
-    {"topic": RunnablePassthrough()}
-    | def_prompt(user=simple_prompt)
-    | get_llm()
-    | StrOutputParser()
-)
+def get_chain(config: dict):
+    simple_prompt = """Tell me a joke on {topic}"""
+    chain = (
+        {"topic": RunnablePassthrough()}
+        | def_prompt(user=simple_prompt)
+        | get_llm()
+        | StrOutputParser()
+    )
+    return chain
 
 
 # Register the chain
@@ -31,7 +33,7 @@ register_runnable(
     RunnableItem(
         tag="Agent",
         name="Joke",
-        runnable=joke_chain,
+        runnable=get_chain,
         examples=[Example(query=["Beaver"])],
     )
 )

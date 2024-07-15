@@ -23,7 +23,7 @@ from python.ai_core.agents_builder import AgentBuilder, get_agent_builder
 from python.ai_core.cache import LlmCache, set_cache
 from python.config import get_config_str
 
-load_dotenv(verbose=True)
+load_dotenv(verbose=True, override=True)
 
 
 MAX_TOKENS = 2048
@@ -203,7 +203,7 @@ class LlmFactory(BaseModel):
         return LlmFactory.known_items_dict().get(self.llm_id)  # type: ignore
 
     @field_validator("llm_id", mode="before")
-    def check_known(cls, llm_id: str) -> str:
+    def check_known(cls, llm_id: str | None) -> str:
         if llm_id is None:
             llm_id = get_config_str("llm", "default_model")
         if llm_id not in LlmFactory.known_items():

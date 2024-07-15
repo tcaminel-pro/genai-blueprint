@@ -49,7 +49,7 @@ def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
 
-def get_rag_chain(config: dict):
+def get_chain(config: dict):
     chain = (
         {
             "context": get_retriever(config) | format_docs,
@@ -66,7 +66,7 @@ register_runnable(
     RunnableItem(
         tag="RAG",
         name="Simple RAG chain",
-        runnable=get_rag_chain,
+        runnable=get_chain,
         examples=[
             Example(
                 path=Path("use_case_data/maintenance/maintenance_procedure_1.txt"),

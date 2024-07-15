@@ -29,7 +29,7 @@ from python.ai_core.chain_registry import (
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.llm import LlmFactory
 from python.ai_core.vector_store import VectorStoreFactory
-from python.config import get_config_str
+from python.config import get_config_str, set_config_str
 
 load_dotenv(verbose=True)
 
@@ -64,9 +64,13 @@ def define_commands(cli_app: typer.Typer):
         set_verbose(verbose)
         set_cache(cache)
 
-        if llm_id is not None and llm_id not in LlmFactory.known_items():
-            print(f"Error: unknown llm_id. \n Should be in {LlmFactory.known_items()}")
-            return
+        if llm_id is not None:
+            if llm_id not in LlmFactory.known_items():
+                print(
+                    f"Error: {llm_id} is unknown llm_id.\nShould be in {LlmFactory.known_items()}"
+                )
+                return
+            set_config_str("llm", "default_model", llm_id)
 
         runnables_list = sorted([f"'{o.name}'" for o in get_runnable_registry()])
         runnables_list_str = ", ".join(runnables_list)
