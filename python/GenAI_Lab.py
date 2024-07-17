@@ -1,3 +1,4 @@
+from functools import cache
 import os
 from pathlib import Path
 
@@ -37,7 +38,7 @@ title_col1.markdown(
     unsafe_allow_html=True,
 )
 
-
+@cache
 def config_sidebar():
     with st.sidebar:
         with st.expander("LLM Configuration", expanded=True):

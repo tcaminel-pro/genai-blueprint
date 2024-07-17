@@ -28,6 +28,7 @@ from python.ai_core.chain_registry import Example, RunnableItem, register_runnab
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.llm import get_llm
 from python.ai_core.prompts import def_prompt
+from python.ai_core.tools import basic_web_search
 from python.ai_core.vector_store import VectorStoreFactory
 
 """
@@ -90,7 +91,8 @@ def retrieval_grader() -> Runnable[Any, YesOrNo]:
         You are a grader assessing relevance  of a retrieved document to a user question. 
         If the document contains keywords related to the user question, grade it as relevant. 
         It does not need to be a stringent test. The goal is to filter out erroneous retrievals. \n
-        Give a binary score 'yes' or 'no' score to indicate whether the document is relevant to the question."""
+        Evaluate whether the document is relevant to the question. Answer only by 'yes' or 'no', without any other comment.
+        """
     user_prompt = """
         Here is the retrieved document:
         --- \n {document} ---\n\n
@@ -103,7 +105,7 @@ def retrieval_grader() -> Runnable[Any, YesOrNo]:
 
     logger.debug("Retrieval Grader'")
     retrieval_grader = prompt | get_llm() | to_lower | yesno_enum_parser
-    return retrieval_grader # type: ignore
+    return retrieval_grader  # type: ignore
 
 
 def rag_chain() -> Runnable[Any, str]:
@@ -123,7 +125,8 @@ def rag_chain() -> Runnable[Any, str]:
 def hallucination_grader() -> Runnable[Any, YesOrNo]:
     system_prompt = """
         You are a grader assessing whether an answer is grounded in / supported by a set of facts. 
-        Give a binary score 'yes' or 'no' score to indicate  whether the answer is grounded in / supported by a set of facts. \n"""
+        Evaluate  whether the answer is grounded in / supported by a set of facts. 
+        Answer only by 'yes' or 'no', without any other comment.\n"""
     user_prompt = """
         Here are the facts:
         --- \n {documents} ---\n
@@ -132,13 +135,14 @@ def hallucination_grader() -> Runnable[Any, YesOrNo]:
     prompt = def_prompt(system_prompt, user_prompt).partial(
         instructions=yesno_enum_parser.get_format_instructions()
     )
-    return prompt | get_llm() | to_lower | yesno_enum_parser # type: ignore
+    return prompt | get_llm() | to_lower | yesno_enum_parser  # type: ignore
 
 
 def answer_grader() -> Runnable[Any, YesOrNo]:
     system_prompt = """
         You are a grader assessing whether an answer is useful to resolve a question. 
-        Give a binary score 'yes' or 'no' to indicate whether the answer is useful to resolve a question"""
+        Evaluate whether the answer is useful to resolve a question. 
+        Answer only by 'yes' or 'no', without any other comment.\n"""
     user_prompt = """
         Here are the answer:
         \n---  {generation} \n---
@@ -148,7 +152,7 @@ def answer_grader() -> Runnable[Any, YesOrNo]:
     prompt = def_prompt(system_prompt, user_prompt).partial(
         instructions=yesno_enum_parser.get_format_instructions()
     )
-    return prompt | get_llm() | yesno_enum_parser
+    return prompt | get_llm() | to_lower | yesno_enum_parser # type: ignore
 
 
 def question_router() -> Runnable[Any, DataRoute]:
@@ -269,11 +273,7 @@ def web_search(state: GraphState) -> GraphState:
     question = state["question"]
     documents = state["documents"]
 
-    # Web search
-    # docs = web_search_tool.invoke({"query": question})
-    docs = web_search_tool.invoke({"query": question})
-    web_results = ["\n".join([d["content"] for d in docs])]
-    #  web_results = Document(page_content=docs)
+    web_results = basic_web_search(question)
 
     if documents is not None:
         documents.append(web_results)

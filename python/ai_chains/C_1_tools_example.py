@@ -70,7 +70,7 @@ def create_executor(config: dict) -> Runnable:
 
     prompt = hub.pull(info.agent_builder.hub_prompt)
 
-    debug(prompt)
+    #    debug(prompt)
 
     prompt = ChatPromptTemplate.from_messages(
         [

@@ -40,7 +40,7 @@ factories:
 # Agent configuration
 default:
   llm:
-    default_model:   gpt_35_edenai # gpt_35_openai 
+    default_model:   mistral_large_edenai # gpt_35_edenai 
     cache : sqlite
   embeddings:
     default_model:  multilingual_MiniLM_local #ada_002_edenai #
@@ -61,8 +61,8 @@ default:
       - A_1_joke 
       - B_1_naive_rag_example
       - B_2_self_query
-      # - C_1_tools_example
-      # - C_2_advanced_rag_langgraph
+      - C_1_tools_example
+      - C_2_advanced_rag_langgraph
       # - essay_writer_agent
 
 cloud_openai:    
