@@ -332,7 +332,6 @@ class LlmFactory(BaseModel):
             from langchain_openai import AzureChatOpenAI
 
             name, _, api_version = self.info.model.partition("/")
-            debug(name, api_version)
             llm = AzureChatOpenAI(
                 name=name,
                 azure_deployment=name,

@@ -17,6 +17,7 @@
         "datasources",
         "deepinfra",
         "dotenv",
+        "duckduck",
         "duckduckgo",
         "edenai",
         "embedder",

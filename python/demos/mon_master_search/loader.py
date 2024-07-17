@@ -229,7 +229,6 @@ def find_acronyms():
     candidates = set()
 
     import enchant
-
     french_dict = enchant.Dict("fr")
     english_dict = enchant.Dict("en")
 
