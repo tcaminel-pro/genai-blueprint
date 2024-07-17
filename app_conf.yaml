@@ -52,7 +52,7 @@ default:
   documents:
     base: ./use_case_data
   monitoring: 
-    default: langsmith
+    default: langsmith__
     project: GenAI_demo
 
   chains:

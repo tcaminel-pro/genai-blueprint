@@ -51,7 +51,7 @@ pygithub = "^2.3.0"
 
 
 [tool.poetry.group.crewai]  # Install : poetry install --with crewai 
-optional = false
+optional = true
 
 [tool.poetry.group.crewai.dependencies]
 crewai = "^0.36.1"

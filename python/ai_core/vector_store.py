@@ -77,7 +77,7 @@ class VectorStoreFactory(BaseModel):
         return list(get_args(VECTOR_STORE_LIST))
 
     @field_validator("id", mode="before")
-    def check_known(cls, id: str) -> str:
+    def check_known(cls, id: str | None) -> str:
         if id is None:
             id = get_config_str("vector_store", "default")
         if id not in VectorStoreFactory.known_items():

@@ -43,7 +43,9 @@ def config_sidebar():
         with st.expander("LLM Configuration", expanded=True):
             current_llm = get_config_str("llm", "default_model")
             index = LlmFactory().known_items().index(current_llm)
-            llm = st.selectbox("default", LlmFactory().known_items(), index=index)
+            llm = st.selectbox(
+                "default", LlmFactory().known_items(), index=index, key="select_llm"
+            )
             set_config_str("llm", "default_model", str(llm))
 
             set_debug(

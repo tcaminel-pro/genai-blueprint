@@ -116,6 +116,10 @@ lint:
 	poetry run ruff format
 
 backup:
+# copy to ln_to_onedrive, a symbolic link from WSL to OneDrive 
+# (created as: ln -s '/mnt/c/Users/a184094/OneDrive - Eviden'  /home/tcl/ln_to_onedrive )
 	cp ~/.keys.sh ~/ln_to_onedrive/backup/wsl/tcl/
+	cp ~/.env ~/ln_to_onedrive/backup/wsl/tcl/
 	cp ~/.bashrc ~/ln_to_onedrive/backup/wsl/tcl/
 	cp ~/.dev.bash-profile ~/ln_to_onedrive/backup/wsl/tcl/
+	cp ~/install.sh ~/ln_to_onedrive/backup/wsl/tcl/

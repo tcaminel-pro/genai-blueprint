@@ -165,6 +165,8 @@ KNOWN_LLM_LIST = [
         model="mistral/large-latest",
         key="EDENAI_API_KEY",
     ),
+    #
+    #  Azure Models
     LLM_INFO(
         id="gpt_4_azure",
         cls="AzureChatOpenAI",
@@ -194,6 +196,7 @@ class LlmFactory(BaseModel):
     max_tokens: int = MAX_TOKENS
     json_mode: bool = False
     cache: LlmCache | None = None
+    streaming: bool = False
 
     @computed_field
     @cached_property
@@ -262,8 +265,10 @@ class LlmFactory(BaseModel):
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
                 stop_sequences=None,
-                streaming=True,
+                streaming=self.streaming,
             )
+            if self.streaming:
+                llm.streaming = True
             if self.json_mode:
                 llm = cast(
                     BaseLanguageModel, llm.bind(response_format={"type": "json_object"})
@@ -392,6 +397,7 @@ def get_llm(
     cache: LlmCache | None = None,
     configurable: bool = False,
     with_fallback=False,
+    streaming: bool = False,
 ) -> BaseLanguageModel:
     """
     Create a BaseLanguageModel object according to a given llm_id.\n
@@ -407,8 +413,11 @@ def get_llm(
         max_tokens=max_tokens,
         json_mode=json_mode,
         cache=cache,
+        streaming=streaming,
     )
-    logger.info(f"get LLM : {factory.llm_id} - configurable: {configurable}")
+    logger.info(
+        f"get LLM:'{factory.llm_id}' -configurable: {configurable} - streaming: {streaming}"
+    )
     if configurable:
         return cast(
             BaseLanguageModel, factory.get_configurable(with_fallback=with_fallback)
