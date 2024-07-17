@@ -50,6 +50,7 @@ python-dotenv = "^1.0.1"
 pygithub = "^2.3.0"
 
 
+
 [tool.poetry.group.crewai]  # Install : poetry install --with crewai 
 optional = true
 
@@ -83,7 +84,7 @@ matplotlib = "^3.9.0"
 sqlalchemy = "^2.0.29"
 unidecode = "^1.3.8"
 abbreviations = "^0.2.5"
-
+enchant = "^0.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"

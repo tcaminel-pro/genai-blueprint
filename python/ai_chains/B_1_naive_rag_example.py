@@ -5,7 +5,6 @@ A simple RAG chain
 from pathlib import Path
 
 from devtools import debug  # noqa: F401
-from langchain import hub
 from langchain_community.document_loaders.text import TextLoader
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
@@ -15,6 +14,7 @@ from loguru import logger
 from python.ai_core.chain_registry import Example, RunnableItem, register_runnable
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.llm import get_llm
+from python.ai_core.prompts import def_prompt
 from python.ai_core.vector_store import VectorStoreFactory
 
 
@@ -35,14 +35,24 @@ def get_retriever(config: dict):
     logger.info(f"indexing text document  {path} in VectorStore")
     loader = TextLoader(path)
     docs = loader.load()
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=200)
     splits = text_splitter.split_documents(docs)
     vector_store.add_documents(documents=splits)
 
-    return vector_store.as_retriever()
+    return vector_store.as_retriever(search_kwargs={"k": 3})
 
 
-prompt = hub.pull("rlm/rag-prompt")
+prompt_system = """
+    You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. 
+    If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
+    """
+prompt_user = """
+    Question: {question} 
+    Context: {context} 
+
+    Answer:
+    """
+prompt = def_prompt(system=prompt_system, user=prompt_user)
 
 
 def format_docs(docs):

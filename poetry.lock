@@ -1491,6 +1491,17 @@ whatsapp = ["flask (>=2.3.3,<3.0.0)", "twilio (>=8.5.0,<9.0.0)"]
 youtube = ["youtube-transcript-api (>=0.6.1,<0.7.0)", "yt_dlp (>=2023.11.14,<2024.0.0)"]
 
 [[package]]
+name = "enchant"
+version = "0.0.1"
+description = "Easier integration with Enchant.com"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "enchant-0.0.1-py3-none-any.whl", hash = "sha256:ce4af8ff70495a12aac4b130f9ea3328ca5d9489c328ce948aef5e583905fa4d"},
+    {file = "enchant-0.0.1.tar.gz", hash = "sha256:d690fb6b709f6bfbf5ffa533226ced29050f99e4d3890eef957595753bc1e24d"},
+]
+
+[[package]]
 name = "entrypoints"
 version = "0.4"
 description = "Discover and load entry points from installed packages."
@@ -9295,4 +9306,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "d8e0f2e290d568e7d59f2593bdfef26b99d2dc5dcf0fbe1eabd588f11a7b6b8d"
+content-hash = "8a097eda18b58f71305ffa63099ddc21c2f626bcdae44f4c8224a6a1aad4e2ab"

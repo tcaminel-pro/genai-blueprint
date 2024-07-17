@@ -182,7 +182,7 @@ KNOWN_LLM_LIST = [
     LLM_INFO(
         id="gpt_4o_azure",
         cls="AzureChatOpenAI",
-        model="gpt-4o/2023-05-15",
+        model="gpt-4o/2024-05-13",
         key="AZURE_OPENAI_API_KEY",
     ),
 ]
@@ -332,6 +332,7 @@ class LlmFactory(BaseModel):
             from langchain_openai import AzureChatOpenAI
 
             name, _, api_version = self.info.model.partition("/")
+            debug(name, api_version)
             llm = AzureChatOpenAI(
                 name=name,
                 azure_deployment=name,

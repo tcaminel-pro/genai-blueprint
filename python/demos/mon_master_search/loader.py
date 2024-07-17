@@ -6,7 +6,6 @@ import tarfile
 from pathlib import Path
 from typing import Iterator
 
-import enchant
 import json_repair
 import pandas as pd
 import typer
@@ -224,14 +223,15 @@ def save_to_jsonl():
     save_docs_to_jsonl(processed, FILES)
 
 
-french_dict = enchant.Dict("fr")
-english_dict = enchant.Dict("en")
-
-
 @app.command()
 def find_acronyms():
     acronyms = set()
     candidates = set()
+
+    import enchant
+
+    french_dict = enchant.Dict("fr")
+    english_dict = enchant.Dict("en")
 
     logger.info("extract abbreviations defintion fom text")
 
