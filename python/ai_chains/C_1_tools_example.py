@@ -37,11 +37,11 @@ def add(x: float, y: float) -> float:
     return x + y
 
 
-tools = [multiply, exponentiate, add]
+tools_arithmetic = [multiply, exponentiate, add]
 
 tavily_tool = TavilySearchResults(max_results=5)
 
-tools = [tavily_tool]
+tools_search = [tavily_tool]
 
 
 # Whenever we invoke `llm_with_tool`, all three of these tool definitions
@@ -50,7 +50,7 @@ tools = [tavily_tool]
 
 def create_runnable(config: dict) -> Runnable:
     llm = get_llm(llm_id=config["llm"])
-    return llm.bind_tools(tools)  # type: ignore
+    return llm.bind_tools(tools_arithmetic)  # type: ignore
 
 
 register_runnable(
@@ -83,7 +83,7 @@ def create_executor(config: dict) -> Runnable:
     agent_creator = info.agent_builder.create_function
     debug(agent_creator)
 
-    agent = agent_creator(llm, tools, prompt)  # type: ignore
+    agent = agent_creator(llm, tools_search, prompt)  # type: ignore
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)  # type: ignore
     return agent_executor
 

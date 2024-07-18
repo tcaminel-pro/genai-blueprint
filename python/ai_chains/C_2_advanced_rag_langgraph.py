@@ -15,7 +15,6 @@ from langchain.output_parsers.enum import EnumOutputParser
 from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders.web_base import WebBaseLoader
-from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.runnables import Runnable, RunnableLambda
@@ -152,7 +151,7 @@ def answer_grader() -> Runnable[Any, YesOrNo]:
     prompt = def_prompt(system_prompt, user_prompt).partial(
         instructions=yesno_enum_parser.get_format_instructions()
     )
-    return prompt | get_llm() | to_lower | yesno_enum_parser # type: ignore
+    return prompt | get_llm() | to_lower | yesno_enum_parser  # type: ignore
 
 
 def question_router() -> Runnable[Any, DataRoute]:
@@ -175,12 +174,6 @@ def question_router() -> Runnable[Any, DataRoute]:
     )
     question_router = prompt | get_llm() | parser
     return question_router
-
-
-web_search_tool = TavilySearchResults(max_results=3)  # Search tool
-
-
-# web_search_tool = DuckDuckGoSearchResults(num_results=3)
 
 
 ### State
