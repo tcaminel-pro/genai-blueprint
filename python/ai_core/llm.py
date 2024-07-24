@@ -74,18 +74,24 @@ KNOWN_LLM_LIST = [
         model="gpt-4o",
         key="OPENAI_API_KEY",
     ),
+    LLM_INFO(
+        id="gpt_4omini_openai",
+        cls="ChatOpenAI",
+        model="gpt-4o-mini",
+        key="OPENAI_API_KEY",
+    ),
     #
     ####  ChatDeepInfra ### https://deepinfra.com/models/text-generation
     LLM_INFO(
-        id="llama3_70_deepinfra",
+        id="llama31_70_deepinfra",
         cls="ChatDeepInfra",
-        model="meta-llama/Meta-Llama-3-70B-Instruct",
+        model="meta-llama/Meta-Llama-3.1-70B-Instruct",
         key="DEEPINFRA_API_TOKEN",
     ),
     LLM_INFO(
-        id="llama3_8_deepinfra",
+        id="llama31_8_deepinfra",
         cls="ChatDeepInfra",
-        model="meta-llama/Meta-Llama-3-8B-Instruct",
+        model="meta-llama/Meta-Llama-3.1-8B-Instruct",
         key="DEEPINFRA_API_TOKEN",
     ),
     LLM_INFO(

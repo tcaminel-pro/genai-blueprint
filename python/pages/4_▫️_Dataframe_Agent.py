@@ -93,7 +93,10 @@ with st.expander(label="Loaded Dataframe", expanded=True):
         - 1
     )
     args = {"skiprows": skiprows}
-    file = uploaded_file or DATA_PATH / default_file_name
+    if default_file_name is None:
+        file = uploaded_file
+    else:
+        file = DATA_PATH / default_file_name
     df = get_dataframe(file, **args)
     st.data_editor(df)
 
