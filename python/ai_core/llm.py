@@ -100,6 +100,12 @@ KNOWN_LLM_LIST = [
         model="mistralai/Mixtral-8x7B-Instruct-v0.1",
         key="DEEPINFRA_API_TOKEN",
     ),
+    LLM_INFO(
+        id="qwen2_70_deepinfra",
+        cls="ChatDeepInfra",
+        model="Qwen/Qwen2-72B-Instruct",
+        key="DEEPINFRA_API_TOKEN",
+    ),
     #
     ####  ChatLiteLLM Models
     LLM_INFO(
@@ -257,7 +263,7 @@ class LlmFactory(BaseModel):
                 model=self.info.model,
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
-                model_kwargs={"seed": 42},  # Not sure that works
+                seed=42,  # Not sure that works
             )
             if self.json_mode:
                 llm = cast(

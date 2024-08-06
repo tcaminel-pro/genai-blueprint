@@ -6,6 +6,7 @@ Copyright (C) 2023 Eviden. All rights reserved
 
 from datetime import datetime
 from functools import cached_property
+from textwrap import dedent
 from typing import Literal, Tuple, Union
 
 import pandas as pd
@@ -13,7 +14,6 @@ import streamlit as st
 from devtools import debug
 from langchain.agents import (
     AgentExecutor,
-    AgentType,
     create_sql_agent,
     create_tool_calling_agent,
 )
@@ -23,7 +23,7 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.schema import Document
 from langchain.schema.language_model import BaseLanguageModel
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.tools import BaseTool, Tool, tool
+from langchain.tools import BaseTool, tool
 from langchain.tools.retriever import create_retriever_tool
 from langchain.vectorstores.base import VectorStore
 from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
@@ -169,13 +169,11 @@ class MaintenanceAgent(BaseModel):
             + f"\nCurrent date is: {datetime.now().isoformat()}. DO NOT use any SQL date functions like NOW(), DATE(), DATETIME()"
         )
 
-        agent_type = AgentType.OPENAI_FUNCTIONS  # To IMPROVE
-
         llm = self.llm_factory.get()
         return create_sql_agent(
             llm=llm,
             toolkit=SQLDatabaseToolkit(db=db, llm=llm),
-            agent_type=agent_type,
+            agent_type="tool-calling",
             prefix=prefix,
             verbose=False,
             extra_tools=[retriever_tool],
@@ -187,14 +185,21 @@ class MaintenanceAgent(BaseModel):
         """Create the tools for our Agent"""
 
         logger.info("create tools")
-        query_database = Tool(
-            name="query_maintenance_database",
-            func=self.create_sql_agent().run,
-            description=(
-                "Useful for when you need  to answer questions about tasks assigned to employees."
-                "Input should be in the form of a question containing full context"
-            ),
-        )
+        # query_database = Tool(
+        #     name="query_maintenance_planning_database",
+        #     func=self.create_sql_agent().invoke,
+        #     description=(
+        #         "Useful for when you need  to answer questions about tasks assigned to employees."
+        #         "Input is a question about task planning. It should contain full context"
+        #     ),
+        # )
+
+        @tool
+        def get_planning_info(query: str):
+            """Useful for when you need  to answer questions about tasks assigned to employees.
+            Input is a question about task planning. It should contain full context"
+            """
+            return self.create_sql_agent().run(query)
 
         @tool
         def get_current_time() -> str:
@@ -224,8 +229,8 @@ class MaintenanceAgent(BaseModel):
         def maintenance_procedure_retriever(full_query: str) -> str:
             """
             Answer to any questions about maintenance procedures, such as tasks, prerequisite, spare parts, required tools etc.
-            Input should contain full context.
-            The questions can ask for information about several tasks, spare parts, tools etc.
+            Input should contain the question with the full context.
+            The questions can ask for information about tasks, spare parts, tools etc.
             """
 
             system_prompt = (
@@ -289,7 +294,7 @@ class MaintenanceAgent(BaseModel):
         tools = [
             get_maintenance_times,
             get_maintenance_issues,
-            query_database,
+            get_planning_info,
             get_current_time,
             maintenance_procedure_retriever,
             get_info_from_erp,

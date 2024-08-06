@@ -125,7 +125,7 @@ def define_commands(cli_app: typer.Typer):
                 pass
 
     @cli_app.command()
-    def list_models():
+    def _models():
         """List the LLMs, embeddings models and vector stores that we know"""
         print("factories:")
         tab = 2 * " "
