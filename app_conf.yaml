@@ -41,12 +41,12 @@ factories:
 default:
   llm:
     list: ${PWD}/models_providers.yaml
-    default_model:  gpt_4omini_edenai # mistral_large_edenai 
+    default_model: gpt_4omini_edenai # gpt_35_azure # mistral_large_edenai 
     cache : sqlite
     cache_path: ${HOME}/cache_ai/langchain.db
   embeddings:
     list: ${PWD}/models_providers.yaml
-    default_model:  ada_002_edenai #multilingual_MiniLM_local 
+    default_model:  ada_002_edenai #multilingual_MiniLM_local #
     cache: ${HOME}/hf_models
   vector_store:
     default: Chroma
@@ -62,10 +62,10 @@ default:
     path: python.ai_chains
     modules:
       - A_1_joke 
-      - B_1_naive_rag_example
-      - B_2_self_query
-      - C_1_tools_example
-      - C_2_advanced_rag_langgraph
+      # - B_1_naive_rag_example
+      # - B_2_self_query
+      # - C_1_tools_example
+      # - C_2_advanced_rag_langgraph
       # - essay_writer_agent
 
 cloud_openai:    

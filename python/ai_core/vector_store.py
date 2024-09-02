@@ -15,7 +15,7 @@ from typing import Iterable, Literal, get_args
 from langchain.indexes import IndexingResult, SQLRecordManager, index
 from langchain.schema import Document
 from langchain.vectorstores.base import VectorStore
-from langchain_community.vectorstores.chroma import Chroma
+from langchain_chroma import Chroma
 from langchain_core.runnables import ConfigurableField, Runnable
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator

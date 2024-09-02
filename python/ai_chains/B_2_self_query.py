@@ -107,8 +107,7 @@ def get_query_constructor(config: dict):
         metadata_field_info,
     )
     output_parser = StructuredQueryOutputParser.from_components()
-    llm = get_llm()
-    debug(llm)
+    llm = get_llm(llm_id=config.get("llm"))
     query_constructor = prompt | llm | output_parser
     return query_constructor
 
@@ -162,7 +161,8 @@ register_runnable(
 )
 
 if __name__ == "__main__":
-    r = get_retriever(config={"llm": None}).invoke(
+    llm = "gpt_35_openai"
+    r = get_retriever(config={"llm": llm}).invoke(
         "I want to watch a movie rated higher than 8.5"
     )
     debug(r)
