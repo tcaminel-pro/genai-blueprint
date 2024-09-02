@@ -1,9 +1,9 @@
 """
-Manage the application configuration. 
+Manage the application configuration.
 
-First we read a YAML file "app_conf.yaml". 
+First we read a YAML file "app_conf.yaml".
 All configuration parameters are read from "default" section.
-The  configuration is then overwritten by the one on section given though the "CONFIGURATION" encironment variable
+The  configuration is then overwritten by the one on section given though the "CONFIGURATION" environment variable
 (for example for a  deployment on a specific target).
 
 Last, the configuration can be overwritten through an call to 'set_config_str' (typically for test or config through UI)
@@ -23,6 +23,10 @@ from loguru import logger
 CONFIG_FILE = "app_conf.yaml"
 
 
+os.environ[
+    "PWD"
+] = os.getcwd()  # Hack because PWD is set to a Windows path sometime in WSL
+
 _modified_fields = defaultdict(dict)
 
 
@@ -35,6 +39,8 @@ def yaml_file_config(fn: str = CONFIG_FILE) -> dict:
         yml_file = Path.cwd().parent / fn
 
     assert yml_file.exists(), f"cannot find {yml_file}"
+
+    logger.info(f"load {yml_file}")
 
     with open(yml_file, "r") as f:
         data = yaml.safe_load(f)
@@ -83,6 +89,7 @@ def get_config_str(group: str, key: str, default_value: str | None = None) -> st
     If it contains an environment variable in the form $(XXX), then replace it.
     Raise an exception if key not found and if not default value is given
     """
+
     value = _get_config(group, key, default_value)
     if isinstance(value, str):
         # replace environment variable name by its value

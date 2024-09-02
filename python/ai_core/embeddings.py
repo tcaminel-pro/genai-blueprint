@@ -7,8 +7,10 @@ They can  be either Cloud based or for local run with CPU
 # See also https://huggingface.co/spaces/mteb/leaderboard
 
 import os
-from functools import cache, cached_property
+from functools import cache, cached_property, lru_cache
+from pathlib import Path
 
+import yaml
 from dotenv import load_dotenv
 from langchain.embeddings.base import Embeddings
 from pydantic import BaseModel, Field, computed_field, field_validator
@@ -19,75 +21,33 @@ from python.config import get_config_str
 _ = load_dotenv(verbose=True)
 
 
-class EMBEDDINGS_INFO(BaseModel):
+class EmbeddingsInfo(BaseModel):
     id: str  # a given ID for the embeddings
     cls: str  # Name of the constructor
     model: str  # Provider name of the model
-    key: str  # API key
+    key: str | None = None  # API key
     prefix: str = ""  # Some LLM requires a prefix in the call.  To be improved.
 
     def get_key(self):
-        key = os.environ.get(self.key)
-        if key is None:
-            raise ValueError(f"No environment variable for {self.key} ")
-        return key
+        if self.key:
+            key = os.environ.get(self.key)
+            if key is None:
+                raise ValueError(f"No environment variable for {self.key} ")
+            return key
+        else:
+            return ""
 
     def __hash__(self):
         return hash(self.id)
 
 
-KNOWN_EMBEDDINGS_MODELS = [
-    EMBEDDINGS_INFO(
-        id="ada_002_openai",
-        model="text-embedding-ada-002",
-        cls="OpenAIEmbeddings",
-        key="OPENAI_API_KEY",
-    ),
-    EMBEDDINGS_INFO(
-        id="embedding_001_google",
-        model="text-embedding-ada-002",
-        cls="GoogleGenerativeAIEmbeddings",
-        key="GOOGLE_API_KEY",
-    ),
-    EMBEDDINGS_INFO(
-        id="multilingual_MiniLM_local",
-        model="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-        cls="HuggingFaceEmbeddings",
-        key="",
-    ),
-    EMBEDDINGS_INFO(
-        id="ada_002_edenai",
-        model="openai/1536__text-embedding-ada-002",
-        cls="EdenAiEmbeddings",
-        key="EDENAI_API_KEY",
-    ),
-    EMBEDDINGS_INFO(
-        id="mistral_1024_edenai",
-        model="mistral/1024__mistral-embed",
-        cls="EdenAiEmbeddings",
-        key="EDENAI_API_KEY",
-    ),
-    EMBEDDINGS_INFO(
-        id="camembert_large_local",
-        model="dangvantuan/sentence-camembert-large",
-        cls="HuggingFaceEmbeddings",
-        key="",
-    ),
-    EMBEDDINGS_INFO(
-        id="solon-large",
-        model="OrdalieTech/Solon-embeddings-large-0.1",
-        cls="HuggingFaceEmbeddings",
-        key="",
-        prefix="Query : ",
-    ),
-    EMBEDDINGS_INFO(
-        id="ada_002_azure",
-        model="text-embedding-ada-002/2023-05-15",
-        cls="AzureOpenAIEmbeddings",
-        key="AZURE_OPENAI_API_KEY",
-        prefix="Query : ",
-    ),
-]
+def read_embeddings_list_file() -> list[EmbeddingsInfo]:
+    yml_file = Path(get_config_str("embeddings", "list"))
+    assert yml_file.exists(), f"cannot find {yml_file}"
+    with open(yml_file, "r") as f:
+        data = yaml.safe_load(f)
+    embedding = [EmbeddingsInfo(**e) for e in data["embeddings"]]
+    return embedding
 
 
 class EmbeddingsFactory(BaseModel):
@@ -97,7 +57,7 @@ class EmbeddingsFactory(BaseModel):
 
     @computed_field
     @cached_property
-    def info(self) -> EMBEDDINGS_INFO:
+    def info(self) -> EmbeddingsInfo:
         assert self.embeddings_id
         return EmbeddingsFactory.known_items_dict().get(self.embeddings_id)  # type: ignore
 
@@ -110,12 +70,17 @@ class EmbeddingsFactory(BaseModel):
             raise ValueError(f"Unknown Embeddings: {embeddings_id}")
         return embeddings_id
 
+    @lru_cache(maxsize=1)
     @staticmethod
-    def known_items_dict() -> dict[str, EMBEDDINGS_INFO]:
+    def known_list() -> list[EmbeddingsInfo]:
+        return read_embeddings_list_file()
+
+    @staticmethod
+    def known_items_dict() -> dict[str, EmbeddingsInfo]:
         return {
             item.id: item
-            for item in KNOWN_EMBEDDINGS_MODELS
-            if item.key in os.environ or item.key == ""
+            for item in EmbeddingsFactory.known_list()
+            if item.key is None or item.key in os.environ
         }
 
     @staticmethod
@@ -127,7 +92,7 @@ class EmbeddingsFactory(BaseModel):
         Create an embeddings model object.
 
         """
-        if self.info.key not in os.environ and self.info.key != "":
+        if self.info.key and self.info.key not in os.environ:
             raise ValueError(f"No known API key for : {self.info.id}")
         llm = self.model_factory()
         return llm

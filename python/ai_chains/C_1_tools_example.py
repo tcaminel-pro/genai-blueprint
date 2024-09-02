@@ -11,6 +11,7 @@ from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.runnables import Runnable
 from langchain_core.tools import tool
 
+from python.ai_core.agents_builder import get_agent_builder
 from python.ai_core.chain_registry import (
     Example,
     RunnableItem,
@@ -37,11 +38,9 @@ def add(x: float, y: float) -> float:
     return x + y
 
 
-tools_arithmetic = [multiply, exponentiate, add]
-
 tavily_tool = TavilySearchResults(max_results=5)
 
-tools_search = [tavily_tool]
+tools = [multiply, exponentiate, add, tavily_tool]
 
 
 # Whenever we invoke `llm_with_tool`, all three of these tool definitions
@@ -50,7 +49,7 @@ tools_search = [tavily_tool]
 
 def create_runnable(config: dict) -> Runnable:
     llm = get_llm(llm_id=config["llm"])
-    return llm.bind_tools(tools_arithmetic)  # type: ignore
+    return llm.bind_tools(tools)  # type: ignore
 
 
 register_runnable(
@@ -68,7 +67,9 @@ def create_executor(config: dict) -> Runnable:
     llm = get_llm(llm_id)
     info = get_llm_info(llm_id)
 
-    prompt = hub.pull(info.agent_builder.hub_prompt)
+    agent_builder = get_agent_builder(info.agent_builder)
+
+    prompt = hub.pull(agent_builder.hub_prompt)
 
     #    debug(prompt)
 
@@ -80,10 +81,10 @@ def create_executor(config: dict) -> Runnable:
         ]
     )
 
-    agent_creator = info.agent_builder.create_function
+    agent_creator = agent_builder.create_function
     debug(agent_creator)
 
-    agent = agent_creator(llm, tools_search, prompt)  # type: ignore
+    agent = agent_creator(llm, tools, prompt)  # type: ignore
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)  # type: ignore
     return agent_executor
 

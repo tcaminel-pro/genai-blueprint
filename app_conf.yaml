@@ -40,10 +40,13 @@ factories:
 # Agent configuration
 default:
   llm:
-    default_model:   mistral_large_edenai # gpt_35_edenai 
+    list: ${PWD}/models_providers.yaml
+    default_model:  gpt_4omini_edenai # mistral_large_edenai 
     cache : sqlite
+    cache_path: ${HOME}/cache_ai/langchain.db
   embeddings:
-    default_model:  multilingual_MiniLM_local #ada_002_edenai #
+    list: ${PWD}/models_providers.yaml
+    default_model:  ada_002_edenai #multilingual_MiniLM_local 
     cache: ${HOME}/hf_models
   vector_store:
     default: Chroma
@@ -52,7 +55,7 @@ default:
   documents:
     base: ./use_case_data
   monitoring: 
-    default: langsmith__
+    default: none # langsmith 
     project: GenAI_demo
 
   chains:

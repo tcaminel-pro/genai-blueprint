@@ -8,10 +8,17 @@ Facilitate the creation of Llm objects, that are :
 The LLM can be given, or taken from the configuration
 """
 
+
+# TODO
+#  implement from langchain_core.rate_limiters import InMemoryRateLimiter
+
+
 import os
-from functools import cached_property
+from functools import cached_property, lru_cache
+from pathlib import Path
 from typing import cast
 
+import yaml
 from dotenv import load_dotenv
 from langchain.schema.language_model import BaseLanguageModel
 from langchain_core.runnables import ConfigurableField, Runnable
@@ -29,175 +36,42 @@ load_dotenv(verbose=True, override=True)
 MAX_TOKENS = 2048
 
 
-class LLM_INFO(BaseModel):
+API_KEYS = {
+    "ChatOpenAI": "OPENAI_API_KEY",
+    "ChatDeepInfra": "DEEPINFRA_API_TOKEN",
+    "ChatGroq": "GROQ_API_KEY",
+    "ChatVertexAI": "GOOGLE_API_KEY",
+    "ChatOllama": "",
+    "ChatEdenAI": "EDENAI_API_KEY",
+    "AzureChatOpenAI": "AZURE_OPENAI_API_KEY",
+    "ChatTogether": "TOGETHER_API_KEY",
+    "DeepSeek": "DEEPSEEK_API_KEY",
+}
+
+
+class LlmInfo(BaseModel):
     """Description of LLM ( model  + endpoint)"""
 
-    id: str  # an ID for the LLM; should follow Python variables constraints
+    # an ID for the LLM; should follow Python variables constraints, and have 3 parts: model_version_provider
+    id: str = Field(pattern=r"^[a-zA-Z_][a-zA-Z0-9_]*_[a-zA-Z0-9_]*_[a-zA-Z0-9_]*$")
     cls: str  # Name of the LangChain class for the constructor
     model: str  # Name of the model for the constructor
-    key: str  # API key.  "" if it not needed.
-    agent_builder_type: str = "tool_calling"
+    agent_builder: str | None = "tool_calling"
 
     @computed_field
-    @property
-    def agent_builder(self) -> AgentBuilder:
-        return get_agent_builder(self.agent_builder_type)
-
-    @field_validator("agent_builder")
-    def check_known(cls, type: str) -> str:
-        _ = get_agent_builder(type)
-        return type
-
-    def __hash__(self):
-        return hash(self.id)
+    def key(self) -> str:
+        return API_KEYS[self.cls]
 
     # DODO: add validator for LLM id name.
 
 
-KNOWN_LLM_LIST = [
-    # LLM and endpoints in the factory.
-    # LLM_id should follow Python variables constraints - ie no '-', no space, etc
-    #  Use pattern "{self.model_name}_{version}_{inference provider or library}"
-    #  model_name is provider specific.  It can contains several fields decoded in the factory.
-    # LiteLlm supported models are listed here: https://litellm.vercel.app/docs/providers
-    #
-    # ####  OpenAI Models  ####
-    LLM_INFO(
-        id="gpt_35_openai",
-        cls="ChatOpenAI",
-        model="gpt-3.5-turbo-0125",
-        key="OPENAI_API_KEY",
-    ),
-    LLM_INFO(
-        id="gpt_4o_openai",
-        cls="ChatOpenAI",
-        model="gpt-4o",
-        key="OPENAI_API_KEY",
-    ),
-    LLM_INFO(
-        id="gpt_4omini_openai",
-        cls="ChatOpenAI",
-        model="gpt-4o-mini",
-        key="OPENAI_API_KEY",
-    ),
-    #
-    ####  ChatDeepInfra ### https://deepinfra.com/models/text-generation
-    LLM_INFO(
-        id="llama31_70_deepinfra",
-        cls="ChatDeepInfra",
-        model="meta-llama/Meta-Llama-3.1-70B-Instruct",
-        key="DEEPINFRA_API_TOKEN",
-    ),
-    LLM_INFO(
-        id="llama31_8_deepinfra",
-        cls="ChatDeepInfra",
-        model="meta-llama/Meta-Llama-3.1-8B-Instruct",
-        key="DEEPINFRA_API_TOKEN",
-    ),
-    LLM_INFO(
-        id="mixtral_7x8_deepinfra",
-        cls="ChatDeepInfra",
-        model="mistralai/Mixtral-8x7B-Instruct-v0.1",
-        key="DEEPINFRA_API_TOKEN",
-    ),
-    LLM_INFO(
-        id="qwen2_70_deepinfra",
-        cls="ChatDeepInfra",
-        model="Qwen/Qwen2-72B-Instruct",
-        key="DEEPINFRA_API_TOKEN",
-    ),
-    #
-    ####  ChatLiteLLM Models
-    LLM_INFO(
-        id="llama3_70_deepinfra_lite",
-        cls="ChatLiteLLM",
-        model="deepinfra/meta-llama/Llama-3-70b-chat-hf",
-        key="DEEPINFRA_API_TOKEN",
-    ),
-    #
-    #####  GROQ  Models  #####
-    LLM_INFO(
-        id="llama3_70_groq",
-        cls="ChatGroq",
-        model="lLama3-70b-8192",
-        key="GROQ_API_KEY",
-    ),
-    LLM_INFO(
-        id="llama3_8_groq",
-        cls="ChatGroq",
-        model="lLama3-8b-8192",
-        key="GROQ_API_KEY",
-    ),
-    LLM_INFO(
-        id="mixtral_7x8_groq",
-        cls="ChatGroq",
-        model="Mixtral-8x7b-32768",
-        key="GROQ_API_KEY",
-        agent_builder_type="tool_calling",  # DOES NOT WORK # TODO : Check with new updates
-    ),
-    #
-    #  Google Models
-    LLM_INFO(
-        id="gemini_pro_google",
-        cls="ChatVertexAI",
-        model="gemini-pro",
-        key="GOOGLE_API_KEY",
-    ),
-    #
-    #  Ollama Models
-    LLM_INFO(
-        id="llama3_8_local",
-        cls="ChatOllama",
-        model="llama3:instruct",
-        key="",
-    ),
-    #
-    ###  EdenAI Endpoint - see https://app.edenai.run/bricks/text/chat
-    LLM_INFO(
-        id="gpt_4o_edenai",
-        cls="ChatEdenAI",
-        model="openai/gpt-4o",
-        key="EDENAI_API_KEY",
-    ),
-    LLM_INFO(
-        id="gpt_4_edenai",
-        cls="ChatEdenAI",
-        model="openai/gpt-4",
-        key="EDENAI_API_KEY",
-    ),
-    LLM_INFO(
-        id="gpt_35_edenai",
-        cls="ChatEdenAI",
-        model="openai/gpt-3.5-turbo-0125",
-        key="EDENAI_API_KEY",
-    ),
-    LLM_INFO(
-        id="mistral_large_edenai",
-        cls="ChatEdenAI",
-        model="mistral/large-latest",
-        key="EDENAI_API_KEY",
-    ),
-    #
-    #  Azure Models
-    LLM_INFO(
-        id="gpt_4_azure",
-        cls="AzureChatOpenAI",
-        model="gpt4-turbo/2023-05-15",
-        key="AZURE_OPENAI_API_KEY",
-    ),
-    LLM_INFO(
-        id="gpt_35_azure",
-        cls="AzureChatOpenAI",
-        model="gpt-35-turbo/2023-05-15",
-        key="AZURE_OPENAI_API_KEY",
-    ),
-    LLM_INFO(
-        id="gpt_4o_azure",
-        cls="AzureChatOpenAI",
-        model="gpt-4o/2024-05-13",
-        key="AZURE_OPENAI_API_KEY",
-    ),
-]
+def read_llm_list_file() -> list[LlmInfo]:
+    yml_file = Path(get_config_str("llm", "list"))
+    assert yml_file.exists(), f"cannot find {yml_file}"
+    with open(yml_file, "r") as f:
+        data = yaml.safe_load(f)
+    llms = [LlmInfo(**llm) for llm in data["llm"]]
+    return llms
 
 
 class LlmFactory(BaseModel):
@@ -212,7 +86,7 @@ class LlmFactory(BaseModel):
 
     @computed_field
     @cached_property
-    def info(self) -> LLM_INFO:
+    def info(self) -> LlmInfo:
         """Return LLM_INFO information on LLM"""
         assert self.llm_id
         return LlmFactory.known_items_dict().get(self.llm_id)  # type: ignore
@@ -227,12 +101,17 @@ class LlmFactory(BaseModel):
             )
         return llm_id
 
+    @lru_cache(maxsize=1)
     @staticmethod
-    def known_items_dict() -> dict[str, LLM_INFO]:
+    def known_list() -> list[LlmInfo]:
+        return read_llm_list_file()
+
+    @staticmethod
+    def known_items_dict() -> dict[str, LlmInfo]:
         """Return known LLM in the registry whose API key environment variable is known"""
         return {
             item.id: item
-            for item in KNOWN_LLM_LIST
+            for item in LlmFactory.known_list()
             if item.key in os.environ or item.key == ""
         }
 
@@ -242,11 +121,16 @@ class LlmFactory(BaseModel):
 
         return list(LlmFactory.known_items_dict().keys())
 
+    # @computed_field
+    # @property
+    # def agent_builder(self) -> AgentBuilder:
+    #     return get_agent_builder(self.agent_builder_type)
+
     def get(self) -> BaseLanguageModel:
         """
         Create an LLM model.
         'model' is our internal name for the model and its provider. If None, take the default one.
-        We select a LiteLLM wrapper if it's defined in the KNOWN_LLM_LIST table, otherwise
+        We select a LiteLLM wrapper if it's defined in the known_llm_list() table, otherwise
         we create the LLM from a LangChain LLM class
         """
         if self.info.key not in os.environ and self.info.key != "":
@@ -263,7 +147,7 @@ class LlmFactory(BaseModel):
                 model=self.info.model,
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
-                seed=42,  # Not sure that works
+                seed=42,
             )
             if self.json_mode:
                 llm = cast(
@@ -297,7 +181,10 @@ class LlmFactory(BaseModel):
                     "stop": ["STOP_TOKEN"],
                 },
             )
-            assert not self.json_mode, "json_mode not supported or coded"
+            if True:  # self.json_mode:
+                llm = cast(
+                    BaseLanguageModel, llm.bind(response_format={"type": "json_object"})
+                )
         elif self.info.cls == "ChatEdenAI":
             from langchain_community.chat_models.edenai import ChatEdenAI
 
@@ -323,16 +210,8 @@ class LlmFactory(BaseModel):
                 max_output_tokens=self.max_tokens,
             )  # type: ignore
             assert not self.json_mode, "json_mode not supported or coded"
-        elif self.info.cls == "ChatLiteLLM":
-            from langchain_community.chat_models.litellm import ChatLiteLLM
-
-            llm = ChatLiteLLM(
-                model=self.info.model,
-                temperature=self.temperature,
-            )  # type: ignore
-
         elif self.info.cls == "ChatOllama":
-            from langchain_community.chat_models.ollama import ChatOllama
+            from langchain_ollama import ChatOllama
 
             format = "json" if self.json_mode else None
             llm = ChatOllama(
@@ -355,6 +234,14 @@ class LlmFactory(BaseModel):
                 llm = cast(
                     BaseLanguageModel, llm.bind(response_format={"type": "json_object"})
                 )
+        elif self.info.cls == "ChatTogether":
+            from langchain_together import ChatTogether
+
+            llm = ChatTogether(
+                model=self.info.model,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+            )
 
         else:
             if self.info.cls in LlmFactory.known_items():
@@ -368,6 +255,8 @@ class LlmFactory(BaseModel):
     def get_configurable(self, with_fallback=False) -> Runnable:
         # Make the LLM configurable at run time
         # see https://python.langchain.com/docs/expression_language/primitives/configure/#with-llms-1
+        # PROBLEM : too much alternative LLM
+        # TODO : Should associate a list of LM to the default one
 
         default_llm_id = self.llm_id
         if default_llm_id is None:
@@ -442,7 +331,7 @@ def get_selected_llm(args) -> BaseLanguageModel:
     return get_llm()
 
 
-def get_llm_info(llm_id: str) -> LLM_INFO:
+def get_llm_info(llm_id: str) -> LlmInfo:
     """
     Return information on given LLM
     """
