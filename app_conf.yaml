@@ -46,7 +46,7 @@ default:
     cache_path: ${HOME}/cache_ai/langchain.db
   embeddings:
     list: ${PWD}/models_providers.yaml
-    default_model:  ada_002_edenai #multilingual_MiniLM_local #
+    default_model:  multilingual_MiniLM_local #ada_002_edenai #
     cache: ${HOME}/hf_models
   vector_store:
     default: Chroma
@@ -62,8 +62,8 @@ default:
     path: python.ai_chains
     modules:
       - A_1_joke 
-      # - B_1_naive_rag_example
-      # - B_2_self_query
+      - B_1_naive_rag_example
+      - B_2_self_query
       # - C_1_tools_example
       # - C_2_advanced_rag_langgraph
       # - essay_writer_agent
