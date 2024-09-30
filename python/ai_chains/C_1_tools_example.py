@@ -7,7 +7,6 @@ Adapted from https://blog.langchain.dev/tool-calling-with-langchain/
 from langchain import hub
 from langchain.agents import AgentExecutor
 from langchain.prompts import ChatPromptTemplate
-from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.runnables import Runnable
 from langchain_core.tools import tool
 
@@ -38,9 +37,10 @@ def add(x: float, y: float) -> float:
     return x + y
 
 
-tavily_tool = TavilySearchResults(max_results=5)
+# tavily_tool = TavilySearchResults(max_results=5)
 
-tools = [multiply, exponentiate, add, tavily_tool]
+# tools = [multiply, exponentiate, add, tavily_tool]
+tools = [multiply, exponentiate, add]
 
 
 # Whenever we invoke `llm_with_tool`, all three of these tool definitions

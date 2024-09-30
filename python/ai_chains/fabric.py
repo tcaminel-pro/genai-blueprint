@@ -45,6 +45,7 @@ def fabric_prompt(param: dict):
     """
 
     URL = "https://raw.githubusercontent.com/danielmiessler/fabric/main/patterns/"
+    URL = "https://raw.githubusercontent.com/danielmiessler/fabric/refs/heads/main/patterns/"
     system_url = f"{URL}/{param['pattern']}/system.md"
     user_url = f"{URL}/{param['pattern']}/user.md"
     # Fetch the prompt content

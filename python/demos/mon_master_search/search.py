@@ -19,7 +19,7 @@ from python.demos.mon_master_search.model_subset import EXAMPLE_QUERIES
 DEFAULT_RESULT_COUNT = 20
 RATIO_SPARSE = 50
 EMBEDDINGS_MODEL_ID = "solon-large"
-REPO = Path("/mnt/c/Users/a184094/OneDrive - Eviden/_En cours/mon_master/")
+REPO = Path("/mnt/c/Users/a184094/OneDrive - Eviden/_ongoing/mon_master/")
 FILES = REPO / "synthesis_v2.json"
 
 

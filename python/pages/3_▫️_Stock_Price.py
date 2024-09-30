@@ -6,11 +6,13 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 import yfinance as yf
+from langchain.callbacks import tracing_v2_enabled
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from langchain_core.tools import tool
 
 from python.ai_core.cache import LlmCache
 from python.ai_core.llm import get_llm
+from python.config import get_config_str
 
 st.set_page_config(layout="wide")
 
@@ -131,7 +133,7 @@ def call_functions(llm_with_tools, user_prompt):
 
 
 def main():
-    llm = get_llm(llm_id="llama3_70_groq", cache=LlmCache.NONE, streaming=False)
+    llm = get_llm(llm_id="llama31_70_groq", cache=LlmCache.NONE, streaming=False)
 
     #    llm = LlmFactory(llm_id="gpt_35_openai").get()
 
@@ -155,8 +157,13 @@ def main():
     user_question = st.text_input("Ask a question about a stock or multiple stocks:")
 
     if user_question:
-        response = call_functions(llm_with_tools, user_question)
-        st.write(response)
+        if get_config_str("monitoring", "default") == "langsmith":
+            # use Langsmith context manager to get the UTL to the trace
+            with tracing_v2_enabled() as cb:
+                response = call_functions(llm_with_tools, user_question)
+                st.write(response)
+                url = cb.get_run_url()
+                st.write("[trace](%s)" % url)
 
 
 main()

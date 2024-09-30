@@ -318,12 +318,17 @@ class MaintenanceAgent(BaseModel):
     ) -> Tuple[str, pd.DataFrame | None]:
         """Run the maintenance agent."""
 
+        system = dedent_ws(
+            """
+            You are a helpful assistant to help a maintenance engineer. 
+            To fo so, you have different tools (functions)  to access maintenance planning, spares etc.
+            Make sure to use only the provided tools (functions) to answer the user request.
+            If you don't find relevant tool, answer "I don't know"
+            """
+        )
         prompt = ChatPromptTemplate.from_messages(
             [
-                (
-                    "system",
-                    "You are a helpful assistant. Make sure to use the provided tool for information.",
-                ),
+                ("system", system),
                 ("placeholder", "{chat_history}"),
                 ("human", "{input}"),
                 ("placeholder", "{agent_scratchpad}"),
