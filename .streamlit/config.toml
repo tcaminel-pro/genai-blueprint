@@ -12,3 +12,7 @@ gatherUsageStats = false
 
 [server]
 runOnSave = true
+
+[client]
+showErrorDetails = true
+toolbarMode = "developer"

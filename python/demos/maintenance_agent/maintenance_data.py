@@ -1,19 +1,16 @@
 from datetime import datetime, timedelta
-from functools import cache
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import streamlit as st
 from loguru import logger
 
 TABLE_NAME = "maintenance_planning"
-DATA_PATH = Path.cwd() / "use_case_data/maintenance"
 MODEL_CACHE = Path.cwd() / ".model_cache"
 
-assert DATA_PATH.exists()
 
-
-@cache
+@st.cache_data(ttl=3600 * 24)
 def dummy_database() -> str:
     """Create a dummy database  for the demo. Returns the SqlAlchemy URI.
 
@@ -21,7 +18,9 @@ def dummy_database() -> str:
     - a table with sensor events
     - a table with employees planning in the last few weeks
     """
-    DATABASE_URI = f"sqlite:///{DATA_PATH}/demo.db"
+
+    # DATABASE_URI = "sqlite:///:memory:"
+    DATABASE_URI = "sqlite:////tmp/demo.db"
     # fmt: off
     proc = "Power Plant Steam Turbine"
     iot_warnings = [
@@ -71,10 +70,14 @@ def dummy_database() -> str:
         sensor_data = pd.concat([sensor_data, sensor_df], ignore_index=True)
 
     # fmt: on
-    logger.info(f"create database {DATABASE_URI}")
+
     for name, tables in [("iot_warnings", iot_warnings), ("tasks", tasks)]:
         df = pd.DataFrame(tables)
         df.to_sql(name, DATABASE_URI, if_exists="replace", index=False)
 
     sensor_data.to_sql("sensor_data", DATABASE_URI, if_exists="replace", index=False)
+
+    _ = pd.read_sql("""SELECT * FROM "tasks" ;""", DATABASE_URI)
+
+    logger.info(f"create database {DATABASE_URI}")
     return DATABASE_URI

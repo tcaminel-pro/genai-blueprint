@@ -4,23 +4,25 @@ Demo of an LLM Augmented Autonomous Agent for Maintenance
 Copyright (C) 2023 Eviden. All rights reserved
 """
 
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
 import streamlit as st
 from langchain.callbacks import tracing_v2_enabled
-from langchain_community.callbacks import StreamlitCallbackHandler
 from langsmith import Client
 from loguru import logger  # noqa: F401
 
-from python.ai_agents.maintenance_agents import PROCEDURES, MaintenanceAgent
+from python.ai_agents.maintenance_agents import DATA_PATH, PROCEDURES, MaintenanceAgent
 from python.ai_core.embeddings import EmbeddingsFactory
-from python.ai_core.llm import LlmFactory, get_llm
+from python.ai_core.llm import LlmFactory
 from python.ai_core.prompts import dedent_ws
-from python.demos.maintenance_agent.maintenance_data import DATA_PATH, dummy_database
+from python.config import get_config_str
+from python.demos.maintenance_agent.maintenance_data import dummy_database
 from python.GenAI_Lab import config_sidebar
 from python.utils.streamlit.clear_result import with_clear_container
+from python.utils.streamlit.thread_issue_fix import get_streamlit_cb
 
 # fmt:off
 SAMPLE_PROMPTS = {
@@ -47,10 +49,15 @@ SAMPLE_PROMPTS = {
 
 MODEL = "gemini_pro_google"
 
+
+# if not st.session_state.get("authenticated"):
+#     st.write("not authenticated")
+#     st.stop()
+
 config_sidebar()
 
 
-def agent():
+def agent() -> MaintenanceAgent:
     # llm = get_llm()
     # embeddings_model = EmbeddingsFactory().get()
 
@@ -60,6 +67,16 @@ def agent():
     agent.create_tools()
     # agent.add_tools([DiagramGeneratorTool()])
     return agent
+
+
+@contextmanager
+def custom_tracing_context():
+    # TODO : Improve and make generic
+    if get_config_str("monitoring", "default") == "none":
+        yield None
+    else:
+        with tracing_v2_enabled() as cb:
+            yield cb
 
 
 ################################
@@ -151,17 +168,28 @@ if with_clear_container(submit_clicked):
         f"Current date is: {datetime.now().isoformat()}. Use it for SQL the queries."
     )
     query = context + "\n" + user_input
-
-    llm = get_llm()
     client = Client()
 
-    with tracing_v2_enabled() as cb:
-        answer = agent().run(
-            query,
-            llm,
-            extra_callbacks=[StreamlitCallbackHandler(answer_container)],
-            extra_metadata={"st_container": ("answer_container", answer_container)},
-        )
-        url = cb.get_run_url()
+    streamlit_callback = get_streamlit_cb(answer_container)
+
+    try:
+        if get_config_str("monitoring", "default") == "langsmith":
+            with tracing_v2_enabled() as cb:
+                answer = agent().run(
+                    query,
+                    extra_callbacks=[streamlit_callback],
+                    extra_metadata={
+                        "st_container": ("answer_container", answer_container)
+                    },
+                )
+                url = cb.get_run_url()
+                answer_container.write("[trace](%s)" % url)
+        else:
+            answer = agent().run(
+                query,
+                extra_callbacks=[streamlit_callback],
+                extra_metadata={"st_container": ("answer_container", answer_container)},
+            )
         answer_container.write(answer)
-        answer_container.write("[trace](%s)" % url)
+    except Exception as ex:
+        logger.exception(ex)

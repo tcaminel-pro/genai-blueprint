@@ -13,6 +13,10 @@ from python.config import get_config_str
 
 
 class LlmCache(str, Enum):
+    """
+    Enum representing the different types of LLM cache strategies.
+    """
+
     MEMORY = "memory"
     SQLITE = "sqlite"
     NONE = "none"
@@ -20,6 +24,10 @@ class LlmCache(str, Enum):
 
     @classmethod
     def from_value(cls, value):
+        """
+        Returns the LlmCache member corresponding to the given value.
+        If no match is found, returns None.
+        """
         for member in cls:
             if member.value.lower() == value.lower():
                 return member
@@ -27,12 +35,27 @@ class LlmCache(str, Enum):
 
     @classmethod
     def values(cls) -> list[str]:
+        """
+        Returns a list of all possible values for the LlmCache enum.
+        """
         return [member.value for member in cls]
+
+    def __repr__(self):
+        """
+        Returns a string representation of the LlmCache member.
+        """
+        return str(self.__class__).split(".")[-1].rstrip("'>")
 
 
 def set_cache(cache: LlmCache | None):
     """
-    Define caching strategy.  If 'None', take the one defined in configuration
+    Define caching strategy. If 'None', take the one defined in configuration.
+
+    Args:
+        cache (LlmCache | None): The cache strategy to set. If None, the default from configuration is used.
+
+    Raises:
+        logger.warning: If the default cache configuration is incorrect.
     """
     old_cache = get_llm_cache()
     if not cache:
@@ -51,6 +74,4 @@ def set_cache(cache: LlmCache | None):
         set_llm_cache(None)
     new_cache = get_llm_cache()
     if new_cache != old_cache:
-        logger.info(
-            f"""LLM cache : {str(new_cache.__class__).split('.')[-1].rstrip("'>")}"""
-        )
+        logger.info(f"""LLM cache : {str(new_cache.__class__).split('.')[-1].rstrip("'>")}""")

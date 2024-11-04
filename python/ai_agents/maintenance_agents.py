@@ -6,42 +6,42 @@ Copyright (C) 2023 Eviden. All rights reserved
 
 from datetime import datetime
 from functools import cached_property
+from pathlib import Path
 from textwrap import dedent
 from typing import Literal, Tuple, Union
 
 import pandas as pd
 import streamlit as st
 from devtools import debug
+from langchain import hub
 from langchain.agents import (
     AgentExecutor,
-    create_sql_agent,
-    create_tool_calling_agent,
 )
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.schema import Document
-from langchain.schema.language_model import BaseLanguageModel
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.tools import BaseTool, tool
 from langchain.tools.retriever import create_retriever_tool
 from langchain.vectorstores.base import VectorStore
+from langchain_community.agent_toolkits.sql.base import create_sql_agent
 from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from langchain_community.document_loaders import TextLoader
 from langchain_community.utilities.sql_database import SQLDatabase, truncate_word
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableConfig
 from loguru import logger
-
-# Pydantic v1 required - https://python.langchain.com/v0.1/docs/guides/development/pydantic_compatibility/
-from pydantic.v1 import BaseModel, Field
+from pydantic import BaseModel, Field
 
 # from pydantic import BaseModel, Field
+from python.ai_core.agents_builder import get_agent_builder
 from python.ai_core.embeddings import EmbeddingsFactory
-from python.ai_core.llm import LlmFactory
+from python.ai_core.llm import LlmFactory, get_llm_info
 from python.ai_core.prompts import dedent_ws, def_prompt
 from python.ai_core.vector_store import VectorStoreFactory
-from python.demos.maintenance_agent.maintenance_data import DATA_PATH, dummy_database
+from python.config import get_config_str
+from python.demos.maintenance_agent.maintenance_data import dummy_database
 
 # Tools setup
 PROCEDURES = [
@@ -49,6 +49,8 @@ PROCEDURES = [
     "procedure_generator.txt",
     "procedure_cooling_system.txt",
 ]
+
+DATA_PATH = Path(get_config_str("documents", "base")) / "maintenance"
 
 
 class SQLDatabaseExt(SQLDatabase):
@@ -311,17 +313,25 @@ class MaintenanceAgent(BaseModel):
     def run(
         self,
         query: str,
-        llm: BaseLanguageModel,
         verbose: bool = False,
         extra_callbacks: list[BaseCallbackHandler] | None = None,
         extra_metadata: dict | None = None,
     ) -> Tuple[str, pd.DataFrame | None]:
         """Run the maintenance agent."""
 
+        info = get_llm_info(self.llm_factory.get_id())
+        agent_builder = get_agent_builder(info.agent_builder)
+        prompt = hub.pull(agent_builder.hub_prompt)
+
+        debug(prompt)
+
+        agent_creator = agent_builder.create_function
+        debug(agent_creator)
+
         system = dedent_ws(
             """
             You are a helpful assistant to help a maintenance engineer. 
-            To fo so, you have different tools (functions)  to access maintenance planning, spares etc.
+            To do so, you have different tools (functions)  to access maintenance planning, spares etc.
             Make sure to use only the provided tools (functions) to answer the user request.
             If you don't find relevant tool, answer "I don't know"
             """
@@ -336,7 +346,9 @@ class MaintenanceAgent(BaseModel):
         )
 
         # Construct the Tools agent
-        agent = create_tool_calling_agent(llm, self.tools, prompt)
+        llm = self.llm_factory.get()
+        agent = agent_creator(llm, self.tools, prompt)  # type: ignore
+        # agent = create_tool_calling_agent(llm, self.tools, prompt)
 
         extra_callbacks = extra_callbacks or []
         # callbacks = app_conf().callback_handlers + extra_callbacks

@@ -22,6 +22,17 @@ _ = load_dotenv(verbose=True)
 
 
 class EmbeddingsInfo(BaseModel):
+    """
+    Information about an embeddings model.
+
+    Attributes:
+        id (str): A unique identifier for the embeddings model.
+        cls (str): The name of the constructor for the embeddings model.
+        model (str): The provider name of the model.
+        key (str | None): The API key for the model, if required.
+        prefix (str): A prefix required by some models in the API call.
+    """
+
     id: str  # a given ID for the embeddings
     cls: str  # Name of the constructor
     model: str  # Provider name of the model
@@ -46,11 +57,25 @@ def read_embeddings_list_file() -> list[EmbeddingsInfo]:
     assert yml_file.exists(), f"cannot find {yml_file}"
     with open(yml_file, "r") as f:
         data = yaml.safe_load(f)
-    embedding = [EmbeddingsInfo(**e) for e in data["embeddings"]]
-    return embedding
+    embeddings = []
+    for provider in data["embeddings"]:
+        cls = provider["cls"]
+        for model in provider["models"]:
+            model["cls"] = cls
+            embeddings.append(EmbeddingsInfo(**model))
+    return embeddings
 
 
 class EmbeddingsFactory(BaseModel):
+    """
+    Factory class for creating and managing embeddings models.
+
+    Attributes:
+        embeddings_id (str | None): The unique identifier for the embeddings model.
+        encoding_str (str | None): The encoding string for the model.
+        retrieving_str (str | None): The retrieving string for the model.
+    """
+
     embeddings_id: Annotated[str | None, Field(validate_default=True)] = None
     encoding_str: str | None = None
     retrieving_str: str | None = None
@@ -98,6 +123,12 @@ class EmbeddingsFactory(BaseModel):
         return llm
 
     def model_factory(self) -> Embeddings:
+        """
+        Create an embeddings model object based on the configuration.
+
+        Returns:
+            Embeddings: An instance of the configured embeddings model.
+        """
         if self.info.cls == "OpenAIEmbeddings":
             from langchain_openai import OpenAIEmbeddings
 
@@ -112,7 +143,8 @@ class EmbeddingsFactory(BaseModel):
             cache = get_config_str("embeddings", "cache")
             emb = HuggingFaceEmbeddings(
                 model_name=self.info.model,
-                model_kwargs={"device": "cpu"},
+                model_kwargs={"device": "cpu", "trust_remote_code": True},
+                encode_kwargs={"normalize_embeddings": True},
                 cache_folder=cache,
             )
         elif self.info.cls == "EdenAiEmbeddings":
@@ -129,6 +161,15 @@ class EmbeddingsFactory(BaseModel):
                 model=name,  # Not sure it's needed
                 api_version=api_version,
             )
+        elif self.info.cls == "DeepSeekCoderEmbeddings":
+            from langchain_deepseek import DeepSeekCoderEmbeddings
+
+            emb = DeepSeekCoderEmbeddings(model=self.info.model)
+        elif self.info.cls == "OllamaEmbeddings":
+            from langchain_ollama import OllamaEmbeddings
+
+            emb = OllamaEmbeddings(model=self.info.model)
+
         else:
             raise ValueError(f"unsupported Embeddings class {self.info.cls}")
         return emb

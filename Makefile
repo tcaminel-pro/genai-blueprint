@@ -100,7 +100,7 @@ push_az:  # Push to a registry
 
 update:  # Update selected fast changing dependencies 
 	poetry add 	langchain@latest  langchain-core@latest langgraph@latest langserve@latest langchainhub@latest \
-				 langchain-groq@latest  \
+				 langchain-groq@latest   langchain-openai@latest langchain-huggingface@latest \
 				 langchain-experimental@latest   langchain-community@latest
 # litellm@latest lunary@latest
 

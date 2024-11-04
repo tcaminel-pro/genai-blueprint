@@ -11,9 +11,9 @@ from typing import Any, Callable, Dict, Iterable, List, Optional
 
 from langchain_core.callbacks import CallbackManagerForRetrieverRun
 from langchain_core.documents import Document
-from langchain_core.pydantic_v1 import Field
 from langchain_core.retrievers import BaseRetriever
 from loguru import logger
+from pydantic import Field
 
 
 def default_preprocessing_func(text: str) -> List[str]:

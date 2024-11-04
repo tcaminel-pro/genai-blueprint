@@ -32,11 +32,13 @@ app = FastAPI(
 
 # test at : http://localhost:8000/joke/playground/
 
-for runnable in get_runnable_registry() :
+for runnable_item in get_runnable_registry() :
+    runnable = runnable_item.get()
+    debug(runnable.get_input_schema())
     add_routes(
         app,
-        runnable.get(),
-        path="/" + runnable.name.lower()
+        runnable,
+        path="/" + runnable_item.name.lower()
     )
 
 if __name__ == "__main__":

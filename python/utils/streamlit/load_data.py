@@ -25,7 +25,7 @@ def load_tabular_data(
     elif isinstance(file_or_filename, UploadedFile):
         loaded_file = file_or_filename
     else:
-        raise ValueError("incorrect file")
+        raise ValueError(f"incorrect file: {file_or_filename}")
     ext = os.path.splitext(loaded_file.name)[1][1:].lower()
     if ext in TABULAR_FILE_FORMATS_READERS:
         return TABULAR_FILE_FORMATS_READERS[ext](loaded_file, **kwargs)

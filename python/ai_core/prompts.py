@@ -25,9 +25,8 @@ DEFAULT_SYSTEM_PROMPT = ""
 
 
 def dedent_ws(text: str) -> str:
-    """'detent' function replacement to remove any common leading whitespace from every line in `text`.
-    It address 'dedent' choice to not consider tabs and space as equivalent, by replacing tabs by 4 whitespace,
-    so "   hello" and "\\thello" are considered to have common leading whitespace.
+    """Remove any common leading whitespace and tabs from every line in `text`.
+    It replace tabs by 4 whitespace then call the standard 'dedent' functions, so "   hello" and "\\thello" are considered to have common leading whitespace.
     It also remove the first new_line if any"""
 
     if text.startswith("\n"):
@@ -80,9 +79,7 @@ class PromptFormatter(BaseModel):
             input_prompt = def_prompt(user=input_prompt)
             # input_prompt = def_prompt(user=input_prompt)
         elif not isinstance(input_prompt, ChatPromptTemplate):
-            logger.warning(
-                f"ignore formatting of message of type : {type(input_prompt)}"
-            )
+            logger.warning(f"ignore formatting of message of type : {type(input_prompt)}")
             return input_prompt
 
         if self.usr_0_beg is None:
@@ -96,21 +93,17 @@ class PromptFormatter(BaseModel):
         for message in input_prompt.messages:
             if isinstance(message, SystemMessagePromptTemplate):
                 template.append(
-                    self.sys_beg
-                    + dedent(cast(str, message.prompt.template) + self.sys_end)  # type: ignore
+                    self.sys_beg + dedent(cast(str, message.prompt.template) + self.sys_end)  # type: ignore
                 )
             elif isinstance(message, HumanMessagePromptTemplate):
                 template.append(
-                    self.usr_n_beg
-                    + dedent(cast(str, message.prompt.template) + self.usr_n_end)  # type: ignore
+                    self.usr_n_beg + dedent(cast(str, message.prompt.template) + self.usr_n_end)  # type: ignore
                 )
             else:
                 raise Exception(f"cannot transform {message} in single prompt")
         template.append(self.text_end)
         new_template = "".join(template)
-        return PromptTemplate(
-            template=new_template, input_variables=input_prompt.input_variables
-        )
+        return PromptTemplate(template=new_template, input_variables=input_prompt.input_variables)
 
     def to_chat_msg(
         self,
@@ -131,8 +124,8 @@ class Llama2Format(PromptFormatter):
     ai_n_end: str = " </s>"
     usr_n_beg: str = "<s>[INST] "
     usr_n_end: str = " [/INST]"
-    usr_0_beg: str = ""
-    usr_0_end: str = " [/INST]"
+    usr_0_beg: str | None= ""
+    usr_0_end: str | None= " [/INST]"
 
 
 class Llama3Format(PromptFormatter):
@@ -160,8 +153,8 @@ class MixtralFormat(PromptFormatter):
     ai_n_end: str = " </s>"
     usr_n_beg: str = " [INST] "
     usr_n_end: str = " [/INST]"
-    usr_0_beg: str = ""
-    usr_0_end: str = " [/INST]"
+    usr_0_beg : str | None= ""
+    usr_0_end: str | None = " [/INST]"
 
 
 llama3_formatter = RunnableLambda(lambda x: Llama3Format().to_chat_prompt_template(x))
@@ -173,7 +166,7 @@ def test():
 
     formatter = Llama3Format()
 
-    prompt_original = PromptTemplate(
+    _ = PromptTemplate(
         template=""" <|begin_of_text|><| start_header_id|>system<|end_header_id|> this is a system message talking about {topic} <|eot_id|>
     <|start_header_id|>user<|end_header_id|> <|eot_id|><|start_header_id|>assistant<|end_header_id|>""",
         input_variables=["topic"],
@@ -189,7 +182,7 @@ def test():
     # debug(prompt_original, prompt, new_prompt)
     llama3_local = get_llm(llm_id="llama3_8_local")
     chain = new_prompt | llama3_local
-    chain.invoke("french") # type: ignore
+    chain.invoke("french")  # type: ignore
 
 
 if __name__ == "__main__":

@@ -1,47 +1,9 @@
-# Selectable LLM, embedding models, vector store etc that HARD CODED in the code.
-# Generated with 'list-models' command.
-# DO NOT EDIT, except if you add new stuff in code !
-# WARNING : might not be usable if there's no API key or dependencies
 
-factories:
-  llm:
-    - gpt_35_openai
-    - llama3_70_deepinfra
-    - llama3_8_deepinfra
-    - mixtral_7x8_deepinfra
-    - llama3_70_deepinfra_lite
-    - llama3_70_groq
-    - llama3_8_groq
-    - mixtral_7x8_groq
-    - gemini_pro_google
-    - llama3_8_local
-    - gpt_4o_edenai
-    - gpt_4_edenai
-    - gpt_35_edenai
-    - mistral_large_edenai
-    - gpt_4_azure
-    - gpt_35_azure
-    - gpt_4o_azure
-  embeddings:
-    - ada_002_openai
-    - embedding_001_google
-    - multilingual_MiniLM_local
-    - ada_002_edenai
-    - mistral_1024_edenai
-    - camembert_large_local
-    - solon-large
-    - ada_002_azure
-  vector_store:
-    - Chroma
-    - Chroma_in_memory
-  
-
-
-# Agent configuration
+# Default configuration
 default:
   llm:
     list: ${PWD}/models_providers.yaml
-    default_model: gpt_4omini_edenai # gpt_35_azure # mistral_large_edenai 
+    default_model: gpt_4omini_openai # gpt_35_azure # mistral_large_edenai 
     cache : none
     cache_path: ${HOME}/cache_ai/langchain.db
   embeddings:
@@ -62,22 +24,31 @@ default:
     path: python.ai_chains
     modules:
       - A_1_joke 
-      - B_1_naive_rag_example
+     # - B_1_naive_rag_example
       - B_2_self_query
-      - C_1_tools_example
+     # - C_1_tools_example
       - C_2_advanced_rag_langgraph
       # - essay_writer_agent
 
-cloud_openai:    
-  llm:
-    default_model: gpt_35_openai
-    cache : memory
-  embeddings:
-    default_model: ada_002_openai
 
-cloud_aws:
+# Overridden configurations
+# Set by environment variable "BLUEPRINT_CONFIG"
+local:
   llm:
-    default_model: anthropic_claude35_bedrock
+    default_model:  llama32_3_ollama
+  embeddings:
+    default_model: artic_22_ollama
+
+edenai:
+  llm:
+    default_model: gpt_4omini_edenai
     cache : memory
   embeddings:
-    default_model: ???
+    default_model: mistral_1024_edenai
+
+azure:
+  llm:
+    default_model: gpt_35_azure
+  embeddings:
+    default_model: ada_002_azure
+

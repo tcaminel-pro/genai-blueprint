@@ -1,12 +1,21 @@
 """
-Vector store factory and configuration
+Vector store factory and configuration module.
 
-Support:
--  Chroma (persistent or not) 
--  Indexing 
--  Returning a configurable retriever
+This module provides a factory pattern implementation for creating and managing vector stores,
+which are essential for similarity search operations in AI applications.
 
- """
+Features:
+- Supports Chroma vector store (both persistent and in-memory)
+- Document indexing with deduplication
+- Configurable retriever interface
+- Collection management with metadata
+
+The main class is VectorStoreFactory which handles:
+- Vector store initialization with embeddings
+- Document addition and indexing
+- Retrieval configuration
+- Collection naming and persistence
+"""
 
 from functools import cached_property
 from pathlib import Path
@@ -44,12 +53,24 @@ def get_vector_vector_store_path() -> str:
 
 
 class VectorStoreFactory(BaseModel):
-    id: Annotated[
-        VECTOR_STORE_LIST | None, Field(validate_default=True)
-    ] = None  # Our id for the model
-    embeddings_factory: EmbeddingsFactory  # Factory to create the embeddings needed by the Vector Store
-    collection_name: str = default_collection  # Name of the collection"
-    index_document: bool = False  # Index the document with LangChain indexer
+    """
+    Factory class for creating and managing vector stores.
+
+    This class handles the creation and configuration of vector stores with appropriate
+    embeddings, collection management, and document indexing capabilities.
+
+    Attributes:
+        id: Vector store type identifier (Chroma or Chroma_in_memory)
+        embeddings_factory: Factory to create embeddings for the vector store
+        collection_name: Name of the vector store collection
+        index_document: Whether to use LangChain indexer for document deduplication
+        collection_metadata: Optional metadata for the collection
+        _record_manager: Internal SQL manager for document indexing
+    """
+    id: Annotated[VECTOR_STORE_LIST | None, Field(validate_default=True)] = None
+    embeddings_factory: EmbeddingsFactory
+    collection_name: str = default_collection
+    index_document: bool = False
     collection_metadata: dict[str, str] | None = None
     _record_manager: SQLRecordManager | None = None
 
@@ -110,9 +131,7 @@ class VectorStoreFactory(BaseModel):
 
         logger.info(f"get vector store  : {self.description}")
         if self.index_document:
-            db_url = (
-                f"sqlite:///{get_vector_vector_store_path()}/record_manager_cache.sql"
-            )
+            db_url = f"sqlite:///{get_vector_vector_store_path()}/record_manager_cache.sql"
             logger.info(f"vector store record manager : {db_url}")
             namespace = f"{id}/{self.collection_full_name}"
             self._record_manager = SQLRecordManager(
@@ -131,9 +150,7 @@ class VectorStoreFactory(BaseModel):
             config = {"configurable": {"search_kwargs": {"k": count}}}
             result = retriever.invoke(user_input, config=config)
         """
-        retriever = self.vector_store.as_retriever(
-            search_kwargs={"k": default_k}
-        ).configurable_fields(
+        retriever = self.vector_store.as_retriever(search_kwargs={"k": default_k}).configurable_fields(
             search_kwargs=ConfigurableField(
                 id="search_kwargs",
             )
@@ -142,8 +159,17 @@ class VectorStoreFactory(BaseModel):
 
     def add_documents(self, docs: Iterable[Document]) -> IndexingResult | list[str]:
         """
-        Add document to the Vector Store.  If index_document, call the LangChain indexer that check is the document
-        is already in the store.
+        Add documents to the vector store with optional deduplication.
+
+        Args:
+            docs: Iterable of Document objects to add to the store
+
+        Returns:
+            IndexingResult if using document indexing, or list of document IDs otherwise
+
+        The method handles two scenarios:
+        1. Direct addition to vector store if index_document=False
+        2. Indexed addition with deduplication if index_document=True using LangChain's indexer
         """
         # TODO : accept BaseLoader
         if not self.index_document:
@@ -169,13 +195,20 @@ class VectorStoreFactory(BaseModel):
         if self.id in ["Chroma", "Chroma_in_memory"]:
             return self.vector_store._collection.count()  # type: ignore
         else:
-            raise NotImplementedError(
-                f"Don'k know how to get collection count for {self.vector_store}"
-            )
+            raise NotImplementedError(f"Don'k know how to get collection count for {self.vector_store}")
 
 
-def search_one(vc: VectorStore, query: str):
+def search_one(vc: VectorStore, query: str) -> list[Document]:
     """
-    Quick search of one query returning one value
+    Perform a similarity search for a single most relevant document.
+
+    Args:
+        vc: Vector store instance to search in
+        query: Search query string
+
+    Returns:
+        List containing the single most similar document found
+
+    This is a convenience function for quick lookups where only the best match is needed.
     """
     return vc.similarity_search(query, k=1)

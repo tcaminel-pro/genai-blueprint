@@ -12,13 +12,13 @@ from operator import itemgetter
 from typing import List, Literal, TypedDict
 
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.pydantic_v1 import BaseModel
 from langchain_core.runnables import (
     RunnableConfig,
     RunnablePassthrough,
 )
 from langgraph.graph import END, StateGraph
 from loguru import logger
+from pydantic import BaseModel
 from tavily import TavilyClient
 
 from python.ai_core.chain_registry import Example, RunnableItem, register_runnable

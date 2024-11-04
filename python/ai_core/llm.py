@@ -1,11 +1,22 @@
 """
-LLM model factory.
+LLM model factory and configuration management.
 
-Facilitate the creation of Llm objects, that are :
-- Configurable (we can change the LLM)
- -With fallback
+This module provides a factory pattern implementation for creating and configuring Language 
+Learning Models (LLMs) from various providers. It supports:
 
-The LLM can be given, or taken from the configuration
+- Dynamic LLM selection and configuration
+- Multiple model providers (OpenAI, DeepInfra, Groq, etc.)
+- Runtime model switching
+- Fallback mechanisms
+- Caching
+- Streaming responses
+- JSON mode for structured outputs
+
+The configuration of available models is stored in models_providers.yaml.
+Each model must have a unique ID following the pattern: model_version_provider
+Example: gpt_35_openai for GPT-3.5 from OpenAI
+
+The module handles API keys through environment variables defined in API_KEYS.
 """
 
 
@@ -26,7 +37,6 @@ from loguru import logger
 from pydantic import BaseModel, Field, computed_field, field_validator
 from typing_extensions import Annotated
 
-from python.ai_core.agents_builder import AgentBuilder, get_agent_builder
 from python.ai_core.cache import LlmCache, set_cache
 from python.config import get_config_str
 
@@ -46,23 +56,37 @@ API_KEYS = {
     "AzureChatOpenAI": "AZURE_OPENAI_API_KEY",
     "ChatTogether": "TOGETHER_API_KEY",
     "DeepSeek": "DEEPSEEK_API_KEY",
+    "ChatOpenrouter": "OPENROUTER_API_KEY",
 }
 
 
 class LlmInfo(BaseModel):
-    """Description of LLM ( model  + endpoint)"""
+    """
+    Description of an LLM model and its configuration.
+
+    Attributes:
+        id: Unique identifier in format model_version_provider (e.g. gpt_35_openai)
+        cls: LangChain class name used to instantiate the model
+        model: Model identifier used by the provider
+        key: API key environment variable name (computed from cls)
+    """
 
     # an ID for the LLM; should follow Python variables constraints, and have 3 parts: model_version_provider
     id: str = Field(pattern=r"^[a-zA-Z_][a-zA-Z0-9_]*_[a-zA-Z0-9_]*_[a-zA-Z0-9_]*$")
     cls: str  # Name of the LangChain class for the constructor
     model: str  # Name of the model for the constructor
-    agent_builder: str | None = "tool_calling"
 
     @computed_field
     def key(self) -> str:
         return API_KEYS[self.cls]
 
-    # DODO: add validator for LLM id name.
+    @field_validator("id")
+    @classmethod
+    def validate_id_format(cls, v: str) -> str:
+        parts = v.split("_")
+        if len(parts) != 3:
+            raise ValueError("id must have exactly 3 parts separated by underscores: model_version_provider")
+        return v
 
 
 def read_llm_list_file() -> list[LlmInfo]:
@@ -70,12 +94,31 @@ def read_llm_list_file() -> list[LlmInfo]:
     assert yml_file.exists(), f"cannot find {yml_file}"
     with open(yml_file, "r") as f:
         data = yaml.safe_load(f)
-    llms = [LlmInfo(**llm) for llm in data["llm"]]
+
+    llms = []
+    for provider in data["llm"]:
+        cls = provider["cls"]
+        for model in provider["models"]:
+            model["cls"] = cls
+            llms.append(LlmInfo(**model))
     return llms
 
 
 class LlmFactory(BaseModel):
-    """Factory for LLM"""
+    """
+    Factory for creating and configuring LLM instances.
+
+    Handles the creation of LangChain BaseLanguageModel instances with appropriate
+    configuration based on the model type and provider.
+
+    Attributes:
+        llm_id: Unique model identifier (if None, uses default from config)
+        temperature: Sampling temperature (0.0 = deterministic, higher = more random)
+        max_tokens: Maximum tokens in model response
+        json_mode: Whether to force JSON output format (where supported)
+        cache: Optional LlmCache instance for response caching
+        streaming: Whether to enable streaming responses (where supported)
+    """
 
     llm_id: Annotated[str | None, Field(validate_default=True)] = None
     temperature: float = 0
@@ -96,9 +139,7 @@ class LlmFactory(BaseModel):
         if llm_id is None:
             llm_id = get_config_str("llm", "default_model")
         if llm_id not in LlmFactory.known_items():
-            raise ValueError(
-                f"Unknown LLM: {llm_id}; Should be in {LlmFactory.known_items()}"
-            )
+            raise ValueError(f"Unknown LLM: {llm_id}; Should be in {LlmFactory.known_items()}")
         return llm_id
 
     @lru_cache(maxsize=1)
@@ -109,11 +150,7 @@ class LlmFactory(BaseModel):
     @staticmethod
     def known_items_dict() -> dict[str, LlmInfo]:
         """Return known LLM in the registry whose API key environment variable is known"""
-        return {
-            item.id: item
-            for item in LlmFactory.known_list()
-            if item.key in os.environ or item.key == ""
-        }
+        return {item.id: item for item in LlmFactory.known_list() if item.key in os.environ or item.key == ""}
 
     @staticmethod
     def known_items() -> list[str]:
@@ -121,10 +158,8 @@ class LlmFactory(BaseModel):
 
         return list(LlmFactory.known_items_dict().keys())
 
-    # @computed_field
-    # @property
-    # def agent_builder(self) -> AgentBuilder:
-    #     return get_agent_builder(self.agent_builder_type)
+    def short_name(self):
+        return self.info.id.rsplit("_", maxsplit=1)[0]
 
     def get(self) -> BaseLanguageModel:
         """
@@ -150,9 +185,7 @@ class LlmFactory(BaseModel):
                 seed=42,
             )
             if self.json_mode:
-                llm = cast(
-                    BaseLanguageModel, llm.bind(response_format={"type": "json_object"})
-                )
+                llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
         elif self.info.cls == "ChatGroq":
             from langchain_groq import ChatGroq
 
@@ -166,9 +199,7 @@ class LlmFactory(BaseModel):
             if self.streaming:
                 llm.streaming = True
             if self.json_mode:
-                llm = cast(
-                    BaseLanguageModel, llm.bind(response_format={"type": "json_object"})
-                )
+                llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
         elif self.info.cls == "ChatDeepInfra":
             from langchain_community.chat_models.deepinfra import ChatDeepInfra
 
@@ -182,9 +213,7 @@ class LlmFactory(BaseModel):
                 },
             )
             if True:  # self.json_mode:
-                llm = cast(
-                    BaseLanguageModel, llm.bind(response_format={"type": "json_object"})
-                )
+                llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
         elif self.info.cls == "ChatEdenAI":
             from langchain_community.chat_models.edenai import ChatEdenAI
 
@@ -211,12 +240,10 @@ class LlmFactory(BaseModel):
             )  # type: ignore
             assert not self.json_mode, "json_mode not supported or coded"
         elif self.info.cls == "ChatOllama":
-            from langchain_ollama import ChatOllama
+            from langchain_ollama import ChatOllama  # type: ignore
 
-            format = "json" if self.json_mode else None
-            llm = ChatOllama(
-                model=self.info.model, format=format, temperature=self.temperature
-            )
+            format = "json" if self.json_mode else ""
+            llm = ChatOllama(model=self.info.model, format=format, temperature=self.temperature)
 
             # llm = llama3_formatter | llm
         elif self.info.cls == "AzureChatOpenAI":
@@ -231,17 +258,31 @@ class LlmFactory(BaseModel):
                 temperature=self.temperature,
             )
             if self.json_mode:
-                llm = cast(
-                    BaseLanguageModel, llm.bind(response_format={"type": "json_object"})
-                )
+                llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
         elif self.info.cls == "ChatTogether":
-            from langchain_together import ChatTogether
+            from langchain_together import ChatTogether  # type: ignore
 
             llm = ChatTogether(
                 model=self.info.model,
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
             )
+        elif self.info.cls == "ChatOpenrouter":
+            from langchain_openai import ChatOpenAI
+
+            OPENROUTER_BASE = "https://openrouter.ai"
+            OPENROUTER_API_BASE = f"{OPENROUTER_BASE}/api/v1"
+            llm = ChatOpenAI(
+                base_url=OPENROUTER_API_BASE,
+                model=self.info.model,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                seed=42,
+                api_key=os.environ["OPENROUTER_API_KEY"],  # type: ignore
+                # headers={"HTTP-Referer": ...},
+            )
+            if self.json_mode:
+                llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
 
         else:
             if self.info.cls in LlmFactory.known_items():
@@ -255,8 +296,6 @@ class LlmFactory(BaseModel):
     def get_configurable(self, with_fallback=False) -> Runnable:
         # Make the LLM configurable at run time
         # see https://python.langchain.com/docs/expression_language/primitives/configure/#with-llms-1
-        # PROBLEM : too much alternative LLM
-        # TODO : Should associate a list of LM to the default one
 
         default_llm_id = self.llm_id
         if default_llm_id is None:
@@ -284,9 +323,7 @@ class LlmFactory(BaseModel):
         )
         if with_fallback:
             # Not well tested !!!
-            selected_llm = selected_llm.with_fallbacks(
-                [LlmFactory(llm_id="llama3_70_groq").get()]
-            )
+            selected_llm = selected_llm.with_fallbacks([LlmFactory(llm_id="llama3_70_groq").get()])
         return selected_llm
 
 
@@ -301,12 +338,23 @@ def get_llm(
     streaming: bool = False,
 ) -> BaseLanguageModel:
     """
-    Create a BaseLanguageModel object according to a given llm_id.\n
-    - If 'llm_id' is None, the LLM is selected from the configuration.
-    - 'json_mode' is not supported or tested for all models (and NOT WELL TESTED)
-    - 'configurable' make the LLM configurable at run-time
-    - 'with_fallback' add a fallback mechanism (not well tested)
+    Create a configured LangChain BaseLanguageModel instance.
 
+    Args:
+        llm_id: Unique model identifier (if None, uses default from config)
+        temperature: Sampling temperature (0.0 = deterministic, higher = more random)
+        max_tokens: Maximum tokens in model response
+        json_mode: Force JSON output format (where supported)
+        cache: Optional LlmCache instance for response caching
+        configurable: Make model configurable at runtime
+        with_fallback: Add fallback model for reliability
+        streaming: Enable streaming responses (where supported)
+
+    Returns:
+        BaseLanguageModel: Configured language model instance
+
+    Raises:
+        ValueError: If llm_id is invalid or API key is missing
     """
     factory = LlmFactory(
         llm_id=llm_id,
@@ -316,13 +364,15 @@ def get_llm(
         cache=cache,
         streaming=streaming,
     )
-    logger.info(
-        f"get LLM:'{factory.llm_id}' -configurable: {configurable} - streaming: {streaming}"
-    )
+    info = f"get LLM:'{factory.llm_id}'"
+    info += " -configurable" if configurable else ""
+    info += " -streaming" if streaming else ""
+    info += " -json_mode" if json_mode else ""
+    info += f" -cache: {cache}" if cache else ""
+
+    logger.info(info)
     if configurable:
-        return cast(
-            BaseLanguageModel, factory.get_configurable(with_fallback=with_fallback)
-        )
+        return cast(BaseLanguageModel, factory.get_configurable(with_fallback=with_fallback))
     else:
         return factory.get()
 

@@ -1,158 +1,193 @@
-# Registered LLMs and Embeddings Services
-
-# The class should be known in the llm.py' 
-
-
 ########################
 # LLM Models and Provider
 ########################
 
+# Registered LLMs and Embeddings Services
+
+# The class should be known in the llm.py' 
 
 # LLM_id should follow Python variables constraints - ie no '-' no space etc
 # Use pattern {self.model_name}_{version}_{inference provider or library}
 # model_name is provider specific.  It can contains several fields decoded in the factory.
 
+# Provider documentation links:
+# OpenAI: https://platform.openai.com/docs/models
+# DeepInfra: https://deepinfra.com/models
+# Groq: https://console.groq.com/docs/models
+# Together: https://docs.together.ai/docs/inference-models
+# Google/Vertex AI: https://cloud.google.com/vertex-ai/docs/generative-ai/model-reference/text
+# Ollama: https://ollama.ai/library
+# EdenAI: https://app.edenai.run/v2/feat/generative/chat
+# Azure OpenAI: https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models
+# OpenRouter: https://openrouter.ai/docs#models
+
+# for Embeddings:
+# Ollama: https://ollama.com/search?q=embeddings&c=embedding 
+
+#cSpell: disable
 
 llm:
-  #####  OpenAI Models  ####
 - cls: ChatOpenAI
-  id: gpt_35_openai
-  model: gpt-3.5-turbo-0125
-- cls: ChatOpenAI
-  id: gpt_4o_openai
-  model: gpt-4o
-- cls: ChatOpenAI
-  id: gpt_4omini_openai
-  model: gpt-4o-mini
+  models:
+    - id: gpt_35_openai
+      model: gpt-3.5-turbo-0125
+    - id: gpt_4o_openai
+      model: gpt-4o
+    - id: gpt_4omini_openai
+      model: gpt-4o-mini
 
-#####  DeepInfra Models  ####
 - cls: ChatDeepInfra
-  id: llama31_70_deepinfra
-  model: meta-llama/Meta-Llama-3.1-70B-Instruct
-- cls: ChatDeepInfra
-  id: llama31_8_deepinfra
-  model: meta-llama/Meta-Llama-3.1-8B-Instruct
-- cls: ChatDeepInfra
-  id: mixtral_7x8_deepinfra
-  model: mistralai/Mixtral-8x7B-Instruct-v0.1
-- cls: ChatDeepInfra
-  id: qwen2_70_deepinfra
-  model: Qwen/Qwen2-72B-Instruct
-- cls: ChatDeepInfra
-  id: wizard2_8x22_deepinfra
-  model: microsoft/WizardLM-2-8x22B
+  models:
+    - id: llama31_70_deepinfra
+      model: meta-llama/Meta-Llama-3.1-70B-Instruct
+    - id: llama31_8_deepinfra
+      model: meta-llama/Meta-Llama-3.1-8B-Instruct
+    - id: mixtral_7x8_deepinfra
+      model: mistralai/Mixtral-8x7B-Instruct-v0.1
+    - id: qwen2_70_deepinfra
+      model: Qwen/Qwen2-72B-Instruct
+    - id: wizard2_8x22_deepinfra
+      model: microsoft/WizardLM-2-8x22B
+    - id: nvidia_nemotrom70_deepinfra
+      model: nvidia/Llama-3.1-Nemotron-70B-Instruct
 
-#####  Groq Models  ####
 - cls: ChatGroq
-  id: llama31_70_groq
-  model: llama-3.1-70b-versatile
-- cls: ChatGroq
-  id: llama31_8_groq
-  model: llama-3.1-8b-instant
-- cls: ChatGroq
-  id: mixtral_7x8_groq
-  model: Mixtral-8x7b-32768
+  models:
+    - id: llama31_70_groq
+      model: llama-3.1-70b-versatile
+    - id: llama31_8_groq
+      model: llama-3.1-8b-instant
+    - id: mixtral_7x8_groq
+      model: Mixtral-8x7b-32768
 
-  
-#####  Together.ai Models  ####
-#see https://docs.together.ai/docs/inference-models
-- id: llama31_70_together
-  model: meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo
-  cls: ChatTogether
-- id: qwen2_72_together
-  model: Qwen/Qwen1.5-72B-Chat
-  cls: ChatTogether
-    
+- cls: ChatTogether
+  models:
+    - id: llama31_70_together
+      model: meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo
+    - id: qwen2_72_together
+      model: Qwen/Qwen1.5-72B-Chat
 
-
-#####  GCP Models  ####
 - cls: ChatVertexAI
-  id: gemini_pro_google
-  model: gemini-pro
+  models:
+    - id: gemini_pro_google
+      model: gemini-pro
 
-
-#### Local models
 - cls: ChatOllama
-  id: llama31_8_local
-  model: llama3.1
+  models:
+    - id: llama32_3_ollama
+      model: llama3.2:3b
+    - id: gemma2_2_ollama
+      model: gemma2:2b 
 
-#####  Eden.ai Models  ####
-# See https://app.edenai.run/bricks/text/chat 
-# Does not support streaming for tools, so agent type cannot be "tool_calling"
 - cls: ChatEdenAI
-  id: gpt_4o_edenai
-  model: openai/gpt-4o
-  agent_builder: openai_tool
-- cls: ChatEdenAI
-  id: gpt_4_edenai
-  model: openai/gpt-4
-  agent_builder: openai_tool
-- cls: ChatEdenAI
-  id: gpt_4omini_edenai
-  model: openai/gpt-4o-mini
-  agent_builder: openai_tool
-- cls: ChatEdenAI   # note: quite expensive 
-  id: mistral_large_edenai
-  model: mistral/large-latest
-  agent_builder: openai_tool
+  models:
+    - id: gpt_4o_edenai
+      model: openai/gpt-4o
+    - id: gpt_4_edenai
+      model: openai/gpt-4
+    - id: gpt_4omini_edenai
+      model: openai/gpt-4o-mini
+    - id: mistral_large_edenai   # Expensive !
+      model: mistral/large-latest
+    - id: google_gemini15flash_edenai
+      model: google/gemini-1.5-flash
 
-#####  Azure Models  ####
 - cls: AzureChatOpenAI
-  id: gpt_4_azure
-  model: gpt4-turbo/2023-05-15
-- cls: AzureChatOpenAI
-  id: gpt_35_azure
-  model: gpt-35-turbo/2023-05-15
-- cls: AzureChatOpenAI
-  id: gpt_4o_azure
-  model: gpt-4o/2024-05-13
+  models:
+    - id: gpt_4_azure
+      model: gpt4-turbo/2023-05-15
+    - id: gpt_35_azure
+      model: gpt-35-turbo/2023-05-15
+    - id: gpt_4o_azure
+      model: gpt-4o/2024-05-13
 
+- cls: ChatOpenrouter
+  models:
+    - id: claude3_sonnet35_openrouter
+      model: anthropic/claude-3.5-sonnet
+    - id: claude3_haiku_openrouter
+      model: anthropic/claude-3-haiku
+    - id: qwen25_72_openrouter
+      model: qwen/qwen-2.5-72b-instruct
+    - id: liquid_lfm40_openrouter
+      model: liquid/lfm-40b
+    - id: nvidia_nemotrom70_openrouter
+      model: nvidia/llama-3.1-nemotron-70b-instruct
+    - id: google_gemini15flash_openrouter
+      model: google/gemini-flash-1.5
+    - id: google_gemini15pro_openrouter
+      model: google/gemini-pro-1.5
+        
 
 ########################
 # Embeddings models 
 ########################
 
 embeddings:
-- id: ada_002_openai
-  model: text-embedding-ada-002
-  cls: OpenAIEmbeddings
-  key: OPENAI_API_KEY
+- cls: OpenAIEmbeddings
+  models:
+    - id: ada_002_openai
+      model: text-embedding-ada-002
+      key: OPENAI_API_KEY
 
-- id: embedding_001_google
-  model: text-embedding-ada-002
-  cls: GoogleGenerativeAIEmbeddings
-  key: GOOGLE_API_KEY
+- cls: GoogleGenerativeAIEmbeddings
+  models:
+    - id: embedding_001_google
+      model: text-embedding-ada-002
+      key: GOOGLE_API_KEY
 
-- id: multilingual_MiniLM_local
-  model: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
-  cls: HuggingFaceEmbeddings
-  key: 
+- cls: HuggingFaceEmbeddings
+  models:
+    - id: multilingual_MiniLM_local
+      model: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+      key: 
 
-- id: ada_002_edenai
-  model: openai/1536__text-embedding-ada-002
-  cls: EdenAiEmbeddings
-  key: EDENAI_API_KEY
+    - id: camembert_large_local
+      model: dangvantuan/sentence-camembert-large
+      key: 
 
-- id: mistral_1024_edenai
-  model: mistral/1024__mistral-embed
-  cls: EdenAiEmbeddings
-  key: EDENAI_API_KEY
+    - id: solon-large
+      model: OrdalieTech/Solon-embeddings-large-0.1
+      key: 
 
-- id: camembert_large_local
-  model: dangvantuan/sentence-camembert-large
-  cls: HuggingFaceEmbeddings
-  key: 
+    - id: gte15_large  # https://huggingface.co/Alibaba-NLP/gte-large-en-v1.5
+      model: Alibaba-NLP/gte-large-en-v1.5
+      key: 
 
-- id: solon-large
-  model: OrdalieTech/Solon-embeddings-large-0.1
-  cls: HuggingFaceEmbeddings
-  key: 
+    - id: gte15_base  
+      model: Alibaba-NLP/gte-base-en-v1.5
+      key: 
 
-- id: ada_002_azure
-  model: text-embedding-ada-002/2023-05-15
-  cls: AzureOpenAIEmbeddings
-  key: AZURE_OPENAI_API_KEY
- 
+    - id: stella_400  # https://huggingface.co/dunzhang/stella_en_400M_v5
+      model: dunzhang/stella_en_400M_v5
+      key: 
 
+    - id: ember_v1  # https://huggingface.co/llmrails/ember-v1
+      model: llmrails/ember-v1
+      key: 
 
+- cls: HuggingFaceBgeEmbeddings  # Not implemented yet
+  models:
+    - id: bge15_large
+      model: BAAI/bge-large-en-v1.5
+      key: 
 
+- cls: EdenAiEmbeddings
+  models:
+    - id: ada_002_edenai
+      model: openai/1536__text-embedding-ada-002
+      key: EDENAI_API_KEY
+    - id: mistral_1024_edenai
+      model: mistral/1024__mistral-embed
+      key: EDENAI_API_KEY
+
+- cls: AzureOpenAIEmbeddings
+  models:
+    - id: a_002_azuread
+      model: text-embedding-ada-002/2023-05-15
+      key: AZURE_OPENAI_API_KEY
+
+- cls: OllamaEmbeddings
+  models:
+    - id: artic_22_ollama
+      model: snowflake-arctic-embed:22m
