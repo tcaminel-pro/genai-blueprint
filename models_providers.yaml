@@ -144,8 +144,8 @@ embeddings:
 
     - id: camembert_large_local
       model: dangvantuan/sentence-camembert-large
-      key: 
-
+      key:
+      
     - id: solon-large
       model: OrdalieTech/Solon-embeddings-large-0.1
       key: 

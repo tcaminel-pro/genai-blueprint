@@ -24,8 +24,7 @@ langchain-groq = "^0.2.1"
 langchain-openai = "^0.2.5"
 langchain-chroma = "^0.1.0"
 devtools = "^0.12.2"
-loguru = "^0.7.2"
-chromadb = "^0.4.24"
+chromadb = "^0.5.17"
 fastapi = "^0.110.1"
 uvicorn = "^0.27.1"
 httpx = "^0.27.0"
@@ -43,7 +42,7 @@ python-dotenv = "^1.0.1"
 json-repair = "^0.30.0"
 langchain-huggingface = "^0.1.2"
 langchain-ollama = "^0.2.0"
-chromadb = "^0.5.17"
+
 
 
 
