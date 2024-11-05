@@ -34,7 +34,7 @@ app = FastAPI(
 
 for runnable_item in get_runnable_registry() :
     runnable = runnable_item.get()
-    debug(runnable.get_input_schema())
+    debug(runnable.get_input_schema().schema())
     add_routes(
         app,
         runnable,

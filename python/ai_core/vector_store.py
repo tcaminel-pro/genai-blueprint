@@ -26,6 +26,7 @@ from langchain.schema import Document
 from langchain.vectorstores.base import VectorStore
 from langchain_chroma import Chroma
 from langchain_core.runnables import ConfigurableField, Runnable
+from langchain_core.vectorstores import InMemoryVectorStore
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 from typing_extensions import Annotated
@@ -37,7 +38,7 @@ from python.config import get_config_str
 
 
 # List of known Vector Stores (created as Literal so can be checked by MyPy)
-VECTOR_STORE_LIST = Literal["Chroma", "Chroma_in_memory"]
+VECTOR_STORE_ENGINE = Literal["Chroma", "Chroma_in_memory", "InMemory", "Sklearn"]
 
 default_collection = get_config_str("vector_store", "default_collection")
 
@@ -67,7 +68,8 @@ class VectorStoreFactory(BaseModel):
         collection_metadata: Optional metadata for the collection
         _record_manager: Internal SQL manager for document indexing
     """
-    id: Annotated[VECTOR_STORE_LIST | None, Field(validate_default=True)] = None
+
+    id: Annotated[VECTOR_STORE_ENGINE | None, Field(validate_default=True)] = None
     embeddings_factory: EmbeddingsFactory
     collection_name: str = default_collection
     index_document: bool = False
@@ -95,7 +97,7 @@ class VectorStoreFactory(BaseModel):
 
     @staticmethod
     def known_items() -> list[str]:
-        return list(get_args(VECTOR_STORE_LIST))
+        return list(get_args(VECTOR_STORE_ENGINE))
 
     @field_validator("id", mode="before")
     def check_known(cls, id: str | None) -> str:
@@ -126,12 +128,28 @@ class VectorStoreFactory(BaseModel):
                 collection_name=self.collection_full_name,
                 collection_metadata=self.collection_metadata,
             )
+        elif self.id == "InMemory":
+            vector_store = InMemoryVectorStore(
+                embedding=embeddings,
+                # collection_name=self.collection_full_name,  # TODO (?) : implement  an hash of InMemoryVectorStore
+                # collection_metadata=self.collection_metadata,
+            )
+        elif self.id == "Sklearn":
+            from langchain_community.vectorstores import SKLearnVectorStore
+
+            vector_store = SKLearnVectorStore(
+                embedding=embeddings,
+                # collection_name=self.collection_full_name,
+                # collection_metadata=self.collection_metadata,
+            )
         else:
             raise ValueError(f"Unknown vector store: {self.id}")
 
         logger.info(f"get vector store  : {self.description}")
         if self.index_document:
-            db_url = f"sqlite:///{get_vector_vector_store_path()}/record_manager_cache.sql"
+            db_url = (
+                f"sqlite:///{get_vector_vector_store_path()}/record_manager_cache.sql"
+            )
             logger.info(f"vector store record manager : {db_url}")
             namespace = f"{id}/{self.collection_full_name}"
             self._record_manager = SQLRecordManager(
@@ -150,7 +168,9 @@ class VectorStoreFactory(BaseModel):
             config = {"configurable": {"search_kwargs": {"k": count}}}
             result = retriever.invoke(user_input, config=config)
         """
-        retriever = self.vector_store.as_retriever(search_kwargs={"k": default_k}).configurable_fields(
+        retriever = self.vector_store.as_retriever(
+            search_kwargs={"k": default_k}
+        ).configurable_fields(
             search_kwargs=ConfigurableField(
                 id="search_kwargs",
             )
@@ -195,7 +215,9 @@ class VectorStoreFactory(BaseModel):
         if self.id in ["Chroma", "Chroma_in_memory"]:
             return self.vector_store._collection.count()  # type: ignore
         else:
-            raise NotImplementedError(f"Don'k know how to get collection count for {self.vector_store}")
+            raise NotImplementedError(
+                f"Don'k know how to get collection count for {self.vector_store}"
+            )
 
 
 def search_one(vc: VectorStore, query: str) -> list[Document]:
