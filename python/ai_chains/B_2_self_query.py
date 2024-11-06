@@ -150,6 +150,7 @@ register_runnable(
         examples=[
             Example(
                 query=[
+                    "What are some sci-fi movies from the 90's about taxi drivers",
                     "What's a movie after 1990 but before 2005 that's all about toys, and preferably is animated",
                     "I want to watch a movie rated higher than 8.5",
                     "Has Greta Gerwig directed any movies about women",

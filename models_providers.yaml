@@ -17,7 +17,7 @@
 # Together: https://docs.together.ai/docs/inference-models
 # Google/Vertex AI: https://cloud.google.com/vertex-ai/docs/generative-ai/model-reference/text
 # Ollama: https://ollama.ai/library
-# EdenAI: https://app.edenai.run/v2/feat/generative/chat
+# EdenAI: :https//app.edenai.run/v2/feat/generative/chat
 # Azure OpenAI: https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models
 # OpenRouter: https://openrouter.ai/docs#models
 
@@ -77,12 +77,14 @@ llm:
     - id: llama32_3_ollama
       model: llama3.2:3b
     - id: gemma2_2_ollama
-      model: gemma2:2b 
+      model: gemma2:2b
+    - id: llava_phi3_ollama
+      model: llava-phi3 
 
 - cls: ChatEdenAI
   models:
     - id: gpt_4o_edenai
-      model: openai/gpt-4o
+      model: open ai/gpt-4o
     - id: gpt_4_edenai
       model: openai/gpt-4
     - id: gpt_4omini_edenai
@@ -183,7 +185,7 @@ embeddings:
 
 - cls: AzureOpenAIEmbeddings
   models:
-    - id: a_002_azuread
+    - id: ada_002_azure
       model: text-embedding-ada-002/2023-05-15
       key: AZURE_OPENAI_API_KEY
 
