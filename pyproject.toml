@@ -11,7 +11,7 @@ Repository = "https://github.com/tcaminel-pro/genai-blueprint"
 
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.14"
+python = ">=3.10,<=3.12"
 pydantic = "^2.7.0"
 langchain = "^0.3.7"
 langchain-core = "^0.3.15"

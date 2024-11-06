@@ -26,9 +26,9 @@ default:
       - A_1_joke 
       - B_1_naive_rag_example
       - B_2_self_query
-     # - C_1_tools_example
+      - C_1_tools_example
       - C_2_advanced_rag_langgraph
-      # - essay_writer_agent
+      - C_3_essay_writer_agent
 
 
 # Overridden configurations
@@ -44,11 +44,11 @@ edenai:
     default_model: gpt_4omini_edenai
     cache : memory
   embeddings:
-    default_model: mistral_1024_edenai
+    default_model: ada_002_edenai
 
 azure:
   llm:
-    default_model: gpt_35_azure
+    default_model: gpt_4_azure
   embeddings:
     default_model: ada_002_azure
 

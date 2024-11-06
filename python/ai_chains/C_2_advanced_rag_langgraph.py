@@ -38,6 +38,8 @@ Suggested extensions :
 
 load_dotenv(verbose=True)
 
+LLM_ID = "gpt_4omini_edenai"
+
 
 class YesOrNo(Enum):
     YES = "yes"
@@ -103,7 +105,7 @@ def retrieval_grader() -> Runnable[Any, YesOrNo]:
     )
 
     logger.debug("Retrieval Grader'")
-    retrieval_grader = prompt | get_llm() | to_lower | yesno_enum_parser
+    retrieval_grader = prompt | get_llm(llm_id=LLM_ID) | to_lower | yesno_enum_parser
     return retrieval_grader  # type: ignore
 
 
@@ -118,7 +120,7 @@ def rag_chain() -> Runnable[Any, str]:
         Answer: """
     logger.debug("Rag chain'")
     prompt = def_prompt(system=system_prompt, user=user_prompt)
-    return prompt | get_llm() | StrOutputParser()
+    return prompt | get_llm(llm_id=LLM_ID) | StrOutputParser()
 
 
 def hallucination_grader() -> Runnable[Any, YesOrNo]:
@@ -134,7 +136,7 @@ def hallucination_grader() -> Runnable[Any, YesOrNo]:
     prompt = def_prompt(system_prompt, user_prompt).partial(
         instructions=yesno_enum_parser.get_format_instructions()
     )
-    return prompt | get_llm() | to_lower | yesno_enum_parser  # type: ignore
+    return prompt | get_llm(llm_id=LLM_ID) | to_lower | yesno_enum_parser  # type: ignore
 
 
 def answer_grader() -> Runnable[Any, YesOrNo]:
@@ -151,7 +153,7 @@ def answer_grader() -> Runnable[Any, YesOrNo]:
     prompt = def_prompt(system_prompt, user_prompt).partial(
         instructions=yesno_enum_parser.get_format_instructions()
     )
-    return prompt | get_llm() | to_lower | yesno_enum_parser  # type: ignore
+    return prompt | get_llm(llm_id=LLM_ID) | to_lower | yesno_enum_parser  # type: ignore
 
 
 def question_router() -> Runnable[Any, DataRoute]:
@@ -172,7 +174,7 @@ def question_router() -> Runnable[Any, DataRoute]:
     prompt = def_prompt(system_prompt, user_prompt).partial(
         instructions=parser.get_format_instructions()
     )
-    question_router = prompt | get_llm() | parser
+    question_router = prompt | get_llm(llm_id=LLM_ID) | parser
     return question_router
 
 
@@ -264,7 +266,7 @@ def web_search(state: GraphState) -> GraphState:
 
     logger.debug("---WEB SEARCH---")
     question = state["question"]
-    documents = state["documents"]
+    documents = state.get("documents") or []
 
     web_results = basic_web_search(question)
 

@@ -40,7 +40,11 @@ class Queries(BaseModel):
     queries: List[str]
 
 
-model = get_llm(temperature=0.0, cache=True)
+LLM_ID = "gpt_4omini_edenai"
+#LLM_ID = "gpt_4_azure"
+LLM_ID = "gpt_4omini_openai"
+
+llm = get_llm(llm_id=LLM_ID, temperature=0.0)
 
 tavily = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
 
@@ -51,9 +55,7 @@ def plan_node(state: AgentState) -> AgentState:
         Write such an outline for the user provided topic. Give an outline of the essay along with any relevant notes 
         or instructions for the sections."""
 
-    chain = (
-        def_prompt(system=PLAN_PROMPT, user=state["task"]) | model | StrOutputParser()
-    )
+    chain = def_prompt(system=PLAN_PROMPT, user=state["task"]) | llm | StrOutputParser()
     plan = chain.invoke({})
     debug(plan)
     return {"plan": plan}
@@ -67,7 +69,7 @@ def research_plan_node(state: AgentState):
 
     chain = def_prompt(
         system=RESEARCH_PLAN_PROMPT, user=state["task"]
-    ) | model.with_structured_output(Queries)
+    ) | llm.with_structured_output(Queries)
     queries = chain.invoke({})
     content = state["content"] or []
     for q in queries.queries:
@@ -94,7 +96,7 @@ def generation_node(state: AgentState) -> AgentState:
             system=WRITER_PROMPT,
             user=f"{state['task']}\n\nHere is my plan:\n\n{state['plan']}",
         )
-        | model
+        | llm
         | StrOutputParser()
     )
 
@@ -114,7 +116,7 @@ def reflection_node(state: AgentState) -> AgentState:
 
     chain = (
         def_prompt(system=REFLECTION_PROMPT, user=state["draft"])
-        | model
+        | llm
         | StrOutputParser()
     )
     return {"critique": chain.invoke({})}
@@ -128,7 +130,7 @@ def research_critique_node(state: AgentState) -> AgentState:
 
     chain = def_prompt(
         system=RESEARCH_CRITIQUE_PROMPT, user=state["task"]
-    ) | model.with_structured_output(Queries)
+    ) | llm.with_structured_output(Queries)
     queries = chain.invoke({})
 
     content = state["content"] or []
