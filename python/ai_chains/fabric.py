@@ -37,6 +37,7 @@ def fetch_content_from_url(url):
         return ""
 
 
+
 @chain
 def fabric_prompt(param: dict):
     """Fetch the pattern from the Fabric GitHub web site and return a prompt.

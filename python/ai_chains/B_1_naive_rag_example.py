@@ -27,7 +27,7 @@ def get_retriever(config: dict):
     if not path.exists():
         raise FileNotFoundError(f"Path in config does not exists: {path}")
     vector_store = VectorStoreFactory(
-        id="Chroma_in_memory",
+        id= None,
         collection_name="test_rag",
         embeddings_factory=EmbeddingsFactory(),  # take default one
     ).vector_store

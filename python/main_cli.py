@@ -143,7 +143,7 @@ def define_commands(cli_app: typer.Typer):
     def fabric(
         pattern: Annotated[str, Option("--pattern", "-p")],
         verbose: Annotated[bool, Option("--verbose", "-v")] = False,
-        debug: Annotated[bool, Option("--debug", "-d")] = False,
+        debug_mode: Annotated[bool, Option("--debug", "-d")] = False,
         cache: LlmCache = LlmCache.MEMORY,
         stream: Annotated[bool, Option("--stream", "-s")] = False,
         # temperature: float = 0.0,
@@ -157,7 +157,7 @@ def define_commands(cli_app: typer.Typer):
 
         ex: echo "artificial intelligence" | python python/main_cli.py fabric create_aphorisms --llm-id llama-70-groq
         """
-        set_debug(debug)
+        set_debug(debug_mode)
         set_verbose(verbose)
         set_cache(cache)
 
@@ -167,7 +167,9 @@ def define_commands(cli_app: typer.Typer):
 
         config = {"llm": llm_id if llm_id else get_config_str("llm", "default_model")}
         chain = get_fabric_chain(config)
-        input = "\n".join(sys.stdin)
+        input = repr("\n".join(sys.stdin))
+        input = input.replace("{", "{{").replace("}", "}}")
+
         if stream:
             for s in chain.stream({"pattern": pattern, "input_data": input}, config):
                 print(s, end="", flush=True)
