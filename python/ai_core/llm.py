@@ -85,7 +85,9 @@ class LlmInfo(BaseModel):
     def validate_id_format(cls, v: str) -> str:
         parts = v.split("_")
         if len(parts) != 3:
-            raise ValueError("id must have exactly 3 parts separated by underscores: model_version_provider")
+            raise ValueError(
+                "id must have exactly 3 parts separated by underscores: model_version_provider"
+            )
         return v
 
 
@@ -139,7 +141,9 @@ class LlmFactory(BaseModel):
         if llm_id is None:
             llm_id = get_config_str("llm", "default_model")
         if llm_id not in LlmFactory.known_items():
-            raise ValueError(f"Unknown LLM: {llm_id}; Should be in {LlmFactory.known_items()}")
+            raise ValueError(
+                f"Unknown LLM: {llm_id}; Should be in {LlmFactory.known_items()}"
+            )
         return llm_id
 
     @lru_cache(maxsize=1)
@@ -150,13 +154,21 @@ class LlmFactory(BaseModel):
     @staticmethod
     def known_items_dict() -> dict[str, LlmInfo]:
         """Return known LLM in the registry whose API key environment variable is known"""
-        return {item.id: item for item in LlmFactory.known_list() if item.key in os.environ or item.key == ""}
+        return {
+            item.id: item
+            for item in LlmFactory.known_list()
+            if item.key in os.environ or item.key == ""
+        }
 
     @staticmethod
     def known_items() -> list[str]:
         """Return id of known LLM in the registry whose API key environment variable is known"""
 
         return list(LlmFactory.known_items_dict().keys())
+
+    def get_id(self):
+        assert self.llm_id
+        return self.llm_id
 
     def short_name(self):
         return self.info.id.rsplit("_", maxsplit=1)[0]
@@ -185,7 +197,9 @@ class LlmFactory(BaseModel):
                 seed=42,
             )
             if self.json_mode:
-                llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
+                llm = cast(
+                    BaseLanguageModel, llm.bind(response_format={"type": "json_object"})
+                )
         elif self.info.cls == "ChatGroq":
             from langchain_groq import ChatGroq
 
@@ -199,7 +213,9 @@ class LlmFactory(BaseModel):
             if self.streaming:
                 llm.streaming = True
             if self.json_mode:
-                llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
+                llm = cast(
+                    BaseLanguageModel, llm.bind(response_format={"type": "json_object"})
+                )
         elif self.info.cls == "ChatDeepInfra":
             from langchain_community.chat_models.deepinfra import ChatDeepInfra
 
@@ -213,7 +229,9 @@ class LlmFactory(BaseModel):
                 },
             )
             if True:  # self.json_mode:
-                llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
+                llm = cast(
+                    BaseLanguageModel, llm.bind(response_format={"type": "json_object"})
+                )
         elif self.info.cls == "ChatEdenAI":
             from langchain_community.chat_models.edenai import ChatEdenAI
 
@@ -243,7 +261,9 @@ class LlmFactory(BaseModel):
             from langchain_ollama import ChatOllama  # type: ignore
 
             format = "json" if self.json_mode else ""
-            llm = ChatOllama(model=self.info.model, format=format, temperature=self.temperature)
+            llm = ChatOllama(
+                model=self.info.model, format=format, temperature=self.temperature
+            )
 
             # llm = llama3_formatter | llm
         elif self.info.cls == "AzureChatOpenAI":
@@ -258,7 +278,9 @@ class LlmFactory(BaseModel):
                 temperature=self.temperature,
             )
             if self.json_mode:
-                llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
+                llm = cast(
+                    BaseLanguageModel, llm.bind(response_format={"type": "json_object"})
+                )
         elif self.info.cls == "ChatTogether":
             from langchain_together import ChatTogether  # type: ignore
 
@@ -282,7 +304,9 @@ class LlmFactory(BaseModel):
                 # headers={"HTTP-Referer": ...},
             )
             if self.json_mode:
-                llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
+                llm = cast(
+                    BaseLanguageModel, llm.bind(response_format={"type": "json_object"})
+                )
 
         else:
             if self.info.cls in LlmFactory.known_items():
@@ -323,7 +347,9 @@ class LlmFactory(BaseModel):
         )
         if with_fallback:
             # Not well tested !!!
-            selected_llm = selected_llm.with_fallbacks([LlmFactory(llm_id="llama3_70_groq").get()])
+            selected_llm = selected_llm.with_fallbacks(
+                [LlmFactory(llm_id="llama3_70_groq").get()]
+            )
         return selected_llm
 
 
@@ -372,7 +398,9 @@ def get_llm(
 
     logger.info(info)
     if configurable:
-        return cast(BaseLanguageModel, factory.get_configurable(with_fallback=with_fallback))
+        return cast(
+            BaseLanguageModel, factory.get_configurable(with_fallback=with_fallback)
+        )
     else:
         return factory.get()
 

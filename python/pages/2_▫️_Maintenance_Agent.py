@@ -47,7 +47,7 @@ SAMPLE_PROMPTS = {
 }
 # fmt:on
 
-MODEL = "gemini_pro_google"
+LLM_ID = None
 
 
 # if not st.session_state.get("authenticated"):
@@ -58,11 +58,8 @@ config_sidebar()
 
 
 def agent() -> MaintenanceAgent:
-    # llm = get_llm()
-    # embeddings_model = EmbeddingsFactory().get()
-
     agent = MaintenanceAgent(
-        llm_factory=LlmFactory(), embeddings_factory=EmbeddingsFactory()
+        llm_factory=LlmFactory(llm_id=LLM_ID), embeddings_factory=EmbeddingsFactory()
     )
     agent.create_tools()
     # agent.add_tools([DiagramGeneratorTool()])

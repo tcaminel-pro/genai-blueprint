@@ -42,6 +42,7 @@ python-dotenv = "^1.0.1"
 json-repair = "^0.30.0"
 langchain-huggingface = "^0.1.2"
 langchain-ollama = "^0.2.0"
+chroma = "^0.2.0"
 
 
 

@@ -8,7 +8,7 @@ from datetime import datetime
 from functools import cached_property
 from pathlib import Path
 from textwrap import dedent
-from typing import Literal, Tuple, Union
+from typing import Tuple
 
 import pandas as pd
 import streamlit as st
@@ -28,7 +28,7 @@ from langchain.vectorstores.base import VectorStore
 from langchain_community.agent_toolkits.sql.base import create_sql_agent
 from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from langchain_community.document_loaders import TextLoader
-from langchain_community.utilities.sql_database import SQLDatabase, truncate_word
+from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableConfig
 from loguru import logger
@@ -37,7 +37,7 @@ from pydantic import BaseModel, Field
 # from pydantic import BaseModel, Field
 from python.ai_core.agents_builder import get_agent_builder
 from python.ai_core.embeddings import EmbeddingsFactory
-from python.ai_core.llm import LlmFactory, get_llm_info
+from python.ai_core.llm import LlmFactory
 from python.ai_core.prompts import dedent_ws, def_prompt
 from python.ai_core.vector_store import VectorStoreFactory
 from python.config import get_config_str
@@ -52,36 +52,7 @@ PROCEDURES = [
 
 DATA_PATH = Path(get_config_str("documents", "base")) / "maintenance"
 
-
-class SQLDatabaseExt(SQLDatabase):
-    sql: str | None = None
-    result: str | None = None
-
-    def engine(self):
-        return self._engine
-
-    def dataframe(self, command: str):
-        with self._engine.connect() as connection:
-            connection.exec_driver_sql("SET search_path TO %s", (self._schema,))
-            return pd.read_sql(command, connection)
-
-    def run(
-        self,
-        command: str,
-        fetch: Union[Literal["all"], Literal["one"]] = "all",
-    ) -> str:
-        """ """
-        result = self._execute(command, fetch)
-        res = [
-            tuple(truncate_word(c, length=self._max_string_length) for c in r.values())
-            for r in result
-        ]
-        setattr(res, "sql", command)
-        if not res:
-            return ""
-        else:
-            return str(res)
-
+VECTOR_STORE_ID = "InMemory"
 
 @st.cache_resource(show_spinner=True)
 def maintenance_procedure_vectors(text: str) -> VectorStore:
@@ -91,7 +62,7 @@ def maintenance_procedure_vectors(text: str) -> VectorStore:
     """
 
     vs_factory = VectorStoreFactory(
-        id="Chroma_in_memory",
+        id=VECTOR_STORE_ID,
         collection_name="maintenance_procedure",
         embeddings_factory=EmbeddingsFactory(),
     )
@@ -138,7 +109,7 @@ class MaintenanceAgent(BaseModel):
         ]
 
         vector_db = VectorStoreFactory(
-            id="Chroma_in_memory",
+            id=VECTOR_STORE_ID,
             collection_name="test_maintenance",
             embeddings_factory=self.embeddings_factory,
         ).vector_store
@@ -319,14 +290,13 @@ class MaintenanceAgent(BaseModel):
     ) -> Tuple[str, pd.DataFrame | None]:
         """Run the maintenance agent."""
 
-        info = get_llm_info(self.llm_factory.get_id())
-        agent_builder = get_agent_builder(info.agent_builder)
+        # info = get_llm_info(self.llm_factory.get_id())
+        info = self.llm_factory.info
+
+        agent_builder = get_agent_builder("tool_calling")
         prompt = hub.pull(agent_builder.hub_prompt)
 
-        debug(prompt)
-
         agent_creator = agent_builder.create_function
-        debug(agent_creator)
 
         system = dedent_ws(
             """
