@@ -24,11 +24,11 @@ default:
     path: python.ai_chains
     modules:
       - A_1_joke 
-      - B_1_naive_rag_example
-      - B_2_self_query
-      - C_1_tools_example
-      - C_2_advanced_rag_langgraph
-      - C_3_essay_writer_agent
+      # - B_1_naive_rag_example
+      # - B_2_self_query
+      # - C_1_tools_example
+      # - C_2_advanced_rag_langgraph
+      # - C_3_essay_writer_agent
 
 
 # Overridden configurations

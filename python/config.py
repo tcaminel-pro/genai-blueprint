@@ -23,7 +23,9 @@ from loguru import logger
 CONFIG_FILE = "app_conf.yaml"
 
 
-os.environ["PWD"] = os.getcwd()  # Hack because PWD is set to a Windows path sometime in WSL
+os.environ[
+    "PWD"
+] = os.getcwd()  # Hack because PWD is set to a Windows path sometime in WSL
 
 _modified_fields = defaultdict(dict)
 
@@ -35,6 +37,8 @@ def yaml_file_config(fn: str = CONFIG_FILE) -> Tuple[dict, dict]:
     yml_file = Path.cwd() / fn
     if not yml_file.exists():
         yml_file = Path.cwd().parent / fn
+
+    overridden_conf = {}
 
     assert yml_file.exists(), f"cannot find {yml_file}"
 
@@ -77,7 +81,9 @@ def _get_config(group: str, key: str, default_value: Any | None = None) -> Any:
         logger.warning(f"Error accessing configuration for {group}/{key}")
         pass
 
-    value = runtime_value or overridden_conf_value or default_conf_value or default_value
+    value = (
+        runtime_value or overridden_conf_value or default_conf_value or default_value
+    )
     if value is None:
         raise ValueError(f"no key {group}/{key} in file {CONFIG_FILE}")
     return value
@@ -99,7 +105,9 @@ def get_config_str(group: str, key: str, default_value: str | None = None) -> st
     return value
 
 
-def get_config_list(group: str, key: str, default_value: list[str] | None = None) -> list:
+def get_config_list(
+    group: str, key: str, default_value: list[str] | None = None
+) -> list:
     """
     Return the value of a key of type list, either set by 'set_config', or found in the configuration file.
     Raise an exception if key not found and if not default value is given
