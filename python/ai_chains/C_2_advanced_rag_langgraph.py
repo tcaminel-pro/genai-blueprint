@@ -1,5 +1,5 @@
 """
-https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_rag_agent_llama3_local.ipynb
+https://github.com/langc    hain-ai/langgraph/blob/main/examples/rag/langgraph_rag_agent_llama3_local.ipynb
 https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_agentic_rag.ipynb
 """
 
@@ -307,9 +307,9 @@ def decide_to_generate(state: GraphState) -> Literal["websearch", "generate"]:
     """
 
     logger.debug("---ASSESS GRADED DOCUMENTS---")
-    state["question"]
+    #state["question"]
     web_search = state["web_search"]
-    state["documents"]
+   #state["documents"]
 
     if web_search == "Yes":
         # All documents have been filtered check_relevance

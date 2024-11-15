@@ -16,6 +16,9 @@ from python.config import get_config_str
 
 st.set_page_config(layout="wide")
 
+LLM_ID = "llama31_70_groq"
+
+LLM_ID = "llama32_3_ollama"
 
 @tool
 def get_stock_info(symbol: str, key: str):
@@ -133,7 +136,7 @@ def call_functions(llm_with_tools, user_prompt):
 
 
 def main():
-    llm = get_llm(llm_id="llama31_70_groq", cache=LlmCache.NONE, streaming=False)
+    llm = get_llm(llm_id=LLM_ID, cache=LlmCache.NONE, streaming=False)
 
     #    llm = LlmFactory(llm_id="gpt_35_openai").get()
 

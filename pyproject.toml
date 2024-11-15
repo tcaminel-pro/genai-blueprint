@@ -21,7 +21,6 @@ langgraph = "^0.2.45"
 langserve = "^0.3.0"
 langchainhub = "^0.1.21"
 langchain-groq = "^0.2.1"
-langchain-openai = "^0.2.6"
 langchain-chroma = "^0.1.0"
 devtools = "^0.12.2"
 chromadb = "^0.5.17"
@@ -35,7 +34,6 @@ sse-starlette = "^2.1.0"
 tabulate = "^0.9.0"
 tiktoken = "^0.7.0"
 # giskard = "^2.15.1"
-pypdf = "^4.2.0"
 openpyxl = "^3.1.4"
 python-dotenv = "^1.0.1"
 # pygraphviz = "^1.13"
@@ -43,16 +41,13 @@ json-repair = "^0.30.0"
 langchain-huggingface = "^0.1.2"
 langchain-ollama = "^0.2.0"
 chroma = "^0.2.0"
+crewai = "^0.80.0"
+langchain-openai = "^0.2.8"
+pypdf = "^5.1.0"
+giskard = "^2.15.5"
 
 
 
-
-
-[tool.poetry.group.crewai]  # Install : poetry install --with crewai 
-optional = true
-
-[tool.poetry.group.crewai.dependencies]
-#crewai-tools = "^0.4.8"
 
 
 [tool.poetry.group.transformers]  # Install : poetry install --with transformers 

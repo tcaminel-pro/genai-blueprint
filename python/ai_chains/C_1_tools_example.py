@@ -67,7 +67,7 @@ def create_executor(config: dict) -> Runnable:
     llm = get_llm(llm_id)
     info = get_llm_info(llm_id)
 
-    agent_builder = get_agent_builder(info.agent_builder)
+    agent_builder = get_agent_builder("tool_calling")
 
     prompt = hub.pull(agent_builder.hub_prompt)
 
