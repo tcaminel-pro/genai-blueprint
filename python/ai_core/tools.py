@@ -1,5 +1,5 @@
 """
-Example of tools 
+Commonly used tools 
 """
 
 import os
@@ -12,7 +12,10 @@ from langchain_core.tools import tool
 
 @tool
 def basic_web_search(query: str) -> str:
-    """Run web search on the question."""
+    """Run web search on the question.  Call Tivaly if we have a key, DuckDucGo otherwise"""
+
+    # TO BE COMPLETED to have similar behavior ...
+
     if os.environ.get("TAVILY_API_KEY"):
         from langchain_community.tools.tavily_search import TavilySearchResults
 

@@ -1,5 +1,5 @@
-from functools import cache
 import os
+from functools import cache
 from pathlib import Path
 
 import streamlit as st
@@ -38,15 +38,14 @@ title_col1.markdown(
     unsafe_allow_html=True,
 )
 
+
 @cache
 def config_sidebar():
     with st.sidebar:
         with st.expander("LLM Configuration", expanded=True):
             current_llm = get_config_str("llm", "default_model")
             index = LlmFactory().known_items().index(current_llm)
-            llm = st.selectbox(
-                "default", LlmFactory().known_items(), index=index, key="select_llm"
-            )
+            llm = st.selectbox("default", LlmFactory().known_items(), index=index, key="select_llm")
             set_config_str("llm", "default_model", str(llm))
 
             set_debug(
@@ -64,29 +63,18 @@ def config_sidebar():
                 )
             )
 
-            set_cache(
-                LlmCache.from_value(
-                    st.selectbox("Cache", ["memory", "sqlite"], index=1)
-                )
-            )
+            set_cache(LlmCache.from_value(st.selectbox("Cache", ["memory", "sqlite"], index=1)))
 
             if "LUNARY_APP_ID" in os.environ:
-                if st.checkbox(
-                    label="Use Lunary.ai for monitoring", value=False, disabled=True
-                ):
+                if st.checkbox(label="Use Lunary.ai for monitoring", value=False, disabled=True):
                     set_config_str("monitoring", "default", "lunary")
             if "LANGCHAIN_API_KEY" in os.environ:
                 if st.checkbox(label="Use LangSmith for monitoring", value=True):
                     set_config_str("monitoring", "default", "langsmith")
                     os.environ["LANGCHAIN_TRACING_V2"] = "true"
-                    os.environ["LANGCHAIN_PROJECT"] = get_config_str(
-                        "monitoring", "project"
-                    )
+                    os.environ["LANGCHAIN_PROJECT"] = get_config_str("monitoring", "project")
                     os.environ["LANGCHAIN_TRACING_SAMPLING_RATE"] = "1.0"
 
                 else:
                     os.environ["LANGCHAIN_TRACING_V2"] = "false"
                     set_config_str("monitoring", "default", "none")
-
-
-config_sidebar()

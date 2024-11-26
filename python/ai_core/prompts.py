@@ -25,8 +25,11 @@ DEFAULT_SYSTEM_PROMPT = ""
 
 
 def dedent_ws(text: str) -> str:
-    """Remove any common leading whitespace and tabs from every line in `text`.
-    It replace tabs by 4 whitespace then call the standard 'dedent' functions, so "   hello" and "\\thello" are considered to have common leading whitespace.
+    """'detent' function replacement to remove any common leading whitespace from every line in `text`.
+
+    It address 'dedent' choice to not consider tabs and space as equivalent, by replacing tabs by 4 whitespace,
+    so "   hello" and "\\thello" are considered to have common leading whitespace.
+
     It also remove the first new_line if any"""
 
     if text.startswith("\n"):
@@ -35,15 +38,23 @@ def dedent_ws(text: str) -> str:
     return dedent(text)
 
 
-def def_prompt(system: str | None = None, user: str = "") -> BasePromptTemplate:
+def def_prompt(system: str | None = None, user: str = "", other_msg: dict = {}) -> BasePromptTemplate:
     """
-    Small wrapper around 'ChatPromptTemplate.from_messages" with just a user  and optional system prompt.
+    Small wrapper around 'ChatPromptTemplate.from_messages" with just a user  and optional system prompt and other messages.
+    Common leading whitespace and tags are removed from the system and user strings
+
+    Example:
+    .. code-block:: python
+        prompt = def_prompt(system="You are an helpfull agent", other_msg={"placeholder": "{agent_scratchpad}"})
+
     """
     messages: list = []
     if system:
         messages.append(("system", dedent_ws(system)))
     messages.append(("user", dedent_ws(user)))
-
+    other = list(other_msg.items())
+    messages.extend(other)
+    print(messages)
     return ChatPromptTemplate.from_messages(messages)
 
 
@@ -124,8 +135,8 @@ class Llama2Format(PromptFormatter):
     ai_n_end: str = " </s>"
     usr_n_beg: str = "<s>[INST] "
     usr_n_end: str = " [/INST]"
-    usr_0_beg: str | None= ""
-    usr_0_end: str | None= " [/INST]"
+    usr_0_beg: str = ""
+    usr_0_end: str = " [/INST]"
 
 
 class Llama3Format(PromptFormatter):
@@ -153,8 +164,8 @@ class MixtralFormat(PromptFormatter):
     ai_n_end: str = " </s>"
     usr_n_beg: str = " [INST] "
     usr_n_end: str = " [/INST]"
-    usr_0_beg : str | None= ""
-    usr_0_end: str | None = " [/INST]"
+    usr_0_beg: str = ""
+    usr_0_end: str = " [/INST]"
 
 
 llama3_formatter = RunnableLambda(lambda x: Llama3Format().to_chat_prompt_template(x))
@@ -166,7 +177,7 @@ def test():
 
     formatter = Llama3Format()
 
-    _ = PromptTemplate(
+    prompt_original = PromptTemplate(
         template=""" <|begin_of_text|><| start_header_id|>system<|end_header_id|> this is a system message talking about {topic} <|eot_id|>
     <|start_header_id|>user<|end_header_id|> <|eot_id|><|start_header_id|>assistant<|end_header_id|>""",
         input_variables=["topic"],

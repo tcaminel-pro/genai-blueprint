@@ -25,8 +25,9 @@ from langchain.indexes import IndexingResult, SQLRecordManager, index
 from langchain.schema import Document
 from langchain.vectorstores.base import VectorStore
 from langchain_chroma import Chroma
-from langchain_core.runnables import ConfigurableField, Runnable
+from langchain_core.runnables import ConfigurableField
 from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_core.vectorstores.base import VectorStoreRetriever
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 from typing_extensions import Annotated
@@ -67,6 +68,16 @@ class VectorStoreFactory(BaseModel):
         index_document: Whether to use LangChain indexer for document deduplication
         collection_metadata: Optional metadata for the collection
         _record_manager: Internal SQL manager for document indexing
+
+    Example:
+    .. code-block:: python
+        store_factory = VectorStoreFactory(
+                id="Chroma",
+                collection_name="some_name",
+                embeddings_factory=EmbeddingsFactory(embeddings_id=None),  # default model
+            )
+        vector_store = store_factory.vector_store
+        vector_store.add_documents([Document(page_content="hello world, metadata={"source": "a source})]
     """
 
     id: Annotated[VECTOR_STORE_ENGINE | None, Field(validate_default=True)] = None
@@ -147,9 +158,7 @@ class VectorStoreFactory(BaseModel):
 
         logger.info(f"get vector store  : {self.description}")
         if self.index_document:
-            db_url = (
-                f"sqlite:///{get_vector_vector_store_path()}/record_manager_cache.sql"
-            )
+            db_url = f"sqlite:///{get_vector_vector_store_path()}/record_manager_cache.sql"
             logger.info(f"vector store record manager : {db_url}")
             namespace = f"{id}/{self.collection_full_name}"
             self._record_manager = SQLRecordManager(
@@ -160,22 +169,16 @@ class VectorStoreFactory(BaseModel):
 
         return vector_store
 
-    def get_configurable_retriever(self, default_k: int = 4) -> Runnable:
+    def change_top_k(self, k: int = 4) -> VectorStoreRetriever:
         """
-        Return a retriever where we can configure k at run-time.
-
-        Should be called as:
-            config = {"configurable": {"search_kwargs": {"k": count}}}
-            result = retriever.invoke(user_input, config=config)
+        Return a retriever with changed number of most relevant document returned.
         """
-        retriever = self.vector_store.as_retriever(
-            search_kwargs={"k": default_k}
-        ).configurable_fields(
+        retriever = self.vector_store.as_retriever(search_kwargs={"k": k}).configurable_fields(
             search_kwargs=ConfigurableField(
                 id="search_kwargs",
             )
         )
-        return retriever
+        return retriever  # type: ignore
 
     def add_documents(self, docs: Iterable[Document]) -> IndexingResult | list[str]:
         """
@@ -215,9 +218,7 @@ class VectorStoreFactory(BaseModel):
         if self.id in ["Chroma", "Chroma_in_memory"]:
             return self.vector_store._collection.count()  # type: ignore
         else:
-            raise NotImplementedError(
-                f"Don'k know how to get collection count for {self.vector_store}"
-            )
+            raise NotImplementedError(f"Don'k know how to get collection count for {self.vector_store}")
 
 
 def search_one(vc: VectorStore, query: str) -> list[Document]:

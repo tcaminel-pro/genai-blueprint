@@ -1,5 +1,5 @@
 """
-A replacement of the BM25Retriever with , much faster
+A replacement of the BM25Retriever, much faster
 
 **  NOT WELL TESTED ** 
 """
@@ -20,9 +20,7 @@ def default_preprocessing_func(text: str) -> List[str]:
     return text.split()
 
 
-def get_spacy_preprocess_fn(
-    model: str, more_stop_words: list[str] = []
-) -> Callable[[str], list[str]]:
+def get_spacy_preprocess_fn(model: str, more_stop_words: list[str] = []) -> Callable[[str], list[str]]:
     """
     Return a function that preprocess a string for search :  lemmanisation, lower_case, and strop word removal.
 
@@ -37,9 +35,7 @@ def get_spacy_preprocess_fn(
     try:
         nlp = spacy.load(model)
     except IOError:
-        logger.exception(
-            f"Cannot load Spacy model.  Try install it with : 'python -m spacy download {model}'"
-        )
+        logger.exception(f"Cannot load Spacy model.  Try install it with : 'python -m spacy download {model}'")
     stop_words = nlp.Defaults.stop_words
     stop_words.update(more_stop_words or [])
 
@@ -93,9 +89,7 @@ class BM25FastRetriever(BaseRetriever):
         try:
             import bm25s
         except ImportError:
-            raise ImportError(
-                "Could not import bm25s, please install with `pip install bm25s"
-            )
+            raise ImportError("Could not import bm25s, please install with `pip install bm25s")
 
         texts_processed = [preprocess_func(t) for t in texts]
         bm25_params = bm25_params or {}
@@ -108,9 +102,7 @@ class BM25FastRetriever(BaseRetriever):
             logger.info("Save BM25 cache")
             vectorizer.save(cache_path, corpus=None, allow_pickle=True)
 
-        return cls(
-            vectorizer=vectorizer, docs=docs, preprocess_func=preprocess_func, **kwargs
-        )
+        return cls(vectorizer=vectorizer, docs=docs, preprocess_func=preprocess_func, **kwargs)
 
     @classmethod
     def from_documents(
@@ -153,24 +145,16 @@ class BM25FastRetriever(BaseRetriever):
         try:
             import bm25s
         except ImportError:
-            raise ImportError(
-                "Could not import bm25s, please install with `pip install bm25s"
-            )
+            raise ImportError("Could not import bm25s, please install with `pip install bm25s")
 
         logger.info("Load BM25 cache")
         vectorizer = bm25s.BM25.load(cache_dir, mmap=False, allow_pickle=True)
-        return cls(
-            vectorizer=vectorizer, preprocess_func=preprocess_func, docs=[], **kwargs
-        )
+        return cls(vectorizer=vectorizer, preprocess_func=preprocess_func, docs=[], **kwargs)
 
-    def _get_relevant_documents(
-        self, query: str, *, run_manager: CallbackManagerForRetrieverRun
-    ) -> List[Document]:
+    def _get_relevant_documents(self, query: str, *, run_manager: CallbackManagerForRetrieverRun) -> List[Document]:
         processed_query = self.preprocess_func(query)
         # return_docs = self.vectorizer.get_top_n(processed_query, self.docs, n=self.k)
-        results = self.vectorizer.retrieve(
-            processed_query, corpus=self.docs, k=self.k, return_as="documents"
-        )
+        results = self.vectorizer.retrieve(processed_query, corpus=self.docs, k=self.k, return_as="documents")
         return_docs = [results[0, i] for i in range(results.shape[1])]
         logger.debug(f"search : {query=} {return_docs=}")
         return return_docs

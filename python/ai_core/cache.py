@@ -1,5 +1,12 @@
 """
-Helper  for LLM Cache configuration
+Provides configuration and management of Language Model (LLM) caching strategies.
+
+Key Features:
+- Supports multiple cache strategies (memory, SQLite, none)
+- Configurable through configuration files
+- Logging of cache configuration changes
+- Automatic cache directory creation for SQLite caching
+
 """
 
 from enum import Enum
@@ -57,7 +64,7 @@ def set_cache(cache: LlmCache | None):
     Raises:
         logger.warning: If the default cache configuration is incorrect.
     """
-    old_cache = get_llm_cache()
+    old_cache_cls = get_llm_cache().__class__
     if not cache:
         default = get_config_str("llm", "cache")
         if LlmCache.from_value(default) is None:
@@ -73,5 +80,5 @@ def set_cache(cache: LlmCache | None):
     elif cache == LlmCache.NONE or cache is None:
         set_llm_cache(None)
     new_cache = get_llm_cache()
-    if new_cache != old_cache:
+    if new_cache.__class__ != old_cache_cls:
         logger.info(f"""LLM cache : {str(new_cache.__class__).split('.')[-1].rstrip("'>")}""")

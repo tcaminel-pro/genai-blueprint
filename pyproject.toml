@@ -13,11 +13,11 @@ Repository = "https://github.com/tcaminel-pro/genai-blueprint"
 [tool.poetry.dependencies]
 python = ">=3.10,<=3.12"
 pydantic = "^2.7.0"
-langchain = "^0.3.7"
-langchain-core = "^0.3.15"
-langchain-community = "^0.3.5"
+langchain = "^0.3.8"
+langchain-core = "^0.3.21"
+langchain-community = "^0.3.8"
 langchain-experimental = "^0.3.3"
-langgraph = "^0.2.45"
+langgraph = "^0.2.53"
 langserve = "^0.3.0"
 langchainhub = "^0.1.21"
 langchain-groq = "^0.2.1"
@@ -42,7 +42,7 @@ langchain-huggingface = "^0.1.2"
 langchain-ollama = "^0.2.0"
 chroma = "^0.2.0"
 crewai = "^0.80.0"
-langchain-openai = "^0.2.8"
+langchain-openai = "^0.2.9"
 pypdf = "^5.1.0"
 giskard = "^2.15.5"
 
@@ -85,10 +85,18 @@ ruff = "^0.1.4"
 ipywidgets = "^8.1.2"
 #diagrams = "^0.23.4"
 
+
 [tool.ruff]
 select = [ "E", "F", "I" ]
 ignore = [ "E501" ]
 builtins = ["ic", "debug"]
+line-length = 120  # default is 88
+
+[tool.ruff.pycodestyle]
+ignore-overlong-task-comments = true
+
+[tool.ruff.pydocstyle]
+convention = "google"
 
 [tool.pyright]
 pythonVersion = "3.10"

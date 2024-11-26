@@ -36,7 +36,7 @@ def get_sparse_retriever(embeddings_model_id: str) -> Runnable:
         id="Chroma",
         embeddings_factory=embeddings_factory,
         collection_name="offres_formation",
-    ).get_configurable_retriever(default_k=DEFAULT_RESULT_COUNT)
+    ).change_top_k(k=DEFAULT_RESULT_COUNT)
     return retriever
 
 
@@ -53,9 +53,7 @@ def get_bm25_retriever():
     docs_for_bm25 = list(load_docs_from_jsonl(FILES))
     docs = docs_for_bm25
 
-    retriever = BM25Retriever.from_documents(
-        documents=docs, preprocess_func=fn, k=DEFAULT_RESULT_COUNT
-    )
+    retriever = BM25Retriever.from_documents(documents=docs, preprocess_func=fn, k=DEFAULT_RESULT_COUNT)
     # path = Path(get_config_str("vector_store", "path")) / "bm25"
     # retriever = BM25FastRetriever.from_cache(
     #     preprocess_func=fn,
@@ -64,18 +62,14 @@ def get_bm25_retriever():
     return retriever
 
 
-def get_ensemble_retriever(
-    embeddings_model_id: str, ratio_sparse: float
-) -> EnsembleRetriever:
+def get_ensemble_retriever(embeddings_model_id: str, ratio_sparse: float) -> EnsembleRetriever:
     return EnsembleRetriever(
         retrievers=[get_bm25_retriever(), get_sparse_retriever(embeddings_model_id)],
         weights=[1.0 - ratio_sparse, ratio_sparse],
     )
 
 
-def search(
-    query: str, mode: SearchMode = SearchMode.VECTOR, ratio: int = RATIO_SPARSE
-) -> pd.DataFrame:
+def search(query: str, mode: SearchMode = SearchMode.VECTOR, ratio: int = RATIO_SPARSE) -> pd.DataFrame:
     known_set: set[str] = set()
     df = pd.DataFrame()
     if mode == SearchMode.VECTOR:
@@ -150,9 +144,7 @@ if __name__ == "__main__":
     with pd.ExcelWriter(OUT_FILE) as writer:
         logger.info("Vector Search (Solon-large)...")
         d_vector = process_questions(EXAMPLE_QUERIES, SearchMode.VECTOR)
-        pd.DataFrame(d_vector).to_excel(
-            writer, sheet_name="Vector_search", freeze_panes=(0, 2)
-        )
+        pd.DataFrame(d_vector).to_excel(writer, sheet_name="Vector_search", freeze_panes=(0, 2))
         format_sheet(writer.sheets["Vector_search"])
 
         logger.info("Hybrid Search 50/50...")

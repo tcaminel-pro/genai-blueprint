@@ -27,6 +27,7 @@ Usage:
 """
 
 import importlib
+from pathlib import Path
 from typing import Any, Callable, Iterator, Tuple
 
 from langchain_core.runnables import Runnable, RunnableLambda
@@ -83,9 +84,7 @@ class RunnableItem(BaseModel):
     name: str
     tag: str | None = None
     runnable: (
-        Runnable
-        | Tuple[str, Callable[[dict[str, Any]], Runnable]]
-        | Callable[[dict[str, Any]], Runnable]
+        Runnable | Tuple[str, Callable[[dict[str, Any]], Runnable]] | Callable[[dict[str, Any]], Runnable] 
     )  # Either a Runnable, or ...
     examples: list[Example] = []
     diagram: str | None = None
@@ -155,14 +154,10 @@ def find_runnable(name: str) -> RunnableItem | None:
     Returns:
         RunnableItem | None: The matching Runnable item or None if not found
     """
-    return next(
-        (x for x in _registry if x.name.strip().lower() == name.strip().lower()), None
-    )
+    return next((x for x in _registry if x.name.strip().lower() == name.strip().lower()), None)
 
 
-def _to_key_param_callable(
-    key: str, function: Callable[[dict[str, Any]], Runnable]
-) -> Callable[[Any], Runnable]:
+def _to_key_param_callable(key: str, function: Callable[[dict[str, Any]], Runnable]) -> Callable[[Any], Runnable]:
     """
     Convert a key-based function to a callable that works with the Runnable pipeline.
 
@@ -194,6 +189,7 @@ def load_modules_with_chains():
     """
     path = get_config_str("chains", "path")
     modules = get_config_list("chains", "modules")
+    assert Path(path).exists
 
     for module in modules:
         try:

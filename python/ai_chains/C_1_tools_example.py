@@ -49,7 +49,7 @@ tools = [multiply, exponentiate, add]
 
 def create_runnable(config: dict) -> Runnable:
     llm = get_llm(llm_id=config["llm"])
-    return llm.bind_tools(tools)  # type: ignore
+    return llm.bind_tools(tools)
 
 
 register_runnable(
@@ -94,12 +94,6 @@ register_runnable(
         tag="Agent",
         name="Calculator agent",
         runnable=("input", create_executor),
-        examples=[
-            Example(
-                query=[
-                    "what's 3 plus 5 raised to the 2.743. also what's 17.24 - 918.1241"
-                ]
-            )
-        ],
+        examples=[Example(query=["what's 3 plus 5 raised to the 2.743. also what's 17.24 - 918.1241"])],
     )
 )

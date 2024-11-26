@@ -105,12 +105,14 @@ llm:
 
 - cls: ChatOpenrouter
   models:
-    - id: claude3_sonnet35_openrouter
+    - id: claude_sonnet35_openrouter
       model: anthropic/claude-3.5-sonnet
-    - id: claude3_haiku_openrouter
-      model: anthropic/claude-3-haiku
+    - id: claude_haiku35_openrouter
+      model: anthropic/claude-3-5-haiku
     - id: qwen25_72_openrouter
       model: qwen/qwen-2.5-72b-instruct
+    - id: qwen25_coder32_openrouter
+      model: qwen/qwen-2.5-coder-32b-instruct
     - id: liquid_lfm40_openrouter
       model: liquid/lfm-40b
     - id: nvidia_nemotrom70_openrouter
@@ -119,6 +121,8 @@ llm:
       model: google/gemini-flash-1.5
     - id: google_gemini15pro_openrouter
       model: google/gemini-pro-1.5
+    - id: mistral_nemo_openrouter
+      model: mistralai/mistral-nemo
         
 
 ########################

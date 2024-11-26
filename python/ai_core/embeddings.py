@@ -52,7 +52,7 @@ class EmbeddingsInfo(BaseModel):
         return hash(self.id)
 
 
-def read_embeddings_list_file() -> list[EmbeddingsInfo]:
+def _read_embeddings_list_file() -> list[EmbeddingsInfo]:
     yml_file = Path(get_config_str("embeddings", "list"))
     assert yml_file.exists(), f"cannot find {yml_file}"
     with open(yml_file, "r") as f:
@@ -98,15 +98,11 @@ class EmbeddingsFactory(BaseModel):
     @lru_cache(maxsize=1)
     @staticmethod
     def known_list() -> list[EmbeddingsInfo]:
-        return read_embeddings_list_file()
+        return _read_embeddings_list_file()
 
     @staticmethod
     def known_items_dict() -> dict[str, EmbeddingsInfo]:
-        return {
-            item.id: item
-            for item in EmbeddingsFactory.known_list()
-            if item.key is None or item.key in os.environ
-        }
+        return {item.id: item for item in EmbeddingsFactory.known_list() if item.key is None or item.key in os.environ}
 
     @staticmethod
     def known_items() -> list[str]:
