@@ -48,6 +48,11 @@ MODEL = "gpt_4omini_edenai"  # ?
 MODEL = "llama32_3_ollama"  # Do NOT work
 MODEL = "mistral_nemo_openrouter"  # Work
 MODEL = "google_gemini15pro_openrouter"  # Work
+MODEL = "llama33_70_deepinfra"  # Does NOT work
+MODEL = "llama33_70_groq"  # Work !!
+MODEL = "gpt_4o_azure"  # Work, but need to remove tool_choice="any" with old API
+MODEL = "llama31_405_deepinfra" # Does NOT work
+
 
 get_weather_chain = RunnableLambda(get_weather_fn).with_config(llm_config(MODEL) | {"recursion_limit": 6})
 answer = get_weather_chain.invoke("what's the weather in New York?")

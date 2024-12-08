@@ -24,11 +24,11 @@ default:
     path: python.ai_chains
     modules:
       - A_1_joke 
-      - B_1_naive_rag_example
+    #  - B_1_naive_rag_example
       - B_2_self_query
-      - C_1_tools_example
-      - C_2_advanced_rag_langgraph
-      - C_3_essay_writer_agent
+      # - C_1_tools_example
+      # - C_2_advanced_rag_langgraph
+      # - C_3_essay_writer_agent
 
 
 # Overridden configurations
@@ -48,7 +48,7 @@ edenai:
 
 azure:
   llm:
-    default_model: gpt_4_azure
+    default_model: gpt_35_azure
   embeddings:
     default_model: ada_002_azure
 
