@@ -30,25 +30,27 @@ import importlib.util
 import os
 from functools import cached_property, lru_cache
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 import yaml
 from dotenv import load_dotenv
 from langchain.schema.language_model import BaseLanguageModel
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import ConfigurableField, RunnableConfig
+from langchain.globals import get_llm_cache, set_llm_cache
 from loguru import logger
 from pydantic import BaseModel, Field, computed_field, field_validator
 from typing_extensions import Annotated
 
-from python.ai_core.cache import LlmCache, set_cache
+from python.ai_core.cache import LlmCache
 from python.config import get_config_str
 
 load_dotenv(verbose=True, override=True)
 
 
-MAX_TOKENS = 2048
+SEED = 42  # Arbitrary value....
 
+DEFAULT_LLM_PARAMS: dict[str, Any] = {"temperature": 0.0}
 
 # List of implemented LLM providers, with the Python class to be loaded, and the name of the API key environment variable
 PROVIDER_INFO = {
@@ -93,6 +95,9 @@ class LlmInfo(BaseModel):
         if len(parts) != 3:
             raise ValueError("id must have exactly 3 parts separated by underscores: model_version_provider")
         return v
+    
+
+
 
 
 def _read_llm_list_file() -> list[LlmInfo]:
@@ -122,19 +127,18 @@ class LlmFactory(BaseModel):
 
     Attributes:
         llm_id: Unique model identifier (if None, uses default from config)
-        temperature: Sampling temperature (0.0 = deterministic, higher = more random)
-        max_tokens: Maximum tokens in model response
         json_mode: Whether to force JSON output format (where supported)
-        cache: Optional LlmCache instance for response caching
         streaming: Whether to enable streaming responses (where supported)
+        cache: cache method ("sqlite", "memory", no"_cache, ..) or "default", or None if no change (global setting)
+        llm_params : other llm parameters (temperature, max_token, ....)
     """
 
     llm_id: Annotated[str | None, Field(validate_default=True)] = None
-    temperature: float = 0
-    max_tokens: int = MAX_TOKENS
     json_mode: bool = False
-    cache: LlmCache | None = None
     streaming: bool = False
+    cache : str  | None= None
+    llm_params: dict = {}
+
 
     @computed_field
     @cached_property
@@ -153,6 +157,11 @@ class LlmFactory(BaseModel):
                 f"Unknown LLM: {llm_id}; Check API key and module imports. Should be in {LlmFactory.known_items()}"
             )
         return llm_id
+    
+    @field_validator("cache")
+    def check_known_cache(cls, cache: str | None) :
+        if cache and cache not in LlmCache.values():
+            raise ValueError (f"Unknown cache method: '{cache} '; Should be in {LlmCache.values()}")
 
     @lru_cache(maxsize=1)
     @staticmethod
@@ -189,6 +198,16 @@ class LlmFactory(BaseModel):
     def short_name(self):
         "Return the name and version of the LLMn without the provider"
         return self.info.id.rsplit("_", maxsplit=1)[0]
+    
+    def get_litellm_model_name(self):
+        model_owner, model_short_name, provider = self.info.id.rsplit("_")
+        if provider in ["openrouter", "groq", "deepinfra"]: 
+            result = f"{provider}/{self.info.model}"
+        elif provider in ["openai"]:
+            result = f"{self.info.model}"
+        else:
+            raise NotImplementedError(f"LiteLLM name conversion not (yet) implemented for {provider} ")
+        return result
 
     def get(self) -> BaseChatModel:
         """
@@ -204,14 +223,24 @@ class LlmFactory(BaseModel):
 
     def model_factory(self) -> BaseChatModel:
         """Model factory, according to the model class"""
+
+        llm_params = DEFAULT_LLM_PARAMS | self.llm_params
+
+        if self.cache:
+            cache = LlmCache.from_value(self.cache)
+        else:
+            cache = get_llm_cache()
+
         if self.info.cls == "ChatOpenAI":
+            # TODO : replace import by langchain_core.utils.utils.guard_import(...)
             from langchain_openai import ChatOpenAI
 
             llm = ChatOpenAI(
-                model=self.info.model,
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-                seed=42,
+                seed=SEED,
+                streaming=self.streaming,
+                base_url="https://api.openai.com/v1/",
+                cache = cache,
+                **llm_params,
             )
             if self.json_mode:
                 llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
@@ -219,11 +248,8 @@ class LlmFactory(BaseModel):
             from langchain_groq import ChatGroq
 
             llm = ChatGroq(
-                model=self.info.model,
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-                stop_sequences=None,
-                streaming=self.streaming,
+                cache = cache,
+                **llm_params,
             )
             if self.streaming:
                 llm.streaming = True
@@ -234,12 +260,8 @@ class LlmFactory(BaseModel):
 
             llm = ChatDeepInfra(
                 name=self.info.model,
-                model_kwargs={
-                    "temperature": self.temperature,
-                    "max_new_tokens": self.max_tokens,
-                    "repetition_penalty": 1.3,
-                    "stop": ["STOP_TOKEN"],
-                },
+                cache = cache,
+                **llm_params,
             )
             if True:  # self.json_mode:
                 llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
@@ -250,11 +272,11 @@ class LlmFactory(BaseModel):
 
             llm = ChatEdenAI(
                 provider=provider,
+                cache = cache,
                 model=model,
-                max_tokens=self.max_tokens,
-                # edenai_api_url="https://staging-api.edenai.run/v2",
                 edenai_api_key=None,  # set in env. variable
-                temperature=self.temperature,
+                streaming=self.streaming,
+                **llm_params,
             )
 
         elif self.info.cls == "ChatVertexAI":
@@ -262,17 +284,23 @@ class LlmFactory(BaseModel):
 
             llm = ChatVertexAI(
                 model=self.info.model,
+                cache = cache,
                 project="prj-p-eden",  # TODO : set it in config
                 convert_system_message_to_human=True,
-                temperature=self.temperature,
-                max_output_tokens=self.max_tokens,
+                **llm_params,
             )  # type: ignore
             assert not self.json_mode, "json_mode not supported or coded"
         elif self.info.cls == "ChatOllama":
             from langchain_ollama import ChatOllama  # type: ignore
 
             format = "json" if self.json_mode else ""
-            llm = ChatOllama(model=self.info.model, format=format, temperature=self.temperature)
+            llm = ChatOllama(
+                model=self.info.model,
+                cache = cache,
+                format=format,
+                disable_streaming=not self.streaming,
+                **llm_params,
+            )
 
             # llm = llama3_formatter | llm
         elif self.info.cls == "AzureChatOpenAI":
@@ -284,30 +312,31 @@ class LlmFactory(BaseModel):
                 azure_deployment=name,
                 model=name,  # Not sure it's needed
                 api_version=api_version,
-                temperature=self.temperature,
+                seed=SEED,
+                streaming=self.streaming,
+                cache = cache,
+                **llm_params,
             )
             if self.json_mode:
                 llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
         elif self.info.cls == "ChatTogether":
             from langchain_together import ChatTogether  # type: ignore
 
-            llm = ChatTogether(
-                model=self.info.model,
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-            )
+            llm = ChatTogether(model=self.info.model, temperature=self.temperature, seed=SEED)
         elif self.info.cls == "ChatOpenrouter":
             from langchain_openai import ChatOpenAI
+            # See https://openrouter.ai/docs/parameters
 
             OPENROUTER_BASE = "https://openrouter.ai"
             OPENROUTER_API_BASE = f"{OPENROUTER_BASE}/api/v1"
             llm = ChatOpenAI(
                 base_url=OPENROUTER_API_BASE,
                 model=self.info.model,
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-                seed=42,
+                seed=SEED,
                 api_key=os.environ["OPENROUTER_API_KEY"],  # type: ignore
+                streaming=self.streaming,
+                cache = cache,
+                **llm_params,
             )
             if self.json_mode:
                 llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
@@ -318,8 +347,7 @@ class LlmFactory(BaseModel):
             else:
                 raise ValueError(f"unsupported LLM class {self.info.cls}")
 
-        set_cache(self.cache)
-        return llm # type: ignore
+        return llm  # type: ignore
 
     def get_configurable(self, with_fallback=False) -> BaseChatModel:
         # Make the LLM configurable at run time
@@ -355,65 +383,52 @@ class LlmFactory(BaseModel):
         return selected_llm  # type: ignore
 
 
-def get_llm(
-    llm_id: str | None = None,
-    temperature: float = 0,
-    max_tokens: int = MAX_TOKENS,
-    json_mode: bool = False,
-    cache: LlmCache | None = None,
-    streaming: bool = False,
-) -> BaseChatModel:
+def get_llm(llm_id: str | None = None, json_mode: bool = False, streaming: bool = False, cache: str | None = None, **kwargs) -> BaseChatModel:
     """
     Create a configured LangChain BaseLanguageModel instance.
 
     Args:
         llm_id: Unique model identifier (if None, uses default from config)
-        temperature: Sampling temperature (0.0 = deterministic, higher = more random)
-        max_tokens: Maximum tokens in model response
-        json_mode: Force JSON output format (where supported)
-        streaming: Enable streaming responses (where supported)
+        json_mode: Whether to force JSON output format (where supported)
+        streaming: Whether to enable streaming responses (where supported)
+        cache: cache method ("sqlite", "memory", no"_cache, ..) or "default", or None if no change (global setting)
+        **kwargs: other llm parameters (temperature, max_token, ....)
 
     Returns:
         BaseLanguageModel: Configured language model instance
 
     Example :
     .. code-block:: python
-        chain = def_prompt(...) | get_llm(llm_id="llama3_8_local", cache = False).with_structured_output(...)
+        chain = def_prompt(...) | get_llm(llm_id="llama3_8_local").with_structured_output(...)
     """
     factory = LlmFactory(
         llm_id=llm_id,
-        temperature=temperature,
-        max_tokens=max_tokens,
         json_mode=json_mode,
-        cache=cache,
         streaming=streaming,
+        cache = cache,
+        llm_params=kwargs,
     )
     info = f"get LLM:'{factory.llm_id}'"
     info += " -streaming" if streaming else ""
     info += " -json_mode" if json_mode else ""
     info += f" -cache: {cache}" if cache else ""
+    info += f" -extra: {kwargs}" if kwargs else ""
     logger.info(info)
     return factory.get()
 
 
 def get_configurable_llm(
-    temperature: float = 0,
-    max_tokens: int = MAX_TOKENS,
-    json_mode: bool = False,
-    cache: LlmCache | None = None,
-    with_fallback=False,
-    streaming: bool = False,
+    json_mode: bool = False, with_fallback=False, streaming: bool = False, cache: str | None = None, **kwargs
 ) -> BaseChatModel:
     """
-    Create a configurable LangChain BaseLanguageModel instance. It's a singleton.
+    Create a configurable LangChain BaseLanguageModel instance.
 
     Args:
-        temperature: Sampling temperature (0.0 = deterministic, higher = more random)
-        max_tokens: Maximum tokens in model response
-        json_mode: Force JSON output format (where supported)
-        cache: Optional LlmCache instance for response caching
-        with_fallback: Add fallback model for reliability
-        streaming: Enable streaming responses (where supported)
+        llm_id: Unique model identifier (if None, uses default from config)
+        json_mode: Whether to force JSON output format (where supported)
+        streaming: Whether to enable streaming responses (where supported)
+        cache: cache method ("sqlite", "memory", no"_cache, ..) or "default", or None if no change (global setting)
+        **kwargs: other llm parameters (temperature, max_token, ....)
 
     Returns:
         BaseLanguageModel: Configured language model instance
@@ -429,19 +444,13 @@ def get_configurable_llm(
         r = chain.invoke({}, config=llm_config("gpt_35_openai"))
 
     """
-    factory = LlmFactory(
-        llm_id=None,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        json_mode=json_mode,
-        cache=cache,
-        streaming=streaming,
-    )
+    factory = LlmFactory(llm_id=None, json_mode=json_mode, streaming=streaming, cache = cache, llm_params=kwargs)
 
     info = f"get configurable LLM. Default is:'{factory.llm_id}'"
     info += " -streaming" if streaming else ""
     info += " -json_mode" if json_mode else ""
     info += f" -cache: {cache}" if cache else ""
+    info += f" -extra: {kwargs}" if kwargs else ""
 
     logger.info(info)
     return factory.get_configurable(with_fallback=with_fallback)
@@ -467,7 +476,7 @@ def get_llm_info(llm_id: str) -> LlmInfo:
 
 def llm_config(llm_id: str) -> RunnableConfig:
     """
-    Return a 'RunnableConfig' to configure an LLM at run-time
+    Return a 'RunnableConfig' to configure an LLM at run-time. Check LLM is known.
 
     Examples :
     ```

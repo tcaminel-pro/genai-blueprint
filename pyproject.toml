@@ -11,7 +11,7 @@ Repository = "https://github.com/tcaminel-pro/genai-blueprint"
 
 
 [tool.poetry.dependencies]
-python = ">=3.10,<=3.12"
+python = ">=3.12,<3.13"
 pydantic = "^2.7.0"
 langchain = "^0.3.8"
 langchain-core = "^0.3.21"
@@ -24,7 +24,6 @@ langchain-groq = "^0.2.1"
 langchain-chroma = "^0.1.0"
 devtools = "^0.12.2"
 chromadb = "^0.5.17"
-fastapi = "^0.110.1"
 uvicorn = "^0.27.1"
 httpx = "^0.27.0"
 typer = "^0.13.0"
@@ -45,6 +44,10 @@ crewai = "^0.80.0"
 langchain-openai = "^0.2.9"
 pypdf = "^5.1.0"
 giskard = "^2.15.5"
+smolagents = "^1.0.0"
+ruff = "^0.8.5"
+fastapi = "^0.115.6"
+loguru = "^0.7.3"
 
 
 
@@ -81,7 +84,6 @@ duckduckgo-search = "^6.1.6"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
 ipykernel = "^6.29.4"
-ruff = "^0.1.4"
 ipywidgets = "^8.1.2"
 #diagrams = "^0.23.4"
 
