@@ -1,4 +1,16 @@
-# Comment module and functions AI!
+"""
+Runnable Playground - Interactive testing environment for LangChain Runnables.
+
+This module provides a Streamlit-based interface for testing and exploring LangChain Runnable components.
+It allows users to:
+- Select from available Runnables
+- View diagrams and graphs of the Runnable structure
+- Upload or select input files
+- Execute Runnables with different configurations
+- View execution results and traces
+
+The playground integrates with LangSmith for tracing and monitoring when configured.
+"""
 
 import importlib
 import importlib.util
