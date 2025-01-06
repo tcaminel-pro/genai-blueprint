@@ -2,7 +2,7 @@
 # might be incomplete
 # see https://python.langchain.com/v0.1/docs/modules/agents/agent_types/
 
-
+# Update module doc AI!N
 from typing import Callable, Sequence
 
 from langchain import hub
