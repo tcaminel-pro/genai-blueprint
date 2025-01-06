@@ -166,10 +166,9 @@ class VectorStoreFactory(BaseModel):
                 db_url=db_url,  # @TODO: To improve !!
             )
             self._record_manager.create_schema()
-
         return vector_store
 
-    def change_top_k(self, k: int = 4) -> VectorStoreRetriever:
+    def get_retriever(self, k: int = 4) -> VectorStoreRetriever:
         """
         Return a retriever with changed number of most relevant document returned.
         """

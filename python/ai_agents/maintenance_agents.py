@@ -5,16 +5,16 @@ Copyright (C) 2023 Eviden. All rights reserved
 """
 
 from datetime import datetime
+from functools import cache
 from pathlib import Path
 from textwrap import dedent
 
-import pandas as pd
 import streamlit as st
 from devtools import debug
-from langchain import hub
 from langchain.agents import (
     AgentExecutor,
 )
+from langchain_core.output_parsers import StrOutputParser
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -28,12 +28,13 @@ from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from langchain_community.document_loaders import TextLoader
 from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnableConfig, Runnable
+from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain_core.runnables import Runnable
 from loguru import logger
 
 from python.ai_core.agents_builder import get_agent_builder
 from python.ai_core.embeddings import EmbeddingsFactory
-from python.ai_core.llm import LlmFactory
+from python.ai_core.llm import LlmFactory, get_llm
 from python.ai_core.prompts import dedent_ws, def_prompt
 from python.ai_core.vector_store import VectorStoreFactory
 from python.config import get_config_str
@@ -66,7 +67,7 @@ def maintenance_procedure_vectors(text: str) -> VectorStore:
     vs_factory.add_documents(texts)
     return vs_factory.vector_store
 
-def create_sql_agent_tool(llm_factory: LlmFactory, embeddings_factory: EmbeddingsFactory) -> AgentExecutor:
+def create_sql_agent_tool( embeddings_factory: EmbeddingsFactory) -> AgentExecutor:
     """Create an agent for Text-2-SQL."""
     # fmt: off
     few_shots = {
@@ -108,7 +109,7 @@ def create_sql_agent_tool(llm_factory: LlmFactory, embeddings_factory: Embedding
         + f"\nCurrent date is: {datetime.now().isoformat()}. DO NOT use any SQL date functions like NOW(), DATE(), DATETIME()"
     )
 
-    llm = llm_factory.get()
+    llm = get_llm()
     return create_sql_agent(
         llm=llm,
         toolkit=SQLDatabaseToolkit(db=db, llm=llm),
@@ -119,14 +120,15 @@ def create_sql_agent_tool(llm_factory: LlmFactory, embeddings_factory: Embedding
         max_iterations=5,
     )
 
-def create_maintenance_tools(llm_factory: LlmFactory) -> list[BaseTool]:
+@cache
+def create_maintenance_tools() -> list[BaseTool]:
     """Create the tools for the Maintenance Agent"""
     logger.info("create tools")
 
     @tool
     def get_planning_info(query: str):
         """Useful for when you need to answer questions about tasks assigned to employees."""
-        return create_sql_agent_tool(llm_factory, EmbeddingsFactory()).run(query)
+        return create_sql_agent_tool(EmbeddingsFactory()).run(query)
 
     @tool
     def get_current_time() -> str:
@@ -163,8 +165,9 @@ def create_maintenance_tools(llm_factory: LlmFactory) -> list[BaseTool]:
         )
         prompt = def_prompt(system_prompt, "{input}")
         retriever = maintenance_procedure_vectors(PROCEDURES[0]).as_retriever()
+        llm = get_llm()
         question_answer_chain = create_stuff_documents_chain(
-            llm_factory.get(), prompt
+            llm, prompt
         )
         chain = create_retrieval_chain(retriever, question_answer_chain)
         return chain.invoke({"input": full_query})
@@ -205,22 +208,18 @@ def create_maintenance_tools(llm_factory: LlmFactory) -> list[BaseTool]:
     ]
 
 def create_maintenance_agent(
-    llm_factory: LlmFactory,
     verbose: bool = False,
-    extra_callbacks: list[BaseCallbackHandler] | None = None,
-    extra_metadata: dict | None = None,
+    callbacks: list[BaseCallbackHandler] | None = None,
+    metadata: dict | None = None,
 ) -> Runnable:
     """Create a maintenance agent that returns a runnable AgentExecutor."""
     # Get the LLM info
-    info = llm_factory.info
 
-    # Get the agent builder
     agent_builder = get_agent_builder("tool_calling")
     
     # Create tools
-    tools = create_maintenance_tools(llm_factory)
+    tools = create_maintenance_tools()
 
-    # Create system prompt
     system = dedent_ws(
         """
         You are a helpful assistant to help a maintenance engineer. 
@@ -237,45 +236,42 @@ def create_maintenance_agent(
             ("placeholder", "{agent_scratchpad}"),
         ]
     )
+    llm = get_llm()
 
-    # Get the LLM
-    llm = llm_factory.get()
+    agent = create_tool_calling_agent(llm, tools, prompt)
 
-    # Create the agent
-    agent = agent_builder.create_function(llm, tools, prompt)
-
-    # Prepare metadata
-    metadata = {"agentName": "MaintenanceAgent1"}
-    metadata |= extra_metadata or {}
-
-    # Create and return the AgentExecutor
-    return AgentExecutor(
+    agent_executor =  AgentExecutor(
         agent=agent,
         tools=tools,
         verbose=verbose,
         handle_parsing_errors=True,
-        metadata=metadata,
+        metadata={"agentName": "MaintenanceAgent1"} | (metadata or {}),
+        callbacks=callbacks
     )
 
-def run_maintenance_agent(
-    query: str,
-    llm_factory: LlmFactory,
-    verbose: bool = False,
-    extra_callbacks: list[BaseCallbackHandler] | None = None,
-    extra_metadata: dict | None = None,
-) -> str:
-    """Run the maintenance agent and return the output."""
-    agent_executor = create_maintenance_agent(
-        llm_factory, 
-        verbose, 
-        extra_callbacks, 
-        extra_metadata
-    )
+    return agent_executor | StrOutputParser()
 
-    extra_callbacks = extra_callbacks or []
-    cfg = RunnableConfig()
-    cfg["callbacks"] = extra_callbacks
-    cfg["metadata"] = agent_executor.metadata
 
-    result = agent_executor.invoke({"input": query}, cfg)
-    return result["output"]
+# def get_maintenance_agent_chain(
+#     query: str,
+#     llm_factory: LlmFactory,
+#     verbose: bool = False,
+#     extra_callbacks: list[BaseCallbackHandler] | None = None,
+#     extra_metadata: dict | None = None,
+# ) -> Runnable:
+#     """Run the maintenance agent and return the output."""
+#     agent_executor = create_maintenance_agent(
+#         llm_factory, 
+#         verbose, 
+#         extra_callbacks, 
+#         extra_metadata
+#     )
+
+    # extra_callbacks = extra_callbacks or []
+    # cfg = RunnableConfig()
+    # cfg["callbacks"] = extra_callbacks
+    # cfg["metadata"] = agent_executor.metadata
+
+
+    # result = agent_executor.invoke({"input": query}, cfg)
+    # return result["output"]

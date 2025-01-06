@@ -1,7 +1,7 @@
 # Makefile
 
 # General setttings, notably for deployement
-export APP=genai-tcl
+export APP=genai-blueprint
 export IMAGE_VERSION=0.2a
 export REGISTRY_AZ=XXXX.azurecr.io
 
@@ -13,8 +13,9 @@ export STREAMLIT_ENTRY_POINT="python/GenAI_Lab.py"
 
 topdir := $(shell pwd)
 
-#WARNING : Put the API key into the docker image. NOT RECOMMANDED IN PRODUCTION
-
+######################
+##  GenAI Blueprint related commands
+#####################
 
 check: ## Check if the image is built
 	docker images -a
@@ -28,10 +29,6 @@ langserve:
 webapp:
 	streamlit run $(STREAMLIT_ENTRY_POINT)
 
-
-sync_time:  # Needed because WSL loose time after hibernation, and that can cause issues when pushing 
-	sudo hwclock -s 
-
 test:
 	pytest -s
 
@@ -40,9 +37,31 @@ rebase:
 	git stash
 	git rebase origin/main
 
+aider: 
+# aider --env-file ~/.env --model openrouter/qwen/qwen-2.5-coder-32b-instruct  --watch-files
+	aider --env-file ~/.env  --watch-files --model openrouter/anthropic/claude-3-5-haiku 
+	
+######################
+##  Project build commands
+#####################
+
+import_files:
+	python python/main_cli.py import-ecoact-mapping 
+	python python/main_cli.py import-product-description 
+	python python/main_cli.py create-material-catalog 
+	python python/main_cli.py ecoinvent-to-parquet
+
+
+
 ######################
 ##  Build Docker, and run locally
 #####################
+
+#WARNING : Put the API key into the docker image. NOT RECOMMANDED IN PRODUCTION
+
+sync_time:  # Needed because WSL loose time after hibernation, and that can cause issues when pushing 
+	sudo hwclock -s 
+
 build: ## build the docker image
 	docker build --pull --rm -f "Dockerfile" -t $(APP):$(IMAGE_VERSION) "." \
       --build-arg OPENAI_API_KEY=$(OPENAI_API_KEY) \
@@ -100,11 +119,12 @@ push_az:  # Push to a registry
 
 update:  # Update selected fast changing dependencies 
 	poetry add 	langchain@latest  langchain-core@latest langgraph@latest langserve@latest langchainhub@latest \
-				 langchain-groq@latest   langchain-openai@latest langchain-huggingface@latest \
-				 langchain-experimental@latest   langchain-community@latest
-# litellm@latest lunary@latest
-
+				 langchain-experimental@latest   langchain-community@latest  \
+				 langchain-chroma@latest
+# aider-chat@latest
+# litellm@latest lunary@
 #langchain-openai@latest
+# langchain-groq@latest    \
 
 clean:  # remove byte code  DOES NOT WORK
 # find . -type f -name "*.py[co]" -delete -or -type d -name "__pycache__" -delete
@@ -117,9 +137,14 @@ lint:
 
 backup:
 # copy to ln_to_onedrive, a symbolic link from WSL to OneDrive 
-# (created as: ln -s '/mnt/c/Users/a184094/OneDrive - Eviden'  /home/tcl/ln_to_onedrive )
-	cp ~/.keys.sh ~/ln_to_onedrive/backup/wsl/tcl/
-	cp ~/.env ~/ln_to_onedrive/backup/wsl/tcl/
-	cp ~/.bashrc ~/ln_to_onedrive/backup/wsl/tcl/
-	cp ~/.dev.bash-profile ~/ln_to_onedrive/backup/wsl/tcl/
-	cp ~/install.sh ~/ln_to_onedrive/backup/wsl/tcl/
+# (created as: ln -s '/mnt/c/Users/a184094/OneDrive - Eviden'  ~/ln_to_onedrive )
+	cp ~/.{env,bashrc,dev.bash-profile,bash_history_unique} ~/ln_to_onedrive/backup/wsl/tcl/
+	cp ~/install.sh  ~/ln_to_onedrive/backup/wsl/tcl/
+
+	rsync -av \
+	--exclude='.git/' --exclude='.ruf_cache/' --exclude='__pycache__/'  \
+	--include='*/' \
+	--include='*.py' --include='*.ipynb' --include='*.toml' --include='*.yaml' --include='*.json' \
+	--include='Makefile' --include='Dockerfile' \
+	--exclude='*' \
+	~/prj ~/ln_to_onedrive/backup/wsl/tcl

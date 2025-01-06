@@ -14,9 +14,9 @@ from langchain.callbacks import tracing_v2_enabled
 from langsmith import Client
 from loguru import logger  # noqa: F401
 
-from python.ai_agents.maintenance_agents import DATA_PATH, PROCEDURES, MaintenanceAgent
+from python.ai_agents.maintenance_agents import DATA_PATH, PROCEDURES, create_maintenance_agent, create_maintenance_tools
 from python.ai_core.embeddings import EmbeddingsFactory
-from python.ai_core.llm import LlmFactory
+from python.ai_core.llm import LlmFactory, get_llm
 from python.ai_core.prompts import dedent_ws
 from python.config import get_config_str
 from python.demos.maintenance_agent.maintenance_data import dummy_database
@@ -55,26 +55,6 @@ LLM_ID = None
 #     st.stop()
 
 config_sidebar()
-
-
-def agent() -> MaintenanceAgent:
-    agent = MaintenanceAgent(
-        llm_factory=LlmFactory(llm_id=LLM_ID), embeddings_factory=EmbeddingsFactory()
-    )
-    agent.create_tools()
-    # agent.add_tools([DiagramGeneratorTool()])
-    return agent
-
-
-@contextmanager
-def custom_tracing_context():
-    # TODO : Improve and make generic
-    if get_config_str("monitoring", "default") == "none":
-        yield None
-    else:
-        with tracing_v2_enabled() as cb:
-            yield cb
-
 
 ################################
 #  UI
@@ -128,9 +108,10 @@ def extract_right_part(string: str, separator) -> str:
 
 if b_column[3].button("See tools"):
     with st.expander("Available tools", expanded=True):
+        tools = create_maintenance_tools()
         tool_list = [
             (tool.name, extract_right_part(tool.description, "-> str"))
-            for tool in agent().tools
+            for tool in tools
         ]
         df = pd.DataFrame(tool_list, columns=["name", "description"])
         st.dataframe(
@@ -169,24 +150,24 @@ if with_clear_container(submit_clicked):
 
     streamlit_callback = get_streamlit_cb(answer_container)
 
+    llm = get_llm()
+
     try:
-        if get_config_str("monitoring", "default") == "langsmith":
-            with tracing_v2_enabled() as cb:
-                answer = agent().run(
-                    query,
-                    extra_callbacks=[streamlit_callback],
-                    extra_metadata={
-                        "st_container": ("answer_container", answer_container)
-                    },
-                )
-                url = cb.get_run_url()
-                answer_container.write("[trace](%s)" % url)
-        else:
-            answer = agent().run(
-                query,
-                extra_callbacks=[streamlit_callback],
-                extra_metadata={"st_container": ("answer_container", answer_container)},
-            )
+        chain = create_maintenance_agent(  
+            metadata={"st_container": ("answer_container", answer_container) },
+            callbacks=[streamlit_callback])
+        answer = chain.invoke ({"input": query})        
+
+        # if get_config_str("monitoring", "default") == "langsmith":
+        #     with tracing_v2_enabled() as cb:
+        #         chain = create_maintenance_agent(
+        #             metadata={"st_container": ("answer_container", answer_container) }, 
+        #             callbacks=[streamlit_callback])
+        #         answer = chain.invoke (query)          
+        #         url = cb.get_run_url()
+        #         answer_container.write("[trace](%s)" % url)
+        # else:
+            # raise NotImplementedError()
         answer_container.write(answer)
     except Exception as ex:
         logger.exception(ex)

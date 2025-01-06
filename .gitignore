@@ -165,3 +165,4 @@ test_graph.png
 use_case_data/maintenance/demo.db
 .langchain.db
 .env
+.aider*

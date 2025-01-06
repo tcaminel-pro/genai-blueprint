@@ -20,7 +20,7 @@ from typer import Option
 from typing_extensions import Annotated
 
 from python.ai_chains.fabric import get_fabric_chain
-from python.ai_core.cache import LlmCache, set_cache
+from python.ai_core.cache import LlmCache
 from python.ai_core.chain_registry import (
     find_runnable,
     get_runnable_registry,
@@ -37,43 +37,38 @@ load_dotenv(verbose=True)
 load_modules_with_chains()
 
 
-def define_commands(cli_app: typer.Typer):
-    @cli_app.command()
-    def echo(message: str):
-        print(f"you said: {message}")
 
+def define_llm_related_commands(cli_app: typer.Typer):
     @cli_app.command()
     def run(
         name: str,  # name (description) of the Runnable
         input: str | None = None,  # input
         path: Path | None = None,  # input
-        cache: LlmCache = LlmCache.MEMORY,
-        temperature: Annotated[
-            float, Option("--temperature", "--temp", min=0.0, max=1.0)
-        ] = 0.0,
+        cache="memory",
+        temperature: Annotated[float, Option("--temperature", "--temp", min=0.0, max=1.0)] = 0.0,
         stream: Annotated[bool, Option("--stream", "-s")] = False,
         verbose: Annotated[bool, Option("--verbose", "-v")] = False,
         debug: Annotated[bool, Option("--debug", "-d")] = False,
         llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
     ):
         """
-        Run a given Runnable with parameter 'input". LLM can be changed, otherwise the default one is selected.
-        ''cache' is prompt caching strategy, and it can be either 'sqlite' (default) or 'memory'
+        Run a given Runnable with the specified input. The LLM can be changed, otherwise the default one is selected.
+        'cache' is the prompt caching strategy, and it can be either 'sqlite' (default) or 'memory'.
         """
         set_debug(debug)
         set_verbose(verbose)
-        set_cache(cache)
+        LlmCache.set_method(cache)
 
         if llm_id is not None:
             if llm_id not in LlmFactory.known_items():
-                print(
-                    f"Error: {llm_id} is unknown llm_id.\nShould be in {LlmFactory.known_items()}"
-                )
+                print(f"Error: {llm_id} is unknown llm_id.\nShould be in {LlmFactory.known_items()}")
                 return
             set_config_str("llm", "default_model", llm_id)
 
         runnables_list = sorted([f"'{o.name}'" for o in get_runnable_registry()])
         runnables_list_str = ", ".join(runnables_list)
+
+        load_modules_with_chains()
 
         config = {}
         runnable_desc = find_runnable(name)
@@ -100,11 +95,13 @@ def define_commands(cli_app: typer.Typer):
                 result = runnable_desc.invoke(input, config)
                 pprint(result)
         else:
-            print(f"Runnable not found: '{name}'. Should be in: {runnables_list_str}")
+            print(f"Runnable not found in config: '{name}'. Should be in: {runnables_list_str}")
 
     @cli_app.command()
     def chain_info(name: str):
-        """Return information on a given chain, such as input and output schema"""
+        """
+        Return information on a given chain, including input and output schema.
+        """
         runnable_desc = find_runnable(name)
         if runnable_desc:
             r = runnable_desc.runnable
@@ -112,6 +109,8 @@ def define_commands(cli_app: typer.Typer):
                 runnable = r
             elif isinstance(r, Callable):
                 runnable = r({"llm": None})
+            else:
+                raise Exception()
 
             print("type: ", type(runnable))
             try:
@@ -125,8 +124,10 @@ def define_commands(cli_app: typer.Typer):
                 pass
 
     @cli_app.command()
-    def _models():
-        """List the LLMs, embeddings models and vector stores that we know"""
+    def list_models():
+        """
+        List the known LLMs, embeddings models, and vector stores.
+        """
         print("factories:")
         tab = 2 * " "
         print(f"{tab}llm:")
@@ -140,11 +141,27 @@ def define_commands(cli_app: typer.Typer):
             print(f"{tab}{tab}- {vc}")
 
     @cli_app.command()
+    def llm_info_dump(file_name: Path):
+        """
+        Write a list of LLMs in YAML format to the specified file.
+        """
+        import yaml
+
+        data = [llm.model_dump() for llm in LlmFactory.known_list()]
+        with open(file_name, "w") as file:
+            yaml.dump(data, file, default_flow_style=False, allow_unicode=True)
+
+
+
+def define_other_commands(cli_app: typer.Typer):
+    @cli_app.command()
+    def echo(message: str):
+        
+    @cli_app.command()
     def fabric(
         pattern: Annotated[str, Option("--pattern", "-p")],
         verbose: Annotated[bool, Option("--verbose", "-v")] = False,
         debug_mode: Annotated[bool, Option("--debug", "-d")] = False,
-        cache: LlmCache = LlmCache.MEMORY,
         stream: Annotated[bool, Option("--stream", "-s")] = False,
         # temperature: float = 0.0,
         llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
@@ -159,7 +176,6 @@ def define_commands(cli_app: typer.Typer):
         """
         set_debug(debug_mode)
         set_verbose(verbose)
-        set_cache(cache)
 
         if llm_id is not None and llm_id not in LlmFactory.known_items():
             print(f"Error: unknown llm_id. \n Should be in {LlmFactory.known_items()}")
