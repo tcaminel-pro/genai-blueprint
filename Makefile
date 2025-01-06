@@ -39,7 +39,7 @@ rebase:
 
 aider: 
 # aider --env-file ~/.env --model openrouter/qwen/qwen-2.5-coder-32b-instruct  --watch-files
-	aider --env-file ~/.env  --watch-files --model openrouter/anthropic/claude-3-5-haiku 
+	aider --env-file ~/.env  --watch-files --model openrouter/deepseek/deepseek-chat 
 	
 ######################
 ##  Project build commands

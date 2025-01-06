@@ -18,11 +18,6 @@ The application is structured to:
 3. Configure LLM settings in the sidebar
 4. Provide a main content area for demos
 
-Environment Variables:
-- LUNARY_APP_ID: Enables Lunary.ai monitoring
-- LANGCHAIN_API_KEY: Enables LangSmith monitoring
-- LANGCHAIN_PROJECT: Sets LangSmith project name
-- LANGCHAIN_TRACING_SAMPLING_RATE: Controls tracing frequency
 """
 
 import os

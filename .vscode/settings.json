@@ -57,6 +57,7 @@
         "pygraphviz",
         "Pylance",
         "selectbox",
+        "smolagents",
         "spacy",
         "streamlit",
         "tavily",

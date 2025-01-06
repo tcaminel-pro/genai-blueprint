@@ -50,7 +50,6 @@ load_dotenv(verbose=True, override=True)
 
 SEED = 42  # Arbitrary value....
 
-
 # List of implemented LLM providers, with the Python class to be loaded, and the name of the API key environment variable
 PROVIDER_INFO = {
     "ChatOpenAI": ("langchain_openai", "OPENAI_API_KEY"),
@@ -95,10 +94,6 @@ class LlmInfo(BaseModel):
             raise ValueError("id must have exactly 3 parts separated by underscores: model_version_provider")
         return v
     
-
-
-
-
 def _read_llm_list_file() -> list[LlmInfo]:
     """Read the YAML file with list of LLM providers and info"""
 
