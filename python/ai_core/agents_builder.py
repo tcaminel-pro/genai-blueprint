@@ -1,8 +1,14 @@
-# WIP to make agents more generic
-# might be incomplete
-# see https://python.langchain.com/v0.1/docs/modules/agents/agent_types/
+"""
+Agent builder module for creating and managing different types of LangChain agents.
 
-# Update module doc AI!N
+This module provides a factory pattern for creating various agent types with different capabilities:
+- Tool Calling: For tool-calling models, supports chat history, multi-input tools, and parallel function calling
+- OpenAI Tools: Legacy support for recent OpenAI models (1106 onwards)
+- OpenAI Functions: Legacy support for OpenAI models or open-source models finetuned for function calling
+- Structured Chat: Supports tools with multiple inputs and chat history
+
+Each agent type has different capabilities and intended use cases based on the underlying model's abilities.
+"""
 from typing import Callable, Sequence
 
 from langchain import hub
