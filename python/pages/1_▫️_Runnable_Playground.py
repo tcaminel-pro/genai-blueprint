@@ -12,7 +12,6 @@ It allows users to:
 The playground integrates with LangSmith for tracing and monitoring when configured.
 """
 
-
 import importlib
 import importlib.util
 from pathlib import Path
