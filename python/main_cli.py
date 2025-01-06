@@ -1,7 +1,19 @@
 """
-Entry point for the Command Line Interface,  and commands
+GenAI Lab Command Line Interface
 
-# Improve documentation and docstrings AI!
+This module provides the main entry point for the GenAI Lab CLI, offering commands to:
+- Run and test LangChain Runnables with various configurations
+- Get information about available chains and their schemas
+- List available models (LLMs, embeddings, vector stores)
+- Execute Fabric patterns for text processing
+- Manage LLM configurations and caching
+
+The CLI is built using Typer and supports:
+- Interactive command completion
+- Help documentation for all commands
+- Configuration via environment variables and .env files
+- Debug and verbose output modes
+- Streaming and non-streaming execution
 """
 
 import os
@@ -38,7 +50,18 @@ load_modules_with_chains()
 
 
 
-def define_llm_related_commands(cli_app: typer.Typer):
+def define_llm_related_commands(cli_app: typer.Typer) -> None:
+    """Define all LLM-related commands for the CLI
+    
+    Args:
+        cli_app: The Typer app instance to add commands to
+    
+    Adds commands:
+    - run: Execute a Runnable with input and configuration
+    - chain_info: Get detailed information about a Runnable chain
+    - list_models: List available models and vector stores
+    - llm_info_dump: Export LLM information to YAML file
+    """
     @cli_app.command()
     def run(
         name: str,  # name (description) of the Runnable
@@ -153,7 +176,16 @@ def define_llm_related_commands(cli_app: typer.Typer):
 
 
 
-def define_other_commands(cli_app: typer.Typer):
+def define_other_commands(cli_app: typer.Typer) -> None:
+    """Define additional utility commands for the CLI
+    
+    Args:
+        cli_app: The Typer app instance to add commands to
+    
+    Adds commands:
+    - echo: Simple command to print a message
+    - fabric: Execute Fabric patterns on input text
+    """
     @cli_app.command()
     def echo(message: str):
         print(message)
