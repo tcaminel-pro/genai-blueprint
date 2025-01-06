@@ -1,7 +1,7 @@
 """
 Entry point for the Command Line Interface,  and commands
 
-
+# Improve documentation and docstrings AI!
 """
 
 import os
