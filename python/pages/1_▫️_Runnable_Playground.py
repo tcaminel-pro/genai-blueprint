@@ -43,8 +43,11 @@ runnable_desc = find_runnable(selection[1])
 if not runnable_desc:
     st.stop()
 
-# comment the top streamit components goal AI!
+# Configure and display the sidebar with settings and options
+# This includes model selection, configuration parameters, and other controls
 config_sidebar()
+
+# Get the first example from the runnable description to use as default values
 first_example = runnable_desc.examples[0]
 
 if diagram := runnable_desc.diagram:
