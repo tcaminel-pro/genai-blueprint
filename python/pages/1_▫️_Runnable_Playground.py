@@ -30,9 +30,10 @@ from python.config import get_config_str
 
 st.title("💬 Runnable Playground")
 
-# Comment code flow AI!
-
+# Load all available runnable components from registered modules
 load_modules_with_chains()
+
+# Get list of all available runnables with their tags and names
 
 runnables_list = sorted([(o.tag or "", o.name) for o in get_runnable_registry()])
 selection = st.selectbox("Runnable", runnables_list, index=0, format_func=lambda x: f"[{x[0]}] {x[1]}")
