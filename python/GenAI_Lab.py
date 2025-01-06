@@ -1,4 +1,29 @@
-# Add module discription and docstrings AI!
+"""
+GenAI Lab - Streamlit Web Application
+
+This module serves as the main entry point for the GenAI Lab web application.
+It provides a user interface for experimenting with and demonstrating various
+Generative AI capabilities using Streamlit.
+
+Key Features:
+- Configurable LLM settings via sidebar
+- Debug and verbose mode toggles
+- Multiple monitoring options (LangSmith, Lunary.ai)
+- Caching configuration for LLM responses
+- Branding and logos integration
+
+The application is structured to:
+1. Set up page configuration and branding
+2. Load environment variables
+3. Configure LLM settings in the sidebar
+4. Provide a main content area for demos
+
+Environment Variables:
+- LUNARY_APP_ID: Enables Lunary.ai monitoring
+- LANGCHAIN_API_KEY: Enables LangSmith monitoring
+- LANGCHAIN_PROJECT: Sets LangSmith project name
+- LANGCHAIN_TRACING_SAMPLING_RATE: Controls tracing frequency
+"""
 
 import os
 from functools import cache
@@ -42,7 +67,17 @@ title_col1.markdown(
 
 
 @cache
-def config_sidebar():
+def config_sidebar() -> None:
+    """Configure the sidebar with LLM settings and monitoring options
+    
+    This function creates an expandable sidebar section that allows users to:
+    - Select the default LLM model
+    - Enable/disable debug and verbose modes
+    - Configure caching method (memory or sqlite)
+    - Enable monitoring through LangSmith or Lunary.ai
+    
+    The configuration is persisted using the application's config system.
+    """
     with st.sidebar:
         with st.expander("LLM Configuration", expanded=True):
             current_llm = get_config_str("llm", "default_model")
