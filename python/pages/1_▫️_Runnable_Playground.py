@@ -30,6 +30,15 @@ from python.config import get_config_str
 
 st.title("💬 Runnable Playground")
 
+# Main Streamlit components and their purposes:
+# 1. Title: Displays the page title and icon
+# 2. Runnable Selector: Allows user to choose which Runnable to test
+# 3. Sidebar: Provides configuration options (handled by config_sidebar)
+# 4. Diagram Display: Shows visual representation of the Runnable if available
+# 5. File Uploader: Allows input file selection for file-based Runnables
+# 6. Graph Visualization: Shows the execution graph of the selected Runnable
+# 7. Input Form: Provides text input and submission controls
+
 # Load all available runnable components from registered modules
 load_modules_with_chains()
 
