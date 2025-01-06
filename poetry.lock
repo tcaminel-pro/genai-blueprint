@@ -3722,13 +3722,13 @@ six = "*"
 
 [[package]]
 name = "langgraph"
-version = "0.2.60"
+version = "0.2.61"
 description = "Building stateful, multi-actor applications with LLMs"
 optional = false
 python-versions = "<4.0,>=3.9.0"
 files = [
-    {file = "langgraph-0.2.60-py3-none-any.whl", hash = "sha256:0c454a04f358e8eb0d75cf05d129ae7d10fce1bda1b53d328ec346c718d57e56"},
-    {file = "langgraph-0.2.60.tar.gz", hash = "sha256:24d1779e0506de5f8de57ffc7422f176a5f42caa342b8f8492a9a1763f8f9f48"},
+    {file = "langgraph-0.2.61-py3-none-any.whl", hash = "sha256:615f8bd345bf3a6ac3374ce7b4ecc96549301e598eb0f3e933c73b96af229961"},
+    {file = "langgraph-0.2.61.tar.gz", hash = "sha256:355aa6b6b3c19505e8b3c5f7bd813ffd59130d48e6aa017c0edf08273f4f42c2"},
 ]
 
 [package.dependencies]
@@ -3849,13 +3849,13 @@ regex = ["regex"]
 
 [[package]]
 name = "litellm"
-version = "1.56.10"
+version = "1.57.0"
 description = "Library to easily interface with LLM API providers"
 optional = false
 python-versions = "!=2.7.*,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,!=3.7.*,>=3.8"
 files = [
-    {file = "litellm-1.56.10-py3-none-any.whl", hash = "sha256:0294fe455968abf9cc93270368eb6c89bae6ecb1f9de70d16cb193c54d847680"},
-    {file = "litellm-1.56.10.tar.gz", hash = "sha256:d89a6d994a0ea22c01a42225fd98c76fd67104ae2c6bc39b26f5426afab61d20"},
+    {file = "litellm-1.57.0-py3-none-any.whl", hash = "sha256:339aec6f3ecac2035bf6311aa8913ce587c9aca2dc7d72a63a210c659e9721ca"},
+    {file = "litellm-1.57.0.tar.gz", hash = "sha256:53a6f2bd9575823e102f7d18dde5cbd2d48eed027cecbb585f18a208605b34c5"},
 ]
 
 [package.dependencies]

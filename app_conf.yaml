@@ -3,9 +3,15 @@
 default:
   llm:
     list: ${PWD}/models_providers.yaml
-    default_model: gpt_4omini_openai # gpt_35_azure # mistral_large_edenai 
     cache : no_cache
     cache_path: ${HOME}/cache_ai/langchain.db
+    default_model: gpt_4omini_openai # gpt_35_azure # mistral_large_edenai 
+
+    # optional model definitions (you can add your orn type): 
+    coder_model : qwen25_coder32_openrouter
+    powerful_model : gpt_4_openai
+    fast_model : llama31_8_groq
+
   embeddings:
     list: ${PWD}/models_providers.yaml
     default_model:  multilingual_MiniLM_local #ada_002_edenai #

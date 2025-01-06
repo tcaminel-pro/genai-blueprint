@@ -50,7 +50,6 @@ load_dotenv(verbose=True, override=True)
 
 SEED = 42  # Arbitrary value....
 
-DEFAULT_LLM_PARAMS: dict[str, Any] = {"temperature": 0.0}
 
 # List of implemented LLM providers, with the Python class to be loaded, and the name of the API key environment variable
 PROVIDER_INFO = {
@@ -190,16 +189,25 @@ class LlmFactory(BaseModel):
 
         return sorted(list(LlmFactory.known_items_dict().keys()))
 
-    def get_id(self):
+    @staticmethod 
+    def find_llm_id_from_type(llm_type: str) -> str: 
+        llm_id = get_config_str("llm", llm_type, default_value= "default") 
+        if llm_id == "default":
+            raise ValueError(f"Cannot find LLM of type type : '{llm_type}' (no key found in config file)")
+        if llm_id not in LlmFactory.known_items():
+            raise ValueError(f"Cannot find LLM '{llm_id}' of type : '{llm_type}'")
+        return llm_id
+
+    def get_id(self) -> str:
         "Return the id of the LLM"
         assert self.llm_id
         return self.llm_id
 
-    def short_name(self):
+    def short_name(self) -> str:
         "Return the name and version of the LLMn without the provider"
         return self.info.id.rsplit("_", maxsplit=1)[0]
     
-    def get_litellm_model_name(self):
+    def get_litellm_model_name(self) -> str:
         model_owner, model_short_name, provider = self.info.id.rsplit("_")
         if provider in ["openrouter", "groq", "deepinfra"]: 
             result = f"{provider}/{self.info.model}"
@@ -224,47 +232,47 @@ class LlmFactory(BaseModel):
     def model_factory(self) -> BaseChatModel:
         """Model factory, according to the model class"""
 
-        llm_params = DEFAULT_LLM_PARAMS | self.llm_params
 
         if self.cache:
             cache = LlmCache.from_value(self.cache)
         else:
             cache = get_llm_cache()
 
+        common_params = {
+            "temperature" : 0.0,
+            "cache" : cache, 
+            "seed" : SEED, 
+            "streaming":self.streaming,
+        }
+
+        llm_params = common_params | self.llm_params
+        if self.json_mode:
+            llm_params |= {"response_format":{"type": "json_object"}}
+
         if self.info.cls == "ChatOpenAI":
             # TODO : replace import by langchain_core.utils.utils.guard_import(...)
             from langchain_openai import ChatOpenAI
 
             llm = ChatOpenAI(
-                seed=SEED,
-                streaming=self.streaming,
                 base_url="https://api.openai.com/v1/",
-                cache = cache,
                 **llm_params,
             )
-            if self.json_mode:
-                llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
         elif self.info.cls == "ChatGroq":
             from langchain_groq import ChatGroq
 
+            seed = llm_params.pop("seed")
+
             llm = ChatGroq(
-                cache = cache,
                 **llm_params,
+                model_kwargs = {"seed": seed}
             )
-            if self.streaming:
-                llm.streaming = True
-            if self.json_mode:
-                llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
         elif self.info.cls == "ChatDeepInfra":
             from langchain_community.chat_models.deepinfra import ChatDeepInfra
 
             llm = ChatDeepInfra(
                 name=self.info.model,
-                cache = cache,
                 **llm_params,
             )
-            if True:  # self.json_mode:
-                llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
         elif self.info.cls == "ChatEdenAI":
             from langchain_community.chat_models.edenai import ChatEdenAI
 
@@ -272,10 +280,8 @@ class LlmFactory(BaseModel):
 
             llm = ChatEdenAI(
                 provider=provider,
-                cache = cache,
                 model=model,
                 edenai_api_key=None,  # set in env. variable
-                streaming=self.streaming,
                 **llm_params,
             )
 
@@ -284,7 +290,6 @@ class LlmFactory(BaseModel):
 
             llm = ChatVertexAI(
                 model=self.info.model,
-                cache = cache,
                 project="prj-p-eden",  # TODO : set it in config
                 convert_system_message_to_human=True,
                 **llm_params,
@@ -293,16 +298,18 @@ class LlmFactory(BaseModel):
         elif self.info.cls == "ChatOllama":
             from langchain_ollama import ChatOllama  # type: ignore
 
-            format = "json" if self.json_mode else ""
+            # ChatOllama does not have a 'standard' way to set JSON mode and streaming
+            llm_params.pop("streaming")
+            if llm_params.pop("response_format", None): 
+                format = "json" 
+            else: 
+                format =  ""
             llm = ChatOllama(
                 model=self.info.model,
-                cache = cache,
                 format=format,
                 disable_streaming=not self.streaming,
                 **llm_params,
             )
-
-            # llm = llama3_formatter | llm
         elif self.info.cls == "AzureChatOpenAI":
             from langchain_openai import AzureChatOpenAI
 
@@ -312,9 +319,6 @@ class LlmFactory(BaseModel):
                 azure_deployment=name,
                 model=name,  # Not sure it's needed
                 api_version=api_version,
-                seed=SEED,
-                streaming=self.streaming,
-                cache = cache,
                 **llm_params,
             )
             if self.json_mode:
@@ -322,7 +326,10 @@ class LlmFactory(BaseModel):
         elif self.info.cls == "ChatTogether":
             from langchain_together import ChatTogether  # type: ignore
 
-            llm = ChatTogether(model=self.info.model, temperature=self.temperature, seed=SEED)
+            llm = ChatTogether(
+                model=self.info.model, 
+                **llm_params
+                )
         elif self.info.cls == "ChatOpenrouter":
             from langchain_openai import ChatOpenAI
             # See https://openrouter.ai/docs/parameters
@@ -332,15 +339,9 @@ class LlmFactory(BaseModel):
             llm = ChatOpenAI(
                 base_url=OPENROUTER_API_BASE,
                 model=self.info.model,
-                seed=SEED,
                 api_key=os.environ["OPENROUTER_API_KEY"],  # type: ignore
-                streaming=self.streaming,
-                cache = cache,
                 **llm_params,
             )
-            if self.json_mode:
-                llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
-
         else:
             if self.info.cls in LlmFactory.known_items():
                 raise ValueError(f"No API key found for LLM: {self.info.cls}")
@@ -383,7 +384,7 @@ class LlmFactory(BaseModel):
         return selected_llm  # type: ignore
 
 
-def get_llm(llm_id: str | None = None, json_mode: bool = False, streaming: bool = False, cache: str | None = None, **kwargs) -> BaseChatModel:
+def get_llm(llm_id: str | None = None, llm_type: str | None = None, json_mode: bool = False, streaming: bool = False, cache: str | None = None, **kwargs) -> BaseChatModel:
     """
     Create a configured LangChain BaseLanguageModel instance.
 
@@ -401,6 +402,12 @@ def get_llm(llm_id: str | None = None, json_mode: bool = False, streaming: bool 
     .. code-block:: python
         chain = def_prompt(...) | get_llm(llm_id="llama3_8_local").with_structured_output(...)
     """
+    
+    if llm_type and llm_id:
+        logger.warning("llm_type and llm_id both  defined whereas they are normally exclusive.  llm_id has the preference")
+    elif llm_type: 
+        llm_id= LlmFactory.find_llm_id_from_type(llm_type)
+
     factory = LlmFactory(
         llm_id=llm_id,
         json_mode=json_mode,
@@ -424,7 +431,6 @@ def get_configurable_llm(
     Create a configurable LangChain BaseLanguageModel instance.
 
     Args:
-        llm_id: Unique model identifier (if None, uses default from config)
         json_mode: Whether to force JSON output format (where supported)
         streaming: Whether to enable streaming responses (where supported)
         cache: cache method ("sqlite", "memory", no"_cache, ..) or "default", or None if no change (global setting)
@@ -459,7 +465,9 @@ def get_configurable_llm(
 # workaround  to cache the function while keeping its signature.  See :
 # https://github.com/python/typeshed/issues/11280#issuecomment-1987620682
 # todo : consider https://github.com/umarbutler/persist-cache
+# TODO: Does not work with Python 3.12
 get_configurable_llm = functools.wraps(get_configurable_llm)(functools.cache(get_configurable_llm))
+
 
 
 def get_llm_info(llm_id: str) -> LlmInfo:

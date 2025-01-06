@@ -156,6 +156,7 @@ def define_llm_related_commands(cli_app: typer.Typer):
 def define_other_commands(cli_app: typer.Typer):
     @cli_app.command()
     def echo(message: str):
+        print(message)
         
     @cli_app.command()
     def fabric(
@@ -207,6 +208,7 @@ if __name__ == "__main__":
         no_args_is_help=True,
         pretty_exceptions_enable=PRETTY_EXCEPTION,
     )
-    define_commands(cli_app)
+    define_llm_related_commands(cli_app)
+    define_other_commands(cli_app)
 
     cli_app()
