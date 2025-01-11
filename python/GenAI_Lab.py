@@ -64,13 +64,13 @@ title_col1.markdown(
 @cache
 def config_sidebar() -> None:
     """Configure the sidebar with LLM settings and monitoring options
-    
+
     This function creates an expandable sidebar section that allows users to:
     - Select the default LLM model
     - Enable/disable debug and verbose modes
     - Configure caching method (memory or sqlite)
     - Enable monitoring through LangSmith or Lunary.ai
-    
+
     The configuration is persisted using the application's config system.
     """
     with st.sidebar:
@@ -96,7 +96,6 @@ def config_sidebar() -> None:
             )
 
             LlmCache.set_method(st.selectbox("Cache", ["memory", "sqlite"], index=1))
-
 
             if "LUNARY_APP_ID" in os.environ:
                 if st.checkbox(label="Use Lunary.ai for monitoring", value=False, disabled=True):

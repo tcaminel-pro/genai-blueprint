@@ -14,7 +14,12 @@ from langchain.callbacks import tracing_v2_enabled
 from langsmith import Client
 from loguru import logger  # noqa: F401
 
-from python.ai_agents.maintenance_agents import DATA_PATH, PROCEDURES, create_maintenance_agent, create_maintenance_tools
+from python.ai_agents.maintenance_agents import (
+    DATA_PATH,
+    PROCEDURES,
+    create_maintenance_agent,
+    create_maintenance_tools,
+)
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.llm import LlmFactory, get_llm
 from python.ai_core.prompts import dedent_ws
@@ -109,10 +114,7 @@ def extract_right_part(string: str, separator) -> str:
 if b_column[3].button("See tools"):
     with st.expander("Available tools", expanded=True):
         tools = create_maintenance_tools()
-        tool_list = [
-            (tool.name, extract_right_part(tool.description, "-> str"))
-            for tool in tools
-        ]
+        tool_list = [(tool.name, extract_right_part(tool.description, "-> str")) for tool in tools]
         df = pd.DataFrame(tool_list, columns=["name", "description"])
         st.dataframe(
             df,
@@ -124,16 +126,12 @@ if b_column[3].button("See tools"):
             },  # does  not seems to work :(
         )
 
-sample_prompt_key = st.selectbox(
-    "Sample prompts", SAMPLE_PROMPTS.keys(), index=None, placeholder="choose an example"
-)
+sample_prompt_key = st.selectbox("Sample prompts", SAMPLE_PROMPTS.keys(), index=None, placeholder="choose an example")
 sample_prompt = ""
 if sample_prompt_key:
     sample_prompt = dedent_ws(SAMPLE_PROMPTS.get(sample_prompt_key, "").strip())
 with st.form(key="form"):
-    user_input = st.text_area(
-        label="Or, ask your own question / prompt", value=sample_prompt, height=150
-    )
+    user_input = st.text_area(label="Or, ask your own question / prompt", value=sample_prompt, height=150)
     submit_clicked = st.form_submit_button("Submit Question")
 
 output_container = st.empty()
@@ -142,9 +140,7 @@ if with_clear_container(submit_clicked):
     output_container.chat_message("user").write(user_input)
     answer_container = output_container.chat_message("assistant", avatar="🛠️")
 
-    context = (
-        f"Current date is: {datetime.now().isoformat()}. Use it for SQL the queries."
-    )
+    context = f"Current date is: {datetime.now().isoformat()}. Use it for SQL the queries."
     query = context + "\n" + user_input
     client = Client()
 
@@ -153,21 +149,21 @@ if with_clear_container(submit_clicked):
     llm = get_llm()
 
     try:
-        chain = create_maintenance_agent(  
-            metadata={"st_container": ("answer_container", answer_container) },
-            callbacks=[streamlit_callback])
-        answer = chain.invoke ({"input": query})        
+        chain = create_maintenance_agent(
+            metadata={"st_container": ("answer_container", answer_container)}, callbacks=[streamlit_callback]
+        )
+        answer = chain.invoke({"input": query})
 
         # if get_config_str("monitoring", "default") == "langsmith":
         #     with tracing_v2_enabled() as cb:
         #         chain = create_maintenance_agent(
-        #             metadata={"st_container": ("answer_container", answer_container) }, 
+        #             metadata={"st_container": ("answer_container", answer_container) },
         #             callbacks=[streamlit_callback])
-        #         answer = chain.invoke (query)          
+        #         answer = chain.invoke (query)
         #         url = cb.get_run_url()
         #         answer_container.write("[trace](%s)" % url)
         # else:
-            # raise NotImplementedError()
+        # raise NotImplementedError()
         answer_container.write(answer)
     except Exception as ex:
         logger.exception(ex)

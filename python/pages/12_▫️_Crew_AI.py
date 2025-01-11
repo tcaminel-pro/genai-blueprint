@@ -121,12 +121,8 @@ class StreamToExpander:
         cleaned_data = re.sub(r"\x1B\[[0-9;]*[mK]", "", data)
 
         # Check if the data contains 'task' information
-        task_match_object = re.search(
-            r"\"task\"\s*:\s*\"(.*?)\"", cleaned_data, re.IGNORECASE
-        )
-        task_match_input = re.search(
-            r"task\s*:\s*([^\n]*)", cleaned_data, re.IGNORECASE
-        )
+        task_match_object = re.search(r"\"task\"\s*:\s*\"(.*?)\"", cleaned_data, re.IGNORECASE)
+        task_match_input = re.search(r"task\s*:\s*([^\n]*)", cleaned_data, re.IGNORECASE)
         task_value = None
         if task_match_object:
             task_value = task_match_object.group(1)
@@ -165,9 +161,7 @@ class StreamToExpander:
                 f":{self.colors[self.color_index]}[Technology Expert]",
             )
         if "Finished chain." in cleaned_data:
-            cleaned_data = cleaned_data.replace(
-                "Finished chain.", f":{self.colors[self.color_index]}[Finished chain.]"
-            )
+            cleaned_data = cleaned_data.replace("Finished chain.", f":{self.colors[self.color_index]}[Finished chain.]")
 
         self.buffer.append(cleaned_data)
         if "\n" in data:
@@ -231,9 +225,7 @@ def run_crewai_app():
                Goals and Timeline for the product launch. Current month is Jan 2024. """
         )
 
-    product_name = st.text_input(
-        "Enter a product name to analyze the market and business strategy."
-    )
+    product_name = st.text_input("Enter a product name to analyze the market and business strategy.")
 
     if st.button("Run Analysis"):
         # Placeholder for stopwatch

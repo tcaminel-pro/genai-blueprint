@@ -1,5 +1,5 @@
 """
-Entry point for the REST API  
+Entry point for the REST API
 
 Copyright (C) 2024 Eviden. All rights reserved
 """

@@ -1,11 +1,8 @@
 """
-Implementation of custom but quite generic agents.
 
-This module provides a : 
--   Implementation of a ReAct agent that can generate structured output.
+This module provides an implementation of a ReAct agent that can generate structured output.
     The agent is built using LangChain components and is designed to be flexible and reusable for various applications.
 """
-
 
 from typing import Literal, Type, TypeVar
 
@@ -20,7 +17,7 @@ T = TypeVar("T", bound=BaseModel)
 
 
 def create_react_structured_output_graph(
-    model: BaseChatModel, tools: list[BaseTool], out_model_class: Type[T]
+    llm: BaseChatModel, tools: list[BaseTool], out_model_class: Type[T]
 ) -> CompiledGraph:
     """
     Creates a compiled LangGraph graph for a ReAct agent that can generate structured output.
@@ -34,7 +31,7 @@ def create_react_structured_output_graph(
     Args:
         model (BaseChatModel): The language model to use for the agent.
         tools (list[BaseTool]): A list of tools the agent can use.
-        out_model_class (Type[T]): The class of the output model that will be used to parse the final response.
+        out_model_class (Type[T]): Pydantic class that will be used to generate the final response.
 
     Returns:
         CompiledGraph: A compiled graph representing the ReAct agent workflow.
@@ -59,7 +56,7 @@ def create_react_structured_output_graph(
         final_response: out_model_class
 
     tools_and_result = tools + [out_model_class]
-    llm_with_response_tool = model.bind_tools(tools_and_result, tool_choice="any")  # Force the model to use tools
+    llm_with_response_tool = llm.bind_tools(tools_and_result, tool_choice="any")  # Force the model to use tools
 
     # Define the function that calls the model
     def call_model(state: AgentState):

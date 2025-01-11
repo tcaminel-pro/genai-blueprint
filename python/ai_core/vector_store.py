@@ -1,20 +1,37 @@
 """
-Vector store factory and configuration module.
+Vector store factory and management system.
 
-This module provides a factory pattern implementation for creating and managing vector stores,
-which are essential for similarity search operations in AI applications.
+This module provides a comprehensive interface for creating and managing vector
+stores, supporting multiple storage backends and advanced features for document
+indexing and retrieval.
 
-Features:
-- Supports Chroma vector store (both persistent and in-memory)
-- Document indexing with deduplication
-- Configurable retriever interface
-- Collection management with metadata
+Key Features:
+- Support for multiple vector store implementations (Chroma, InMemory, Sklearn)
+- Document deduplication and indexing
+- Configurable retrieval parameters
+- Collection metadata management
+- Integration with embedding models
 
-The main class is VectorStoreFactory which handles:
-- Vector store initialization with embeddings
-- Document addition and indexing
-- Retrieval configuration
-- Collection naming and persistence
+Supported Backends:
+- Chroma (persistent and in-memory)
+- InMemoryVectorStore
+- SKLearnVectorStore
+
+Example:
+    >>> # Create vector store factory
+    >>> factory = VectorStoreFactory(
+    ...     id="Chroma",
+    ...     embeddings_factory=EmbeddingsFactory()
+    ... )
+
+    >>> # Add documents to store
+    >>> factory.add_documents([
+    ...     Document(page_content="text1"),
+    ...     Document(page_content="text2")
+    ... ])
+
+    >>> # Perform similarity search
+    >>> results = factory.vector_store.similarity_search("query")
 """
 
 from functools import cached_property
@@ -33,7 +50,7 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validat
 from typing_extensions import Annotated
 
 from python.ai_core.embeddings import EmbeddingsFactory
-from python.config import get_config_str
+from python.config_mngr import get_config_str
 
 # from langchain_chroma import Chroma  does not work (yet?) with self_query
 
@@ -166,9 +183,10 @@ class VectorStoreFactory(BaseModel):
                 db_url=db_url,  # @TODO: To improve !!
             )
             self._record_manager.create_schema()
+
         return vector_store
 
-    def get_retriever(self, k: int = 4) -> VectorStoreRetriever:
+    def change_top_k(self, k: int = 4) -> VectorStoreRetriever:
         """
         Return a retriever with changed number of most relevant document returned.
         """

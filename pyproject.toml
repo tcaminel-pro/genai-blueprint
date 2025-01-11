@@ -17,7 +17,7 @@ langchain = "^0.3.14"
 langchain-core = "^0.3.29"
 langchain-community = "^0.3.14"
 langchain-experimental = "^0.3.4"
-langgraph = "^0.2.60"
+langgraph = "^0.2.61"
 langserve = "^0.3.1"
 langchainhub = "^0.1.21"
 langchain-groq = "^0.2.1"
@@ -44,9 +44,11 @@ langchain-openai = "^0.2.9"
 pypdf = "^5.1.0"
 giskard = "^2.15.5"
 smolagents = "^1.0.0"
-ruff = "^0.8.5"
+ruff = "^0.9.1"
 fastapi = "^0.115.6"
 loguru = "^0.7.3"
+browser-use = "^0.1.18"
+gpt-researcher = "^0.10.11"
 
 
 
@@ -88,15 +90,18 @@ ipywidgets = "^8.1.2"
 
 
 [tool.ruff]
-select = [ "E", "F", "I" ]
-ignore = [ "E501" ]
 builtins = ["ic", "debug"]
 line-length = 120  # default is 88
 
-[tool.ruff.pycodestyle]
+
+[tool.ruff.lint]
+select = [ "E", "F", "I" ]
+ignore = [ "E501" ]
+
+[tool.ruff.lint.pycodestyle]
 ignore-overlong-task-comments = true
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "google"
 
 [tool.pyright]

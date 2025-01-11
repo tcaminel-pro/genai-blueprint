@@ -15,6 +15,7 @@ print(tool.name)
 
 return  # noqa: F706
 
+
 class AgentState(TypedDict):
     messages: Annotated[list[AnyMessage], operator.add]
 
@@ -25,9 +26,7 @@ class Agent:
         graph = StateGraph(AgentState)
         graph.add_node("llm", self.call_openai)
         graph.add_node("action", self.take_action)
-        graph.add_conditional_edges(
-            "llm", self.exists_action, {True: "action", False: END}
-        )
+        graph.add_conditional_edges("llm", self.exists_action, {True: "action", False: END})
         graph.add_edge("action", "llm")
         graph.set_entry_point("llm")
         self.graph = graph.compile()
@@ -51,9 +50,7 @@ class Agent:
         for t in tool_calls:
             print(f"Calling: {t}")
             result = self.tools[t["name"]].invoke(t["args"])
-            results.append(
-                ToolMessage(tool_call_id=t["id"], name=t["name"], content=str(result))
-            )
+            results.append(ToolMessage(tool_call_id=t["id"], name=t["name"], content=str(result)))
         print("Back to the model!")
         return {"messages": results}
 

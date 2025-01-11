@@ -1,2 +1,0 @@
-runnable = run_maintenance_agent(llm_factory)
-result = runnable.invoke("What are the maintenance tasks?")

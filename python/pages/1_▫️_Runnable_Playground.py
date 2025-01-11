@@ -20,13 +20,13 @@ import streamlit as st
 from langchain.callbacks import tracing_v2_enabled
 from pydantic import BaseModel
 
-from python.GenAI_Lab import config_sidebar
 from python.ai_core.chain_registry import (
     find_runnable,
     get_runnable_registry,
     load_modules_with_chains,
 )
 from python.config import get_config_str
+from python.GenAI_Lab import config_sidebar
 
 st.title("💬 Runnable Playground")
 

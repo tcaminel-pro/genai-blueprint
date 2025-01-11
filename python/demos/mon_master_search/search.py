@@ -11,7 +11,7 @@ from loguru import logger
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.loaders import load_docs_from_jsonl
 from python.ai_core.vector_store import VectorStoreFactory
-from python.ai_retrievers.bm25s_retriever import (
+from python.ai_extra.bm25s_retriever import (
     get_spacy_preprocess_fn,
 )
 from python.demos.mon_master_search.model_subset import EXAMPLE_QUERIES

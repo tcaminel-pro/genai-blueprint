@@ -30,9 +30,7 @@ messages with the same `id`, and appends them otherwise.
 """
 
 
-def reduce_messages(
-    left: list[AnyMessage], right: list[AnyMessage]
-) -> list[AnyMessage]:
+def reduce_messages(left: list[AnyMessage], right: list[AnyMessage]) -> list[AnyMessage]:
     # assign ids to messages that don't have them
     for message in right:
         if not message.id:
@@ -64,14 +62,10 @@ class Agent:
         graph = StateGraph(AgentState)
         graph.add_node("llm", self.call_openai)
         graph.add_node("action", self.take_action)
-        graph.add_conditional_edges(
-            "llm", self.exists_action, {True: "action", False: END}
-        )
+        graph.add_conditional_edges("llm", self.exists_action, {True: "action", False: END})
         graph.add_edge("action", "llm")
         graph.set_entry_point("llm")
-        self.graph = graph.compile(
-            checkpointer=checkpointer, interrupt_before=["action"]
-        )
+        self.graph = graph.compile(checkpointer=checkpointer, interrupt_before=["action"])
         self.tools = {t.name: t for t in tools}
         self.model = model.bind_tools(tools)
 
@@ -93,9 +87,7 @@ class Agent:
         for t in tool_calls:
             print(f"Calling: {t}")
             result = self.tools[t["name"]].invoke(t["args"])
-            results.append(
-                ToolMessage(tool_call_id=t["id"], name=t["name"], content=str(result))
-            )
+            results.append(ToolMessage(tool_call_id=t["id"], name=t["name"], content=str(result)))
         print("Back to the model!")
         return {"messages": results}
 

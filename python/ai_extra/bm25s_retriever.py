@@ -1,10 +1,8 @@
 """
 A replacement of the BM25Retriever, much faster
 
-**  NOT WELL TESTED ** 
+**  NOT WELL TESTED **
 """
-
-from __future__ import annotations
 
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional

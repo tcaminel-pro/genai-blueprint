@@ -19,12 +19,7 @@ load_dotenv(verbose=True)
 
 def get_chain(config: dict):
     simple_prompt = """Tell me a joke on {topic}"""
-    chain = (
-        {"topic": RunnablePassthrough()}
-        | def_prompt(user=simple_prompt)
-        | get_llm()
-        | StrOutputParser()
-    )
+    chain = {"topic": RunnablePassthrough()} | def_prompt(user=simple_prompt) | get_llm() | StrOutputParser()
     return chain
 
 

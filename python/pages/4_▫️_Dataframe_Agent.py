@@ -28,9 +28,7 @@ def clear_submit():
 
 
 @st.cache_data(show_spinner=True)
-def get_dataframe(
-    file_or_filename: Path | UploadedFile, **kwargs
-) -> pd.DataFrame | None:
+def get_dataframe(file_or_filename: Path | UploadedFile, **kwargs) -> pd.DataFrame | None:
     return load_tabular_data(file_or_filename=file_or_filename, **kwargs)
 
 
@@ -45,9 +43,7 @@ SAMPLE_PROMPTS = [
 ]
 
 
-st.set_page_config(
-    page_title="LangChain: Chat with pandas DataFrame", layout="wide", page_icon="🦜"
-)
+st.set_page_config(page_title="LangChain: Chat with pandas DataFrame", layout="wide", page_icon="🦜")
 title_col1, title_col2 = st.columns([2, 1])
 
 config_sidebar()
@@ -71,9 +67,7 @@ uploaded_file = sel_col1.file_uploader(
     on_change=clear_submit,
 )
 sel_col2.write("Or else use:")
-default_file_name = sel_col2.radio(
-    "", options=["titanic.csv"], index=None, horizontal=True
-)
+default_file_name = sel_col2.radio("", options=["titanic.csv"], index=None, horizontal=True)
 
 DATA_PATH = Path.cwd() / "use_case_data/other"
 
@@ -113,12 +107,8 @@ if df is None:
         "This app uses the  Python interpreter, which is vulnerable to arbitrary code execution. Please use caution in deploying and sharing this app."
     )
 
-if "messages" not in st.session_state or st.sidebar.button(
-    "Clear conversation history"
-):
-    st.session_state["messages"] = [
-        {"role": "assistant", "content": "How can I help you?"}
-    ]
+if "messages" not in st.session_state or st.sidebar.button("Clear conversation history"):
+    st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
 
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["content"])

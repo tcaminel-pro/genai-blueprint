@@ -28,9 +28,7 @@ def call_tool(state):
     last_message = messages[-1]
     action = ToolInvocation(
         tool=last_message.additional_kwargs["function_call"]["name"],
-        tool_input=json.loads(
-            last_message.additional_kwargs["function_call"]["arguments"]
-        ),
+        tool_input=json.loads(last_message.additional_kwargs["function_call"]["arguments"]),
     )
     response = tool_executor.invoke(action)
     function_message = FunctionMessage(content=str(response), name=action.tool)
@@ -46,9 +44,7 @@ workflow.add_node("model_call", call_model)
 workflow.add_node("tool_call", call_tool)
 
 # Add conditional edge based on agent's decision
-workflow.add_conditional_edges(
-    "agent", should_continue, {"continue": "model_call", "end": "END"}
-)
+workflow.add_conditional_edges("agent", should_continue, {"continue": "model_call", "end": "END"})
 
 # Set the entry point as the agent node
 workflow.set_entry_point("agent")

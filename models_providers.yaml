@@ -20,6 +20,8 @@
 # EdenAI: :https//app.edenai.run/v2/feat/generative/chat ; https://app.edenai.run/bricks/text/chat  
 # Azure OpenAI: https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models
 # OpenRouter: https://openrouter.ai/docs#models
+# Amazon : https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html
+# DeepSeek: https://api-docs.deepseek.com/quick_start/pricing 
 
 # for Embeddings:
 # Ollama: https://ollama.com/search?q=embeddings&c=embedding 
@@ -115,8 +117,16 @@ llm:
     # - id: gpt_4omini_azure
     #   model: gpt-4o-mini/2024-02-15-preview
 
+
+- cls: ChatDeepSeek
+  models:
+  - id :   deepseek_chatv3_deepseek
+    model : deepseek-chat
+    
 - cls: ChatOpenrouter
   models:
+    - id: gpt_4omini_openrouter
+      model: openai/o1-mini-2024-09-12
     - id: claude_sonnet35_openrouter
       model: anthropic/claude-3.5-sonnet
     - id: claude_haiku35_openrouter
@@ -135,6 +145,8 @@ llm:
       model: google/gemini-pro-1.5
     - id: mistral_nemo_openrouter
       model: mistralai/mistral-nemo
+    - id: mistral_large2_openrouter
+      model: mistralai/mistral-large-2411      
     - id: llama33_70_openrouter
       model: meta-llama/llama-3.3-70b-instruct   
     - id: nova_pro10_openrouter
@@ -148,6 +160,7 @@ llm:
       model: qwen/qwen-2-vl-72b-instruct
     - id: deepseek_v3_openrouter
       model: deepseek/deepseek-chat
+
 
 ########################
 # Embeddings models 
@@ -171,6 +184,9 @@ embeddings:
     - id: multilingual_MiniLM_local
       model: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
       key: 
+
+    - id: MiniLM_local
+      model: sentence-transformers/all-MiniLM-L6-v2
 
     - id: camembert_large_local
       model: dangvantuan/sentence-camembert-large

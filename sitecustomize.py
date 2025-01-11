@@ -5,7 +5,7 @@ Taken from https://python-devtools.helpmanual.io/usage/#manual-install
 
 Note:  To make Pylance and Ruff happy:
 - create a file __builtins__.pyi  with 'def debug(*args) -> None: ...'  inside
-- in pyproject.toml, add 'builtins = ["ic", "debug"]'  in  '[tool.ruff]' 
+- in pyproject.toml, add 'builtins = ["ic", "debug"]'  in  '[tool.ruff]'
 """
 
 import sys

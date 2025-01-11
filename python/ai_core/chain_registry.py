@@ -1,29 +1,33 @@
 """
-A registry system for managing and accessing LangChain Runnables.
+LangChain Runnable registry and management system.
 
-This module provides a centralized registry for LangChain Runnables, allowing dynamic
-registration, retrieval, and management of various LangChain components. It supports
-different types of Runnables including direct instances, factory functions, and
-key-based callable pairs.
+This module implements a centralized registry for managing LangChain Runnables,
+providing a unified interface for registration, retrieval, and execution of
+various chain components.
 
-Key Components:
-    - RunnableItem: Main class for encapsulating Runnable components
-    - Example: Class for defining prompt examples
-    - register_runnable: Function to add new Runnables to the registry
-    - find_runnable: Function to retrieve Runnables by name
-    - load_modules_with_chains: Function to dynamically load chain modules
+Key Features:
+- Centralized registry for all Runnable components
+- Support for multiple Runnable types (instances, factories, key-based pairs)
+- Example-based testing and demonstration
+- Dynamic module loading for chain definitions
+- Metadata and diagram support for documentation
 
-Usage:
-    from python.ai_core.chain_registry import register_runnable, RunnableItem
+The registry supports three types of Runnables:
+1. Direct Runnable instances
+2. Factory functions returning Runnables
+3. Key-based callable pairs for parameterized Runnables
 
-    # Register a new runnable
-    register_runnable(RunnableItem(
-        name="my_chain",
-        runnable=my_chain_instance
-    ))
+Example:
+    >>> # Register a new chain
+    >>> register_runnable(RunnableItem(
+    ...     name="my_chain",
+    ...     runnable=my_chain_instance,
+    ...     examples=[Example(query=["sample query"])]
+    ... ))
 
-    # Find a registered runnable
-    chain = find_runnable("my_chain")
+    >>> # Find and execute a chain
+    >>> chain = find_runnable("my_chain")
+    >>> result = chain.invoke("input text")
 """
 
 import importlib
@@ -34,7 +38,7 @@ from langchain_core.runnables import Runnable, RunnableLambda
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, FilePath
 
-from python.config import get_config_list, get_config_str
+from python.config_mngr import Config
 
 
 class Example(BaseModel):
@@ -84,7 +88,7 @@ class RunnableItem(BaseModel):
     name: str
     tag: str | None = None
     runnable: (
-        Runnable | Tuple[str, Callable[[dict[str, Any]], Runnable]] | Callable[[dict[str, Any]], Runnable] 
+        Runnable | Tuple[str, Callable[[dict[str, Any]], Runnable]] | Callable[[dict[str, Any]], Runnable]
     )  # Either a Runnable, or ...
     examples: list[Example] = []
     diagram: str | None = None
@@ -187,8 +191,10 @@ def load_modules_with_chains():
         AssertionError: If the specified path doesn't exist
         Exception: If module loading fails (logged as warning)
     """
-    path = get_config_str("chains", "path")
-    modules = get_config_list("chains", "modules")
+
+    config = Config.singleton()
+    path = config.get_str("chains", "path")
+    modules = config.get_list("chains", "modules")
     assert Path(path).exists
 
     for module in modules:

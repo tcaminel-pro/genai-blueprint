@@ -22,7 +22,7 @@ from python.ai_core.llm import get_llm
 from python.ai_core.loaders import load_docs_from_jsonl, save_docs_to_jsonl
 from python.ai_core.prompts import def_prompt
 from python.ai_core.vector_store import VectorStoreFactory
-from python.ai_retrievers.bm25s_retriever import (
+from python.ai_extra.bm25s_retriever import (
     BM25FastRetriever,
     get_spacy_preprocess_fn,
 )
@@ -171,13 +171,9 @@ def create_embeddings(embeddings_id: str = EMBEDDINGS_MODEL):
     )
     docs = list(load_docs_from_jsonl(FILES))
 
-    logger.info(
-        f"There are {vector_factory.document_count()} documents in  vector store"
-    )
+    logger.info(f"There are {vector_factory.document_count()} documents in  vector store")
 
-    logger.info(
-        f"add {len(docs)} documents to vector store: {vector_factory.description}"
-    )
+    logger.info(f"add {len(docs)} documents to vector store: {vector_factory.description}")
     # vector_factory.get()
     for doc in docs:
         try:
@@ -194,9 +190,7 @@ def create_bm25_index(k: int = 20):
     docs_for_bm25 = list(load_docs_from_jsonl(FILES))
     docs = docs_for_bm25
     path = Path(get_config_str("vector_store", "path")) / "bm25"
-    retriever = BM25FastRetriever.from_documents(
-        documents=docs, preprocess_func=fn, k=k, cache_dir=path
-    )
+    retriever = BM25FastRetriever.from_documents(documents=docs, preprocess_func=fn, k=k, cache_dir=path)
     return retriever
 
 
@@ -229,18 +223,14 @@ def find_acronyms():
     candidates = set()
 
     import enchant
+
     french_dict = enchant.Dict("fr")
     english_dict = enchant.Dict("en")
 
     logger.info("extract abbreviations defintion fom text")
 
-    pairs = schwartz_hearst.extract_abbreviation_definition_pairs(
-        file_path=FILES, most_common_definition=True
-    )
-    known_abbrev = {
-        codecs.decode(k, "unicode_escape"): codecs.decode(v, "unicode_escape")
-        for k, v in pairs.items()
-    }
+    pairs = schwartz_hearst.extract_abbreviation_definition_pairs(file_path=FILES, most_common_definition=True)
+    known_abbrev = {codecs.decode(k, "unicode_escape"): codecs.decode(v, "unicode_escape") for k, v in pairs.items()}
 
     logger.info("extract possible abbreviations")
     docs = load_docs_from_jsonl(FILES)

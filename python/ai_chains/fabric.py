@@ -29,13 +29,10 @@ def fetch_content_from_url(url):
     try:
         response = requests.get(url)
         response.raise_for_status()
-        sanitized_content = "".join(
-            char for char in response.text if ALLOWLIST_PATTERN.match(char)
-        )
+        sanitized_content = "".join(char for char in response.text if ALLOWLIST_PATTERN.match(char))
         return sanitized_content
     except requests.RequestException:
         return ""
-
 
 
 @chain
@@ -53,18 +50,11 @@ def fabric_prompt(param: dict):
     system_content = fetch_content_from_url(system_url)
     user_file_content = fetch_content_from_url(user_url)
 
-    return def_prompt(
-        system=system_content, user=user_file_content + f"\n{param['input_data']}"
-    )
+    return def_prompt(system=system_content, user=user_file_content + f"\n{param['input_data']}")
 
 
 def get_fabric_chain(config: dict):
-    chain = (
-        RunnablePassthrough()
-        | fabric_prompt
-        | get_llm(llm_id=config["llm"])
-        | StrOutputParser()
-    )
+    chain = RunnablePassthrough() | fabric_prompt | get_llm(llm_id=config["llm"]) | StrOutputParser()
     return chain
 
 
@@ -87,7 +77,5 @@ if __name__ == "__main__":
     set_verbose(True)
     set_debug(True)
     load_dotenv(verbose=True)
-    r = get_fabric_chain(config={"llm": None}).invoke(
-        {"pattern": "ai", "input_data": "tell me more about stoicism"}
-    )
+    r = get_fabric_chain(config={"llm": None}).invoke({"pattern": "ai", "input_data": "tell me more about stoicism"})
     debug(r)

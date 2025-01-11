@@ -1,0 +1,7 @@
+- Use types everywhere possible.
+- Use Python 12 capabilities when it's relevant
+- Keep Python module presentation short.  Include main classes and functions description (one line). 
+- Don't repeat code examples in module description if they are already in function docstrings. 
+- Use Google style for docstrings
+- Don't add comments for classes fields and arguments. Write only one line to describe the class.
+- Don't mention types in Python docstrings

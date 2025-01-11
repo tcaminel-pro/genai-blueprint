@@ -13,8 +13,8 @@ import streamlit as st
 from devtools import debug
 from langchain.agents import (
     AgentExecutor,
+    create_tool_calling_agent,
 )
-from langchain_core.output_parsers import StrOutputParser
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -27,8 +27,8 @@ from langchain_community.agent_toolkits.sql.base import create_sql_agent
 from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from langchain_community.document_loaders import TextLoader
 from langchain_community.utilities.sql_database import SQLDatabase
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain_core.runnables import Runnable
 from loguru import logger
 
@@ -51,6 +51,7 @@ DATA_PATH = Path(get_config_str("documents", "base")) / "maintenance"
 
 VECTOR_STORE_ID = "InMemory"
 
+
 @st.cache_resource(show_spinner=True)
 def maintenance_procedure_vectors(text: str) -> VectorStore:
     """Index and store a document for similarity matching (through embeddings)."""
@@ -67,7 +68,8 @@ def maintenance_procedure_vectors(text: str) -> VectorStore:
     vs_factory.add_documents(texts)
     return vs_factory.vector_store
 
-def create_sql_agent_tool( embeddings_factory: EmbeddingsFactory) -> AgentExecutor:
+
+def create_sql_agent_tool(embeddings_factory: EmbeddingsFactory) -> AgentExecutor:
     """Create an agent for Text-2-SQL."""
     # fmt: off
     few_shots = {
@@ -79,8 +81,7 @@ def create_sql_agent_tool( embeddings_factory: EmbeddingsFactory) -> AgentExecut
     # fmt: on
 
     few_shot_docs = [
-        Document(page_content=question, metadata={"sql_query": few_shots[question]})
-        for question in few_shots.keys()
+        Document(page_content=question, metadata={"sql_query": few_shots[question]}) for question in few_shots.keys()
     ]
 
     vector_db = VectorStoreFactory(
@@ -119,6 +120,7 @@ def create_sql_agent_tool( embeddings_factory: EmbeddingsFactory) -> AgentExecut
         extra_tools=[retriever_tool],
         max_iterations=5,
     )
+
 
 @cache
 def create_maintenance_tools() -> list[BaseTool]:
@@ -166,9 +168,7 @@ def create_maintenance_tools() -> list[BaseTool]:
         prompt = def_prompt(system_prompt, "{input}")
         retriever = maintenance_procedure_vectors(PROCEDURES[0]).as_retriever()
         llm = get_llm()
-        question_answer_chain = create_stuff_documents_chain(
-            llm, prompt
-        )
+        question_answer_chain = create_stuff_documents_chain(llm, prompt)
         chain = create_retrieval_chain(retriever, question_answer_chain)
         return chain.invoke({"input": full_query})
 
@@ -184,9 +184,7 @@ def create_maintenance_tools() -> list[BaseTool]:
         return result
 
     @tool
-    def get_sensor_values(
-        sensor_name: list[str], start_time: str, end_time: str
-    ) -> str:
+    def get_sensor_values(sensor_name: list[str], start_time: str, end_time: str) -> str:
         """Useful to know the values of a given sensor during a time range."""
         debug(sensor_name, start_time, end_time)
         ls = ",".join([f"'{n}'" for n in sensor_name])
@@ -207,6 +205,7 @@ def create_maintenance_tools() -> list[BaseTool]:
         get_sensor_values,
     ]
 
+
 def create_maintenance_agent(
     verbose: bool = False,
     callbacks: list[BaseCallbackHandler] | None = None,
@@ -216,7 +215,7 @@ def create_maintenance_agent(
     # Get the LLM info
 
     agent_builder = get_agent_builder("tool_calling")
-    
+
     # Create tools
     tools = create_maintenance_tools()
 
@@ -240,13 +239,13 @@ def create_maintenance_agent(
 
     agent = create_tool_calling_agent(llm, tools, prompt)
 
-    agent_executor =  AgentExecutor(
+    agent_executor = AgentExecutor(
         agent=agent,
         tools=tools,
         verbose=verbose,
         handle_parsing_errors=True,
         metadata={"agentName": "MaintenanceAgent1"} | (metadata or {}),
-        callbacks=callbacks
+        callbacks=callbacks,
     )
 
     return agent_executor | StrOutputParser()
@@ -261,17 +260,17 @@ def create_maintenance_agent(
 # ) -> Runnable:
 #     """Run the maintenance agent and return the output."""
 #     agent_executor = create_maintenance_agent(
-#         llm_factory, 
-#         verbose, 
-#         extra_callbacks, 
+#         llm_factory,
+#         verbose,
+#         extra_callbacks,
 #         extra_metadata
 #     )
 
-    # extra_callbacks = extra_callbacks or []
-    # cfg = RunnableConfig()
-    # cfg["callbacks"] = extra_callbacks
-    # cfg["metadata"] = agent_executor.metadata
+# extra_callbacks = extra_callbacks or []
+# cfg = RunnableConfig()
+# cfg["callbacks"] = extra_callbacks
+# cfg["metadata"] = agent_executor.metadata
 
 
-    # result = agent_executor.invoke({"input": query}, cfg)
-    # return result["output"]
+# result = agent_executor.invoke({"input": query}, cfg)
+# return result["output"]

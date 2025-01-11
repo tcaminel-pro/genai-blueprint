@@ -49,19 +49,19 @@ load_dotenv(verbose=True)
 load_modules_with_chains()
 
 
-
 def define_llm_related_commands(cli_app: typer.Typer) -> None:
     """Define all LLM-related commands for the CLI
-    
+
     Args:
         cli_app: The Typer app instance to add commands to
-    
+
     Adds commands:
     - run: Execute a Runnable with input and configuration
     - chain_info: Get detailed information about a Runnable chain
     - list_models: List available models and vector stores
     - llm_info_dump: Export LLM information to YAML file
     """
+
     @cli_app.command()
     def run(
         name: str,  # name (description) of the Runnable
@@ -175,21 +175,21 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
             yaml.dump(data, file, default_flow_style=False, allow_unicode=True)
 
 
-
 def define_other_commands(cli_app: typer.Typer) -> None:
     """Define additional utility commands for the CLI
-    
+
     Args:
         cli_app: The Typer app instance to add commands to
-    
+
     Adds commands:
     - echo: Simple command to print a message
     - fabric: Execute Fabric patterns on input text
     """
+
     @cli_app.command()
     def echo(message: str):
         print(message)
-        
+
     @cli_app.command()
     def fabric(
         pattern: Annotated[str, Option("--pattern", "-p")],
@@ -231,7 +231,9 @@ def define_other_commands(cli_app: typer.Typer) -> None:
 if __name__ == "__main__":
     import typer
 
-    PRETTY_EXCEPTION = False  #  Alternative : export _TYPER_STANDARD_TRACEBACK=1  see https://typer.tiangolo.com/tutorial/exceptions/
+    PRETTY_EXCEPTION = (
+        False  #  Alternative : export _TYPER_STANDARD_TRACEBACK=1  see https://typer.tiangolo.com/tutorial/exceptions/
+    )
 
     os.environ["ANONYMIZED_TELEMETRY"] = "False"
 

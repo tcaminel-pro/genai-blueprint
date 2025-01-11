@@ -32,9 +32,7 @@ class DiagramGeneratorTool(BaseTool):
     name: str = "diagram_generator"
     description: str = "display a diagram"
 
-    def _run(
-        self, query: str, run_manager: Optional[CallbackManagerForToolRun] = None
-    ) -> str:
+    def _run(self, query: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
         globals = None
         if st_container := run_manager.metadata.get("st_container"):
             name = st_container[0]
@@ -46,9 +44,7 @@ class DiagramGeneratorTool(BaseTool):
                 agent_type = AgentType.ZERO_SHOT_REACT_DESCRIPTION
             agent_executor = create_python_agent(
                 llm=app_conf.chat_gpt,  # type: ignore
-                tool=PythonAstREPLTool(
-                    return_direct=True, globals=globals, locals=globals
-                ),  # type: ignore
+                tool=PythonAstREPLTool(return_direct=True, globals=globals, locals=globals),  # type: ignore
                 agent_type=agent_type,
                 prefix=dedent(PREFIX.format(st_container_name=name)),
                 verbose=True,

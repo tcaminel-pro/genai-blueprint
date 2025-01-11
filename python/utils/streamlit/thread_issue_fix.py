@@ -11,11 +11,11 @@ from langchain_community.callbacks import StreamlitCallbackHandler
 from streamlit.delta_generator import DeltaGenerator
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 
-
 # Taken from https://github.com/streamlit/streamlit/issues/1326
 # Seems to work
 
 T = TypeVar("T")
+
 
 def get_streamlit_cb(parent_container: DeltaGenerator):
     def decor(fn: Callable[..., T]) -> Callable[..., T]:

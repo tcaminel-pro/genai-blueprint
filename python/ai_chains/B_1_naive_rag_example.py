@@ -1,4 +1,4 @@
-""" 
+"""
 A simple RAG chain
 """
 
@@ -27,7 +27,7 @@ def get_retriever(config: dict):
     if not path.exists():
         raise FileNotFoundError(f"Path in config does not exists: {path}")
     vector_store = VectorStoreFactory(
-        id= None,
+        id=None,
         collection_name="test_rag",
         embeddings_factory=EmbeddingsFactory(),  # take default one
     ).vector_store
@@ -80,9 +80,7 @@ register_runnable(
         examples=[
             Example(
                 path=Path("use_case_data/maintenance/maintenance_procedure_1.txt"),
-                query=[
-                    "What are the tools required for the maintenance task 'Repair of Faulty Switchgear' "
-                ],
+                query=["What are the tools required for the maintenance task 'Repair of Faulty Switchgear' "],
             )
         ],
     )

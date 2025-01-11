@@ -1,9 +1,9 @@
 """
 
-Taken from :    https://learn.deeplearning.ai/courses/ai-agents-in-langgraph/lesson/7/essay-writer 
-Full source code with UI is here : https://s172-31-15-23p21826.lab-aws-production.deeplearning.ai/edit/helper.py 
+Taken from :    https://learn.deeplearning.ai/courses/ai-agents-in-langgraph/lesson/7/essay-writer
+Full source code with UI is here : https://s172-31-15-23p21826.lab-aws-production.deeplearning.ai/edit/helper.py
 
-Also of interest: https://github.com/langchain-ai/langgraph/blob/main/examples/multi_agent/multi-agent-collaboration.ipynb 
+Also of interest: https://github.com/langchain-ai/langgraph/blob/main/examples/multi_agent/multi-agent-collaboration.ipynb
 """
 
 import os
@@ -41,7 +41,7 @@ class Queries(BaseModel):
 
 
 LLM_ID = "gpt_4omini_edenai"
-#LLM_ID = "gpt_4_azure"
+# LLM_ID = "gpt_4_azure"
 LLM_ID = "gpt_4omini_openai"
 
 llm = get_llm(llm_id=LLM_ID, temperature=0.0)
@@ -67,9 +67,7 @@ def research_plan_node(state: AgentState):
         be used when writing the following essay. Generate a list of search queries that will gather
         any relevant information. Only generate 3 queries max."""
 
-    chain = def_prompt(
-        system=RESEARCH_PLAN_PROMPT, user=state["task"]
-    ) | llm.with_structured_output(Queries)
+    chain = def_prompt(system=RESEARCH_PLAN_PROMPT, user=state["task"]) | llm.with_structured_output(Queries)
     queries = chain.invoke({})
     content = state["content"] or []
     for q in queries.queries:
@@ -114,11 +112,7 @@ def reflection_node(state: AgentState) -> AgentState:
         Generate critique and recommendations for the user's submission. 
         Provide detailed recommendations, including requests for length, depth, style, etc."""
 
-    chain = (
-        def_prompt(system=REFLECTION_PROMPT, user=state["draft"])
-        | llm
-        | StrOutputParser()
-    )
+    chain = def_prompt(system=REFLECTION_PROMPT, user=state["draft"]) | llm | StrOutputParser()
     return {"critique": chain.invoke({})}
 
 
@@ -128,9 +122,7 @@ def research_critique_node(state: AgentState) -> AgentState:
         be used when making any requested revisions (as outlined below).
         Generate a list of search queries that will gather any relevant information. Only generate 3 queries max."""
 
-    chain = def_prompt(
-        system=RESEARCH_CRITIQUE_PROMPT, user=state["task"]
-    ) | llm.with_structured_output(Queries)
+    chain = def_prompt(system=RESEARCH_CRITIQUE_PROMPT, user=state["task"]) | llm.with_structured_output(Queries)
     queries = chain.invoke({})
 
     content = state["content"] or []
@@ -157,9 +149,7 @@ def create_graph():
     builder.add_node("research_critique", research_critique_node)
 
     builder.set_entry_point("planner")
-    builder.add_conditional_edges(
-        "generate", should_continue, {END: END, "reflect": "reflect"}
-    )
+    builder.add_conditional_edges("generate", should_continue, {END: END, "reflect": "reflect"})
 
     builder.add_edge("planner", "research_plan")
     builder.add_edge("research_plan", "generate")
@@ -176,9 +166,7 @@ def query_graph(config: dict):
     # chain = RunnablePassthrough.assign()
 
     chain = (
-        RunnablePassthrough.assign(
-            max_revisions=lambda x: 2, revision_number=lambda x: 1
-        )
+        RunnablePassthrough.assign(max_revisions=lambda x: 2, revision_number=lambda x: 1)
         | create_graph()
         | itemgetter("draft")
     )

@@ -50,9 +50,7 @@ title_col2.image(logo_eviden, width=250)
 with st.sidebar:
     search_method = st.radio("Search Method:", ["Vector", "Keyword", "Hybrid"], index=2)
     if search_method == "Hybrid":
-        ratio_spinner = st.slider(
-            "Keyword  / Vector ratio", min_value=0.0, max_value=1.0, value=0.5, step=0.1
-        )
+        ratio_spinner = st.slider("Keyword  / Vector ratio", min_value=0.0, max_value=1.0, value=0.5, step=0.1)
 
     embeddings_model = st.radio(
         "Embedding Model:",
@@ -94,9 +92,7 @@ def _get_bm25_retriever() -> Runnable:
 
 
 @st.cache_resource(show_spinner="load hybrid model...")
-def get_ensemble_retriever(
-    embeddings_model_id: str, ratio_sparse: float
-) -> EnsembleRetriever:
+def get_ensemble_retriever(embeddings_model_id: str, ratio_sparse: float) -> EnsembleRetriever:
     return master_search.get_ensemble_retriever(embeddings_model_id, ratio_sparse)
 
 
@@ -115,9 +111,7 @@ if submit_clicked:
     count = result_count * 2
 
     config = {"configurable": {"k": count, "search_kwargs": {"k": count}}}
-    user_input = "query : " + add_accronym(
-        user_input
-    )  # supposed to work well for Solon Embeddings
+    user_input = "query : " + add_accronym(user_input)  # supposed to work well for Solon Embeddings
 
     start_time = timeit.default_timer()
     result = retriever.invoke(user_input, config=config)  # type: ignore

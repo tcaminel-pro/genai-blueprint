@@ -81,9 +81,7 @@ metadata_field_info = [
         description="The name of the movie director",
         type="string",
     ),
-    AttributeInfo(
-        name="rating", description="A 1-10 rating for the movie", type="float"
-    ),
+    AttributeInfo(name="rating", description="A 1-10 rating for the movie", type="float"),
 ]
 
 # cSpell:enable
@@ -133,9 +131,7 @@ register_runnable(
         runnable=("query", get_query_constructor),
         examples=[
             Example(
-                query=[
-                    "What are some sci-fi movies from the 90's directed by Luc Besson about taxi drivers"
-                ],
+                query=["What are some sci-fi movies from the 90's directed by Luc Besson about taxi drivers"],
             )
         ],
     )
@@ -163,7 +159,5 @@ register_runnable(
 
 if __name__ == "__main__":
     llm = "gpt_35_openai"
-    r = get_retriever(config={"llm": llm}).invoke(
-        "I want to watch a movie rated higher than 8.5"
-    )
+    r = get_retriever(config={"llm": llm}).invoke("I want to watch a movie rated higher than 8.5")
     debug(r)

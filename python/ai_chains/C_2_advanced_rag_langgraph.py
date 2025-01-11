@@ -3,7 +3,6 @@ https://github.com/langc    hain-ai/langgraph/blob/main/examples/rag/langgraph_r
 https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_agentic_rag.ipynb
 """
 
-
 import sys
 from enum import Enum
 from operator import itemgetter
@@ -76,9 +75,7 @@ def retriever() -> BaseRetriever:
 
         docs = [WebBaseLoader(url).load() for url in urls]
         docs_list = [item for sublist in docs for item in sublist]
-        text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-            chunk_size=250, chunk_overlap=0
-        )
+        text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(chunk_size=250, chunk_overlap=0)
         doc_splits = text_splitter.split_documents(docs_list)
         vectorstore.add_documents(doc_splits)  # Add to vectorDB
     retriever = vectorstore.as_retriever()
@@ -100,9 +97,7 @@ def retrieval_grader() -> Runnable[Any, YesOrNo]:
         Here is the user question: {question} \n,
         Instructions: {instructions}"""
 
-    prompt = def_prompt(system_prompt, user_prompt).partial(
-        instructions=yesno_enum_parser.get_format_instructions()
-    )
+    prompt = def_prompt(system_prompt, user_prompt).partial(instructions=yesno_enum_parser.get_format_instructions())
 
     logger.debug("Retrieval Grader'")
     retrieval_grader = prompt | get_llm(llm_id=LLM_ID) | to_lower | yesno_enum_parser
@@ -133,9 +128,7 @@ def hallucination_grader() -> Runnable[Any, YesOrNo]:
         --- \n {documents} ---\n
         Here is the answer: {generation} \n
         Instructions: {instructions} """
-    prompt = def_prompt(system_prompt, user_prompt).partial(
-        instructions=yesno_enum_parser.get_format_instructions()
-    )
+    prompt = def_prompt(system_prompt, user_prompt).partial(instructions=yesno_enum_parser.get_format_instructions())
     return prompt | get_llm(llm_id=LLM_ID) | to_lower | yesno_enum_parser  # type: ignore
 
 
@@ -150,9 +143,7 @@ def answer_grader() -> Runnable[Any, YesOrNo]:
         Here is the question: {question} \n
         Instructions: {instructions}
         """
-    prompt = def_prompt(system_prompt, user_prompt).partial(
-        instructions=yesno_enum_parser.get_format_instructions()
-    )
+    prompt = def_prompt(system_prompt, user_prompt).partial(instructions=yesno_enum_parser.get_format_instructions())
     return prompt | get_llm(llm_id=LLM_ID) | to_lower | yesno_enum_parser  # type: ignore
 
 
@@ -171,9 +162,7 @@ def question_router() -> Runnable[Any, DataRoute]:
         Question to route: {question} \n
         Instructions: {instructions} """
 
-    prompt = def_prompt(system_prompt, user_prompt).partial(
-        instructions=parser.get_format_instructions()
-    )
+    prompt = def_prompt(system_prompt, user_prompt).partial(instructions=parser.get_format_instructions())
     question_router = prompt | get_llm(llm_id=LLM_ID) | parser
     return question_router
 
@@ -240,9 +229,7 @@ def grade_documents(state: GraphState) -> GraphState:
     filtered_docs = []
     web_search = "No"
     for d in documents:
-        grade = retrieval_grader().invoke(
-            {"question": question, "document": d.page_content}
-        )
+        grade = retrieval_grader().invoke({"question": question, "document": d.page_content})
         # Document relevant
         if grade == YesOrNo.YES:
             logger.debug("---GRADE: DOCUMENT RELEVANT---")
@@ -307,16 +294,14 @@ def decide_to_generate(state: GraphState) -> Literal["websearch", "generate"]:
     """
 
     logger.debug("---ASSESS GRADED DOCUMENTS---")
-    #state["question"]
+    # state["question"]
     web_search = state["web_search"]
-   #state["documents"]
+    # state["documents"]
 
     if web_search == "Yes":
         # All documents have been filtered check_relevance
         # We will re-generate a new query
-        logger.debug(
-            "---DECISION: ALL DOCUMENTS ARE NOT RELEVANT TO QUESTION, INCLUDE WEB SEARCH---"
-        )
+        logger.debug("---DECISION: ALL DOCUMENTS ARE NOT RELEVANT TO QUESTION, INCLUDE WEB SEARCH---")
         return "websearch"
     else:
         # We have relevant documents, so generate answer
@@ -338,9 +323,7 @@ def grade_generation_v_documents_and_question(
     documents = state["documents"]
     generation = state["generation"]
 
-    grounded = hallucination_grader().invoke(
-        {"documents": documents, "generation": generation}
-    )
+    grounded = hallucination_grader().invoke({"documents": documents, "generation": generation})
 
     # Check hallucination
     if grounded == YesOrNo.YES:
@@ -478,9 +461,7 @@ def test_nodes():
     debug(generation)
     ### Hallucination Grader
 
-    hallucination = hallucination_grader().invoke(
-        {"documents": docs, "generation": generation}
-    )
+    hallucination = hallucination_grader().invoke({"documents": docs, "generation": generation})
     debug(hallucination)
 
     answer = answer_grader().invoke({"question": question, "generation": generation})

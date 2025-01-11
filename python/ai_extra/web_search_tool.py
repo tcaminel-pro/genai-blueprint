@@ -1,21 +1,24 @@
 """
-Commonly used tools 
+Web search tools for AI applications.
+
+This module provides tools for performing web searches, with support for multiple
+search providers including Tavily and DuckDuckGo. The tools are designed to be
+used in AI workflows where external information retrieval is needed.
+
+Key Features:
+- Automatic provider selection based on API key availability
+- Configurable result limits
+- Unified interface for different search backends
 """
 
 import os
 
 from langchain_core.tools import tool
 
-# TODO : Complete and improve !
-# ex: Exe.ai API, Serper, ...
-
 
 @tool
 def basic_web_search(query: str) -> str:
-    """Run web search on the question.  Call Tivaly if we have a key, DuckDucGo otherwise"""
-
-    # TO BE COMPLETED to have similar behavior ...
-
+    """Run web search on the question."""
     if os.environ.get("TAVILY_API_KEY"):
         from langchain_community.tools.tavily_search import TavilySearchResults
 

@@ -1,10 +1,34 @@
 """
-Embedding models factory.
-They can  be either Cloud based or for local run with CPU
+Embedding models factory and management.
+
+This module provides a factory pattern implementation for creating and managing
+embedding models from various providers. It supports both cloud-based and local
+CPU-based models.
+
+Key Features:
+- Support for multiple embedding providers (OpenAI, HuggingFace, Google, etc.)
+- Configuration through YAML files
+- Automatic API key management
+- Model caching and persistence
+- Integration with vector stores
+
+Supported Providers:
+- OpenAI
+- Google Generative AI
+- HuggingFace
+- EdenAI
+- Azure OpenAI
+- DeepSeek
+- Ollama
+
+Example:
+    >>> # Get default embeddings
+    >>> embeddings = get_embeddings()
+
+    >>> # Get specific model
+    >>> embeddings = get_embeddings(embeddings_id="huggingface_all-mpnet-base-v2")
 
 """
-
-# See also https://huggingface.co/spaces/mteb/leaderboard
 
 import os
 from functools import cache, cached_property, lru_cache
@@ -16,7 +40,7 @@ from langchain.embeddings.base import Embeddings
 from pydantic import BaseModel, Field, computed_field, field_validator
 from typing_extensions import Annotated
 
-from python.config import get_config_str
+from python.config_mngr import get_config_str
 
 _ = load_dotenv(verbose=True)
 

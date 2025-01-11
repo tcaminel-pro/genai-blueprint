@@ -1,6 +1,18 @@
-# Makefile
+# This Makefile provides commands for:
+# - Development environment setup
+# - Docker image building and deployment
+# - Cloud platform integration (GCP, Azure)
+# - Project maintenance tasks
+#
+# Usage: make [target]
+# Use 'make help' to list available targets
 
-# General setttings, notably for deployement
+##############################
+##  Development Environment ##
+##############################
+
+# General settings, notably for deployment
+
 export APP=genai-blueprint
 export IMAGE_VERSION=0.2a
 export REGISTRY_AZ=XXXX.azurecr.io
@@ -11,7 +23,16 @@ export PROJECT_ID_GCP=XXX
 
 export STREAMLIT_ENTRY_POINT="python/GenAI_Lab.py"
 
-topdir := $(shell pwd)
+top_dir := $(shell pwd)
+
+
+# Declare phony targets
+.PHONY: check fast_api langserve webapp test rebase aider \
+        import_files sync_time build run save \
+        login_gcp build_gcp push_gcp create_repo_gcp \
+        push_az update clean lint backup
+
+
 
 ######################
 ##  GenAI Blueprint related commands
@@ -37,19 +58,19 @@ rebase:
 	git stash
 	git rebase origin/main
 
-aider: 
-# aider --env-file ~/.env --model openrouter/qwen/qwen-2.5-coder-32b-instruct  --watch-files
-	aider --env-file ~/.env  --watch-files --model openrouter/deepseek/deepseek-chat 
-	
+
+AIDER_OPTS=--watch-files --no-auto-lint --read CONVENTIONS.md --editor nano
+aider:  ## launch aider-chat (a coding assistant) with our configuration. 
+	if [ "$(filter haiku,$(MAKECMDGOALS))" ]; then \
+		aider $(AIDER_OPTS) --cache-prompts --model openrouter/anthropic/claude-3-5-haiku; \
+	else \
+		aider $(AIDER_OPTS) --model deepseek/deepseek-chat; \
+	fi
+
+
 ######################
 ##  Project build commands
 #####################
-
-import_files:
-	python python/main_cli.py import-ecoact-mapping 
-	python python/main_cli.py import-product-description 
-	python python/main_cli.py create-material-catalog 
-	python python/main_cli.py ecoinvent-to-parquet
 
 
 
@@ -148,3 +169,9 @@ backup:
 	--include='Makefile' --include='Dockerfile' \
 	--exclude='*' \
 	~/prj ~/ln_to_onedrive/backup/wsl/tcl
+
+help: ## Show this help message
+	@echo "Available targets:"
+	@echo
+	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
+	@echo

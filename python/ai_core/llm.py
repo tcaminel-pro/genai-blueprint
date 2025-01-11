@@ -1,29 +1,41 @@
 """
-LLM model factory and configuration management.
+Language Model (LLM) factory and configuration management.
 
-This module provides a factory pattern implementation for creating and configuring Language 
-Learning Models (LLMs) from various providers. It supports:
+This module implements a factory pattern for creating and managing Language Learning Models
+from various providers. It handles model configuration, runtime switching, and integration
+with caching and streaming features.
 
-- Dynamic LLM selection and configuration
-- Multiple model providers (OpenAI, DeepInfra, Groq, etc.)
-- Runtime model switching
-- Fallback mechanisms
-- Caching
-- Streaming responses
-- JSON mode for structured outputs
+Key Features:
+- Support for multiple providers (OpenAI, DeepInfra, Groq, etc.)
+- Runtime model switching and fallback mechanisms
+- Structured JSON output support
+- Caching and streaming capabilities
+- Configuration through YAML files
+- API key management via environment variables
 
-The configuration of available models is stored in models_providers.yaml.
-Each model must have a unique ID following the pattern: model_version_provider
+Models are identified by unique IDs following the pattern: model_version_provider
 Example: gpt_35_openai for GPT-3.5 from OpenAI
-(reason: the id is used in 'configurable_alternatives' )
 
-The module handles API keys through environment variables defined in API_KEYS.
+Configuration is stored in models_providers.yaml and supports:
+- Default model selection
+- API key management
+- Cache configuration
+- Streaming options
+
+Example:
+    >>> # Get default LLM
+    >>> llm = get_llm()
+
+    >>> # Get specific model with JSON output
+    >>> llm = get_llm(llm_id="gpt_35_openai", json_mode=True)
+
+    >>> # Get configurable LLM with fallback
+    >>> llm = get_configurable_llm(with_fallback=True)
 """
 
 
 # TODO
 #  implement from langchain_core.rate_limiters import InMemoryRateLimiter
-
 
 import functools
 import importlib.util
@@ -34,21 +46,22 @@ from typing import Any, cast
 
 import yaml
 from dotenv import load_dotenv
+from langchain.globals import get_llm_cache
 from langchain.schema.language_model import BaseLanguageModel
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.runnables import ConfigurableField, RunnableConfig
-from langchain.globals import get_llm_cache, set_llm_cache
+from langchain_core.runnables import ConfigurableField, RunnableConfig, RunnableLambda
 from loguru import logger
 from pydantic import BaseModel, Field, computed_field, field_validator
 from typing_extensions import Annotated
 
 from python.ai_core.cache import LlmCache
-from python.config import get_config_str
+from python.config_mngr import get_config_str
 
 load_dotenv(verbose=True, override=True)
 
 
 SEED = 42  # Arbitrary value....
+
 
 # List of implemented LLM providers, with the Python class to be loaded, and the name of the API key environment variable
 PROVIDER_INFO = {
@@ -60,7 +73,7 @@ PROVIDER_INFO = {
     "ChatEdenAI": ("langchain_community.chat_models.edenai", "EDENAI_API_KEY"),
     "AzureChatOpenAI": ("langchain_openai", "AZURE_OPENAI_API_KEY"),
     "ChatTogether": ("langchain_together", "TOGETHER_API_KEY"),
-    "DeepSeek": ("deepseek", "DEEPSEEK_API_KEY"),
+    "ChatDeepSeek": ("langchain_openai", "DEEPSEEK_API_KEY"),
     "ChatOpenrouter": ("langchain_openai", "OPENROUTER_API_KEY"),
 }
 
@@ -93,7 +106,8 @@ class LlmInfo(BaseModel):
         if len(parts) != 3:
             raise ValueError("id must have exactly 3 parts separated by underscores: model_version_provider")
         return v
-    
+
+
 def _read_llm_list_file() -> list[LlmInfo]:
     """Read the YAML file with list of LLM providers and info"""
 
@@ -130,9 +144,8 @@ class LlmFactory(BaseModel):
     llm_id: Annotated[str | None, Field(validate_default=True)] = None
     json_mode: bool = False
     streaming: bool = False
-    cache : str  | None= None
+    cache: str | None = None
     llm_params: dict = {}
-
 
     @computed_field
     @cached_property
@@ -151,11 +164,11 @@ class LlmFactory(BaseModel):
                 f"Unknown LLM: {llm_id}; Check API key and module imports. Should be in {LlmFactory.known_items()}"
             )
         return llm_id
-    
+
     @field_validator("cache")
-    def check_known_cache(cls, cache: str | None) :
+    def check_known_cache(cls, cache: str | None):
         if cache and cache not in LlmCache.values():
-            raise ValueError (f"Unknown cache method: '{cache} '; Should be in {LlmCache.values()}")
+            raise ValueError(f"Unknown cache method: '{cache} '; Should be in {LlmCache.values()}")
 
     @lru_cache(maxsize=1)
     @staticmethod
@@ -168,7 +181,7 @@ class LlmFactory(BaseModel):
         known_items = {}
         for item in LlmFactory.known_list():
             module_name, api_key = PROVIDER_INFO.get(item.cls, (None, None))
-            assert module_name
+            assert module_name, f"No PROVIDER_INFO for LLM provider {item.cls}"
             if api_key in os.environ or api_key == "":
                 spec = importlib.util.find_spec(module_name)
                 if spec is not None:
@@ -184,9 +197,9 @@ class LlmFactory(BaseModel):
 
         return sorted(list(LlmFactory.known_items_dict().keys()))
 
-    @staticmethod 
-    def find_llm_id_from_type(llm_type: str) -> str: 
-        llm_id = get_config_str("llm", llm_type, default_value= "default") 
+    @staticmethod
+    def find_llm_id_from_type(llm_type: str) -> str:
+        llm_id = get_config_str("llm", llm_type, default_value="default")
         if llm_id == "default":
             raise ValueError(f"Cannot find LLM of type type : '{llm_type}' (no key found in config file)")
         if llm_id not in LlmFactory.known_items():
@@ -201,10 +214,10 @@ class LlmFactory(BaseModel):
     def short_name(self) -> str:
         "Return the name and version of the LLMn without the provider"
         return self.info.id.rsplit("_", maxsplit=1)[0]
-    
+
     def get_litellm_model_name(self) -> str:
         model_owner, model_short_name, provider = self.info.id.rsplit("_")
-        if provider in ["openrouter", "groq", "deepinfra"]: 
+        if provider in ["openrouter", "groq", "deepinfra"]:
             result = f"{provider}/{self.info.model}"
         elif provider in ["openai"]:
             result = f"{self.info.model}"
@@ -227,22 +240,21 @@ class LlmFactory(BaseModel):
     def model_factory(self) -> BaseChatModel:
         """Model factory, according to the model class"""
 
-
         if self.cache:
             cache = LlmCache.from_value(self.cache)
         else:
             cache = get_llm_cache()
 
         common_params = {
-            "temperature" : 0.0,
-            "cache" : cache, 
-            "seed" : SEED, 
-            "streaming":self.streaming,
+            "temperature": 0.0,
+            "cache": cache,
+            "seed": SEED,
+            "streaming": self.streaming,
         }
 
         llm_params = common_params | self.llm_params
         if self.json_mode:
-            llm_params |= {"response_format":{"type": "json_object"}}
+            llm_params |= {"response_format": {"type": "json_object"}}
 
         if self.info.cls == "ChatOpenAI":
             # TODO : replace import by langchain_core.utils.utils.guard_import(...)
@@ -257,10 +269,7 @@ class LlmFactory(BaseModel):
 
             seed = llm_params.pop("seed")
 
-            llm = ChatGroq(
-                **llm_params,
-                model_kwargs = {"seed": seed}
-            )
+            llm = ChatGroq(**llm_params, model_kwargs={"seed": seed})
         elif self.info.cls == "ChatDeepInfra":
             from langchain_community.chat_models.deepinfra import ChatDeepInfra
 
@@ -295,10 +304,10 @@ class LlmFactory(BaseModel):
 
             # ChatOllama does not have a 'standard' way to set JSON mode and streaming
             llm_params.pop("streaming")
-            if llm_params.pop("response_format", None): 
-                format = "json" 
-            else: 
-                format =  ""
+            if llm_params.pop("response_format", None):
+                format = "json"
+            else:
+                format = ""
             llm = ChatOllama(
                 model=self.info.model,
                 format=format,
@@ -321,22 +330,33 @@ class LlmFactory(BaseModel):
         elif self.info.cls == "ChatTogether":
             from langchain_together import ChatTogether  # type: ignore
 
-            llm = ChatTogether(
-                model=self.info.model, 
-                **llm_params
-                )
+            llm = ChatTogether(model=self.info.model, **llm_params)
         elif self.info.cls == "ChatOpenrouter":
             from langchain_openai import ChatOpenAI
             # See https://openrouter.ai/docs/parameters
 
             OPENROUTER_BASE = "https://openrouter.ai"
             OPENROUTER_API_BASE = f"{OPENROUTER_BASE}/api/v1"
+            # _ = llm_params.pop("response_format", None) or {}
+            # Not sure.  See https://openrouter.ai/docs/structured-outputs
             llm = ChatOpenAI(
                 base_url=OPENROUTER_API_BASE,
                 model=self.info.model,
                 api_key=os.environ["OPENROUTER_API_KEY"],  # type: ignore
                 **llm_params,
             )
+        elif self.info.cls == "ChatDeepSeek":
+            from langchain_openai import ChatOpenAI
+            # See https://api-docs.deepseek.com/guides/json_mode
+
+            DEEPSEEK_API_BASE = "https://api.deepseek.com"
+            llm = ChatOpenAI(
+                base_url=DEEPSEEK_API_BASE,
+                model=self.info.model,
+                api_key=os.environ["DEEPSEEK_API_KEY"],  # type: ignore
+                **llm_params,
+            )
+
         else:
             if self.info.cls in LlmFactory.known_items():
                 raise ValueError(f"No API key found for LLM: {self.info.cls}")
@@ -379,7 +399,14 @@ class LlmFactory(BaseModel):
         return selected_llm  # type: ignore
 
 
-def get_llm(llm_id: str | None = None, llm_type: str | None = None, json_mode: bool = False, streaming: bool = False, cache: str | None = None, **kwargs) -> BaseChatModel:
+def get_llm(
+    llm_id: str | None = None,
+    llm_type: str | None = None,
+    json_mode: bool = False,
+    streaming: bool = False,
+    cache: str | None = None,
+    **kwargs,
+) -> BaseChatModel:
     """
     Create a configured LangChain BaseLanguageModel instance.
 
@@ -397,17 +424,19 @@ def get_llm(llm_id: str | None = None, llm_type: str | None = None, json_mode: b
     .. code-block:: python
         chain = def_prompt(...) | get_llm(llm_id="llama3_8_local").with_structured_output(...)
     """
-    
+
     if llm_type and llm_id:
-        logger.warning("llm_type and llm_id both  defined whereas they are normally exclusive.  llm_id has the preference")
-    elif llm_type: 
-        llm_id= LlmFactory.find_llm_id_from_type(llm_type)
+        logger.warning(
+            "llm_type and llm_id both  defined whereas they are normally exclusive.  llm_id has the preference"
+        )
+    elif llm_type:
+        llm_id = LlmFactory.find_llm_id_from_type(llm_type)
 
     factory = LlmFactory(
         llm_id=llm_id,
         json_mode=json_mode,
         streaming=streaming,
-        cache = cache,
+        cache=cache,
         llm_params=kwargs,
     )
     info = f"get LLM:'{factory.llm_id}'"
@@ -445,7 +474,7 @@ def get_configurable_llm(
         r = chain.invoke({}, config=llm_config("gpt_35_openai"))
 
     """
-    factory = LlmFactory(llm_id=None, json_mode=json_mode, streaming=streaming, cache = cache, llm_params=kwargs)
+    factory = LlmFactory(llm_id=None, json_mode=json_mode, streaming=streaming, cache=cache, llm_params=kwargs)
 
     info = f"get configurable LLM. Default is:'{factory.llm_id}'"
     info += " -streaming" if streaming else ""
@@ -462,7 +491,6 @@ def get_configurable_llm(
 # todo : consider https://github.com/umarbutler/persist-cache
 # TODO: Does not work with Python 3.12
 get_configurable_llm = functools.wraps(get_configurable_llm)(functools.cache(get_configurable_llm))
-
 
 
 def get_llm_info(llm_id: str) -> LlmInfo:
@@ -493,4 +521,34 @@ def llm_config(llm_id: str) -> RunnableConfig:
         raise ValueError(
             f"Unknown LLM: {llm_id}; Check API key and module imports. Should be in {LlmFactory.known_items()}"
         )
-    return {"configurable": {"llm_id": llm_id}}
+    return configurable({"llm_id": llm_id})
+
+
+def configurable(conf: dict) -> RunnableConfig:
+    """return a dict with key 'configurable', to be used in 'with_config'
+
+    Example:
+    ```
+        llm.with_config(configurable({"my_conf": "my_conf_value"})  )
+
+    """
+    return {"configurable": conf}
+
+
+def get_print_chain(string: str = "") -> RunnableLambda:
+    """
+    Return a chain that print the passed input and the config. Useful for debugging.
+
+    Example:
+    ```
+        from python.ai_core.llm import configurable, get_print_chain
+
+        add_1 = get_print_chain("before") | RunnableLambda(lambda x: x + 1) | get_print_chain("after")
+        chain = add_1.with_config(configurable({"my_conf": "my_conf_value"}))
+        print(chain.invoke(1))"""
+
+    def fn(input: Any, config: RunnableConfig):
+        debug(string, input, config)
+        return input
+
+    return RunnableLambda(fn)

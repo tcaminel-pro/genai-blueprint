@@ -1,0 +1,202 @@
+"""
+Configuration Manager for the application.
+
+This module handles loading and managing application configuration from a YAML file (app_conf.yaml).
+The configuration supports environment variable substitution and multiple environments.
+
+Key Features:
+- Loads configuration from app_conf.yaml in current directory or parent directory
+- Supports environment variable substitution in config values (e.g., ${HOME})
+- Provides hierarchical configuration with default and environment-specific overrides
+- Allows runtime configuration modifications
+- Implements singleton pattern for global access
+
+Configuration File Structure:
+- 'default' section contains base configuration
+- Additional sections provide environment-specific overrides
+- Environment variables can be used in values (e.g., ${HOME}/path)
+
+Environment Variables:
+- BLUEPRINT_CONFIG: Selects which configuration section to use as override
+- Other variables can be referenced in config values
+
+Example Usage:
+    # Get a config value
+    model = get_config_str("llm", "default_model")
+
+    # Access singleton config
+    config = Config.singleton()
+    config.select_config("local")  # Switch to local config
+"""
+
+import os
+import re
+import sys
+from collections import ChainMap, defaultdict
+from pathlib import Path
+from typing import Any, Dict, cast
+
+import yaml
+from dotenv import load_dotenv
+from loguru import logger
+from pydantic import BaseModel, ConfigDict
+
+from python.utils.singleton import once
+
+load_dotenv(verbose=True, override=True)
+
+
+CONFIG_FILE = "app_conf.yaml"
+
+
+os.environ["PWD"] = os.getcwd()  # Hack because PWD is sometime set to a Windows path in WSL
+
+
+class Config(BaseModel):
+    """Application configuration manager using singleton pattern."""
+
+    model_config = ConfigDict(frozen=True)
+
+    raw_config: Dict[str, Dict[str, Any]] = {}
+    active_config_name: str = "default"
+    modified_fields: Dict[str, Dict[str, Any]] = defaultdict(dict)
+
+    @once()
+    def singleton() -> "Config":
+        """Returns the singleton instance of Config."""
+
+        """Load configuration from YAML file in current dir or its parent."""
+        yml_file = Path.cwd() / CONFIG_FILE
+        if not yml_file.exists():
+            yml_file = Path.cwd().parent / CONFIG_FILE
+
+        assert yml_file.exists(), f"cannot find {yml_file}"
+        logger.info(f"load {yml_file}")
+
+        with open(yml_file, "r") as f:
+            data = cast(dict, yaml.safe_load(f))
+
+        config_name = os.environ.get("BLUEPRINT_CONFIG", "default")
+        logger.info(f"Loading configuration with active section: {config_name}")
+
+        return Config(raw_config=data, active_config_name=config_name)
+
+    @property
+    def default_config(self) -> Dict[str, Dict[str, Any]]:
+        """Get the default configuration section."""
+        return self.raw_config.get("default", {})
+
+    @property
+    def overridden_config(self) -> Dict[str, Dict[str, Any]]:
+        """Get the currently active overridden configuration section."""
+        if self.active_config_name == "default":
+            return {}
+        if result := self.raw_config.get(self.active_config_name):
+            return result
+        else:
+            logger.warning(f"no known configuration '{self.active_config_name}'. Use default")
+            return self.default_config
+
+    def select_config(self, config_name: str) -> None:
+        """Select a different configuration section to override defaults."""
+        if config_name not in self.raw_config:
+            raise ValueError(f"Configuration section '{config_name}' not found")
+        self.active_config_name = config_name
+
+    def _get_config(self, group: str, key: str, default_value: Any | None = None) -> Any:
+        """
+        Return the value of a key using ChainMap to query runtime, overridden, and default config.
+        Raise an exception if key not found and no default value is given.
+        """
+        # Create a ChainMap with runtime modifications first, then overridden, then default
+        config_map = ChainMap(
+            self.modified_fields.get(group, {}),
+            self.overridden_config.get(group, {}),
+            self.default_config.get(group, {}),
+        )
+
+        value = config_map.get(key, default_value)
+        if value is None:
+            logger.warning(f"Error accessing configuration for {group}/{key}")
+            raise ValueError(f"no key {group}/{key} in file {CONFIG_FILE}")
+        return value
+
+    # def select_config(self, config: str):
+    #     overridden_config = data.get(config, {})
+    #     else:
+    #         overridden_config = {}
+
+    def get_str(self, group: str, key: str, default_value: str | None = None) -> str:
+        """
+        Return the value of a key of type string.
+        If it contains an environment variable in the form $(XXX), replace it.
+        Raise an exception if key not found and no default value is given.
+        """
+        value = self._get_config(group, key, default_value)
+        if isinstance(value, str):
+            # replace environment variable name by its value
+            value = re.sub(r"\${(\w+)}", lambda f: os.environ.get(f.group(1), ""), value)
+        else:
+            raise ValueError(f"configuration key {group}/{key} is not a string")
+        return value
+
+    def get_list(self, group: str, key: str, default_value: list[str] | None = None) -> list:
+        """
+        Return the value of a key of type list.
+        Raise an exception if key not found and no default value is given.
+        """
+        value = self._get_config(group, key, default_value)
+        if isinstance(value, list):
+            return value
+        raise ValueError(f"configuration key {group}/{key} is not a list")
+
+    def set_str(self, group: str, key: str, value: str) -> None:
+        """
+        Add or override a key value in the runtime configuration.
+        """
+        self.modified_fields[group][key] = value
+        assert self.get_str(group, key) == value
+
+
+def get_config_str(group: str, key: str, default_value: str | None = None) -> str:
+    """
+    Return the value of a key of type string from the global config.
+
+    Substitute environment variable in the form $(XXX).
+    Raise an exception if key not found and no default value is given.
+    """
+    config = Config.singleton()
+    return config.get_str(group, key, default_value)
+
+
+def config_loguru():
+    """
+    Configure the logger.
+    """
+
+    # @TODO: Set config in config file
+
+    FORMAT_STR = "<green>{time:HH:mm:ss}</green> | <level>{level: <7}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
+
+    logger.remove()
+    logger.add(
+        sys.stderr,
+        colorize=True,
+        format=FORMAT_STR,
+        backtrace=False,
+        diagnose=True,
+    )
+
+
+## for quick test ##
+if __name__ == "__main__":
+    llm = get_config_str("llm", "default_model")
+    print(llm)
+
+    config = Config.singleton()
+    config.set_str("llm", "default_model", "another_llm")
+    llm = get_config_str("llm", "default_model")
+    print(llm)
+
+    llm_list = get_config_str("llm", "list")
+    print(llm_list)

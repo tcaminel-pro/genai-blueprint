@@ -20,6 +20,7 @@ LLM_ID = "llama31_70_groq"
 
 LLM_ID = "llama32_3_ollama"
 
+
 @tool
 def get_stock_info(symbol: str, key: str):
     """
@@ -60,11 +61,7 @@ def plot_price_over_time(historical_price_dfs: list[pd.DataFrame]):
 
     # Dynamically add a trace for each stock symbol in the DataFrame
     for column in full_df.columns[1:]:  # Skip the first column since it's the date
-        fig.add_trace(
-            go.Scatter(
-                x=full_df["Date"], y=full_df[column], mode="lines+markers", name=column
-            )
-        )
+        fig.add_trace(go.Scatter(x=full_df["Date"], y=full_df[column], mode="lines+markers", name=column))
 
     # Update the layout to add titles and format axis labels
     fig.update_layout(
@@ -96,8 +93,10 @@ def plot_price_over_time(historical_price_dfs: list[pd.DataFrame]):
 
 
 def call_functions(llm_with_tools, user_prompt):
-    system_prompt = "You are a helpful finance assistant that analyzes stocks and stock prices. Today is {today}".format(
-        today=date.today()
+    system_prompt = (
+        "You are a helpful finance assistant that analyzes stocks and stock prices. Today is {today}".format(
+            today=date.today()
+        )
     )
 
     messages = [SystemMessage(content=system_prompt), HumanMessage(content=user_prompt)]
@@ -115,9 +114,7 @@ def call_functions(llm_with_tools, user_prompt):
             historical_price_dfs.append(tool_output)
             symbols.append(tool_output.columns[1])
         else:
-            messages.append(
-                ToolMessage(content=tool_output, tool_call_id=tool_call["id"])
-            )
+            messages.append(ToolMessage(content=tool_output, tool_call_id=tool_call["id"]))
 
     if len(historical_price_dfs) > 0:
         plot_price_over_time(historical_price_dfs)

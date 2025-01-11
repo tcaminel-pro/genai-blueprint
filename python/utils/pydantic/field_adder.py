@@ -5,9 +5,7 @@ from pydantic import BaseModel, create_model
 T = TypeVar("T", bound=BaseModel)
 
 
-def add_field_to_class(
-    base_class: Type[T], field_name: str, field_type: Type, required: bool = False
-) -> Type[T]:
+def add_field_to_class(base_class: Type[T], field_name: str, field_type: Type, required: bool = False) -> Type[T]:
     """
     Creates a new Pydantic class by inheriting from the provided base class
     and adding a new field with the specified name and type.

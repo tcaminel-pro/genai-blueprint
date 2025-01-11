@@ -14,9 +14,7 @@ TABULAR_FILE_FORMATS_READERS = {
 }
 
 
-def load_tabular_data(
-    file_or_filename: Path | UploadedFile, **kwargs
-) -> pd.DataFrame | None:
+def load_tabular_data(file_or_filename: Path | UploadedFile, **kwargs) -> pd.DataFrame | None:
     if isinstance(file_or_filename, Path):
         assert file_or_filename.exists
         with open(file_or_filename, "rb") as file:
