@@ -31,7 +31,7 @@ Example:
 """
 
 import os
-from functools import cache, cached_property, lru_cache
+from functools import cached_property, lru_cache
 from pathlib import Path
 
 import yaml
@@ -40,7 +40,7 @@ from langchain.embeddings.base import Embeddings
 from pydantic import BaseModel, Field, computed_field, field_validator
 from typing_extensions import Annotated
 
-from python.config_mngr import get_config_str
+from python.config import get_config_str
 
 _ = load_dotenv(verbose=True)
 
@@ -195,7 +195,6 @@ class EmbeddingsFactory(BaseModel):
         return emb
 
 
-@cache
 def get_embeddings(
     embeddings_id: str | None = None,
     encoding_str: str | None = None,
