@@ -55,6 +55,15 @@ class EmbeddingsInfo(BaseModel):
         model (str): The provider name of the model.
         key (str | None): The API key for the model, if required.
         prefix (str): A prefix required by some models in the API call.
+
+    Example:
+        >>> info = EmbeddingsInfo(
+        ...     id="example_model",
+        ...     cls="ExampleEmbeddings",
+        ...     model="example_provider",
+        ...     key="API_KEY_ENV_VAR"
+        ... )
+        >>> info.get_key()  # Retrieves API key from environment
     """
 
     id: str  # a given ID for the embeddings
@@ -98,6 +107,15 @@ class EmbeddingsFactory(BaseModel):
         embeddings_id (str | None): The unique identifier for the embeddings model.
         encoding_str (str | None): The encoding string for the model.
         retrieving_str (str | None): The retrieving string for the model.
+
+    Example:
+        >>> # Get default embeddings factory
+        >>> factory = EmbeddingsFactory()
+        >>> 
+        >>> # Get specific model
+        >>> factory = EmbeddingsFactory(embeddings_id="multilingual_MiniLM_local")
+        >>> embeddings = factory.get()
+        >>> vectors = embeddings.embed_documents(["Sample text"])
     """
 
     embeddings_id: Annotated[str | None, Field(validate_default=True)] = None
@@ -202,8 +220,22 @@ def get_embeddings(
 ) -> Embeddings:
     """
     Get an embeddings model.
-    - embeddings_id is its id.  If None, take the model defined in configuration
-    - encoding_str, retrieving_str : not used yet
+
+    Args:
+        embeddings_id: The unique identifier for the embeddings model. If None, uses default from config.
+        encoding_str: Optional encoding string (currently unused).
+        retrieving_str: Optional retrieving string (currently unused).
+
+    Returns:
+        Embeddings: An instance of the configured embeddings model.
+
+    Example:
+        >>> # Get default embeddings
+        >>> embeddings = get_embeddings()
+        >>> 
+        >>> # Get specific model
+        >>> embeddings = get_embeddings(embeddings_id="huggingface_all-mpnet-base-v2")
+        >>> vectors = embeddings.embed_documents(["Sample text"])
     """
     factory = EmbeddingsFactory(
         embeddings_id=embeddings_id,
