@@ -5,3 +5,4 @@
 - Use Google style for docstrings
 - Don't add comments for classes fields and arguments. Write only one line to describe the class.
 - Don't mention types in Python docstrings
+- Use  ``` to format code in documentation (Fenced Code Blocks)

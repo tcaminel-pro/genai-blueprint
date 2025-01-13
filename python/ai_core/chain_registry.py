@@ -38,7 +38,7 @@ from langchain_core.runnables import Runnable, RunnableLambda
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, FilePath
 
-from python.config_mngr import Config
+from python.config import Config
 
 
 class Example(BaseModel):

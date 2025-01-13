@@ -25,7 +25,7 @@ from langchain_community.cache import InMemoryCache, SQLiteCache
 from langchain_core.caches import BaseCache
 from loguru import logger
 
-from python.config_mngr import get_config_str
+from python.config import get_config_str
 
 
 class CacheMethod(Enum):

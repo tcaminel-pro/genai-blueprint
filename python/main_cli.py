@@ -41,10 +41,12 @@ from python.ai_core.chain_registry import (
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.llm import LlmFactory
 from python.ai_core.vector_store import VectorStoreFactory
-from python.config import get_config_str, set_config_str
+from python.config import Config, get_config_str
 
 load_dotenv(verbose=True)
 
+
+global_config = Config.singleton()
 
 load_modules_with_chains()
 
@@ -86,7 +88,7 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
             if llm_id not in LlmFactory.known_items():
                 print(f"Error: {llm_id} is unknown llm_id.\nShould be in {LlmFactory.known_items()}")
                 return
-            set_config_str("llm", "default_model", llm_id)
+            global_config.set_str("llm", "default_model", llm_id)
 
         runnables_list = sorted([f"'{o.name}'" for o in get_runnable_registry()])
         runnables_list_str = ", ".join(runnables_list)

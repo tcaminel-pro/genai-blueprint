@@ -50,7 +50,7 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validat
 from typing_extensions import Annotated
 
 from python.ai_core.embeddings import EmbeddingsFactory
-from python.config_mngr import get_config_str
+from python.config import get_config_str
 
 # from langchain_chroma import Chroma  does not work (yet?) with self_query
 

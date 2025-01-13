@@ -17,11 +17,11 @@ langchain = "^0.3.14"
 langchain-core = "^0.3.29"
 langchain-community = "^0.3.14"
 langchain-experimental = "^0.3.4"
-langgraph = "^0.2.61"
+langgraph = "^0.2.62"
 langserve = "^0.3.1"
 langchainhub = "^0.1.21"
 langchain-groq = "^0.2.1"
-langchain-chroma = "^0.1.4"
+langchain-chroma = "^0.2.0"
 devtools = "^0.12.2"
 chromadb = "^0.5.17"
 uvicorn = "^0.27.1"
@@ -105,7 +105,7 @@ ignore-overlong-task-comments = true
 convention = "google"
 
 [tool.pyright]
-pythonVersion = "3.10"
+pythonVersion = "3.12"
 pythonPlatform = "Linux"
 reportTypedDictNotRequiredAccess = false  # Avoid warnings in LangGraph
 

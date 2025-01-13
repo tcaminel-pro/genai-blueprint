@@ -5,7 +5,7 @@
 # - Project maintenance tasks
 #
 # Usage: make [target]
-# Use 'make help' to list available targets
+
 
 ##############################
 ##  Development Environment ##
@@ -170,8 +170,3 @@ backup:
 	--exclude='*' \
 	~/prj ~/ln_to_onedrive/backup/wsl/tcl
 
-help: ## Show this help message
-	@echo "Available targets:"
-	@echo
-	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
-	@echo

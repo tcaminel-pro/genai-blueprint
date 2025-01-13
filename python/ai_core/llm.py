@@ -55,7 +55,7 @@ from pydantic import BaseModel, Field, computed_field, field_validator
 from typing_extensions import Annotated
 
 from python.ai_core.cache import LlmCache
-from python.config_mngr import get_config_str
+from python.config import get_config_str
 
 load_dotenv(verbose=True, override=True)
 
