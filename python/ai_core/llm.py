@@ -230,7 +230,19 @@ class LlmFactory(BaseModel):
         Create an LLM model.
         'model' is our internal name for the model and its provider. If None, take the default one.
         We select a LiteLLM wrapper if it's defined in the known_llm_list() table, otherwise
-        we create the LLM from a LangChain LLM class
+        we create the LLM from a LangChain LLM class.
+
+        Example:
+            ```python
+            # Get default LLM
+            llm = LlmFactory().get()
+            
+            # Get specific model with JSON output
+            llm = LlmFactory(llm_id="gpt_35_openai", json_mode=True).get()
+            
+            # Generate a joke
+            joke = llm.invoke("Tell me a joke about AI")
+            ```
         """
         if self.info.key not in os.environ and self.info.key != "":
             raise ValueError(f"No known API key for : {self.llm_id}")
@@ -412,6 +424,7 @@ def get_llm(
 
     Args:
         llm_id: Unique model identifier (if None, uses default from config)
+        llm_type: Type of model to use (fast_model, smart_model, etc.)
         json_mode: Whether to force JSON output format (where supported)
         streaming: Whether to enable streaming responses (where supported)
         cache: cache method ("sqlite", "memory", no"_cache, ..) or "default", or None if no change (global setting)
@@ -420,9 +433,23 @@ def get_llm(
     Returns:
         BaseLanguageModel: Configured language model instance
 
-    Example :
-    .. code-block:: python
-        chain = def_prompt(...) | get_llm(llm_id="llama3_8_local").with_structured_output(...)
+    Examples:
+        ```python
+        # Get default LLM
+        llm = get_llm()
+        
+        # Get specific model with streaming
+        llm = get_llm(llm_id="gpt_35_openai", streaming=True)
+        
+        # Get model with custom temperature
+        llm = get_llm(llm_id="llama3_70_groq", temperature=0.7)
+        
+        # Use in a chain
+        from langchain_core.prompts import ChatPromptTemplate
+        prompt = ChatPromptTemplate.from_template("Tell me a joke about {topic}")
+        chain = prompt | get_llm(llm_id="gpt_4o_openai")
+        result = chain.invoke({"topic": "AI"})
+        ```
     """
 
     if llm_type and llm_id:
