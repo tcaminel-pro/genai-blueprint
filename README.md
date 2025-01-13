@@ -8,10 +8,9 @@
 
 * Application settings are in file : app_conf.yaml ; Should likely be edited (and improved...)
 
-* Run 'make test' to check it API works locally (ignore warnings)
+* Run 'make test' - But there some issues with several tests in //. You might need to change section 'pytest' app_conf.yaml too
 * Run 'python python/main_cli.py echo "hello"  ' to check CLI
-* Run 'make fast_api'  to launch FastAPI locally
-  * Swagger API is testable from: http://localhost:8000/docs 
+* Run 'python python/main_cli.py run joke  for a quick end-to-end test. add '--help' to see the different options
 
 
 
@@ -19,16 +18,6 @@
 ### Code
 * fastapi_app.py : Entry point of FastAPI app.  API definitions are there
 * langserve_app.py : Entry point for langserve
-* GenAI_Lab : Entry point for Streamlit webapp
-* main_cli.cpp : Entry point for the Command line interface (nice for dev.). 
-  * example usage : poetry run python cmd 
+...
 
-See Makefile for examples
-### Test Data
-* 
-
-# Create Docker
-* Use 'make' to build Docker image, run it locally,..
-
-
-## Various
+# Complete the README with a lost and description of the files  AI!
