@@ -20,4 +20,41 @@
 * langserve_app.py : Entry point for langserve
 ...
 
-# Complete the README with a lost and description of the files  AI!
+### Key Files and Directories
+
+#### Configuration
+- `app_conf.yaml`: Main configuration file for LLMs, embeddings, vector stores and chains
+- `models_providers.yaml`: Contains model definitions and provider configurations
+
+#### Core AI Components
+- `python/ai_core/`: Core AI infrastructure
+  - `llm.py`: LLM factory and configuration
+  - `embeddings.py`: Embeddings factory and management
+  - `vector_store.py`: Vector store factory and operations
+  - `chain_registry.py`: Runnable component registry
+  - `cache.py`: LLM caching implementation
+
+#### Demos and Examples
+- `python/ai_chains/`: Example chains and RAG implementations
+  - `B_1_naive_rag_example.py`: Basic RAG implementation
+  - `B_2_self_query.py`: Self-querying retriever example
+  - `C_1_tools_example.py`: Tool usage demonstration
+  - `C_2_advanced_rag_langgraph.py`: Advanced RAG with LangGraph
+  - `C_3_essay_writer_agent.py`: Essay writing agent
+
+#### Web Interface
+- `python/GenAI_Lab.py`: Main Streamlit web application
+- `python/pages/`: Streamlit page implementations
+  - `5_▫️_Mon_Master.py`: Master's degree search interface
+  - `12_▫️_Crew_AI.py`: CrewAI demonstration
+
+#### Utilities
+- `python/utils/`: Utility functions and helpers
+  - `streamlit/`: Streamlit-specific utilities
+  - `pydantic/`: Pydantic model extensions
+  - `singleton.py`: Singleton pattern implementation
+
+#### Testing and Development
+- `tests/`: Unit and integration tests
+- `Makefile`: Common development tasks
+- `pyproject.toml`: Poetry project configuration
