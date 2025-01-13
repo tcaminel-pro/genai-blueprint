@@ -22,7 +22,7 @@ Environment Variables:
 
 Example Usage:
     # Get a config value
-    model = get_config_str("llm", "default_model")
+    model = global_config().get_str("llm", "default_model")
 
     # Access singleton config
     config = Config.singleton()
@@ -48,17 +48,21 @@ load_dotenv(verbose=True, override=True)
 
 CONFIG_FILE = "app_conf.yaml"
 
+# Add a method to select the config_name. Write a log if it's selected by the environment 
+# variable "BLUEPRINT_CONFIG" during construction, and when it's changed.
+#  Id the new configurable does not exists n the YAML file, warn in in the  log, and raise exception AI!
+
 
 os.environ["PWD"] = os.getcwd()  # Hack because PWD is sometime set to a Windows path in WSL
 
 
 class Config(BaseModel):
-    """Application configuration manager using singleton pattern."""
+    """Application configuration manager ."""
 
     model_config = ConfigDict(frozen=True)
 
     raw_config: Dict[str, Dict[str, Any]] = {}
-    active_config_name: str = "default"
+    selected_config_name: str = "default"
     modified_fields: Dict[str, Dict[str, Any]] = defaultdict(dict)
 
     @once()
@@ -79,7 +83,7 @@ class Config(BaseModel):
         config_name = os.environ.get("BLUEPRINT_CONFIG", "default")
         logger.info(f"Loading configuration with active section: {config_name}")
 
-        return Config(raw_config=data, active_config_name=config_name)
+        return Config(raw_config=data, selected_config_name=config_name)
 
     @property
     def default_config(self) -> Dict[str, Dict[str, Any]]:
@@ -89,19 +93,19 @@ class Config(BaseModel):
     @property
     def overridden_config(self) -> Dict[str, Dict[str, Any]]:
         """Get the currently active overridden configuration section."""
-        if self.active_config_name == "default":
+        if self.selected_config_name == "default":
             return {}
-        if result := self.raw_config.get(self.active_config_name):
+        if result := self.raw_config.get(self.selected_config_name):
             return result
         else:
-            logger.warning(f"no known configuration '{self.active_config_name}'. Use default")
+            logger.warning(f"no known configuration '{self.selected_config_name}'. Use default")
             return self.default_config
 
     def select_config(self, config_name: str) -> None:
         """Select a different configuration section to override defaults."""
         if config_name not in self.raw_config:
             raise ValueError(f"Configuration section '{config_name}' not found")
-        self.active_config_name = config_name
+        self.selected_config_name = config_name
 
     def _get_config(self, group: str, key: str, default_value: Any | None = None) -> Any:
         """
@@ -158,15 +162,9 @@ class Config(BaseModel):
         assert self.get_str(group, key) == value
 
 
-def get_config_str(group: str, key: str, default_value: str | None = None) -> str:
-    """
-    Return the value of a key of type string from the global config.
-
-    Substitute environment variable in the form $(XXX).
-    Raise an exception if key not found and no default value is given.
-    """
-    config = Config.singleton()
-    return config.get_str(group, key, default_value)
+def global_config() -> Config:
+    ### Get the global config singleton ###
+    return Config.singleton()
 
 
 def config_loguru():
@@ -190,13 +188,13 @@ def config_loguru():
 
 ## for quick test ##
 if __name__ == "__main__":
-    llm = get_config_str("llm", "default_model")
+    llm = global_config().get_str("llm", "default_model")
     print(llm)
 
     config = Config.singleton()
     config.set_str("llm", "default_model", "another_llm")
-    llm = get_config_str("llm", "default_model")
+    llm = global_config().get_str("llm", "default_model")
     print(llm)
 
-    llm_list = get_config_str("llm", "list")
+    llm_list = global_config().get_str("llm", "list")
     print(llm_list)
