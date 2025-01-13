@@ -56,7 +56,7 @@ def def_prompt(system: str | None = None, user: str = "", other_msg: dict = {}) 
 
     Example:
     .. code-block:: python
-        prompt = def_prompt(system="You are an helpfull agent", other_msg={"placeholder": "{agent_scratchpad}"})
+        prompt = def_prompt(system="You are an helpful agent", other_msg={"placeholder": "{agent_scratchpad}"})
 
     """
     messages: list = []

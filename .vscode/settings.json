@@ -1,6 +1,6 @@
 {
     "terminal.integrated.env.linux": {
-        "PYTHONPATH": "${env:PYTHONPATH}:${workspaceFolder}/python:${env:PYTHONPATH}:${workspaceFolder}/notebooks:${workspaceFolder}/test",
+        "PYTHONPATH": "${env:PYTHONPATH}:${workspaceFolder}/python:${env:PYTHONPATH}:${workspaceFolder}/notebooks:${workspaceFolder}/tests",
       },
     
     "jupyter.notebookFileRoot": "${workspaceFolder}", 
@@ -52,6 +52,7 @@
         "mult",
         "Ollama",
         "openai",
+        "openrouter",
         "Ordalie",
         "pydantic",
         "pygraphviz",

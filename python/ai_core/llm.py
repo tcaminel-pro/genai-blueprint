@@ -236,10 +236,10 @@ class LlmFactory(BaseModel):
             ```python
             # Get default LLM
             llm = LlmFactory().get()
-            
+
             # Get specific model with JSON output
             llm = LlmFactory(llm_id="gpt_35_openai", json_mode=True).get()
-            
+
             # Generate a joke
             joke = llm.invoke("Tell me a joke about AI")
             ```
@@ -293,6 +293,7 @@ class LlmFactory(BaseModel):
             from langchain_community.chat_models.edenai import ChatEdenAI
 
             provider, _, model = self.info.model.partition("/")
+            _ = llm_params.pop("seed")
 
             llm = ChatEdenAI(
                 provider=provider,
@@ -437,13 +438,13 @@ def get_llm(
         ```python
         # Get default LLM
         llm = get_llm()
-        
+
         # Get specific model with streaming
         llm = get_llm(llm_id="gpt_35_openai", streaming=True)
-        
+
         # Get model with custom temperature
         llm = get_llm(llm_id="llama3_70_groq", temperature=0.7)
-        
+
         # Use in a chain
         from langchain_core.prompts import ChatPromptTemplate
         prompt = ChatPromptTemplate.from_template("Tell me a joke about {topic}")

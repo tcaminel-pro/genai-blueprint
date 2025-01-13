@@ -13,6 +13,7 @@ SENTENCE_2 = "Tokens can be words, phrases, or even individual characters."
 def test_default_embeddings():
     """Test that default embeddings can be created and used."""
     embedder = get_embeddings()
+    debug(embedder)
     vectors = embedder.embed_documents([SENTENCE_1, SENTENCE_2])
 
     # Basic validation of embeddings

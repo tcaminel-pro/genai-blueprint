@@ -37,7 +37,7 @@ def once():
     def decorator(func):
         # check the function has no parameters
         if len(inspect.signature(func).parameters) > 0:
-            raise ValueError("'once' function cannot have (yet? ) parameters")
+            raise ValueError("'once' function cannot have (in current version) parameters")
 
         # Store instance and lock as decorator attributes
         setattr(decorator, "_cached_result", None)
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     x: int = 0
 
     @once()
-    def inc():
+    def inc(a):
         global x
         print("execute code")
         x = x + 1

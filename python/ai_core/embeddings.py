@@ -40,6 +40,8 @@ from langchain.embeddings.base import Embeddings
 from pydantic import BaseModel, Field, computed_field, field_validator
 from typing_extensions import Annotated
 
+from python.config import global_config
+
 _ = load_dotenv(verbose=True)
 
 
@@ -198,10 +200,10 @@ class EmbeddingsFactory(BaseModel):
                 model=name,  # Not sure it's needed
                 api_version=api_version,
             )
-        elif self.info.cls == "DeepSeekCoderEmbeddings":
-            from langchain_deepseek import DeepSeekCoderEmbeddings
+        # elif self.info.cls == "DeepSeekCoderEmbeddings":
+        #     from langchain_deepseek import DeepSeekCoderEmbeddings
 
-            emb = DeepSeekCoderEmbeddings(model=self.info.model)
+        #     emb = DeepSeekCoderEmbeddings(model=self.info.model)
         elif self.info.cls == "OllamaEmbeddings":
             from langchain_ollama import OllamaEmbeddings
 
