@@ -57,6 +57,7 @@
         "pydantic",
         "pygraphviz",
         "Pylance",
+        "pytest",
         "selectbox",
         "smolagents",
         "spacy",

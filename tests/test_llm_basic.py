@@ -12,6 +12,11 @@ from langchain_core.messages.ai import AIMessage
 
 from python.ai_core.llm import get_configurable_llm, get_llm, llm_config
 from python.ai_core.prompts import def_prompt
+from python.config import global_config
+
+global_config().select_config("pytest")
+
+another_llm = global_config().get_str("llm", "model2")
 
 
 def test_basic_joke_generation():
@@ -30,7 +35,7 @@ def test_configurable_llm_switching():
     result1 = chain.invoke({"topic": "bears"})
 
     # Test with specific LLM config
-    result2 = chain.with_config(llm_config("gpt_35_openai")).invoke({"topic": "bears"})
+    result2 = chain.with_config(llm_config(llm_id=another_llm)).invoke({"topic": "bears"})
 
     assert result1 != result2  # Different LLMs should produce different results
 
@@ -51,4 +56,3 @@ def test_streaming_joke():
 
     assert len(chunks) > 0
     assert isinstance(chunks[0], AIMessage)
-

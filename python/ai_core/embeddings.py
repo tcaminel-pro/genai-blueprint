@@ -37,6 +37,7 @@ from pathlib import Path
 import yaml
 from dotenv import load_dotenv
 from langchain.embeddings.base import Embeddings
+from loguru import logger
 from pydantic import BaseModel, Field, computed_field, field_validator
 from typing_extensions import Annotated
 
@@ -244,4 +245,5 @@ def get_embeddings(
         encoding_str=encoding_str,
         retrieving_str=retrieving_str,
     )
+    logger.info(f"get logger: '{factory.embeddings_id}'")
     return factory.get()

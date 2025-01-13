@@ -38,7 +38,16 @@ default:
 
 
 # Overridden configurations
-# Set by environment variable "BLUEPRINT_CONFIG"
+# Set by environment variable "BLUEPRINT_CONFIG" oy in code
+
+pytest:
+  llm: 
+    default_model : gpt_4omini_openai
+    model2 : llama31_8_deepinfra
+    cache : in_memory
+  embeddings:
+    default_model:  ada_002_openai
+
 training_local:
   llm:
     default_model:  llama32_3_ollama

@@ -3,7 +3,9 @@ from langchain.schema import Document
 
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.vector_store import VectorStoreFactory
+from python.config import global_config
 
+global_config().select_config("pytest")
 
 @pytest.fixture
 def sample_documents():
