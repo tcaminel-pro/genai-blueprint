@@ -54,7 +54,7 @@ def get_bm25_retriever():
     docs = docs_for_bm25
 
     retriever = BM25Retriever.from_documents(documents=docs, preprocess_func=fn, k=DEFAULT_RESULT_COUNT)
-    # path = Path(get_config_str("vector_store", "path")) / "bm25"
+    # path = Path(global_config().get_str("vector_store", "path")) / "bm25"
     # retriever = BM25FastRetriever.from_cache(
     #     preprocess_func=fn,
     #     k=DEFAULT_RESULT_COUNT,

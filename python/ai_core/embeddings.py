@@ -40,8 +40,6 @@ from langchain.embeddings.base import Embeddings
 from pydantic import BaseModel, Field, computed_field, field_validator
 from typing_extensions import Annotated
 
-from python.config import get_config_str
-
 _ = load_dotenv(verbose=True)
 
 
@@ -86,7 +84,7 @@ class EmbeddingsInfo(BaseModel):
 
 
 def _read_embeddings_list_file() -> list[EmbeddingsInfo]:
-    yml_file = Path(get_config_str("embeddings", "list"))
+    yml_file = Path(global_config().get_str("embeddings", "list"))
     assert yml_file.exists(), f"cannot find {yml_file}"
     with open(yml_file, "r") as f:
         data = yaml.safe_load(f)
@@ -112,7 +110,7 @@ class EmbeddingsFactory(BaseModel):
     ```
          # Get default embeddings factory
          factory = EmbeddingsFactory()
-         
+
          # Get specific model
          factory = EmbeddingsFactory(embeddings_id="multilingual_MiniLM_local")
          embeddings = factory.get()
@@ -133,7 +131,7 @@ class EmbeddingsFactory(BaseModel):
     @classmethod
     def check_known(cls, embeddings_id: str) -> str:
         if embeddings_id is None:
-            embeddings_id = get_config_str("embeddings", "default_model")
+            embeddings_id = global_config().get_str("embeddings", "default_model")
         if embeddings_id not in EmbeddingsFactory.known_items():
             raise ValueError(f"Unknown Embeddings: {embeddings_id}")
         return embeddings_id
@@ -179,7 +177,7 @@ class EmbeddingsFactory(BaseModel):
         elif self.info.cls == "HuggingFaceEmbeddings":
             from langchain_huggingface import HuggingFaceEmbeddings
 
-            cache = get_config_str("embeddings", "cache")
+            cache = global_config().get_str("embeddings", "cache")
             emb = HuggingFaceEmbeddings(
                 model_name=self.info.model,
                 model_kwargs={"device": "cpu", "trust_remote_code": True},
@@ -234,7 +232,7 @@ def get_embeddings(
     ```
          # Get default embeddings
          embeddings = get_embeddings()
-         
+
          # Get specific model
          embeddings = get_embeddings(embeddings_id="huggingface_all-mpnet-base-v2")
          vectors = embeddings.embed_documents(["Sample text"])

@@ -25,7 +25,6 @@ from python.ai_core.chain_registry import (
     get_runnable_registry,
     load_modules_with_chains,
 )
-from python.config import get_config_str
 from python.GenAI_Lab import config_sidebar
 
 st.title("💬 Runnable Playground")
@@ -75,7 +74,7 @@ if path := first_example.path:
     if uploaded_file:
         path = Path(uploaded_file.name)
 
-llm_id = get_config_str("llm", "default_model")
+llm_id = global_config().get_str("llm", "default_model")
 config = {}
 first_example = runnable_desc.examples[0]
 config |= {"llm": llm_id}
@@ -106,7 +105,7 @@ with st.form("my_form"):
     input = st.text_area("Enter input:", first_example.query[0], placeholder="")
     submitted = st.form_submit_button("Submit")
     if submitted:
-        if get_config_str("monitoring", "default") == "langsmith":
+        if global_config().get_str("monitoring", "default") == "langsmith":
             # use Langsmith context manager to get the UTL to the trace
             with tracing_v2_enabled() as cb:
                 result = runnable_desc.invoke(input, config)

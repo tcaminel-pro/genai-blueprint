@@ -31,9 +31,7 @@ from loguru import logger
 
 from python.ai_core.cache import LlmCache
 from python.ai_core.llm import LlmFactory
-from python.config import Config, get_config_str
-
-global_config = Config.singleton()
+from python.config import global_config
 
 st.set_page_config(
     page_title="GenAI Lab and Practicum",
@@ -77,10 +75,10 @@ def config_sidebar() -> None:
     """
     with st.sidebar:
         with st.expander("LLM Configuration", expanded=True):
-            current_llm = get_config_str("llm", "default_model")
+            current_llm = global_config().get_str("llm", "default_model")
             index = LlmFactory().known_items().index(current_llm)
             llm = st.selectbox("default", LlmFactory().known_items(), index=index, key="select_llm")
-            global_config.set_str("llm", "default_model", str(llm))
+            global_config().set_str("llm", "default_model", str(llm))
 
             set_debug(
                 st.checkbox(
@@ -101,14 +99,14 @@ def config_sidebar() -> None:
 
             if "LUNARY_APP_ID" in os.environ:
                 if st.checkbox(label="Use Lunary.ai for monitoring", value=False, disabled=True):
-                    global_config.set_str("monitoring", "default", "lunary")
+                    global_config().set_str("monitoring", "default", "lunary")
             if "LANGCHAIN_API_KEY" in os.environ:
                 if st.checkbox(label="Use LangSmith for monitoring", value=True):
-                    global_config.set_str("monitoring", "default", "langsmith")
+                    global_config().set_str("monitoring", "default", "langsmith")
                     os.environ["LANGCHAIN_TRACING_V2"] = "true"
-                    os.environ["LANGCHAIN_PROJECT"] = get_config_str("monitoring", "project")
+                    os.environ["LANGCHAIN_PROJECT"] = global_config().get_str("monitoring", "project")
                     os.environ["LANGCHAIN_TRACING_SAMPLING_RATE"] = "1.0"
 
                 else:
                     os.environ["LANGCHAIN_TRACING_V2"] = "false"
-                    global_config.set_str("monitoring", "default", "none")
+                    global_config().set_str("monitoring", "default", "none")

@@ -50,7 +50,7 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validat
 from typing_extensions import Annotated
 
 from python.ai_core.embeddings import EmbeddingsFactory
-from python.config import get_config_str
+from python.config import global_config
 
 # from langchain_chroma import Chroma  does not work (yet?) with self_query
 
@@ -58,12 +58,12 @@ from python.config import get_config_str
 # List of known Vector Stores (created as Literal so can be checked by MyPy)
 VECTOR_STORE_ENGINE = Literal["Chroma", "Chroma_in_memory", "InMemory", "Sklearn"]
 
-default_collection = get_config_str("vector_store", "default_collection")
+default_collection = global_config().get_str("vector_store", "default_collection")
 
 
 def get_vector_vector_store_path() -> str:
     # get path to store vector database, as specified in configuration file
-    dir = Path(get_config_str("vector_store", "path"))
+    dir = Path(global_config().get_str("vector_store", "path"))
     try:
         dir.mkdir()
     except Exception:
@@ -130,7 +130,7 @@ class VectorStoreFactory(BaseModel):
     @field_validator("id", mode="before")
     def check_known(cls, id: str | None) -> str:
         if id is None:
-            id = get_config_str("vector_store", "default")
+            id = global_config().get_str("vector_store", "default")
         if id not in VectorStoreFactory.known_items():
             raise ValueError(f"Unknown Vector Store: {id}")
         return id

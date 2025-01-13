@@ -4,13 +4,11 @@ Demo of an LLM Augmented Autonomous Agent for Maintenance
 Copyright (C) 2023 Eviden. All rights reserved
 """
 
-from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
 import streamlit as st
-from langchain.callbacks import tracing_v2_enabled
 from langsmith import Client
 from loguru import logger  # noqa: F401
 
@@ -20,10 +18,8 @@ from python.ai_agents.maintenance_agents import (
     create_maintenance_agent,
     create_maintenance_tools,
 )
-from python.ai_core.embeddings import EmbeddingsFactory
-from python.ai_core.llm import LlmFactory, get_llm
+from python.ai_core.llm import get_llm
 from python.ai_core.prompts import dedent_ws
-from python.config import get_config_str
 from python.demos.maintenance_agent.maintenance_data import dummy_database
 from python.GenAI_Lab import config_sidebar
 from python.utils.streamlit.clear_result import with_clear_container
@@ -154,7 +150,7 @@ if with_clear_container(submit_clicked):
         )
         answer = chain.invoke({"input": query})
 
-        # if get_config_str("monitoring", "default") == "langsmith":
+        # if global_config().get_str("monitoring", "default") == "langsmith":
         #     with tracing_v2_enabled() as cb:
         #         chain = create_maintenance_agent(
         #             metadata={"st_container": ("answer_container", answer_container) },

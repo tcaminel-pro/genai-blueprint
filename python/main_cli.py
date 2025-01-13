@@ -41,12 +41,10 @@ from python.ai_core.chain_registry import (
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.llm import LlmFactory
 from python.ai_core.vector_store import VectorStoreFactory
-from python.config import Config, get_config_str
+from python.config import global_config
 
 load_dotenv(verbose=True)
 
-
-global_config = Config.singleton()
 
 load_modules_with_chains()
 
@@ -88,7 +86,7 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
             if llm_id not in LlmFactory.known_items():
                 print(f"Error: {llm_id} is unknown llm_id.\nShould be in {LlmFactory.known_items()}")
                 return
-            global_config.set_str("llm", "default_model", llm_id)
+            global_config().set_str("llm", "default_model", llm_id)
 
         runnables_list = sorted([f"'{o.name}'" for o in get_runnable_registry()])
         runnables_list_str = ", ".join(runnables_list)
@@ -101,7 +99,7 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
             first_example = runnable_desc.examples[0]
             llm_args = {"temperature": temperature}
             config |= {
-                "llm": llm_id if llm_id else get_config_str("llm", "default_model"),
+                "llm": llm_id if llm_id else global_config().get_str("llm", "default_model"),
                 "llm_args": llm_args,
             }
             # TODO: Use llm_args and temperature in runnable_desc.invoke etc
@@ -216,7 +214,7 @@ def define_other_commands(cli_app: typer.Typer) -> None:
             print(f"Error: unknown llm_id. \n Should be in {LlmFactory.known_items()}")
             return
 
-        config = {"llm": llm_id if llm_id else get_config_str("llm", "default_model")}
+        config = {"llm": llm_id if llm_id else global_config().get_str("llm", "default_model")}
         chain = get_fabric_chain(config)
         input = repr("\n".join(sys.stdin))
         input = input.replace("{", "{{").replace("}", "}}")

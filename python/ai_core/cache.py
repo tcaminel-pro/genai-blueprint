@@ -25,7 +25,7 @@ from langchain_community.cache import InMemoryCache, SQLiteCache
 from langchain_core.caches import BaseCache
 from loguru import logger
 
-from python.config import get_config_str
+from python.config import global_config
 
 
 class CacheMethod(Enum):
@@ -44,7 +44,7 @@ class LlmCache:
         method = None
 
         if value == "default":
-            from_config = get_config_str("llm", "cache")
+            from_config = global_config().get_str("llm", "cache")
             if from_config not in LlmCache.values():
                 logger.warning(f"Incorrect llm/cache configuration : {from_config}. Should be in {LlmCache.values()} ")
             value = from_config
@@ -55,7 +55,7 @@ class LlmCache:
             raise ValueError(f"Unknown cache method '{value}'. Should be in {LlmCache.values()}") from e
 
         if method == "sqlite":
-            path = Path(get_config_str("llm", "cache_path"))
+            path = Path(global_config().get_str("llm", "cache_path"))
             if not path.parent.exists():
                 path.parent.mkdir(parents=True, exist_ok=True)
             return SQLiteCache(database_path=str(path))

@@ -39,7 +39,7 @@ from typing import Any, Dict, cast
 import yaml
 from dotenv import load_dotenv
 from loguru import logger
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 from python.utils.singleton import once
 
@@ -48,10 +48,6 @@ load_dotenv(verbose=True, override=True)
 
 CONFIG_FILE = "app_conf.yaml"
 
-# Add a method to select the config_name. Write a log if it's selected by the environment 
-# variable "BLUEPRINT_CONFIG" during construction, and when it's changed.
-#  Id the new configurable does not exists n the YAML file, warn in in the  log, and raise exception AI!
-
 
 os.environ["PWD"] = os.getcwd()  # Hack because PWD is sometime set to a Windows path in WSL
 
@@ -59,11 +55,9 @@ os.environ["PWD"] = os.getcwd()  # Hack because PWD is sometime set to a Windows
 class Config(BaseModel):
     """Application configuration manager ."""
 
-    model_config = ConfigDict(frozen=True)
-
     raw_config: Dict[str, Dict[str, Any]] = {}
     selected_config_name: str = "default"
-    modified_fields: Dict[str, Dict[str, Any]] = defaultdict(dict)
+    _modified_fields: Dict[str, Dict[str, Any]] = defaultdict(dict)
 
     @once()
     def singleton() -> "Config":
@@ -83,13 +77,11 @@ class Config(BaseModel):
         config_name = os.environ.get("BLUEPRINT_CONFIG", "default")
         if "BLUEPRINT_CONFIG" in os.environ:
             logger.info(f"Configuration section selected by BLUEPRINT_CONFIG: {config_name}")
-        else:
-            logger.info(f"Using default configuration section")
 
         # Validate that the config section exists
         if config_name != "default" and config_name not in data:
-            logger.error(f"Configuration section '{config_name}' not found in {yml_file}")
-            raise ValueError(f"Configuration section '{config_name}' not found")
+            logger.warning(f"Configuration section '{config_name}' not found in {yml_file}. Continue with default")
+        # raise ValueError(f"Configuration section '{config_name}' not found")
 
         return Config(raw_config=data, selected_config_name=config_name)
 
@@ -106,11 +98,11 @@ class Config(BaseModel):
         if result := self.raw_config.get(self.selected_config_name):
             return result
         else:
-            logger.warning(f"no known configuration '{self.selected_config_name}'. Use default")
             return self.default_config
 
     def select_config(self, config_name: str) -> None:
         """Select a different configuration section to override defaults."""
+        debug(self.raw_config)
         if config_name not in self.raw_config:
             logger.error(f"Configuration section '{config_name}' not found")
             raise ValueError(f"Configuration section '{config_name}' not found")
@@ -123,8 +115,9 @@ class Config(BaseModel):
         Raise an exception if key not found and no default value is given.
         """
         # Create a ChainMap with runtime modifications first, then overridden, then default
+
         config_map = ChainMap(
-            self.modified_fields.get(group, {}),
+            self._modified_fields.get(group, {}),
             self.overridden_config.get(group, {}),
             self.default_config.get(group, {}),
         )
@@ -168,7 +161,7 @@ class Config(BaseModel):
         """
         Add or override a key value in the runtime configuration.
         """
-        self.modified_fields[group][key] = value
+        self._modified_fields[group][key] = value
         assert self.get_str(group, key) == value
 
 
@@ -198,6 +191,7 @@ def config_loguru():
 
 ## for quick test ##
 if __name__ == "__main__":
+    global_config().select_config("training_azure")
     llm = global_config().get_str("llm", "default_model")
     print(llm)
 

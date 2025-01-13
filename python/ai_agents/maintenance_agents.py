@@ -34,10 +34,9 @@ from loguru import logger
 
 from python.ai_core.agents_builder import get_agent_builder
 from python.ai_core.embeddings import EmbeddingsFactory
-from python.ai_core.llm import LlmFactory, get_llm
+from python.ai_core.llm import get_llm
 from python.ai_core.prompts import dedent_ws, def_prompt
 from python.ai_core.vector_store import VectorStoreFactory
-from python.config import get_config_str
 from python.demos.maintenance_agent.maintenance_data import dummy_database
 
 # Tools setup
@@ -47,7 +46,7 @@ PROCEDURES = [
     "procedure_cooling_system.txt",
 ]
 
-DATA_PATH = Path(get_config_str("documents", "base")) / "maintenance"
+DATA_PATH = Path(global_config().get_str("documents", "base")) / "maintenance"
 
 VECTOR_STORE_ID = "InMemory"
 

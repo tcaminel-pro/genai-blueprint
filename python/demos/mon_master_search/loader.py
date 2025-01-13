@@ -26,7 +26,6 @@ from python.ai_extra.bm25s_retriever import (
     BM25FastRetriever,
     get_spacy_preprocess_fn,
 )
-from python.config import get_config_str
 from python.demos.mon_master_search.model_subset import (
     ACRONYMS,
     STOP_WORDS,
@@ -189,7 +188,7 @@ def create_bm25_index(k: int = 20):
     logger.info("create BM25 index")
     docs_for_bm25 = list(load_docs_from_jsonl(FILES))
     docs = docs_for_bm25
-    path = Path(get_config_str("vector_store", "path")) / "bm25"
+    path = Path(global_config().get_str("vector_store", "path")) / "bm25"
     retriever = BM25FastRetriever.from_documents(documents=docs, preprocess_func=fn, k=k, cache_dir=path)
     return retriever
 
@@ -203,7 +202,7 @@ def bm25_index_search(query: str, k: int = 20):
 
 @app.command()
 def bm25_search(query: str, k: int = 10):
-    path = Path(get_config_str("vector_store", "path")) / "bm25"
+    path = Path(global_config().get_str("vector_store", "path")) / "bm25"
 
     fn = get_spacy_preprocess_fn(model="fr_core_news_sm", more_stop_words=STOP_WORDS)  # noqa: F821
     retriever = BM25FastRetriever.from_cache(preprocess_func=fn, k=k, cache_dir=path)

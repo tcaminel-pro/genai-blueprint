@@ -12,7 +12,6 @@ from langchain_core.tools import tool
 
 from python.ai_core.cache import LlmCache
 from python.ai_core.llm import get_llm
-from python.config import get_config_str
 
 st.set_page_config(layout="wide")
 
@@ -157,7 +156,7 @@ def main():
     user_question = st.text_input("Ask a question about a stock or multiple stocks:")
 
     if user_question:
-        if get_config_str("monitoring", "default") == "langsmith":
+        if global_config().get_str("monitoring", "default") == "langsmith":
             # use Langsmith context manager to get the UTL to the trace
             with tracing_v2_enabled() as cb:
                 response = call_functions(llm_with_tools, user_question)

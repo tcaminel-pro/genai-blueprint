@@ -1,10 +1,11 @@
+import inspect
 from functools import wraps
 from threading import Lock
 
 
 def once():
     """
-    A class method decorator that ensures the function is called once and return same result.\n
+    A decorator that ensures the wrapped function is called once and return same result.\n
     It's typically used for thread-safe singleton instance creation.
 
     It's inspired by the 'once' keyword in the Eiffel Programming language.
@@ -34,10 +35,13 @@ def once():
     """
 
     def decorator(func):
+        # check the function has no parameters
+        if len(inspect.signature(func).parameters) > 0:
+            raise ValueError("'once' function cannot have (yet? ) parameters")
+
         # Store instance and lock as decorator attributes
         setattr(decorator, "_cached_result", None)
         setattr(decorator, "_lock", Lock())
-        # TODO: check that func has no argument
 
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -79,12 +83,12 @@ if __name__ == "__main__":
     x: int = 0
 
     @once()
-    def inc(y: int):
+    def inc():
         global x
         print("execute code")
         x = x + 1
         return x
 
-    print(inc())  # should be 1
-    print(inc())  # should be 1
-    print(inc())  # should be 1
+    print(inc(2))  # should be 1
+    print(inc(2))  # should be 1
+    print(inc(2))  # should be 1

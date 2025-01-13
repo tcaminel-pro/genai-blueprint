@@ -55,7 +55,7 @@ from pydantic import BaseModel, Field, computed_field, field_validator
 from typing_extensions import Annotated
 
 from python.ai_core.cache import LlmCache
-from python.config import get_config_str
+from python.config import global_config
 
 load_dotenv(verbose=True, override=True)
 
@@ -112,7 +112,7 @@ def _read_llm_list_file() -> list[LlmInfo]:
     """Read the YAML file with list of LLM providers and info"""
 
     # The name of the file is in the configuration file
-    yml_file = Path(get_config_str("llm", "list"))
+    yml_file = Path(global_config().get_str("llm", "list"))
     assert yml_file.exists(), f"cannot find {yml_file}"
     with open(yml_file, "r") as f:
         data = yaml.safe_load(f)
@@ -157,7 +157,7 @@ class LlmFactory(BaseModel):
     @field_validator("llm_id", mode="before")
     def check_known(cls, llm_id: str | None) -> str:
         if llm_id is None:
-            llm_id = get_config_str("llm", "default_model")
+            llm_id = global_config().get_str("llm", "default_model")
         if llm_id not in LlmFactory.known_items():
             # TODO : have a more detailed error message
             raise ValueError(
@@ -199,7 +199,7 @@ class LlmFactory(BaseModel):
 
     @staticmethod
     def find_llm_id_from_type(llm_type: str) -> str:
-        llm_id = get_config_str("llm", llm_type, default_value="default")
+        llm_id = global_config().get_str("llm", llm_type, default_value="default")
         if llm_id == "default":
             raise ValueError(f"Cannot find LLM of type type : '{llm_type}' (no key found in config file)")
         if llm_id not in LlmFactory.known_items():
@@ -371,7 +371,7 @@ class LlmFactory(BaseModel):
 
         default_llm_id = self.llm_id
         if default_llm_id is None:
-            default_llm_id = get_config_str("llm", "default_model")
+            default_llm_id = global_config().get_str("llm", "default_model")
 
         # The field alternatives is created from our list of LLM
         alternatives = {}

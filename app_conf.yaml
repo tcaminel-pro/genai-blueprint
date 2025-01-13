@@ -39,20 +39,20 @@ default:
 
 # Overridden configurations
 # Set by environment variable "BLUEPRINT_CONFIG"
-local:
+training_local:
   llm:
     default_model:  llama32_3_ollama
   embeddings:
     default_model: artic_22_ollama
 
-edenai:
+training_edenai:
   llm:
     default_model: gpt_4omini_edenai
     cache : memory
   embeddings:
     default_model: ada_002_edenai
 
-azure:
+training_azure:
   llm:
     default_model: gpt_4_azure
   embeddings:
