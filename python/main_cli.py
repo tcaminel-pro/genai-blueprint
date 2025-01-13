@@ -16,7 +16,6 @@ The CLI is built using Typer and supports:
 - Streaming and non-streaming execution
 """
 
-import os
 import sys
 from pathlib import Path
 from typing import Callable, Optional
@@ -47,6 +46,17 @@ load_dotenv(verbose=True)
 
 
 load_modules_with_chains()
+
+
+PRETTY_EXCEPTION = (
+    False  #  Alternative : export _TYPER_STANDARD_TRACEBACK=1  see https://typer.tiangolo.com/tutorial/exceptions/
+)
+
+cli_app = typer.Typer(
+    add_completion=True,
+    no_args_is_help=True,
+    pretty_exceptions_enable=PRETTY_EXCEPTION,
+)
 
 
 def define_llm_related_commands(cli_app: typer.Typer) -> None:
@@ -231,17 +241,6 @@ def define_other_commands(cli_app: typer.Typer) -> None:
 if __name__ == "__main__":
     import typer
 
-    PRETTY_EXCEPTION = (
-        False  #  Alternative : export _TYPER_STANDARD_TRACEBACK=1  see https://typer.tiangolo.com/tutorial/exceptions/
-    )
-
-    os.environ["ANONYMIZED_TELEMETRY"] = "False"
-
-    cli_app = typer.Typer(
-        add_completion=True,
-        no_args_is_help=True,
-        pretty_exceptions_enable=PRETTY_EXCEPTION,
-    )
     define_llm_related_commands(cli_app)
     define_other_commands(cli_app)
 

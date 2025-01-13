@@ -54,20 +54,20 @@ os.environ["PWD"] = os.getcwd()  # Hack because PWD is sometime set to a Windows
 
 class Config(BaseModel):
     """Application configuration manager.
-    
+
     Example usage:
         # Get the singleton instance
         config = Config.singleton()
-        
+
         # Access configuration values
         model = config.get_str("llm", "default_model")
-        
+
         # Modify configuration at runtime
         config.set_str("llm", "default_model", "gpt-4")
-        
+
         # Switch to a different configuration section
         config.select_config("production")
-        
+
         # Access list values
         models = config.get_list("llm", "available_models")
     """
@@ -119,7 +119,6 @@ class Config(BaseModel):
 
     def select_config(self, config_name: str) -> None:
         """Select a different configuration section to override defaults."""
-        debug(self.raw_config)
         if config_name not in self.raw_config:
             logger.error(f"Configuration section '{config_name}' not found")
             raise ValueError(f"Configuration section '{config_name}' not found")
@@ -161,7 +160,7 @@ class Config(BaseModel):
             # default:
             #   paths:
             #     data: "${HOME}/data"
-            
+
             # In code:
             data_path = config.get_str("paths", "data")
             # If HOME=/user, returns "/user/data"
@@ -184,7 +183,7 @@ class Config(BaseModel):
             # default:
             #   llm:
             #     models: ["gpt-3.5", "gpt-4"]
-            
+
             # In code:
             models = config.get_list("llm", "models")
             # Returns ["gpt-3.5", "gpt-4"]
@@ -199,7 +198,6 @@ class Config(BaseModel):
         Add or override a key value in the runtime configuration.
         """
         self._modified_fields[group][key] = value
-        assert self.get_str(group, key) == value
 
 
 def global_config() -> Config:
