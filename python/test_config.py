@@ -1,0 +1,62 @@
+"""
+Tests for the Config class and its configuration management features.
+
+These tests verify:
+- Basic configuration loading and retrieval
+- Environment variable substitution
+- Runtime modifications
+- Configuration section switching
+- Error handling for missing keys
+"""
+
+import os
+import pytest
+from python.config import Config, global_config
+
+def test_singleton():
+    """Verify the singleton pattern works correctly."""
+    config1 = Config.singleton()
+    config2 = Config.singleton()
+    assert config1 is config2
+
+def test_get_str_with_env_var(monkeypatch):
+    """Test environment variable substitution in config values."""
+    monkeypatch.setenv("TEST_VAR", "substituted_value")
+    config = Config.singleton()
+    config.set_str("test", "path", "${TEST_VAR}/file.txt")
+    assert config.get_str("test", "path") == "substituted_value/file.txt"
+
+def test_config_section_switch():
+    """Verify switching between configuration sections works."""
+    config = Config.singleton()
+    original_value = config.get_str("llm", "default_model")
+    
+    # Switch to a different config section
+    config.select_config("training_azure")
+    new_value = config.get_str("llm", "default_model")
+    
+    assert new_value != original_value
+
+def test_runtime_modification():
+    """Verify runtime modifications to config values."""
+    config = Config.singleton()
+    config.set_str("test", "temp_value", "initial")
+    assert config.get_str("test", "temp_value") == "initial"
+    
+    # Modify the value
+    config.set_str("test", "temp_value", "modified")
+    assert config.get_str("test", "temp_value") == "modified"
+
+def test_missing_key():
+    """Verify error handling for missing configuration keys."""
+    config = Config.singleton()
+    with pytest.raises(ValueError):
+        config.get_str("nonexistent", "key")
+
+def test_get_list():
+    """Verify retrieval of list values from config."""
+    config = Config.singleton()
+    config.set_str("test", "list_value", ["item1", "item2"])  # Note: This should be modified to use a proper list setter
+    result = config.get_list("test", "list_value")
+    assert isinstance(result, list)
+    assert len(result) == 2

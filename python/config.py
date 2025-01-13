@@ -53,7 +53,24 @@ os.environ["PWD"] = os.getcwd()  # Hack because PWD is sometime set to a Windows
 
 
 class Config(BaseModel):
-    """Application configuration manager ."""
+    """Application configuration manager.
+    
+    Example usage:
+        # Get the singleton instance
+        config = Config.singleton()
+        
+        # Access configuration values
+        model = config.get_str("llm", "default_model")
+        
+        # Modify configuration at runtime
+        config.set_str("llm", "default_model", "gpt-4")
+        
+        # Switch to a different configuration section
+        config.select_config("production")
+        
+        # Access list values
+        models = config.get_list("llm", "available_models")
+    """
 
     raw_config: Dict[str, Dict[str, Any]] = {}
     selected_config_name: str = "default"
@@ -138,6 +155,16 @@ class Config(BaseModel):
         Return the value of a key of type string.
         If it contains an environment variable in the form $(XXX), replace it.
         Raise an exception if key not found and no default value is given.
+
+        Example:
+            # In config file:
+            # default:
+            #   paths:
+            #     data: "${HOME}/data"
+            
+            # In code:
+            data_path = config.get_str("paths", "data")
+            # If HOME=/user, returns "/user/data"
         """
         value = self._get_config(group, key, default_value)
         if isinstance(value, str):
@@ -151,6 +178,16 @@ class Config(BaseModel):
         """
         Return the value of a key of type list.
         Raise an exception if key not found and no default value is given.
+
+        Example:
+            # In config file:
+            # default:
+            #   llm:
+            #     models: ["gpt-3.5", "gpt-4"]
+            
+            # In code:
+            models = config.get_list("llm", "models")
+            # Returns ["gpt-3.5", "gpt-4"]
         """
         value = self._get_config(group, key, default_value)
         if isinstance(value, list):
