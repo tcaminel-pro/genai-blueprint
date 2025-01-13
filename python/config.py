@@ -81,7 +81,15 @@ class Config(BaseModel):
             data = cast(dict, yaml.safe_load(f))
 
         config_name = os.environ.get("BLUEPRINT_CONFIG", "default")
-        logger.info(f"Loading configuration with active section: {config_name}")
+        if "BLUEPRINT_CONFIG" in os.environ:
+            logger.info(f"Configuration section selected by BLUEPRINT_CONFIG: {config_name}")
+        else:
+            logger.info(f"Using default configuration section")
+
+        # Validate that the config section exists
+        if config_name != "default" and config_name not in data:
+            logger.error(f"Configuration section '{config_name}' not found in {yml_file}")
+            raise ValueError(f"Configuration section '{config_name}' not found")
 
         return Config(raw_config=data, selected_config_name=config_name)
 
@@ -104,7 +112,9 @@ class Config(BaseModel):
     def select_config(self, config_name: str) -> None:
         """Select a different configuration section to override defaults."""
         if config_name not in self.raw_config:
+            logger.error(f"Configuration section '{config_name}' not found")
             raise ValueError(f"Configuration section '{config_name}' not found")
+        logger.info(f"Switching to configuration section: {config_name}")
         self.selected_config_name = config_name
 
     def _get_config(self, group: str, key: str, default_value: Any | None = None) -> Any:
