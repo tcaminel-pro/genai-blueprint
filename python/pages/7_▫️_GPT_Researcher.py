@@ -111,12 +111,6 @@ async def main():
             )
             log_handler = CustomLogsHandler(log, 200)
 
-            researcher_conf = GptrConf(
-                fast_llm_id=GPTR_LLM_ID,
-                smart_llm_id=GPTR_LLM_ID,
-                strategic_llm_id=GPTR_LLM_ID,
-                extra_params=CUSTOM_GPTR_CONFIG,
-            )
             gptr_params = {"report_source": "web", "tone": "Objective"}
             gptr_chain = gpt_researcher_chain().with_config(
                 configurable(

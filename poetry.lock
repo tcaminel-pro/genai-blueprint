@@ -4343,6 +4343,23 @@ tokenizers = ">=0.19.1"
 transformers = ">=4.39.0"
 
 [[package]]
+name = "langchain-mcp"
+version = "0.1.0"
+description = "Model Context Protocol tool calling support for LangChain"
+optional = false
+python-versions = ">=3.10"
+files = [
+    {file = "langchain_mcp-0.1.0-py3-none-any.whl", hash = "sha256:8102e04b9b0d6e9186e3fd715f2873cb486ad809ebdad49cc55b1214a7d62dfb"},
+    {file = "langchain_mcp-0.1.0.tar.gz", hash = "sha256:3a0ab6dc4d846dcc37a0866c9f0ac23a4e758706bef83ab122d62e3e2faab9cb"},
+]
+
+[package.dependencies]
+langchain-core = ">=0.3.21,<0.4.0"
+mcp = ">=1.0.0,<1.1.0"
+pydantic = ">=2.10.2,<2.11.0"
+typing-extensions = ">=4.12.2,<4.13.0"
+
+[[package]]
 name = "langchain-ollama"
 version = "0.2.2"
 description = "An integration package connecting Ollama and LangChain"
@@ -5134,6 +5151,25 @@ files = [
 
 [package.dependencies]
 traitlets = "*"
+
+[[package]]
+name = "mcp"
+version = "1.0.0"
+description = "Model Context Protocol SDK"
+optional = false
+python-versions = ">=3.10"
+files = [
+    {file = "mcp-1.0.0-py3-none-any.whl", hash = "sha256:bbe70ffa3341cd4da78b5eb504958355c68381fb29971471cea1e642a2af5b8a"},
+    {file = "mcp-1.0.0.tar.gz", hash = "sha256:dba51ce0b5c6a80e25576f606760c49a91ee90210fed805b530ca165d3bbc9b7"},
+]
+
+[package.dependencies]
+anyio = ">=4.6"
+httpx = ">=0.27"
+httpx-sse = ">=0.4"
+pydantic = ">=2.8.0"
+sse-starlette = ">=2.0"
+starlette = ">=0.39"
 
 [[package]]
 name = "md2pdf"
@@ -10909,4 +10945,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12,<3.13"
-content-hash = "7d4ae4da67794439fc9fa46cff13da004383f5703ced6389f6603a49b223158e"
+content-hash = "37e9b31e1f2f556abb1885c53c08a81195705746c613df5f4310bb666e3f4231"

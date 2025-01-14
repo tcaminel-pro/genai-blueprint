@@ -7,6 +7,7 @@ from python.config import global_config
 
 global_config().select_config("pytest")
 
+
 @pytest.fixture
 def sample_documents():
     return [

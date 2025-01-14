@@ -169,29 +169,41 @@ def gpt_researcher_chain() -> Runnable[str, ResearchReport]:
         ```
     """
 
-    async def fn(query: str, config: RunnableConfig) -> ResearchReport:
+    async def fn(query: str | None, config: RunnableConfig) -> ResearchReport:
         gptr_logger = config["configurable"].get("logger")
         use_cached_result = config["configurable"].get("use_cached_result", False)
         gptr_conf = config["configurable"].get("gptr_conf", {})
         gptr_params = config["configurable"].get("gptr_params", {})
+        result_key = config["configurable"].get("result_key", None)
 
         # Validate configurable keys
-        allowed_keys = {"logger", "use_cached_result", "gptr_conf", "gptr_params"}
+        allowed_keys = {"logger", "use_cached_result", "gptr_conf", "gptr_params", "result_key"}
         config_keys = set(config["configurable"].keys())
         if not config_keys.issubset(allowed_keys):
             raise ValueError(
                 f"Invalid configurable keys: {config_keys - allowed_keys}. Allowed keys are: {allowed_keys}"
             )
 
+        if query and gptr_params.get("query"):
+            logger.warning("Query set twice for GPT Researcher")
+
+        if query is None or query == "":
+            if param_query := gptr_params.pop("query"):
+                query = param_query
+            else:
+                raise ValueError("No query provided")
+        assert query, "no query set for GPTR search"
+        kv_store_key = result_key or query
+
         if use_cached_result:
-            cached_result = read_pydantic_from_store(model_class=ResearchReport, key=query)
+            cached_result = read_pydantic_from_store(model_class=ResearchReport, key=kv_store_key)
             if cached_result:
                 logger.info(f"use cached research report for query: '{textwrap.shorten(query, 15)}'")
                 return cached_result
 
         result = await run_gpt_researcher(query=query, **gptr_params, gptr_config=gptr_conf, logger=gptr_logger)
         if use_cached_result:
-            save_pydantic_to_store(query, result)
+            save_pydantic_to_store(kv_store_key, result)
         return result
 
     return RunnableLambda(func=fn)

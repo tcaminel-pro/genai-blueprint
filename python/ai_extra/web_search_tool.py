@@ -23,9 +23,7 @@ def basic_web_search(query: str) -> str:
         try:
             from langchain_community.tools.tavily_search import TavilySearchResults
         except ImportError:
-            raise ImportError(
-                "tavily-python package is required. Install with: poetry add tavily-python --group demos"
-            )
+            raise ImportError("tavily-python package is required. Install with: poetry add tavily-python --group demos")
 
         tavily_tool = TavilySearchResults(max_results=5)
         docs = tavily_tool.invoke({"query": query})

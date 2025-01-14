@@ -8,9 +8,7 @@ try:
     from crewai import Agent, Crew, Task
 except ImportError as e:
     if "crewai" in str(e):
-        raise ImportError(
-            "crewai package is required. Install with: poetry add crewai --group ai_extra"
-        )
+        raise ImportError("crewai package is required. Install with: poetry add crewai --group ai_extra")
     raise
 
 
