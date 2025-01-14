@@ -221,7 +221,12 @@ def find_acronyms():
     acronyms = set()
     candidates = set()
 
-    import enchant
+    try:
+        import enchant
+    except ImportError:
+        raise ImportError(
+            "enchant package is required. Install with: poetry add enchant --group demos"
+        )
 
     french_dict = enchant.Dict("fr")
     english_dict = enchant.Dict("en")

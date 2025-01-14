@@ -2,9 +2,16 @@
 
 from pathlib import Path
 
-import pandas as pd
-import streamlit as st
-from crewai import Agent, Crew, Task
+try:
+    import pandas as pd
+    import streamlit as st
+    from crewai import Agent, Crew, Task
+except ImportError as e:
+    if "crewai" in str(e):
+        raise ImportError(
+            "crewai package is required. Install with: poetry add crewai --group ai_extra"
+        )
+    raise
 
 
 def main():
