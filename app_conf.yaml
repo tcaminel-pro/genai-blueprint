@@ -25,6 +25,10 @@ default:
   monitoring: 
     default:  langsmith  # none #
     project: GenAI_demo
+  kv_store:
+    default : LocalFileStore  # no alternative yet
+    path : ${HOME}/kv_store
+
 
   chains:
     path: python.ai_chains

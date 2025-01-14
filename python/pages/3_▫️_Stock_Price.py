@@ -9,15 +9,21 @@ import yfinance as yf
 from langchain.callbacks import tracing_v2_enabled
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from langchain_core.tools import tool
+from loguru import logger
 
-from python.ai_core.cache import LlmCache
 from python.ai_core.llm import get_llm
+from python.config import global_config
 
 st.set_page_config(layout="wide")
 
-LLM_ID = "llama31_70_groq"
+LLM_ID = None  # take default
 
-LLM_ID = "llama32_3_ollama"
+LLM_ID = "llama33_70_groq"
+
+SAMPLE_SEARCH = [
+    "What is the current price of Meta stock?",
+    "Show me the historical prices of Apple vs Microsoft stock over the past 6 months",
+]
 
 
 @tool
@@ -43,11 +49,15 @@ def get_historical_price(symbol: str, start_date: date, end_date: date) -> pd.Da
     - start_date (date): Set explicitly, or calculated as 'end_date - date interval' (for example, if prompted 'over the past 6 months', date interval = 6 months so start_date would be 6 months earlier than today's date). Default to '1900-01-01' if vaguely asked for historical price. Start date must always be before the current date
     """
 
-    data = yf.Ticker(symbol)
-    hist = data.history(start=start_date, end=end_date)
-    hist = hist.reset_index()
-    hist[symbol] = hist["Close"]
-    return hist[["Date", symbol]]
+    try:
+        data = yf.Ticker(symbol)
+        hist = data.history(start=start_date, end=end_date)
+        hist = hist.reset_index()
+        hist[symbol] = hist["Close"]
+        return hist[["Date", symbol]]
+    except Exception as ex:
+        logger.error(f"failed to call get_historical_price: {ex}")
+        return pd.DataFrame()
 
 
 def plot_price_over_time(historical_price_dfs: list[pd.DataFrame]):
@@ -132,7 +142,7 @@ def call_functions(llm_with_tools, user_prompt):
 
 
 def main():
-    llm = get_llm(llm_id=LLM_ID, cache=LlmCache.NONE, streaming=False)
+    llm = get_llm(llm_id=LLM_ID, streaming=False)
 
     #    llm = LlmFactory(llm_id="gpt_35_openai").get()
 
@@ -146,23 +156,23 @@ def main():
 
     # Display the title and introduction of the application
     st.title("Stock Market")
-    multiline_text = """
-    Try to ask it "What is the current price of Meta stock?" or "Show me the historical prices of Apple vs Microsoft stock over the past 6 months.".
-    """
 
-    st.markdown(multiline_text, unsafe_allow_html=True)
+    sample_search = st.selectbox("Sample queries", SAMPLE_SEARCH, index=None)
+    user_question = st.text_area(
+        "Ask a question about a stock or multiple stocks:", height=70, placeholder=" query here...", value=sample_search
+    )
 
-    # Get the user's question
-    user_question = st.text_input("Ask a question about a stock or multiple stocks:")
+    with st.form("my_form"):
+        submitted = st.form_submit_button("Search", disabled=user_question is None)
 
-    if user_question:
-        if global_config().get_str("monitoring", "default") == "langsmith":
-            # use Langsmith context manager to get the UTL to the trace
-            with tracing_v2_enabled() as cb:
-                response = call_functions(llm_with_tools, user_question)
-                st.write(response)
-                url = cb.get_run_url()
-                st.write("[trace](%s)" % url)
+        if submitted and user_question:
+            if global_config().get_str("monitoring", "default") == "langsmith":
+                # use Langsmith context manager to get the UTL to the trace
+                with tracing_v2_enabled() as cb:
+                    response = call_functions(llm_with_tools, user_question)
+                    st.write(response)
+                    url = cb.get_run_url()
+                    st.write("[trace](%s)" % url)
 
 
 main()

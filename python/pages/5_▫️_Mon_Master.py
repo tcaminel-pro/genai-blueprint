@@ -77,7 +77,7 @@ with st.sidebar:
 
 example = st.selectbox("Examples:", EXAMPLE_QUERIES, index=None)
 with st.form(key="form"):
-    user_input = st.text_area(label="Recherche:", value=example or "", height=30)
+    user_input = st.text_area(label="Recherche:", value=example or "", height=70)
     submit_clicked = st.form_submit_button("Rechercher")
 
 

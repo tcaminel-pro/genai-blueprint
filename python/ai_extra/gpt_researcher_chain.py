@@ -23,9 +23,7 @@ from typing import Any, List, Optional
 try:
     from gpt_researcher import GPTResearcher
 except ImportError:
-    raise ImportError(
-        "gpt-researcher package is required. Install with: poetry add gpt-researcher --group ai_extra"
-    )
+    raise ImportError("gpt-researcher package is required. Install with: poetry add gpt-researcher --group ai_extra")
 from langchain_core.runnables import Runnable, RunnableConfig, RunnableLambda
 from loguru import logger
 from pydantic import BaseModel, Field

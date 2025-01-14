@@ -28,8 +28,8 @@ def once():
 
     # work for functions, too:
         @once()
-        def inc():
-            print("execute code")  # executed once
+        def get_my_class_singleton():
+            return MyClass()
             ...
 
     """

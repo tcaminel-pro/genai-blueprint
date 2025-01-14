@@ -27,6 +27,9 @@ def clear_submit():
     st.session_state["submit"] = False
 
 
+st.set_page_config(page_title="LangChain: Chat with pandas DataFrame", layout="wide", page_icon="🦜")
+
+
 @st.cache_data(show_spinner=True)
 def get_dataframe(file_or_filename: Path | UploadedFile, **kwargs) -> pd.DataFrame | None:
     return load_tabular_data(file_or_filename=file_or_filename, **kwargs)
@@ -43,7 +46,6 @@ SAMPLE_PROMPTS = [
 ]
 
 
-st.set_page_config(page_title="LangChain: Chat with pandas DataFrame", layout="wide", page_icon="🦜")
 title_col1, title_col2 = st.columns([2, 1])
 
 config_sidebar()
@@ -87,12 +89,15 @@ with st.expander(label="Loaded Dataframe", expanded=True):
         - 1
     )
     args = {"skiprows": skiprows}
-    if default_file_name is None:
+    if uploaded_file:
         file = uploaded_file
-    else:
+    elif default_file_name:
         file = DATA_PATH / default_file_name
-    df = get_dataframe(file, **args)
-    st.data_editor(df)
+    else:
+        file = None
+    if file:
+        df = get_dataframe(file, **args)
+        st.data_editor(df)
 
 
 sample_prompt = None

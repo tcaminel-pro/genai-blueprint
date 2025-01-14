@@ -33,7 +33,8 @@ def get_spacy_preprocess_fn(model: str, more_stop_words: list[str] = []) -> Call
     try:
         nlp = spacy.load(model)
     except IOError:
-        logger.exception(f"Cannot load Spacy model.  Try install it with : 'python -m spacy download {model}'")
+        raise ModuleNotFoundError(f"Cannot load Spacy model.  Try install it with : 'python -m spacy download {model}'")
+
     stop_words = nlp.Defaults.stop_words
     stop_words.update(more_stop_words or [])
 
@@ -71,7 +72,7 @@ class BM25FastRetriever(BaseRetriever):
         preprocess_func: Callable[[str], List[str]] = default_preprocessing_func,
         cache_path: Optional[Path] = None,
         **kwargs: Any,
-    ) -> BM25FastRetriever:
+    ) -> "BM25FastRetriever":
         """
         Create a BM25S_Retriever from a list of texts.
         Args:
@@ -111,7 +112,7 @@ class BM25FastRetriever(BaseRetriever):
         preprocess_func: Callable[[str], List[str]] = default_preprocessing_func,
         cache_dir: Optional[Path] = None,
         **kwargs: Any,
-    ) -> BM25FastRetriever:
+    ) -> "BM25FastRetriever":
         """
         Create a BM25S_Retriever from a list of Documents.
         Args:
@@ -139,7 +140,7 @@ class BM25FastRetriever(BaseRetriever):
         cache_dir: Path,
         preprocess_func: Callable[[str], List[str]] = default_preprocessing_func,
         **kwargs: Any,
-    ) -> BM25FastRetriever:
+    ) -> "BM25FastRetriever":
         try:
             import bm25s
         except ImportError:

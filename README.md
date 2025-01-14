@@ -58,7 +58,7 @@
 #### Web Interface
 - `python/GenAI_Lab.py`: Main Streamlit web application
 - `python/pages/`: Streamlit page implementations
-    `0_▫️_Runnable Playground.py`: Page to test regitered LangChain runnables
-  - `5_▫️_Mon_Master.py`: Master's degree search interface
+    `0_▫️_Runnable Playground.py`: Page to test registered LangChain runnables
+  - `5_▫️_Mon_Master.py`: Example of similarity search project
   - `12_▫️_Crew_AI.py`: CrewAI demonstration
   - ...

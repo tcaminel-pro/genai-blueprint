@@ -9,12 +9,14 @@ from typing import Iterator
 import json_repair
 import pandas as pd
 import typer
+
+from python.config import global_config
+from python.utils.pydantic.jsonl_store import load_objects_from_jsonl
+
 try:
     from abbreviations import schwartz_hearst
 except ImportError:
-    raise ImportError(
-        "abbreviations package is required. Install with: poetry add abbreviations --group demos"
-    )
+    raise ImportError("abbreviations package is required. Install with: poetry add abbreviations --group demos")
 from langchain_community.document_loaders.base import BaseLoader
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
@@ -24,13 +26,9 @@ from unidecode import unidecode
 
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.llm import get_llm
-from python.ai_core.loaders import load_docs_from_jsonl, save_docs_to_jsonl
 from python.ai_core.prompts import def_prompt
 from python.ai_core.vector_store import VectorStoreFactory
-from python.ai_extra.bm25s_retriever import (
-    BM25FastRetriever,
-    get_spacy_preprocess_fn,
-)
+from python.ai_extra.bm25s_retriever import get_spacy_preprocess_fn
 from python.demos.mon_master_search.model_subset import (
     ACRONYMS,
     STOP_WORDS,
@@ -173,7 +171,7 @@ def create_embeddings(embeddings_id: str = EMBEDDINGS_MODEL):
         collection_name="offres_formation",
         index_document=True,
     )
-    docs = list(load_docs_from_jsonl(FILES))
+    docs = list(load_objects_from_jsonl(FILES, Document))
 
     logger.info(f"There are {vector_factory.document_count()} documents in  vector store")
 
@@ -191,7 +189,7 @@ def create_embeddings(embeddings_id: str = EMBEDDINGS_MODEL):
 @app.command()
 def create_bm25_index(k: int = 20):
     logger.info("create BM25 index")
-    docs_for_bm25 = list(load_docs_from_jsonl(FILES))
+    docs_for_bm25 = list(load_objects_from_jsonl(FILES, Document))
     docs = docs_for_bm25
     path = Path(global_config().get_str("vector_store", "path")) / "bm25"
     retriever = BM25FastRetriever.from_documents(documents=docs, preprocess_func=fn, k=k, cache_dir=path)
@@ -229,9 +227,7 @@ def find_acronyms():
     try:
         import enchant
     except ImportError:
-        raise ImportError(
-            "enchant package is required. Install with: poetry add enchant --group demos"
-        )
+        raise ImportError("enchant package is required. Install with: poetry add enchant --group demos")
 
     french_dict = enchant.Dict("fr")
     english_dict = enchant.Dict("en")
@@ -242,7 +238,7 @@ def find_acronyms():
     known_abbrev = {codecs.decode(k, "unicode_escape"): codecs.decode(v, "unicode_escape") for k, v in pairs.items()}
 
     logger.info("extract possible abbreviations")
-    docs = load_docs_from_jsonl(FILES)
+    docs = load_objects_from_jsonl(FILES)
     for doc in docs:
         candidates.update(re.findall(REGEXP_ACRONYMS, doc.page_content))
         # debug(candidates)

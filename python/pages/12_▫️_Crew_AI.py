@@ -12,7 +12,12 @@ import sys
 import time
 
 import streamlit as st
-from crewai import Agent, Crew, Process, Task
+
+try:
+    from crewai import Agent, Crew, Process, Task
+except ImportError:
+    raise ImportError("Could not import crewai, please install with `poetry add crewai --group demos")
+
 from langchain_community.tools import DuckDuckGoSearchRun
 
 from python.ai_core.llm import get_llm

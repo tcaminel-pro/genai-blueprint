@@ -5,16 +5,19 @@ from pathlib import Path
 import pandas as pd
 from langchain.retrievers import EnsembleRetriever
 from langchain_community.retrievers import BM25Retriever
+from langchain_core.documents import Document
 from langchain_core.runnables import Runnable
 from loguru import logger
 
 from python.ai_core.embeddings import EmbeddingsFactory
-from python.ai_core.loaders import load_docs_from_jsonl
 from python.ai_core.vector_store import VectorStoreFactory
-from python.ai_extra.bm25s_retriever import (
-    get_spacy_preprocess_fn,
-)
+
+# from python.ai_extra.bm25s_retriever import (
+#     get_spacy_preprocess_fn,
+# )
+from python.ai_extra.bm25s_retriever import get_spacy_preprocess_fn
 from python.demos.mon_master_search.model_subset import EXAMPLE_QUERIES
+from python.utils.pydantic.jsonl_store import load_objects_from_jsonl
 
 DEFAULT_RESULT_COUNT = 20
 RATIO_SPARSE = 50
@@ -36,7 +39,7 @@ def get_sparse_retriever(embeddings_model_id: str) -> Runnable:
         id="Chroma",
         embeddings_factory=embeddings_factory,
         collection_name="offres_formation",
-    ).get_retriever(k=DEFAULT_RESULT_COUNT)
+    ).change_top_k(k=DEFAULT_RESULT_COUNT)
     return retriever
 
 
@@ -50,7 +53,7 @@ def get_bm25_retriever():
     ]
     fn = get_spacy_preprocess_fn(model="fr_core_news_sm", more_stop_words=stop_words)  # noqa: F821
     logger.info("create BM25 index")
-    docs_for_bm25 = list(load_docs_from_jsonl(FILES))
+    docs_for_bm25 = list(load_objects_from_jsonl(FILES, Document))
     docs = docs_for_bm25
 
     retriever = BM25Retriever.from_documents(documents=docs, preprocess_func=fn, k=DEFAULT_RESULT_COUNT)

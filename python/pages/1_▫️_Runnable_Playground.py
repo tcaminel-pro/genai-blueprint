@@ -25,6 +25,7 @@ from python.ai_core.chain_registry import (
     get_runnable_registry,
     load_modules_with_chains,
 )
+from python.config import global_config
 from python.GenAI_Lab import config_sidebar
 
 st.title("💬 Runnable Playground")
