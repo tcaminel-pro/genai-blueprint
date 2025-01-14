@@ -32,11 +32,11 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable
 from loguru import logger
 
-from python.ai_core.agents_builder import get_agent_builder
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.llm import get_llm
 from python.ai_core.prompts import dedent_ws, def_prompt
 from python.ai_core.vector_store import VectorStoreFactory
+from python.config import global_config
 from python.demos.maintenance_agent.maintenance_data import dummy_database
 
 # Tools setup
@@ -212,9 +212,6 @@ def create_maintenance_agent(
 ) -> Runnable:
     """Create a maintenance agent that returns a runnable AgentExecutor."""
     # Get the LLM info
-
-    agent_builder = get_agent_builder("tool_calling")
-
     # Create tools
     tools = create_maintenance_tools()
 

@@ -86,7 +86,7 @@ class BM25FastRetriever(BaseRetriever):
             A BM25S_Retriever instance.
         """
         try:
-            import bm25s
+            import bm25s  # type: ignore
         except ImportError:
             raise ImportError("Could not import bm25s, please install with `pip install bm25s")
 
@@ -142,7 +142,7 @@ class BM25FastRetriever(BaseRetriever):
         **kwargs: Any,
     ) -> "BM25FastRetriever":
         try:
-            import bm25s
+            import bm25s  # type: ignore
         except ImportError:
             raise ImportError("Could not import bm25s, please install with `pip install bm25s")
 

@@ -26,6 +26,7 @@ SAMPLE_SEARCH = [
 ]
 
 
+# cSpell: disable
 @tool
 def get_stock_info(symbol: str, key: str):
     """

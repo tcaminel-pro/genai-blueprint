@@ -53,6 +53,7 @@
         "Mixtral",
         "mult",
         "Ollama",
+        "omini",
         "openai",
         "openrouter",
         "Ordalie",
@@ -70,6 +71,7 @@
         "typer",
         "unsloth",
         "uvicorn",
+        "vectorizer",
         "vectorstore",
         "vectorstores",
         "vertexai"

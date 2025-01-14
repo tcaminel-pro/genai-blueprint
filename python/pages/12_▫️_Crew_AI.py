@@ -178,10 +178,10 @@ class StreamToExpander:
 def run_crewai_app():
     st.title("AI Agent Business Product Launch")
     with st.expander("About the Team:"):
-        st.subheader("Diagram")
-        left_co, cent_co, last_co = st.columns(3)
-        with cent_co:
-            st.image("my_img.png")
+        # st.subheader("Diagram")
+        # left_co, cent_co, last_co = st.columns(3)
+        # with cent_co:
+        #     st.image("my_img.png")
 
         st.subheader("Market Research Analyst")
         st.text(

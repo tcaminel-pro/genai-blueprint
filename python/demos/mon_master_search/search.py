@@ -11,13 +11,11 @@ from loguru import logger
 
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.vector_store import VectorStoreFactory
-
-# from python.ai_extra.bm25s_retriever import (
-#     get_spacy_preprocess_fn,
-# )
 from python.ai_extra.bm25s_retriever import get_spacy_preprocess_fn
 from python.demos.mon_master_search.model_subset import EXAMPLE_QUERIES
 from python.utils.pydantic.jsonl_store import load_objects_from_jsonl
+
+# cSpell: disable
 
 DEFAULT_RESULT_COUNT = 20
 RATIO_SPARSE = 50
@@ -57,11 +55,6 @@ def get_bm25_retriever():
     docs = docs_for_bm25
 
     retriever = BM25Retriever.from_documents(documents=docs, preprocess_func=fn, k=DEFAULT_RESULT_COUNT)
-    # path = Path(global_config().get_str("vector_store", "path")) / "bm25"
-    # retriever = BM25FastRetriever.from_cache(
-    #     preprocess_func=fn,
-    #     k=DEFAULT_RESULT_COUNT,
-    # )
     return retriever
 
 
