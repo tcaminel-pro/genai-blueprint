@@ -143,9 +143,36 @@ def gpt_researcher_chain() -> Runnable[str, ResearchReport]:
     Returns:
         ResearchReport: Comprehensive research report.
 
-    """
+    Configurable options:
+        - logger: Optional logger instance for websocket communication
+        - use_cached_result: Boolean to enable/disable result caching
+        - gptr_conf: GptrConf instance for GPT Researcher configuration
+        - gptr_params: Dictionary of additional parameters for research execution
 
-    # complete docstring with config options AI!
+    Example:
+    ```python
+    researcher_conf = GptrConf(
+        fast_llm_id="gpt_4omini_openrouter",
+        smart_llm_id="gpt_4_openrouter",
+        extra_params={
+            "MAX_ITERATIONS": 1,
+            "MAX_SEARCH_RESULTS_PER_QUERY": 3
+        }
+    )
+    
+    chain = gpt_researcher_chain().with_config({
+        "configurable": {
+            "logger": None,
+            "use_cached_result": True,
+            "gptr_conf": researcher_conf,
+            "gptr_params": {
+                "report_source": "web",
+                "tone": "Objective"
+            }
+        }
+    })
+    ```
+    """
 
     async def fn(query: str, config: RunnableConfig) -> ResearchReport:
         gptr_logger = config["configurable"].get("logger")
