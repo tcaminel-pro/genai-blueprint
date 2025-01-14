@@ -151,7 +151,14 @@ def gpt_researcher_chain() -> Runnable[str, ResearchReport]:
         gptr_conf = config["configurable"].get("gptr_conf", {})
         gptr_params = config["configurable"].get("gptr_params", {})
 
-        # test that config["configurable"] contains only above entries AI!
+        # Validate configurable keys
+        allowed_keys = {"logger", "use_cached_result", "gptr_conf", "gptr_params"}
+        config_keys = set(config["configurable"].keys())
+        if not config_keys.issubset(allowed_keys):
+            raise ValueError(
+                f"Invalid configurable keys: {config_keys - allowed_keys}. "
+                f"Allowed keys are: {allowed_keys}"
+            )
 
         if use_cached_result:
             cached_result = read_pydantic_from_store(model_class=ResearchReport, key=query)
