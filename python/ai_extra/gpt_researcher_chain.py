@@ -9,9 +9,8 @@ language models, settings, and research operations. It handles:
 - Execution of research tasks with configurable parameters
 - Management of research reports and metadata
 
-The main classes are:
-- GptResearcherConf: Configuration management
-- ResearchReport: Container for research results
+Main function is: gpt_researcher_chain
+
 """
 
 import asyncio
@@ -151,27 +150,20 @@ def gpt_researcher_chain() -> Runnable[str, ResearchReport]:
 
     Example:
     ```python
-    researcher_conf = GptrConf(
-        fast_llm_id="gpt_4omini_openrouter",
-        smart_llm_id="gpt_4_openrouter",
-        extra_params={
-            "MAX_ITERATIONS": 1,
-            "MAX_SEARCH_RESULTS_PER_QUERY": 3
-        }
-    )
-    
-    chain = gpt_researcher_chain().with_config({
-        "configurable": {
-            "logger": None,
-            "use_cached_result": True,
-            "gptr_conf": researcher_conf,
-            "gptr_params": {
-                "report_source": "web",
-                "tone": "Objective"
+        researcher_conf = GptrConf(
+            fast_llm_id="gpt_4omini_openrouter",
+            smart_llm_id="gpt_4_openrouter",
+            extra_params={"MAX_ITERATIONS": 1, "MAX_SEARCH_RESULTS_PER_QUERY": 3}
+        )
+        chain = gpt_researcher_chain().with_config({
+            "configurable": {
+                "logger": None,
+                "use_cached_result": True,
+                "gptr_conf": researcher_conf,
+                "gptr_params": {"report_source": "web", "tone": "Objective"}
             }
-        }
-    })
-    ```
+        })
+        ```
     """
 
     async def fn(query: str, config: RunnableConfig) -> ResearchReport:
@@ -185,8 +177,7 @@ def gpt_researcher_chain() -> Runnable[str, ResearchReport]:
         config_keys = set(config["configurable"].keys())
         if not config_keys.issubset(allowed_keys):
             raise ValueError(
-                f"Invalid configurable keys: {config_keys - allowed_keys}. "
-                f"Allowed keys are: {allowed_keys}"
+                f"Invalid configurable keys: {config_keys - allowed_keys}. Allowed keys are: {allowed_keys}"
             )
 
         if use_cached_result:
@@ -209,22 +200,13 @@ if __name__ == "__main__":
     async def main():
         query = "what are the ethical risks of LLM powered AI Agents"
         gpt_llm = "gpt_4omini_openrouter"
-
         researcher_conf = GptrConf(
             fast_llm_id=gpt_llm,
             smart_llm_id=gpt_llm,
             strategic_llm_id=gpt_llm,
-            extra_params={
-                "MAX_ITERATIONS": 1,
-                "MAX_SEARCH_RESULTS_PER_QUERY": 3,
-            },
+            extra_params={"MAX_ITERATIONS": 1, "MAX_SEARCH_RESULTS_PER_QUERY": 3},
         )
-
-        gptr_params = {
-            "report_source": "web",
-            "tone": "Objective",
-        }
-
+        gptr_params = {"report_source": "web", "tone": "Objective"}
         chain = gpt_researcher_chain().with_config(
             {"configurable": {"logger": None, "gptr_conf": researcher_conf, "gptr_params": gptr_params}}
         )
