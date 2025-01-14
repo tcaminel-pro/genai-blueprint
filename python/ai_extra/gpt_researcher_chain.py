@@ -145,6 +145,8 @@ def gpt_researcher_chain() -> Runnable[str, ResearchReport]:
 
     """
 
+    # complete docstring with config options AI!
+
     async def fn(query: str, config: RunnableConfig) -> ResearchReport:
         gptr_logger = config["configurable"].get("logger")
         use_cached_result = config["configurable"].get("use_cached_result", False)
