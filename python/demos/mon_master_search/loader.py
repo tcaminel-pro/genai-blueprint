@@ -9,7 +9,12 @@ from typing import Iterator
 import json_repair
 import pandas as pd
 import typer
-from abbreviations import schwartz_hearst
+try:
+    from abbreviations import schwartz_hearst
+except ImportError:
+    raise ImportError(
+        "abbreviations package is required. Install with: poetry add abbreviations --group demos"
+    )
 from langchain_community.document_loaders.base import BaseLoader
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
