@@ -134,6 +134,17 @@ push_az:  # Push to a registry
 ##  MISC  ###
 ##############
 
+clean_notebooks:  ## Clean Jupyter notebook outputs
+	@if ! command -v jupyter-nbconvert &> /dev/null; then \
+		echo "jupyter-nbconvert could not be found. Please install it first:"; \
+		echo "pip install nbconvert"; \
+		exit 1; \
+	fi
+	@find . -name "*.ipynb" | while read -r notebook; do \
+		echo "Cleaning outputs from: $$notebook"; \
+		jupyter-nbconvert --clear-output --inplace "$$notebook"; \
+	done
+	@echo "Notebook outputs cleaned successfully!"
 
 latest:  # Update selected fast changing dependencies 
 	poetry add 	langchain@latest  langchain-core@latest langgraph@latest langserve@latest langchainhub@latest \
