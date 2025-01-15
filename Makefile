@@ -180,6 +180,7 @@ backup:
 
 dedupe_history: clean_bash_history  ## Alias for clean_bash_history
 
+# reset the 'history' command so that it takes inti account the new history file AI!
 clean_bash_history:  ## Remove duplicate entries from .bash_history while preserving order
 	@echo "Cleaning .bash_history..."
 	@if [ -f ~/.bash_history ]; then \
