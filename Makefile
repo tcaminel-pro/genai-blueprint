@@ -97,7 +97,7 @@ save:  # Create a zipped version of the image
 ##  GCP  ###
 ##############
 
-# To be commeted...
+# To be completed...
 
 login_gcp:
 	gcloud auth login
@@ -134,7 +134,7 @@ push_az:  # Push to a registry
 ##  MISC  ###
 ##############
 
-clean_notebooks:  ## Clean Jupyter notebook outputs. Require 'nbconvert' module
+clean_notebooks:  ## Clean Jupyter notebook outputs. Require 'nbconvert' Python module
 	@find . -name "*.ipynb" | while read -r notebook; do \
 		echo "Cleaning outputs from: $$notebook"; \
 		jupyter-nbconvert --clear-output --inplace "$$notebook"; \
@@ -148,10 +148,6 @@ latest:  # Update selected fast changing dependencies
 	poetry add crewai@latest[tools] --group demos
 
 # aider-chat@latest
-# litellm@latest lunary@
-#langchain-openai@latest
-# langchain-groq@latest    \
-
 
 clean:  ## Clean Python bytecode and cache files
 	find . -type f -name "*.py[co]" -delete
@@ -166,7 +162,7 @@ lint:
 backup:
 # copy to ln_to_onedrive, a symbolic link from WSL to OneDrive 
 # (created as: ln -s '/mnt/c/Users/a184094/OneDrive - Eviden'  ~/ln_to_onedrive )
-	cp ~/.{env,bashrc,dev.bash-profile,bash_history_unique} ~/ln_to_onedrive/backup/wsl/tcl/
+	cp ~/.env ~/.bashrc ~/.dev.bash-profile ~/ln_to_onedrive/backup/wsl/tcl/
 	cp ~/install.sh  ~/ln_to_onedrive/backup/wsl/tcl/
 
 	rsync -av \
@@ -178,18 +174,11 @@ backup:
 	~/prj ~/ln_to_onedrive/backup/wsl/tcl
 
 
-dedupe_history: clean_bash_history  ## Alias for clean_bash_history
-
-clean_bash_history:  ## Remove duplicate entries from .bash_history while preserving order
-	@echo "Cleaning .bash_history..."
+dedupe_history:  ## Remove duplicate entries from .bash_history while preserving order
 	@if [ -f ~/.bash_history ]; then \
 		awk '!seen[$$0]++' ~/.bash_history > ~/.bash_history_unique && \
 		mv ~/.bash_history_unique ~/.bash_history; \
-		echo "Done. Duplicates removed from .bash_history"; \
-		echo "Note: Run 'history -c; history -r' in your shell to reload the cleaned history"; \
+		echo "Done : duplicate removed. \nRun 'history -c; history -r' in your shell to reload the cleaned history"; \
 	else \
 		echo "No .bash_history file found"; \
 	fi
-
-h:
-	history
