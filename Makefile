@@ -191,3 +191,5 @@ clean_bash_history:  ## Remove duplicate entries from .bash_history while preser
 		echo "No .bash_history file found"; \
 	fi
 
+h:
+	history
