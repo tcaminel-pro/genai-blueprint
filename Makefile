@@ -148,10 +148,11 @@ latest:  # Update selected fast changing dependencies
 # langchain-groq@latest    \
 
 # fix it AI!
-clean:  # remove byte code  DOES NOT WORK
-# find . -type f -name "*.py[co]" -delete -or -type d -name "__pycache__" -delete
-	find ./python/ai/__pycache__ -type f -delete
-	find ./python/ai/__pycache__ -type d -empty -delete
+clean:  ## Clean Python bytecode and cache files
+	find . -type f -name "*.py[co]" -delete
+	find . -type d -name "__pycache__" -delete
+	find . -type d -name ".ruff_cache" -delete
+	find . -type d -name ".mypy_cache" -delete
 
 lint:
 	poetry run ruff check --select I --fix
