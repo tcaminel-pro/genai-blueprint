@@ -13,25 +13,22 @@
 
 # General settings, notably for deployment
 
-export APP=genai-blueprint
-export IMAGE_VERSION=0.2a
-export REGISTRY_AZ=XXXX.azurecr.io
+APP=genai-blueprint
+STREAMLIT_ENTRY_POINT="python/GenAI_Lab.py"
 
-export REGISTRY_NAME=XXX
-export LOCATION=europe-west4
-export PROJECT_ID_GCP=XXX
+FASTAPI_ENTRY_POINT="python.fastapi_app:app"
 
-export STREAMLIT_ENTRY_POINT="python/GenAI_Lab.py"
+IMAGE_VERSION=0.2a
+REGISTRY_AZ=XXXX.azurecr.io
+REGISTRY_NAME=XXX
+LOCATION=europe-west4
+PROJECT_ID_GCP=XXX
 
-top_dir := $(shell pwd)
 
-
-# Declare phony targets
 .PHONY: check fast_api langserve webapp test rebase aider \
         import_files sync_time build run save \
         login_gcp build_gcp push_gcp create_repo_gcp \
-        push_az update clean lint backup
-
+        push_az latest clean lint backup
 
 
 ######################
@@ -42,7 +39,7 @@ check: ## Check if the image is built
 	docker images -a
 
 fast_api:  # run Python code localy
-	uvicorn python.fastapi_app:app --reload
+	uvicorn $(FASTAPI_ENTRY_POINT) --reload
 
 langserve:
 	python python/langserve_app.py
@@ -150,6 +147,7 @@ latest:  # Update selected fast changing dependencies
 #langchain-openai@latest
 # langchain-groq@latest    \
 
+# fix it AI!
 clean:  # remove byte code  DOES NOT WORK
 # find . -type f -name "*.py[co]" -delete -or -type d -name "__pycache__" -delete
 	find ./python/ai/__pycache__ -type f -delete
