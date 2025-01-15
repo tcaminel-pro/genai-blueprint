@@ -62,13 +62,18 @@ default_collection = global_config().get_str("vector_store", "default_collection
 
 
 def get_vector_vector_store_path() -> str:
-    # get path to store vector database, as specified in configuration file
-    dir = Path(global_config().get_str("vector_store", "path"))
-    try:
-        dir.mkdir()
-    except Exception:
-        pass  # TODO : log something
-    return str(dir)
+    """Get path to store vector database, using Modal volume if available."""
+    if modal_volume := os.environ.get("MODAL_VOLUME_PATH"):
+        # Running in Modal environment
+        return modal_volume
+    else:
+        # Local development
+        dir = Path(global_config().get_str("vector_store", "path"))
+        try:
+            dir.mkdir()
+        except Exception:
+            pass  # TODO : log something
+        return str(dir)
 
 
 class VectorStoreFactory(BaseModel):
@@ -142,11 +147,15 @@ class VectorStoreFactory(BaseModel):
         Factory for the vector database
         """
         embeddings = self.embeddings_factory.get()  # get the embedding function
+        store_path = get_vector_vector_store_path()
 
         if self.id == "Chroma":
+            # Ensure the directory exists
+            Path(store_path).mkdir(parents=True, exist_ok=True)
+            
             vector_store = Chroma(
                 embedding_function=embeddings,
-                persist_directory=get_vector_vector_store_path(),
+                persist_directory=store_path,
                 collection_name=self.collection_full_name,
                 collection_metadata=self.collection_metadata,
             )
