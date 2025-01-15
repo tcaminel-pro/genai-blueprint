@@ -134,24 +134,18 @@ push_az:  # Push to a registry
 ##  MISC  ###
 ##############
 
-clean_notebooks:  ## Clean Jupyter notebook outputs
-	@if ! command -v jupyter-nbconvert &> /dev/null; then \
-		echo "jupyter-nbconvert could not be found. Please install it first:"; \
-		echo "pip install nbconvert"; \
-		exit 1; \
-	fi
+clean_notebooks:  ## Clean Jupyter notebook outputs. Require 'nbconvert' module
 	@find . -name "*.ipynb" | while read -r notebook; do \
 		echo "Cleaning outputs from: $$notebook"; \
 		jupyter-nbconvert --clear-output --inplace "$$notebook"; \
 	done
-	@echo "Notebook outputs cleaned successfully!"
 
 latest:  # Update selected fast changing dependencies 
 	poetry add 	langchain@latest  langchain-core@latest langgraph@latest langserve@latest langchainhub@latest \
 				 langchain-experimental@latest   langchain-community@latest  \
 				 langchain-chroma@latest
-	poetry add  gpt-researcher@latest browser-use@latest smolagents@latest   langchain-mcp@latest   --G ai_extra
-	poetry add crewai@latest[tools] -G demos
+	poetry add  gpt-researcher@latest browser-use@latest smolagents@latest   langchain-mcp@latest   --group ai_extra
+	poetry add crewai@latest[tools] --group demos
 
 # aider-chat@latest
 # litellm@latest lunary@
@@ -184,5 +178,5 @@ backup:
 	~/prj ~/ln_to_onedrive/backup/wsl/tcl
 
 
-
+# create a command that remove duplicate entries in .bash_history AI!
 
