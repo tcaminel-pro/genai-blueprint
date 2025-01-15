@@ -1,4 +1,5 @@
 # Port of SmolAgents Gradio interface to Streamlit
+# NOT FULLY TESTED !!
 #
 # Original source : https://github.com/huggingface/smolagents/blob/v1.2.2/src/smolagents/gradio_ui.py
 #

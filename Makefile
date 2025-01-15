@@ -139,15 +139,15 @@ latest:  # Update selected fast changing dependencies
 	poetry add 	langchain@latest  langchain-core@latest langgraph@latest langserve@latest langchainhub@latest \
 				 langchain-experimental@latest   langchain-community@latest  \
 				 langchain-chroma@latest
-	poetry add  gpt-researcher@latest browser-use@latest smolagents@latest   langchain-mcp@latest   --group ai_extra
-
+	poetry add  gpt-researcher@latest browser-use@latest smolagents@latest   langchain-mcp@latest   --G ai_extra
+	poetry add crewai@latest[tools] -G demos
 
 # aider-chat@latest
 # litellm@latest lunary@
 #langchain-openai@latest
 # langchain-groq@latest    \
 
-# fix it AI!
+
 clean:  ## Clean Python bytecode and cache files
 	find . -type f -name "*.py[co]" -delete
 	find . -type d -name "__pycache__" -delete
