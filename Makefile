@@ -68,9 +68,10 @@ telemetry:  ## Run Phoenix telemetry server in background
 	@echo "Starting Phoenix telemetry server..."
 	@if ! pgrep -f "phoenix.server.main" > /dev/null; then \
 		python -m phoenix.server.main serve > /tmp/phoenix.log 2>&1 & \
-		echo "Phoenix started in background (PID: $$!)"; \
+		echo "Phoenix server started in background (PID: $$!)"; \
+		echo "Logs are being written to /tmp/phoenix.log"; \
 	else \
-		echo "Phoenix is already running"; \
+		echo "Phoenix server is already running"; \
 	fi
 
 ######################
