@@ -178,12 +178,14 @@ backup:
 	~/prj ~/ln_to_onedrive/backup/wsl/tcl
 
 
-clean_bash_history:  ## Remove duplicate entries from .bash_history
+dedupe_history: clean_bash_history  ## Alias for clean_bash_history
+
+clean_bash_history:  ## Remove duplicate entries from .bash_history while preserving order
 	@echo "Cleaning .bash_history..."
 	@if [ -f ~/.bash_history ]; then \
 		awk '!seen[$$0]++' ~/.bash_history > ~/.bash_history_unique && \
 		mv ~/.bash_history_unique ~/.bash_history; \
-		echo "Duplicates removed from .bash_history"; \
+		echo "Done. Duplicates removed from .bash_history"; \
 	else \
 		echo "No .bash_history file found"; \
 	fi
