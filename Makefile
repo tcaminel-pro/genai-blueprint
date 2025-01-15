@@ -172,3 +172,6 @@ backup:
 	--exclude='*' \
 	~/prj ~/ln_to_onedrive/backup/wsl/tcl
 
+
+
+
