@@ -1,10 +1,13 @@
 import streamlit as st
+from openinference.instrumentation.smolagents import SmolagentsInstrumentor
 from smolagents import (
     CodeAgent,
     DuckDuckGoSearchTool,
     LiteLLMModel,
+    VisitWebpageTool,
 )
 
+from python.ai_core.instrumentation import get_telemetry_trace_provider
 from python.ai_core.llm import LlmFactory
 from python.ai_extra.smoloagents_streamlit import stream_to_streamlit
 
@@ -13,7 +16,12 @@ model_name = LlmFactory(llm_id=MODEL_ID).get_litellm_model_name()
 llm = LiteLLMModel(model_id=model_name)
 
 
-SAMPLE_PROMPTS = {"How many seconds would it take for a leopard at full speed to run through Pont des Arts?"}
+SmolagentsInstrumentor().instrument(tracer_provider=get_telemetry_trace_provider())
+
+SAMPLE_PROMPTS = {
+    "How many seconds would it take for a leopard at full speed to run through Pont des Arts?",
+    "If the US keeps its 2024 growth rate, how many years will it take for the GDP to double?",
+}
 st.title("SmolAgents Chat Interface")
 
 with st.expander(label="Prompt examples", expanded=True):
@@ -23,6 +31,6 @@ with st.expander(label="Prompt examples", expanded=True):
 
 # Input for new messages
 if prompt := st.chat_input("What would you like to ask SmolAgents?"):
-    agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=llm)
+    agent = CodeAgent(tools=[DuckDuckGoSearchTool(), VisitWebpageTool()], model=llm)
     with st.container(height=600):
         stream_to_streamlit(agent, prompt)

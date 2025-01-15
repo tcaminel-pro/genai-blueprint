@@ -70,6 +70,7 @@ telemetry:  ## Run Phoenix telemetry server in background
 		python -m phoenix.server.main serve > /tmp/phoenix.log 2>&1 & \
 		echo "Phoenix server started in background (PID: $$!)"; \
 		echo "Logs are being written to /tmp/phoenix.log"; \
+		echo "look at: http://localhost:6006/projects" \
 	else \
 		echo "Phoenix server is already running"; \
 	fi

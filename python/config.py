@@ -39,6 +39,9 @@ from typing import Any, Dict, cast
 import yaml
 from dotenv import load_dotenv
 from loguru import logger
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from pydantic import BaseModel
 
 from python.utils.singleton import once
@@ -222,6 +225,7 @@ def config_loguru():
         backtrace=False,
         diagnose=True,
     )
+
 
 
 ## for quick test ##
