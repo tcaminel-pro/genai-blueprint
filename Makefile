@@ -64,9 +64,14 @@ aider:  ## launch aider-chat (a coding assistant) with our configuration.
 		aider $(AIDER_OPTS) --model deepseek/deepseek-chat; \
 	fi
 
-# make phoenix run in background AI!
-telemetry:
-	python -m phoenix.server.main serve &
+telemetry:  ## Run Phoenix telemetry server in background
+	@echo "Starting Phoenix telemetry server..."
+	@if ! pgrep -f "phoenix.server.main" > /dev/null; then \
+		python -m phoenix.server.main serve > /tmp/phoenix.log 2>&1 & \
+		echo "Phoenix started in background (PID: $$!)"; \
+	else \
+		echo "Phoenix is already running"; \
+	fi
 
 ######################
 ##  Project build commands
