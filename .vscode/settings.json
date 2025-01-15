@@ -62,6 +62,7 @@
         "Pylance",
         "pytest",
         "selectbox",
+        "Smol",
         "smolagents",
         "spacy",
         "streamlit",

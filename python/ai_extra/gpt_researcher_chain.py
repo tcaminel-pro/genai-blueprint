@@ -18,7 +18,7 @@ import json
 import tempfile
 import textwrap
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, List
 
 try:
     from gpt_researcher import GPTResearcher
@@ -89,10 +89,6 @@ class GptrConf(BaseModel):
         path = Path(tempfile.gettempdir()) / "gptr_conf.json"
         with open(path, "w") as json_file:
             json.dump(config_dict, json_file)
-
-        debug(config_dict)
-
-        # logger.debug("GptResearcherConfig:", config_dict)
         return str(path)
 
 
@@ -115,7 +111,7 @@ class ResearchReport(BaseModel):
 
 
 async def run_gpt_researcher(
-    query: str, gptr_config: GptrConf, verbose: bool = True, logger: Optional[Any] = None, **kwargs
+    query: str, gptr_config: GptrConf, verbose: bool = True, gptr_logger: Any | None = None, **kwargs
 ) -> ResearchReport:
     """Execute a GPT Researcher task with configurable parameters.
 
@@ -124,8 +120,9 @@ async def run_gpt_researcher(
     """
 
     researcher = GPTResearcher(
-        query=query, verbose=verbose, websocket=logger, config_path=gptr_config.get_config_path(), **kwargs
+        query=query, verbose=verbose, websocket=gptr_logger, config_path=gptr_config.get_config_path(), **kwargs
     )
+    logger.info(f"start GPT Researcher {kwargs} {gptr_config}")
     _ = await researcher.conduct_research()
     report = await researcher.write_report()
 
@@ -201,7 +198,7 @@ def gpt_researcher_chain() -> Runnable[str, ResearchReport]:
                 logger.info(f"use cached research report for query: '{textwrap.shorten(query, 15)}'")
                 return cached_result
 
-        result = await run_gpt_researcher(query=query, **gptr_params, gptr_config=gptr_conf, logger=gptr_logger)
+        result = await run_gpt_researcher(query=query, **gptr_params, gptr_config=gptr_conf, gptr_logger=gptr_logger)
         if use_cached_result:
             save_pydantic_to_store(kv_store_key, result)
         return result
