@@ -1,101 +1,90 @@
-# rewrite completely that code to make it work with streamlit.  Ie, stream_to_gradio should become stream_to_streamit AI!
-
-import gradio as gr
+import streamlit as st
+from typing import List, Dict, Any
 
 from .agents import ActionStep, AgentStep, MultiStepAgent
 from .types import AgentAudio, AgentImage, AgentText, handle_agent_output_types
 
 
-def pull_messages_from_step(step_log: AgentStep, test_mode: bool = True):
-    """Extract ChatMessage objects from agent steps"""
+def display_step_content(step_log: AgentStep, test_mode: bool = True):
+    """Display agent step content in Streamlit"""
     if isinstance(step_log, ActionStep):
-        yield gr.ChatMessage(role="assistant", content=step_log.llm_output or "")
+        if step_log.llm_output:
+            st.markdown(step_log.llm_output)
+        
         if step_log.tool_call is not None:
             used_code = step_log.tool_call.name == "code interpreter"
             content = step_log.tool_call.arguments
             if used_code:
-                content = f"```py\n{content}\n```"
-            yield gr.ChatMessage(
-                role="assistant",
-                metadata={"title": f"🛠️ Used tool {step_log.tool_call.name}"},
-                content=str(content),
-            )
+                st.code(content, language="python")
+            else:
+                st.markdown(f"**🛠️ Used tool {step_log.tool_call.name}**")
+                st.markdown(content)
+        
         if step_log.observations is not None:
-            yield gr.ChatMessage(role="assistant", content=step_log.observations)
+            st.markdown(step_log.observations)
+        
         if step_log.error is not None:
-            yield gr.ChatMessage(
-                role="assistant",
-                content=str(step_log.error),
-                metadata={"title": "💥 Error"},
-            )
+            st.error(str(step_log.error))
 
 
-def stream_to_gradio(
+def stream_to_streamlit(
     agent,
     task: str,
     test_mode: bool = False,
     reset_agent_memory: bool = False,
     **kwargs,
 ):
-    """Runs an agent with the given task and streams the messages from the agent as gradio ChatMessages."""
+    """Runs an agent with the given task and streams the messages to Streamlit"""
+    
+    # Initialize chat history if not exists
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
-    for step_log in agent.run(task, stream=True, reset=reset_agent_memory, **kwargs):
-        for message in pull_messages_from_step(step_log, test_mode=test_mode):
-            yield message
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": task})
+    
+    # Display chat messages from history
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
-    final_answer = step_log  # Last log is the run's final_answer
-    final_answer = handle_agent_output_types(final_answer)
+    # Process agent steps
+    with st.chat_message("assistant"):
+        for step_log in agent.run(task, stream=True, reset=reset_agent_memory, **kwargs):
+            display_step_content(step_log, test_mode=test_mode)
+        
+        # Handle final answer
+        final_answer = step_log  # Last log is the run's final_answer
+        final_answer = handle_agent_output_types(final_answer)
 
-    if isinstance(final_answer, AgentText):
-        yield gr.ChatMessage(
-            role="assistant",
-            content=f"**Final answer:**\n{final_answer.to_string()}\n",
-        )
-    elif isinstance(final_answer, AgentImage):
-        yield gr.ChatMessage(
-            role="assistant",
-            content={"path": final_answer.to_string(), "mime_type": "image/png"},
-        )
-    elif isinstance(final_answer, AgentAudio):
-        yield gr.ChatMessage(
-            role="assistant",
-            content={"path": final_answer.to_string(), "mime_type": "audio/wav"},
-        )
-    else:
-        yield gr.ChatMessage(role="assistant", content=str(final_answer))
+        if isinstance(final_answer, AgentText):
+            st.markdown(f"**Final answer:**\n{final_answer.to_string()}\n")
+        elif isinstance(final_answer, AgentImage):
+            st.image(final_answer.to_string())
+        elif isinstance(final_answer, AgentAudio):
+            st.audio(final_answer.to_string())
+        else:
+            st.markdown(str(final_answer))
+        
+        # Add assistant response to chat history
+        st.session_state.messages.append({
+            "role": "assistant", 
+            "content": str(final_answer)
+        })
 
 
-class GradioUI:
-    """A one-line interface to launch your agent in Gradio"""
+class StreamlitUI:
+    """A one-line interface to launch your agent in Streamlit"""
 
     def __init__(self, agent: MultiStepAgent):
         self.agent = agent
 
-    def interact_with_agent(self, prompt, messages):
-        messages.append(gr.ChatMessage(role="user", content=prompt))
-        yield messages
-        for msg in stream_to_gradio(self.agent, task=prompt, reset_agent_memory=False):
-            messages.append(msg)
-            yield messages
-        yield messages
-
     def launch(self):
-        with gr.Blocks() as demo:
-            stored_message = gr.State([])
-            chatbot = gr.Chatbot(
-                label="Agent",
-                type="messages",
-                avatar_images=(
-                    None,
-                    "https://em-content.zobj.net/source/twitter/53/robot-face_1f916.png",
-                ),
-            )
-            text_input = gr.Textbox(lines=1, label="Chat Message")
-            text_input.submit(
-                lambda s: (s, ""), [text_input], [stored_message, text_input]
-            ).then(self.interact_with_agent, [stored_message, chatbot], [chatbot])
-
-        demo.launch()
+        st.title("Agent Chat Interface")
+        
+        # Input for new messages
+        if prompt := st.chat_input("What would you like to ask the agent?"):
+            stream_to_streamlit(self.agent, task=prompt, reset_agent_memory=False)
 
 
-__all__ = ["stream_to_gradio", "GradioUI"]
+__all__ = ["stream_to_streamlit", "StreamlitUI"]
