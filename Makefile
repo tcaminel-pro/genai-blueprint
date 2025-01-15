@@ -185,8 +185,8 @@ clean_bash_history:  ## Remove duplicate entries from .bash_history while preser
 	@if [ -f ~/.bash_history ]; then \
 		awk '!seen[$$0]++' ~/.bash_history > ~/.bash_history_unique && \
 		mv ~/.bash_history_unique ~/.bash_history; \
-		history -c; history -r; \
-		echo "Done. Duplicates removed from .bash_history and shell history reloaded"; \
+		echo "Done. Duplicates removed from .bash_history"; \
+		echo "Note: Run 'history -c; history -r' in your shell to reload the cleaned history"; \
 	else \
 		echo "No .bash_history file found"; \
 	fi
