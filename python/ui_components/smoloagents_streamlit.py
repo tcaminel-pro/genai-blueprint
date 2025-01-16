@@ -29,8 +29,6 @@ def pull_messages_from_step(step_log: AgentStep, test_mode: bool = True):
         with st.chat_message("assistant"):
             st.write(step_log.llm_output or "")
 
-        debug(step_log)
-
         if step_log.tool_calls is not None:
             for tool in step_log.tool_calls:
                 used_code = tool.name == "code interpreter"
@@ -69,7 +67,7 @@ def stream_to_streamlit(
         if isinstance(final_answer, AgentText):
             st.markdown(f"**Final answer:**\n{final_answer.to_string()}\n")
         elif isinstance(final_answer, AgentImage):
-            st.image(final_answer.to_string())
+            st.image(final_answer)
         elif isinstance(final_answer, AgentAudio):
             st.audio(final_answer.to_string())
         else:

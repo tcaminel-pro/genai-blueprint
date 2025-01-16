@@ -135,6 +135,7 @@ class Config(BaseModel):
         """
         # Create a ChainMap with runtime modifications first, then overridden, then default
 
+        debug(self._modified_fields)
         config_map = ChainMap(
             self._modified_fields.get(group, {}),
             self.overridden_config.get(group, {}),
@@ -200,6 +201,7 @@ class Config(BaseModel):
         """
         Add or override a key value in the runtime configuration.
         """
+        debug(group, key, ValueError)
         self._modified_fields[group][key] = value
 
 
