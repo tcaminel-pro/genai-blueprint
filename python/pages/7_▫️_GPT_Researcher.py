@@ -61,8 +61,19 @@ class CustomLogsHandler:
         data["ts"] = datetime.now().strftime("%H:%M:%S")
         st.session_state.log_entries.append(data)
 
-        # Add autoscrolling so the list line is always displayed AI!
         with self.log_container:
+            # Automatically scroll to show latest log entries
+            st.markdown(
+                """
+                <style>
+                .stContainer {
+                    overflow-y: auto;
+                    max-height: 200px;
+                }
+                </style>
+                """,
+                unsafe_allow_html=True,
+            )
 
             def stream_log():
                 for entry in st.session_state["log_entries"]:
