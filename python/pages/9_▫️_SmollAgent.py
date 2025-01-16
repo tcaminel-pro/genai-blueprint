@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import streamlit as st
 from smolagents import (
     CodeAgent,
@@ -19,18 +21,19 @@ MODEL_ID = None
 SAMPLE_PROMPTS = {
     "How many seconds would it take for a leopard at full speed to run through Pont des Arts?",
     "If the US keeps its 2024 growth rate, how many years will it take for the GDP to double?",
+    "Which Dutch player scored an open-play goal in the 2022 Netherlands vs Argentina game in the men’s FIFA World Cup?",
 }
 
 
 st.title("SmolAgents Chat")
-
+st.logo(str(Path.cwd() / "static/eviden-logo-white.png"), size="large")
 with st.sidebar:
     llm_config()
 
 
 model_name = LlmFactory(llm_id=MODEL_ID).get_litellm_model_name()
 llm = LiteLLMModel(model_id=model_name)
-debug(model_name, llm)
+debug(model_name)
 
 
 with st.expander(label="Prompt examples", expanded=True):

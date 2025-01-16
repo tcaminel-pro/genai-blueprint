@@ -4,22 +4,29 @@ This project has several goals:
 - Support GenAI training, to illustrate key concepts, programming patterns and techniques
 - Act as a repository of well integrated reusable components 
 - Act as a template for cloud-deployable, highly configurable AI Agents 
-- Propose ready to use agentic GenAI demos   
+- Propose ready to use agentic GenAI demos, demonstrating notably:
+  - ReAct Agents to connect different data sources
+  - Tool calling agent calling an API
+  - Semantic and Hybrid search
+  - Researcher agents
+  - SmolAgents
+  - CrewAI
 
 It's based mainly on the LangChain ecosystem, and integrate many other nice solutions.
 
 ## Install
 * Use 'poetry' to install and manage project
-  * run 'poetry shell'
-  * run 'poetry update'  
+  * Run 'poetry update' 
+  * Note : you can avoid calling "poetry run' by installing the 'shell' command: poetry self add poetry-plugin-shell
 
 * Application settings are in file : app_conf.yaml ; Should likely be edited (and improved...)
 
-* Run 'python python/main_cli.py echo "hello"  ' to check CLI
-* Run 'python python/main_cli.py run joke  for a quick end-to-end test. add '--help' to see the different options
+* Run 'poetry run python python/main_cli.py echo "hello"  ' to check CLI
+* Run 'poetry run python python/main_cli.py run joke  for a quick end-to-end test. add '--help' to see the different options
 * Run 'make test' 
   - There some issues with several tests in //. 
   - You might need to change section 'pytest' app_conf.yaml too
+
 
 
 ### Key Files and Directories

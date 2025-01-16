@@ -26,6 +26,7 @@ logger.info("Start Webapp...")
 
 logo_an = str(Path.cwd() / "static" / "AcademieNumerique_Colour_RGB-150x150.jpg")
 logo_eviden = str(Path.cwd() / "static/eviden-logo-white.png")
+st.logo(logo_eviden, size="large")
 
 
 st.sidebar.success("Select a demo above.")

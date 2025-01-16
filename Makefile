@@ -155,7 +155,7 @@ latest:  # Update selected fast changing dependencies
 				 langchain-experimental@latest   langchain-community@latest  \
 				 langchain-chroma@latest
 	poetry add  gpt-researcher@latest browser-use@latest smolagents@latest   langchain-mcp@latest   --group ai_extra
-	poetry add crewai@latest[tools] --group demos
+#	poetry add crewai@latest[tools] --group demos
 
 # aider-chat@latest
 

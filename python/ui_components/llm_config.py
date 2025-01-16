@@ -8,8 +8,8 @@ from python.ai_core.llm import LlmFactory
 from python.config import global_config
 
 
-def llm_config():
-    with st.expander("LLM Configuration", expanded=True):
+def llm_config(expanded=True):
+    with st.expander("LLM Configuration", expanded=expanded):
         current_llm = global_config().get_str("llm", "default_model")
         index = LlmFactory().known_items().index(current_llm)
         llm = st.selectbox("default", LlmFactory().known_items(), index=index, key="select_llm")

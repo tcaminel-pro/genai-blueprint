@@ -5,6 +5,12 @@
     
     "jupyter.notebookFileRoot": "${workspaceFolder}", 
 
+    "cSpell.ignorePaths": [
+        "*.ipynb",
+        "*.json"
+    ],
+    "cSpell.allowCompoundWords": true,
+    "cSpell.diagnosticLevel": "Hint",
     "cSpell.words": [
         "abatch",
         "ainvoke",
@@ -17,6 +23,7 @@
         "dataframe",
         "datasources",
         "deepinfra",
+        "deepseek",
         "dotenv",
         "duckduck",
         "duckduckgo",

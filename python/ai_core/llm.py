@@ -50,6 +50,7 @@ from langchain.globals import get_llm_cache
 from langchain.schema.language_model import BaseLanguageModel
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import ConfigurableField, RunnableConfig, RunnableLambda
+from litellm import get_llm_provider
 from loguru import logger
 from pydantic import BaseModel, Field, computed_field, field_validator
 from typing_extensions import Annotated
@@ -62,6 +63,7 @@ load_dotenv(verbose=True, override=True)
 
 SEED = 42  # Arbitrary value....
 
+#cSpell: disable
 
 # List of implemented LLM providers, with the Python class to be loaded, and the name of the API key environment variable
 PROVIDER_INFO = {
@@ -76,7 +78,6 @@ PROVIDER_INFO = {
     "ChatDeepSeek": ("langchain_openai", "DEEPSEEK_API_KEY"),
     "ChatOpenrouter": ("langchain_openai", "OPENROUTER_API_KEY"),
 }
-
 
 class LlmInfo(BaseModel):
     """
@@ -217,12 +218,18 @@ class LlmFactory(BaseModel):
 
     def get_litellm_model_name(self) -> str:
         model_owner, model_short_name, provider = self.info.id.rsplit("_")
-        if provider in ["openrouter", "groq", "deepinfra"]:
-            result = f"{provider}/{self.info.model}"
-        elif provider in ["openai"]:
+        if provider in ["openai"]:
             result = f"{self.info.model}"
         else:
-            raise NotImplementedError(f"LiteLLM name conversion not (yet) implemented for {provider} ")
+            result = f"{provider}/{self.info.model}"
+
+        try:
+            get_llm_provider(result)
+            # Note: LiteLLM mentions a 'get_valid_models' call, but not seems present
+
+        except Exception as ex:
+            raise ValueError(f"Incorrect or unknown LiteLLM provider for: '{result}'") from ex
+
         return result
 
     def get(self) -> BaseChatModel:

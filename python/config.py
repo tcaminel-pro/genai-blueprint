@@ -39,9 +39,6 @@ from typing import Any, Dict, cast
 import yaml
 from dotenv import load_dotenv
 from loguru import logger
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from pydantic import BaseModel
 
 from python.utils.singleton import once
@@ -135,7 +132,6 @@ class Config(BaseModel):
         """
         # Create a ChainMap with runtime modifications first, then overridden, then default
 
-        debug(self._modified_fields)
         config_map = ChainMap(
             self._modified_fields.get(group, {}),
             self.overridden_config.get(group, {}),
@@ -201,7 +197,6 @@ class Config(BaseModel):
         """
         Add or override a key value in the runtime configuration.
         """
-        debug(group, key, ValueError)
         self._modified_fields[group][key] = value
 
 
@@ -227,7 +222,6 @@ def config_loguru():
         backtrace=False,
         diagnose=True,
     )
-
 
 
 ## for quick test ##

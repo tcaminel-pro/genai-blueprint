@@ -15,7 +15,9 @@ from python.ai_extra.gpt_researcher_chain import GptrConf, gpt_researcher_chain
 
 LOG_SIZE_MAX = 100
 
-GPTR_LLM_ID = "gpt_4omini_openrouter"
+# GPTR_LLM_ID = "gpt_4omini_openrouter"
+GPTR_LLM_ID = "deepseek:deepseek-chat"
+
 CUSTOM_GPTR_CONFIG = {
     "MAX_ITERATIONS": 3,
     "MAX_SEARCH_RESULTS_PER_QUERY": 5,
@@ -24,7 +26,10 @@ CUSTOM_GPTR_CONFIG = {
 st.title("GPT Researcher Playground")
 
 
-SAMPLE_SEARCH = ["What are the ethical issues with AI autonomous agents ? "]
+SAMPLE_SEARCH = [
+    "What are the ethical issues with AI autonomous agents ? ",
+    "What is the architecture of SmolAgents and how it compare with LangGraph ? ",
+]
 
 col1, co2 = st.columns([4, 1])
 sample_search = col1.selectbox("Sample queries", SAMPLE_SEARCH, index=None)

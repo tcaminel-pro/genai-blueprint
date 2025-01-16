@@ -34,6 +34,7 @@ Example:
     >>> results = factory.vector_store.similarity_search("query")
 """
 
+import os
 from functools import cached_property
 from pathlib import Path
 from typing import Iterable, Literal, get_args
@@ -152,7 +153,7 @@ class VectorStoreFactory(BaseModel):
         if self.id == "Chroma":
             # Ensure the directory exists
             Path(store_path).mkdir(parents=True, exist_ok=True)
-            
+
             vector_store = Chroma(
                 embedding_function=embeddings,
                 persist_directory=store_path,
