@@ -64,9 +64,8 @@ class CustomLogsHandler:
 
             def stream_log():
                 for entry in st.session_state["log_entries"]:
-                    # Keep the \n ending the test  AI!
                     line = textwrap.shorten(entry["output"], 120)
-                    yield f"{line}\n"
+                    yield f"{line}\n"  # Keep the newline for proper formatting
 
             st.write_stream(stream_log)
 
