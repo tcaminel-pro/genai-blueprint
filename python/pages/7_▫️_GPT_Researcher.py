@@ -60,12 +60,14 @@ class CustomLogsHandler:
             st.session_state.log_entries = deque(maxlen=100)
         data["ts"] = datetime.now().strftime("%H:%M:%S")
         st.session_state.log_entries.append(data)
+
+        # Add autoscrolling so the list line is always displayed AI!
         with self.log_container:
 
             def stream_log():
                 for entry in st.session_state["log_entries"]:
                     line = textwrap.shorten(entry["output"], 120)
-                    yield f"{line}\n"  # Keep the newline for proper formatting
+                    yield f"{line}\n"
 
             st.write_stream(stream_log)
 
