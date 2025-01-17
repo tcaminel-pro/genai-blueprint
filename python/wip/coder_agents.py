@@ -1,9 +1,10 @@
 """
-...
+OLD CODE ! 
 
 Copyright (C) 2023 Eviden. All rights reserved
 """
 
+from textwrap import dedent
 from typing import Optional
 
 from devtools import debug
@@ -15,6 +16,7 @@ from langchain_experimental.agents.agent_toolkits import (
 )
 from langchain_experimental.tools.python.tool import PythonAstREPLTool
 
+from python.ai_core.prompts import dedent_ws
 from python.GenAI_Lab import app_conf
 
 PREFIX = """
@@ -46,7 +48,7 @@ class DiagramGeneratorTool(BaseTool):
                 llm=app_conf.chat_gpt,  # type: ignore
                 tool=PythonAstREPLTool(return_direct=True, globals=globals, locals=globals),  # type: ignore
                 agent_type=agent_type,
-                prefix=dedent(PREFIX.format(st_container_name=name)),
+                prefix=dedent_ws(PREFIX.format(st_container_name=name)),
                 verbose=True,
                 agent_executor_kwargs={"handle_parsing_errors": True},
             )

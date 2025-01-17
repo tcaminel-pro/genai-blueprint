@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+from python.ai_core.llm import LlmFactory
+
 try:
     import pandas as pd
     import streamlit as st

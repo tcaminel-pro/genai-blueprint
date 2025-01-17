@@ -24,7 +24,7 @@ json-repair = "^0.30.0"
 fastapi = "^0.115.6"
 
 langchain = "^0.3.14"
-langchain-core = "^0.3.29"
+langchain-core = "^0.3.30"
 langchain-community = "^0.3.14"
 langchain-experimental = "^0.3.4"
 langchain-openai = "^0.2.9"

@@ -1,10 +1,6 @@
 # Hacks to solve threading issue with Streamlit
 
 import inspect
-import threading
-import weakref
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures.thread import _worker
 from typing import Callable, TypeVar
 
 from langchain_community.callbacks import StreamlitCallbackHandler
