@@ -5,7 +5,11 @@ Adapted from : https://github.com/rectalogic/langchain-mcp
 
 """
 
+import asyncio
+import os
+from contextlib import AsyncExitStack
 from pathlib import Path
+
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.memory import MemorySaver
@@ -16,24 +20,31 @@ from mcpadapt.langchain_adapter import LangChainAdapter
 
 from python.ai_core.llm import get_llm
 
+# or AsyncExitStack ?
 
-async def mcp_agent_runner(model, server_params: StdioServerParameters, prompt, config: RunnableConfig = {}):
-    async with MCPAdapt(
-        server_params,
-        LangChainAdapter(),
-    ) as tools:
-        # Create the agent
-        memory = MemorySaver()
+
+async def mcp_agent_runner(model, servers: list[StdioServerParameters], prompt, config: RunnableConfig = {}):
+    async with AsyncExitStack() as stack:
+        tools_list = [stack.enter_context(MCPAdapt(server, LangChainAdapter())) for server in servers]
+        debug(tools_list)
+        tools =  # merge and flatten tools_list AI!
+
+        if thread_id := config.get("thread_id"):
+            memory = MemorySaver()
+        else:
+            memory = None
         agent_executor = create_react_agent(model, tools, checkpointer=memory)
 
         async for event in agent_executor.astream(
             {"messages": [HumanMessage(content=prompt)]},
             config,
         ):
-            yield(event)
+            yield (event)
+
 
 if __name__ == "__main__":
     MODEL_ID = "llama31_8_groq"
+    MODEL_ID = "claude_haiku35_openrouter"
     llm = get_llm(llm_id=MODEL_ID)
 
     filesystem_mcp_params = StdioServerParameters(
@@ -55,7 +66,7 @@ if __name__ == "__main__":
     pubmed_mcp_params = StdioServerParameters(
         command="uvx",
         args=["--quiet", "pubmedmcp@0.1.3"],
-        env={"UV_PYTHON": "3.12"},
+        env={"UV_PYTHON": "3.12", **os.environ},
     )
 
     async def main():
@@ -70,7 +81,9 @@ if __name__ == "__main__":
         # r = await mcp_run(arxiv_mcp_params, llm, "{'read_paper','paper_id': '2401.12345'})")
         # message = r["messages"][-1]
         # Display and process results from mcp_agent_runner
-        async for event in mcp_agent_runner(llm, filesystem_mcp_params, "list the current directory", {}):
+        async for event in mcp_agent_runner(
+            llm, [pubmed_mcp_params], "Find relevant studies on alcohol hangover and treatment.", {}
+        ):
             if "messages" in event:
                 for message in event["messages"]:
                     print(message.content)
