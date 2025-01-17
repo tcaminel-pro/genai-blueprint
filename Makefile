@@ -169,6 +169,7 @@ lint:
 	poetry run ruff check --select I --fix
 	poetry run ruff format
 
+# exclude files from dir python/wip AI!
 quality:
 	find . -type f -name '*.py' | xargs ruff check --fix
 
