@@ -17,6 +17,7 @@ from langgraph.prebuilt import create_react_agent
 from mcp import StdioServerParameters
 from mcpadapt.core import MCPAdapt
 from mcpadapt.langchain_adapter import LangChainAdapter
+from python.utils.debug import debug
 
 from python.ai_core.llm import get_llm
 
@@ -27,7 +28,8 @@ async def mcp_agent_runner(model, servers: list[StdioServerParameters], prompt, 
     async with AsyncExitStack() as stack:
         tools_list = [stack.enter_context(MCPAdapt(server, LangChainAdapter())) for server in servers]
         debug(tools_list)
-        tools =  # merge and flatten tools_list AI!
+        # Merge and flatten tools from all MCP servers
+        tools = [tool for server_tools in tools_list for tool in server_tools.tools]
 
         if thread_id := config.get("thread_id"):
             memory = MemorySaver()
