@@ -69,12 +69,12 @@ if __name__ == "__main__":
 
         # r = await mcp_run(arxiv_mcp_params, llm, "{'read_paper','paper_id': '2401.12345'})")
         # message = r["messages"][-1]
-        # debug(message.pretty_print())
-
-        # 
-        # display result of mcp_agent_runner  (possibly change it)  AI!
-        mcp_agent_runner(llm, filesystem_mcp_params, "list the current directory", {})
-
-        r = await 
+        # Display and process results from mcp_agent_runner
+        async for event in mcp_agent_runner(llm, filesystem_mcp_params, "list the current directory", {}):
+            if "messages" in event:
+                for message in event["messages"]:
+                    print(message.content)
+            elif "output" in event:
+                print(event["output"])
 
     asyncio.run(main())
