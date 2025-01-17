@@ -169,6 +169,11 @@ lint:
 	poetry run ruff check --select I --fix
 	poetry run ruff format
 
+# check only .py files, not notebooks AI!
+
+quality:
+	ruff check --fix  
+
 backup:
 # copy to ln_to_onedrive, a symbolic link from WSL to OneDrive 
 # (created as: ln -s '/mnt/c/Users/a184094/OneDrive - Eviden'  ~/ln_to_onedrive )
