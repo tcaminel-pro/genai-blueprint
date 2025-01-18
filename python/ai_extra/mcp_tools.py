@@ -11,11 +11,17 @@ from contextlib import AsyncExitStack
 from itertools import chain
 from pathlib import Path
 
+from pydantic import BaseModel
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 from mcp import StdioServerParameters
+
+class MCPServerConfig(BaseModel):
+    """Configuration for an MCP server instance"""
+    params: StdioServerParameters
+    description: str
 from mcpadapt.core import MCPAdapt
 from mcpadapt.langchain_adapter import LangChainAdapter
 
@@ -61,42 +67,44 @@ if __name__ == "__main__":
     MODEL_ID = "claude_haiku35_openrouter"
     llm = get_llm(llm_id=MODEL_ID)
 
-    # Dictionary of MCP server parameters with descriptions
-    # replace the dict of dict bt a dict of Pydantic objets AI!
+    # Dictionary of MCP server configurations using Pydantic models
     mcp_servers = {
-        "filesystem": {
-            "params": StdioServerParameters(
+        "filesystem": MCPServerConfig(
+            params=StdioServerParameters(
                 command="npx",
                 args=["-y", "@modelcontextprotocol/server-filesystem", str(Path.cwd().parent)],
             ),
-            "description": "Provides access to local filesystem operations",
-        },
-        "timeserver": {
-            "params": StdioServerParameters(
+            description="Provides access to local filesystem operations",
+        ),
+        "timeserver": MCPServerConfig(
+            params=StdioServerParameters(
                 command="npx",
                 args=["-y", "@modelcontextprotocol/mcp-server-time"],
             ),
-            "description": "Provides current time and timezone conversions",
-        },
-        "memory": {
-            "params": StdioServerParameters(command="npx", args=["-y", "@modelcontextprotocol/server-memory"]),
-            "description": "Provides short-term memory storage and retrieval",
-        },
-        "arxiv": {
-            "params": StdioServerParameters(
+            description="Provides current time and timezone conversions",
+        ),
+        "memory": MCPServerConfig(
+            params=StdioServerParameters(
+                command="npx",
+                args=["-y", "@modelcontextprotocol/server-memory"],
+            ),
+            description="Provides short-term memory storage and retrieval",
+        ),
+        "arxiv": MCPServerConfig(
+            params=StdioServerParameters(
                 command="uv",
                 args=["tool", "run", "@smithery/arxiv-mcp-server", "--storage-path", "/tmp"],
             ),
-            "description": "Provides access to arXiv research papers",
-        },
-        "pubmed": {
-            "params": StdioServerParameters(
+            description="Provides access to arXiv research papers",
+        ),
+        "pubmed": MCPServerConfig(
+            params=StdioServerParameters(
                 command="uvx",
                 args=["--quiet", "pubmedmcp@0.1.3"],
                 env={"UV_PYTHON": "3.12", **os.environ},
             ),
-            "description": "Provides access to PubMed medical research database",
-        },
+            description="Provides access to PubMed medical research database",
+        ),
     }
 
     async def main():
@@ -122,7 +130,7 @@ if __name__ == "__main__":
         #     print(event)
         result = await mcp_agent_runner(
             llm,
-            [mcp_servers["memory"]["params"], mcp_servers["filesystem"]["params"]],
+            [mcp_servers["memory"].params, mcp_servers["filesystem"].params],
             "List content of the current directory.",
             {},
         )
