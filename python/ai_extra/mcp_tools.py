@@ -12,6 +12,7 @@ from itertools import chain
 from pathlib import Path
 
 from langchain_core.messages import HumanMessage
+from langchain_core.messages.ai import AIMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
@@ -25,12 +26,14 @@ from python.ai_core.llm import get_llm
 
 
 async def mcp_agent_runner(model, servers: list[StdioServerParameters], prompt, config: RunnableConfig = {}):
+    mode = config["configurable"].get("mode") or "async"
+    assert mode in ["async", "stream"], "'mode' should be either 'async' or 'stream"
+
     async with AsyncExitStack() as stack:
         tools_list = [stack.enter_context(MCPAdapt(server, LangChainAdapter())) for server in servers]
 
         # Merge and flatten tools from all MCP servers
         tools = list(chain.from_iterable(tools_list))
-        debug(tools)
 
         if thread_id := config.get("thread_id"):
             memory = MemorySaver()
@@ -38,14 +41,17 @@ async def mcp_agent_runner(model, servers: list[StdioServerParameters], prompt, 
             memory = None
         agent_executor = create_react_agent(model, tools, checkpointer=memory)
 
+        # call either agent_executor.astream or agent_executor.ainvoke according to 'mode'
+        # and complete typing AI!
+
         async for event in agent_executor.astream(
             {"messages": [HumanMessage(content=prompt)]},
             config,
         ):
             if agent_msg := event.get("agent"):
-                yield (agent_msg["messages"])
-            else:
-                debug(event)
+                for msg in agent_msg["messages"]:
+                    assert isinstance(msg, AIMessage)
+                    yield (msg.content)
 
 
 if __name__ == "__main__":
@@ -87,9 +93,14 @@ if __name__ == "__main__":
         # r = await mcp_run(arxiv_mcp_params, llm, "{'read_paper','paper_id': '2401.12345'})")
         # message = r["messages"][-1]
         # Display and process results from mcp_agent_runner
+        # async for event in mcp_agent_runner(
+        #     llm, [pubmed_mcp_params], "Find relevant studies on alcohol hangover and treatment.", {}
+        # ):
+        #     debug(event)
+
         async for event in mcp_agent_runner(
-            llm, [pubmed_mcp_params], "Find relevant studies on alcohol hangover and treatment.", {}
+            llm, [memory_mcp_params, filesystem_mcp_params], "List content of the current directory.", {}
         ):
-            debug(event)
+            print(event)
 
     asyncio.run(main())
