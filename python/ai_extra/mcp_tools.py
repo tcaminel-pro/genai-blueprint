@@ -41,17 +41,24 @@ async def mcp_agent_runner(model, servers: list[StdioServerParameters], prompt, 
             memory = None
         agent_executor = create_react_agent(model, tools, checkpointer=memory)
 
-        # call either agent_executor.astream or agent_executor.ainvoke according to 'mode'
-        # and complete typing AI!
-
-        async for event in agent_executor.astream(
-            {"messages": [HumanMessage(content=prompt)]},
-            config,
-        ):
-            if agent_msg := event.get("agent"):
+        if mode == "stream":
+            async for event in agent_executor.astream(
+                {"messages": [HumanMessage(content=prompt)]},
+                config,
+            ):
+                if agent_msg := event.get("agent"):
+                    for msg in agent_msg["messages"]:
+                        assert isinstance(msg, AIMessage)
+                        yield msg.content
+        else:
+            result = await agent_executor.ainvoke(
+                {"messages": [HumanMessage(content=prompt)]},
+                config,
+            )
+            if agent_msg := result.get("agent"):
                 for msg in agent_msg["messages"]:
                     assert isinstance(msg, AIMessage)
-                    yield (msg.content)
+                    yield msg.content
 
 
 if __name__ == "__main__":
