@@ -11,23 +11,24 @@ from contextlib import AsyncExitStack
 from itertools import chain
 from pathlib import Path
 
-from pydantic import BaseModel
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 from mcp import StdioServerParameters
-
-class MCPServerConfig(BaseModel):
-    """Configuration for an MCP server instance"""
-    params: StdioServerParameters
-    description: str
 from mcpadapt.core import MCPAdapt
 from mcpadapt.langchain_adapter import LangChainAdapter
+from pydantic import BaseModel
 
 from python.ai_core.llm import get_llm
 
-# or AsyncExitStack ?
+
+class MCPServerConfig(BaseModel):
+    """Configuration for an MCP server instance"""
+
+    params: StdioServerParameters
+    description: str
+    doc: str | None = None
 
 
 async def mcp_agent_runner(model, servers: list[StdioServerParameters], prompt, config: RunnableConfig = {}):
@@ -104,6 +105,11 @@ if __name__ == "__main__":
                 env={"UV_PYTHON": "3.12", **os.environ},
             ),
             description="Provides access to PubMed medical research database",
+        ),
+        "current time": MCPServerConfig(
+            params=StdioServerParameters(command="uvx", args=["MCP-timeserver"]),
+            description="get current time",
+            doc="https://github.com/SecretiveShell/MCP-timeserver",
         ),
     }
 

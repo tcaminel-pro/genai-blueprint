@@ -63,7 +63,7 @@ load_dotenv(verbose=True, override=True)
 
 SEED = 42  # Arbitrary value....
 
-#cSpell: disable
+# cSpell: disable
 
 # List of implemented LLM providers, with the Python class to be loaded, and the name of the API key environment variable
 PROVIDER_INFO = {
@@ -77,7 +77,9 @@ PROVIDER_INFO = {
     "ChatTogether": ("langchain_together", "TOGETHER_API_KEY"),
     "ChatDeepSeek": ("langchain_openai", "DEEPSEEK_API_KEY"),
     "ChatOpenrouter": ("langchain_openai", "OPENROUTER_API_KEY"),
+    "ChatFake": ("langchain_core", ""),
 }
+
 
 class LlmInfo(BaseModel):
     """
@@ -376,7 +378,13 @@ class LlmFactory(BaseModel):
                 api_key=os.environ["DEEPSEEK_API_KEY"],  # type: ignore
                 **llm_params,
             )
+        elif self.info.cls == "ChatFake":
+            from langchain_core.language_models.fake_chat_models import ParrotFakeChatModel
 
+            if self.info.model == "parrot":
+                llm = ParrotFakeChatModel()
+            else:
+                raise ValueError(f"unsupported fake model {self.info.model}")
         else:
             if self.info.cls in LlmFactory.known_items():
                 raise ValueError(f"No API key found for LLM: {self.info.cls}")

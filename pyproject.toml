@@ -70,7 +70,7 @@ browser-use = "^0.1.23"
 smolagents = "^1.4.1"
 tavily-python = "^0.3.3"
 duckduckgo-search = "^6.1.6"
-mcpadapt = "^0.0.8"
+mcpadapt = "^0.0.9"
 uvicorn = "^0.34.0"
 
 [tool.poetry.group.demos]  # Install: poetry install --with demos

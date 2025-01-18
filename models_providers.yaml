@@ -31,6 +31,12 @@
 
 
 llm:
+
+- cls: ChatFake
+  models:
+    - id: fake_parrot_local  # usefull for tests
+      model: parrot 
+
 - cls: ChatOpenAI
   models:
     - id: gpt_35_openai
@@ -161,6 +167,7 @@ llm:
       model: qwen/qwen-2-vl-72b-instruct
     - id: deepseek_v3_openrouter
       model: deepseek/deepseek-chat
+
 
 
 ########################
