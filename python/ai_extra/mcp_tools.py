@@ -61,29 +61,45 @@ if __name__ == "__main__":
     MODEL_ID = "claude_haiku35_openrouter"
     llm = get_llm(llm_id=MODEL_ID)
 
-    # replace the following variables by an dict of StdioServerParameters and a sort description of the toolkit AI!
-
-    filesystem_mcp_params = StdioServerParameters(
-        command="npx",
-        args=["-y", "@modelcontextprotocol/server-filesystem", str(Path.cwd().parent)],
-    )
-
-    timeserver_mcp_params = StdioServerParameters(
-        command="npx",
-        args=["-y", "@modelcontextprotocol/mcp-server-time"],
-    )
-
-    memory_mcp_params = StdioServerParameters(command="npx", args=["-y", "@modelcontextprotocol/server-memory"])
-
-    arxiv_mcp_params = StdioServerParameters(
-        command="uv",
-        args=["tool", "run", "@smithery/arxiv-mcp-server", "--storage-path", "/tmp"],
-    )
-    pubmed_mcp_params = StdioServerParameters(
-        command="uvx",
-        args=["--quiet", "pubmedmcp@0.1.3"],
-        env={"UV_PYTHON": "3.12", **os.environ},
-    )
+    # Dictionary of MCP server parameters with descriptions
+    mcp_servers = {
+        "filesystem": {
+            "params": StdioServerParameters(
+                command="npx",
+                args=["-y", "@modelcontextprotocol/server-filesystem", str(Path.cwd().parent)],
+            ),
+            "description": "Provides access to local filesystem operations"
+        },
+        "timeserver": {
+            "params": StdioServerParameters(
+                command="npx",
+                args=["-y", "@modelcontextprotocol/mcp-server-time"],
+            ),
+            "description": "Provides current time and timezone conversions"
+        },
+        "memory": {
+            "params": StdioServerParameters(
+                command="npx",
+                args=["-y", "@modelcontextprotocol/server-memory"]
+            ),
+            "description": "Provides short-term memory storage and retrieval"
+        },
+        "arxiv": {
+            "params": StdioServerParameters(
+                command="uv",
+                args=["tool", "run", "@smithery/arxiv-mcp-server", "--storage-path", "/tmp"],
+            ),
+            "description": "Provides access to arXiv research papers"
+        },
+        "pubmed": {
+            "params": StdioServerParameters(
+                command="uvx",
+                args=["--quiet", "pubmedmcp@0.1.3"],
+                env={"UV_PYTHON": "3.12", **os.environ},
+            ),
+            "description": "Provides access to PubMed medical research database"
+        }
+    }
 
     async def main():
         # r = await mcp_run(timeserver_mcp_params, llm, "current time in New york")
@@ -107,7 +123,10 @@ if __name__ == "__main__":
         # ):
         #     print(event)
         result = await mcp_agent_runner(
-            llm, [memory_mcp_params, filesystem_mcp_params], "List content of the current directory.", {}
+            llm, 
+            [mcp_servers["memory"]["params"], mcp_servers["filesystem"]["params"]], 
+            "List content of the current directory.", 
+            {}
         )
         debug(result)
 
