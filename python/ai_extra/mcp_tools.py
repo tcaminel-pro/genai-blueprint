@@ -12,7 +12,6 @@ from itertools import chain
 from pathlib import Path
 
 from langchain_core.messages import HumanMessage
-from langchain_core.messages.ai import AIMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
@@ -26,8 +25,8 @@ from python.ai_core.llm import get_llm
 
 
 async def mcp_agent_runner(model, servers: list[StdioServerParameters], prompt, config: RunnableConfig = {}):
-    mode = config["configurable"].get("mode") or "async"
-    assert mode in ["async", "stream"], "'mode' should be either 'async' or 'stream"
+    # mode = config["configurable"].get("mode") or "async"
+    # assert mode in ["async", "stream"], "'mode' should be either 'async' or 'stream"
 
     async with AsyncExitStack() as stack:
         tools_list = [stack.enter_context(MCPAdapt(server, LangChainAdapter())) for server in servers]
@@ -41,30 +40,28 @@ async def mcp_agent_runner(model, servers: list[StdioServerParameters], prompt, 
             memory = None
         agent_executor = create_react_agent(model, tools, checkpointer=memory)
 
-        if mode == "stream":
-            async for event in agent_executor.astream(
-                {"messages": [HumanMessage(content=prompt)]},
-                config,
-            ):
-                if agent_msg := event.get("agent"):
-                    for msg in agent_msg["messages"]:
-                        assert isinstance(msg, AIMessage)
-                        yield msg.content
-        else:
-            result = await agent_executor.ainvoke(
-                {"messages": [HumanMessage(content=prompt)]},
-                config,
-            )
-            if agent_msg := result.get("agent"):
-                for msg in agent_msg["messages"]:
-                    assert isinstance(msg, AIMessage)
-                    yield msg.content
+        # if mode == "stream":
+        # async for event in agent_executor.astream(
+        #     {"messages": [HumanMessage(content=prompt)]},
+        #     config,
+        # ):
+        #     if agent_msg := event.get("agent"):
+        #         for msg in agent_msg["messages"]:
+        #             assert isinstance(msg, AIMessage)
+        #             yield msg.content
+        result = await agent_executor.ainvoke(
+            {"messages": [HumanMessage(content=prompt)]},
+            config,
+        )
+        return result
 
 
 if __name__ == "__main__":
     MODEL_ID = "llama31_8_groq"
     MODEL_ID = "claude_haiku35_openrouter"
     llm = get_llm(llm_id=MODEL_ID)
+
+    # replace the following variables by an dict of StdioServerParameters and a sort description of the toolkit AI!
 
     filesystem_mcp_params = StdioServerParameters(
         command="npx",
@@ -105,9 +102,13 @@ if __name__ == "__main__":
         # ):
         #     debug(event)
 
-        async for event in mcp_agent_runner(
+        # async for event in mcp_agent_runner(
+        #     llm, [memory_mcp_params, filesystem_mcp_params], "List content of the current directory.", {}
+        # ):
+        #     print(event)
+        result = await mcp_agent_runner(
             llm, [memory_mcp_params, filesystem_mcp_params], "List content of the current directory.", {}
-        ):
-            print(event)
+        )
+        debug(result)
 
     asyncio.run(main())
