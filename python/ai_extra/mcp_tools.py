@@ -8,6 +8,7 @@ Adapted from : https://github.com/rectalogic/langchain-mcp
 import asyncio
 import os
 from contextlib import AsyncExitStack
+from itertools import chain
 from pathlib import Path
 
 from langchain_core.messages import HumanMessage
@@ -17,7 +18,6 @@ from langgraph.prebuilt import create_react_agent
 from mcp import StdioServerParameters
 from mcpadapt.core import MCPAdapt
 from mcpadapt.langchain_adapter import LangChainAdapter
-from python.utils.debug import debug
 
 from python.ai_core.llm import get_llm
 
@@ -27,9 +27,10 @@ from python.ai_core.llm import get_llm
 async def mcp_agent_runner(model, servers: list[StdioServerParameters], prompt, config: RunnableConfig = {}):
     async with AsyncExitStack() as stack:
         tools_list = [stack.enter_context(MCPAdapt(server, LangChainAdapter())) for server in servers]
-        debug(tools_list)
+
         # Merge and flatten tools from all MCP servers
-        tools = [tool for server_tools in tools_list for tool in server_tools.tools]
+        tools = list(chain.from_iterable(tools_list))
+        debug(tools)
 
         if thread_id := config.get("thread_id"):
             memory = MemorySaver()
@@ -41,7 +42,10 @@ async def mcp_agent_runner(model, servers: list[StdioServerParameters], prompt, 
             {"messages": [HumanMessage(content=prompt)]},
             config,
         ):
-            yield (event)
+            if agent_msg := event.get("agent"):
+                yield (agent_msg["messages"])
+            else:
+                debug(event)
 
 
 if __name__ == "__main__":
@@ -86,10 +90,6 @@ if __name__ == "__main__":
         async for event in mcp_agent_runner(
             llm, [pubmed_mcp_params], "Find relevant studies on alcohol hangover and treatment.", {}
         ):
-            if "messages" in event:
-                for message in event["messages"]:
-                    print(message.content)
-            elif "output" in event:
-                print(event["output"])
+            debug(event)
 
     asyncio.run(main())

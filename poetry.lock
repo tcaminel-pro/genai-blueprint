@@ -3486,7 +3486,7 @@ version = "0.14.0"
 description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
 optional = false
 python-versions = ">=3.7"
-groups = ["main", "ai_extra", "demos", "instrumentation", "transformers", "ui"]
+groups = ["main", "ai_extra", "demos", "instrumentation", "transformers"]
 files = [
     {file = "h11-0.14.0-py3-none-any.whl", hash = "sha256:e3fe4ac4b851c468cc8363d500db52c2ead036020723024a109d37346efaa761"},
     {file = "h11-0.14.0.tar.gz", hash = "sha256:8f19fbbe99e72420ff35c00b27a34cb9937e902a8b810e2c88300c6f0a3b699d"},
@@ -4348,7 +4348,7 @@ version = "1.1.0"
 description = "jsonref is a library for automatic dereferencing of JSON Reference objects for Python."
 optional = false
 python-versions = ">=3.7"
-groups = ["demos"]
+groups = ["ai_extra", "demos"]
 files = [
     {file = "jsonref-1.1.0-py3-none-any.whl", hash = "sha256:590dc7773df6c21cbf948b5dac07a72a251db28b0238ceecce0a2abfa8ec30a9"},
     {file = "jsonref-1.1.0.tar.gz", hash = "sha256:32fe8e1d85af0fdefbebce950af85590b22b60f9e95443176adbde4e1ecea552"},
@@ -4852,24 +4852,6 @@ tokenizers = ">=0.19.1"
 transformers = ">=4.39.0"
 
 [[package]]
-name = "langchain-mcp"
-version = "0.1.0"
-description = "Model Context Protocol tool calling support for LangChain"
-optional = false
-python-versions = ">=3.10"
-groups = ["ai_extra"]
-files = [
-    {file = "langchain_mcp-0.1.0-py3-none-any.whl", hash = "sha256:8102e04b9b0d6e9186e3fd715f2873cb486ad809ebdad49cc55b1214a7d62dfb"},
-    {file = "langchain_mcp-0.1.0.tar.gz", hash = "sha256:3a0ab6dc4d846dcc37a0866c9f0ac23a4e758706bef83ab122d62e3e2faab9cb"},
-]
-
-[package.dependencies]
-langchain-core = ">=0.3.21,<0.4.0"
-mcp = ">=1.0.0,<1.1.0"
-pydantic = ">=2.10.2,<2.11.0"
-typing-extensions = ">=4.12.2,<4.13.0"
-
-[[package]]
 name = "langchain-ollama"
 version = "0.2.2"
 description = "An integration package connecting Ollama and LangChain"
@@ -4970,14 +4952,14 @@ six = "*"
 
 [[package]]
 name = "langgraph"
-version = "0.2.63"
+version = "0.2.64"
 description = "Building stateful, multi-actor applications with LLMs"
 optional = false
 python-versions = "<4.0,>=3.9.0"
 groups = ["main"]
 files = [
-    {file = "langgraph-0.2.63-py3-none-any.whl", hash = "sha256:7867108e045c0ee52cb705749edd478b08588dce74fbd4466b4197a04c4e718b"},
-    {file = "langgraph-0.2.63.tar.gz", hash = "sha256:4bcdd6023b02d16c840b5ee612bfbafd1b9e0beef91622aa1827593374ee6e8e"},
+    {file = "langgraph-0.2.64-py3-none-any.whl", hash = "sha256:951f1b7a29708daa551cea72b7caadec4cc49ee5cd70add1a45015d1d074b0ae"},
+    {file = "langgraph-0.2.64.tar.gz", hash = "sha256:b5b030fedd41b02462bf6af88bad8ca7d6ae8ff35940bcbd9f7ed2c7e6c34950"},
 ]
 
 [package.dependencies]
@@ -5708,23 +5690,50 @@ traitlets = "*"
 
 [[package]]
 name = "mcp"
-version = "1.0.0"
+version = "1.2.0"
 description = "Model Context Protocol SDK"
 optional = false
 python-versions = ">=3.10"
 groups = ["ai_extra"]
 files = [
-    {file = "mcp-1.0.0-py3-none-any.whl", hash = "sha256:bbe70ffa3341cd4da78b5eb504958355c68381fb29971471cea1e642a2af5b8a"},
-    {file = "mcp-1.0.0.tar.gz", hash = "sha256:dba51ce0b5c6a80e25576f606760c49a91ee90210fed805b530ca165d3bbc9b7"},
+    {file = "mcp-1.2.0-py3-none-any.whl", hash = "sha256:1d0e77d8c14955a5aea1f5aa1f444c8e531c09355c829b20e42f7a142bc0755f"},
+    {file = "mcp-1.2.0.tar.gz", hash = "sha256:2b06c7ece98d6ea9e6379caa38d74b432385c338fb530cb82e2c70ea7add94f5"},
 ]
 
 [package.dependencies]
-anyio = ">=4.6"
+anyio = ">=4.5"
 httpx = ">=0.27"
 httpx-sse = ">=0.4"
-pydantic = ">=2.8.0"
-sse-starlette = ">=2.0"
-starlette = ">=0.39"
+pydantic = ">=2.10.1,<3.0.0"
+pydantic-settings = ">=2.6.1"
+sse-starlette = ">=1.6.1"
+starlette = ">=0.27"
+uvicorn = ">=0.30"
+
+[package.extras]
+cli = ["python-dotenv (>=1.0.0)", "typer (>=0.12.4)"]
+rich = ["rich (>=13.9.4)"]
+
+[[package]]
+name = "mcpadapt"
+version = "0.0.8"
+description = "Adapt MCP servers to many agentic framework."
+optional = false
+python-versions = ">=3.10"
+groups = ["ai_extra"]
+files = [
+    {file = "mcpadapt-0.0.8-py3-none-any.whl", hash = "sha256:4a1ed5cfe9de0b60a17c301bf018bc183bf76c258bc95f51b54b37fb1cf04b15"},
+    {file = "mcpadapt-0.0.8.tar.gz", hash = "sha256:66ff4917ce0d1eb99c7a4beba8a781a51235941db6ce14f6d445e3c6af36ac20"},
+]
+
+[package.dependencies]
+jsonref = ">=1.1.0"
+mcp = ">=1.2.0"
+python-dotenv = ">=1.0.1"
+
+[package.extras]
+langchain = ["langchain (>=0.3.14)", "langchain-anthropic (>=0.3.1)", "langgraph (>=0.2.62)"]
+smolagents = ["smolagents (>=1.2.2)"]
 
 [[package]]
 name = "md2pdf"
@@ -5977,7 +5986,7 @@ version = "1.3.0"
 description = "Python library for arbitrary-precision floating-point arithmetic"
 optional = false
 python-versions = "*"
-groups = ["main", "demos", "transformers"]
+groups = ["main", "ai_extra", "demos", "transformers"]
 files = [
     {file = "mpmath-1.3.0-py3-none-any.whl", hash = "sha256:a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c"},
     {file = "mpmath-1.3.0.tar.gz", hash = "sha256:7a28eb2a9774d00c7bc92411c19a89209d5da7c4c9a9e227be8330a23a25b91f"},
@@ -6282,7 +6291,7 @@ version = "3.4.2"
 description = "Python package for creating and manipulating graphs and networks"
 optional = false
 python-versions = ">=3.10"
-groups = ["main", "demos", "transformers"]
+groups = ["main", "ai_extra", "demos", "transformers"]
 files = [
     {file = "networkx-3.4.2-py3-none-any.whl", hash = "sha256:df5d4365b724cf81b8c6a7312509d0c22386097011ad1abe274afd5e9d3bbc5f"},
     {file = "networkx-3.4.2.tar.gz", hash = "sha256:307c3669428c5362aab27c8a1260aa8f47c4e91d3891f48be0141738d8d053e1"},
@@ -6401,7 +6410,7 @@ version = "12.4.5.8"
 description = "CUBLAS native runtime libraries"
 optional = false
 python-versions = ">=3"
-groups = ["main", "transformers"]
+groups = ["main", "ai_extra", "transformers"]
 markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cublas_cu12-12.4.5.8-py3-none-manylinux2014_aarch64.whl", hash = "sha256:0f8aa1706812e00b9f19dfe0cdb3999b092ccb8ca168c0db5b8ea712456fd9b3"},
@@ -6415,7 +6424,7 @@ version = "12.4.127"
 description = "CUDA profiling tools runtime libs."
 optional = false
 python-versions = ">=3"
-groups = ["main", "transformers"]
+groups = ["main", "ai_extra", "transformers"]
 markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cuda_cupti_cu12-12.4.127-py3-none-manylinux2014_aarch64.whl", hash = "sha256:79279b35cf6f91da114182a5ce1864997fd52294a87a16179ce275773799458a"},
@@ -6429,7 +6438,7 @@ version = "12.4.127"
 description = "NVRTC native runtime libraries"
 optional = false
 python-versions = ">=3"
-groups = ["main", "transformers"]
+groups = ["main", "ai_extra", "transformers"]
 markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cuda_nvrtc_cu12-12.4.127-py3-none-manylinux2014_aarch64.whl", hash = "sha256:0eedf14185e04b76aa05b1fea04133e59f465b6f960c0cbf4e37c3cb6b0ea198"},
@@ -6443,7 +6452,7 @@ version = "12.4.127"
 description = "CUDA Runtime native Libraries"
 optional = false
 python-versions = ">=3"
-groups = ["main", "transformers"]
+groups = ["main", "ai_extra", "transformers"]
 markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cuda_runtime_cu12-12.4.127-py3-none-manylinux2014_aarch64.whl", hash = "sha256:961fe0e2e716a2a1d967aab7caee97512f71767f852f67432d572e36cb3a11f3"},
@@ -6457,7 +6466,7 @@ version = "9.1.0.70"
 description = "cuDNN runtime libraries"
 optional = false
 python-versions = ">=3"
-groups = ["main", "transformers"]
+groups = ["main", "ai_extra", "transformers"]
 markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cudnn_cu12-9.1.0.70-py3-none-manylinux2014_x86_64.whl", hash = "sha256:165764f44ef8c61fcdfdfdbe769d687e06374059fbb388b6c89ecb0e28793a6f"},
@@ -6473,7 +6482,7 @@ version = "11.2.1.3"
 description = "CUFFT native runtime libraries"
 optional = false
 python-versions = ">=3"
-groups = ["main", "transformers"]
+groups = ["main", "ai_extra", "transformers"]
 markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cufft_cu12-11.2.1.3-py3-none-manylinux2014_aarch64.whl", hash = "sha256:5dad8008fc7f92f5ddfa2101430917ce2ffacd86824914c82e28990ad7f00399"},
@@ -6490,7 +6499,7 @@ version = "10.3.5.147"
 description = "CURAND native runtime libraries"
 optional = false
 python-versions = ">=3"
-groups = ["main", "transformers"]
+groups = ["main", "ai_extra", "transformers"]
 markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_curand_cu12-10.3.5.147-py3-none-manylinux2014_aarch64.whl", hash = "sha256:1f173f09e3e3c76ab084aba0de819c49e56614feae5c12f69883f4ae9bb5fad9"},
@@ -6504,7 +6513,7 @@ version = "11.6.1.9"
 description = "CUDA solver native runtime libraries"
 optional = false
 python-versions = ">=3"
-groups = ["main", "transformers"]
+groups = ["main", "ai_extra", "transformers"]
 markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cusolver_cu12-11.6.1.9-py3-none-manylinux2014_aarch64.whl", hash = "sha256:d338f155f174f90724bbde3758b7ac375a70ce8e706d70b018dd3375545fc84e"},
@@ -6523,7 +6532,7 @@ version = "12.3.1.170"
 description = "CUSPARSE native runtime libraries"
 optional = false
 python-versions = ">=3"
-groups = ["main", "transformers"]
+groups = ["main", "ai_extra", "transformers"]
 markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cusparse_cu12-12.3.1.170-py3-none-manylinux2014_aarch64.whl", hash = "sha256:9d32f62896231ebe0480efd8a7f702e143c98cfaa0e8a76df3386c1ba2b54df3"},
@@ -6540,7 +6549,7 @@ version = "2.21.5"
 description = "NVIDIA Collective Communication Library (NCCL) Runtime"
 optional = false
 python-versions = ">=3"
-groups = ["main", "transformers"]
+groups = ["main", "ai_extra", "transformers"]
 markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_nccl_cu12-2.21.5-py3-none-manylinux2014_x86_64.whl", hash = "sha256:8579076d30a8c24988834445f8d633c697d42397e92ffc3f63fa26766d25e0a0"},
@@ -6552,7 +6561,7 @@ version = "12.4.127"
 description = "Nvidia JIT LTO Library"
 optional = false
 python-versions = ">=3"
-groups = ["main", "transformers"]
+groups = ["main", "ai_extra", "transformers"]
 markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_nvjitlink_cu12-12.4.127-py3-none-manylinux2014_aarch64.whl", hash = "sha256:4abe7fef64914ccfa909bc2ba39739670ecc9e820c83ccc7a6ed414122599b83"},
@@ -6566,7 +6575,7 @@ version = "12.4.127"
 description = "NVIDIA Tools Extension"
 optional = false
 python-versions = ">=3"
-groups = ["main", "transformers"]
+groups = ["main", "ai_extra", "transformers"]
 markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_nvtx_cu12-12.4.127-py3-none-manylinux2014_aarch64.whl", hash = "sha256:7959ad635db13edf4fc65c06a6e9f9e55fc2f92596db928d169c0bb031e88ef3"},
@@ -9677,14 +9686,14 @@ files = [
 
 [[package]]
 name = "smolagents"
-version = "1.3.0"
+version = "1.4.1"
 description = "🤗 smolagents: a barebones library for agents. Agents write python code to call tools or orchestrate other agents."
 optional = false
 python-versions = ">=3.10"
 groups = ["ai_extra"]
 files = [
-    {file = "smolagents-1.3.0-py3-none-any.whl", hash = "sha256:88fb3c0de3bbc1700d97ead328a0b2c88a71229fd1a397ed9a2991fc40e7bde2"},
-    {file = "smolagents-1.3.0.tar.gz", hash = "sha256:d1a94a7ca2ae9f657bf6bf2f6a0d7933f94317e97ba62d287364d2d9c058d116"},
+    {file = "smolagents-1.4.1-py3-none-any.whl", hash = "sha256:81c01502b61652621052da9a77168d154eb63a310619368320e9c3a223bbccf8"},
+    {file = "smolagents-1.4.1.tar.gz", hash = "sha256:59ef605a0712298be825a9095d899bc4269525c1afcb46b31002b8b7a4b4ea04"},
 ]
 
 [package.dependencies]
@@ -9693,17 +9702,23 @@ e2b-code-interpreter = ">=1.0.3"
 gradio = ">=5.8.0"
 jinja2 = ">=3.1.4"
 markdownify = ">=0.14.1"
-openai = ">=1.58.1"
 pandas = ">=2.2.3"
 pillow = ">=11.0.0"
 python-dotenv = ">=1.0.1"
 requests = ">=2.32.3"
 rich = ">=13.9.4"
+torchvision = "*"
 transformers = ">=4.0.0"
 
 [package.extras]
-dev = ["accelerate", "litellm (>=1.55.10)", "soundfile", "sqlalchemy", "torch", "torchaudio", "torchvision"]
-test = ["accelerate", "litellm (>=1.55.10)", "pytest (>=8.1.0)", "ruff (>=0.5.0)", "soundfile", "sqlalchemy", "torch", "torchaudio", "torchvision"]
+audio = ["soundfile"]
+dev = ["smolagents[quality,test]", "sqlalchemy"]
+litellm = ["litellm (>=1.55.10)"]
+mcp = ["mcp", "mcpadapt (>=0.0.6)"]
+openai = ["openai (>=1.58.1)"]
+quality = ["ruff (>=0.9.0)"]
+test = ["pytest (>=8.1.0)", "smolagents[audio,litellm,mcp,openai,torch]"]
+torch = ["accelerate", "torch"]
 
 [[package]]
 name = "sniffio"
@@ -10185,7 +10200,7 @@ version = "1.13.1"
 description = "Computer algebra system (CAS) in Python"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "demos", "transformers"]
+groups = ["main", "ai_extra", "demos", "transformers"]
 files = [
     {file = "sympy-1.13.1-py3-none-any.whl", hash = "sha256:db36cdc64bf61b9b24578b6f7bab1ecdd2452cf008f34faa33776680c26d66f8"},
     {file = "sympy-1.13.1.tar.gz", hash = "sha256:9cebf7e04ff162015ce31c9c6c9144daa34a93bd082f54fd8f12deca4f47515f"},
@@ -10645,7 +10660,7 @@ version = "2.5.1"
 description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
 optional = false
 python-versions = ">=3.8.0"
-groups = ["main", "transformers"]
+groups = ["main", "ai_extra", "transformers"]
 files = [
     {file = "torch-2.5.1-cp310-cp310-manylinux1_x86_64.whl", hash = "sha256:71328e1bbe39d213b8721678f9dcac30dfc452a46d586f1d514a6aa0a99d4744"},
     {file = "torch-2.5.1-cp310-cp310-manylinux2014_aarch64.whl", hash = "sha256:34bfa1a852e5714cbfa17f27c49d8ce35e1b7af5608c4bc6e81392c352dbc601"},
@@ -10691,6 +10706,41 @@ typing-extensions = ">=4.8.0"
 [package.extras]
 opt-einsum = ["opt-einsum (>=3.3)"]
 optree = ["optree (>=0.12.0)"]
+
+[[package]]
+name = "torchvision"
+version = "0.20.1"
+description = "image and video datasets and models for torch deep learning"
+optional = false
+python-versions = ">=3.8"
+groups = ["ai_extra"]
+files = [
+    {file = "torchvision-0.20.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:4878fefb96ef293d06c27210918adc83c399d9faaf34cda5a63e129f772328f1"},
+    {file = "torchvision-0.20.1-cp310-cp310-manylinux1_x86_64.whl", hash = "sha256:8ffbdf8bf5b30eade22d459f5a313329eeadb20dc75efa142987b53c007098c3"},
+    {file = "torchvision-0.20.1-cp310-cp310-manylinux2014_aarch64.whl", hash = "sha256:75f8a4d51a593c4bab6c9bf7d75bdd88691b00a53b07656678bc55a3a753dd73"},
+    {file = "torchvision-0.20.1-cp310-cp310-win_amd64.whl", hash = "sha256:22c2fa44e20eb404b85e42b22b453863a14b0927d25e550fd4f84eea97fa5b39"},
+    {file = "torchvision-0.20.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:344b339e15e6bbb59ee0700772616d0afefd209920c762b1604368d8c3458322"},
+    {file = "torchvision-0.20.1-cp311-cp311-manylinux1_x86_64.whl", hash = "sha256:86f6523dee420000fe14c3527f6c8e0175139fda7d995b187f54a0b0ebec7eb6"},
+    {file = "torchvision-0.20.1-cp311-cp311-manylinux2014_aarch64.whl", hash = "sha256:a40d766345927639da322c693934e5f91b1ba2218846c7104b868dea2314ce8e"},
+    {file = "torchvision-0.20.1-cp311-cp311-win_amd64.whl", hash = "sha256:5b501d5c04b034d2ecda96a31ed050e383cf8201352e4c9276ca249cbecfded0"},
+    {file = "torchvision-0.20.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:1a31256ff945d64f006bb306813a7c95a531fe16bfb2535c837dd4c104533d7a"},
+    {file = "torchvision-0.20.1-cp312-cp312-manylinux1_x86_64.whl", hash = "sha256:17cd78adddf81dac57d7dccc9277a4d686425b1c55715f308769770cb26cad5c"},
+    {file = "torchvision-0.20.1-cp312-cp312-manylinux2014_aarch64.whl", hash = "sha256:9f853ba4497ac4691815ad41b523ee23cf5ba4f87b1ce869d704052e233ca8b7"},
+    {file = "torchvision-0.20.1-cp312-cp312-win_amd64.whl", hash = "sha256:4a330422c36dbfc946d3a6c1caec3489db07ecdf3675d83369adb2e5a0ca17c4"},
+    {file = "torchvision-0.20.1-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:2cd58406978b813188cf4e9135b218775b57e0bb86d4a88f0339874b8a224819"},
+    {file = "torchvision-0.20.1-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:408766b2f0ada9e1bc880d12346cec9638535af5df6459ba9ac4ce5c46402f91"},
+    {file = "torchvision-0.20.1-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:abcb8005de8dc393dbd1310ecb669dc68ab664b9107af6d698a6341d1d3f2c3c"},
+    {file = "torchvision-0.20.1-cp39-cp39-win_amd64.whl", hash = "sha256:ea9678163bbf19568f4f959d927f3751eeb833cc8eac949de507edde38c1fc9f"},
+]
+
+[package.dependencies]
+numpy = "*"
+pillow = ">=5.3.0,<8.3.dev0 || >=8.4.dev0"
+torch = "2.5.1"
+
+[package.extras]
+gdown = ["gdown (>=4.7.3)"]
+scipy = ["scipy"]
 
 [[package]]
 name = "tornado"
@@ -10888,7 +10938,7 @@ version = "3.1.0"
 description = "A language and compiler for custom Deep Learning operations"
 optional = false
 python-versions = "*"
-groups = ["main", "transformers"]
+groups = ["main", "ai_extra", "transformers"]
 markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "triton-3.1.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6b0dd10a925263abbe9fa37dcde67a5e9b2383fc269fdf59f5657cac38c5d1d8"},
@@ -11165,21 +11215,21 @@ files = [
 
 [[package]]
 name = "uvicorn"
-version = "0.27.1"
+version = "0.34.0"
 description = "The lightning-fast ASGI server."
 optional = false
-python-versions = ">=3.8"
-groups = ["main", "ai_extra", "demos", "instrumentation", "ui"]
+python-versions = ">=3.9"
+groups = ["main", "ai_extra", "demos", "instrumentation"]
 files = [
-    {file = "uvicorn-0.27.1-py3-none-any.whl", hash = "sha256:5c89da2f3895767472a35556e539fd59f7edbe9b1e9c0e1c99eebeadc61838e4"},
-    {file = "uvicorn-0.27.1.tar.gz", hash = "sha256:3d9a267296243532db80c83a959a3400502165ade2c1338dea4e67915fd4745a"},
+    {file = "uvicorn-0.34.0-py3-none-any.whl", hash = "sha256:023dc038422502fa28a09c7a30bf2b6991512da7dcdb8fd35fe57cfc154126f4"},
+    {file = "uvicorn-0.34.0.tar.gz", hash = "sha256:404051050cd7e905de2c9a7e61790943440b3416f49cb409f965d9dcd0fa73e9"},
 ]
 
 [package.dependencies]
 click = ">=7.0"
 colorama = {version = ">=0.4", optional = true, markers = "sys_platform == \"win32\" and extra == \"standard\""}
 h11 = ">=0.8"
-httptools = {version = ">=0.5.0", optional = true, markers = "extra == \"standard\""}
+httptools = {version = ">=0.6.3", optional = true, markers = "extra == \"standard\""}
 python-dotenv = {version = ">=0.13", optional = true, markers = "extra == \"standard\""}
 pyyaml = {version = ">=5.1", optional = true, markers = "extra == \"standard\""}
 uvloop = {version = ">=0.14.0,<0.15.0 || >0.15.0,<0.15.1 || >0.15.1", optional = true, markers = "(sys_platform != \"win32\" and sys_platform != \"cygwin\") and platform_python_implementation != \"PyPy\" and extra == \"standard\""}
@@ -11187,7 +11237,7 @@ watchfiles = {version = ">=0.13", optional = true, markers = "extra == \"standar
 websockets = {version = ">=10.4", optional = true, markers = "extra == \"standard\""}
 
 [package.extras]
-standard = ["colorama (>=0.4)", "httptools (>=0.5.0)", "python-dotenv (>=0.13)", "pyyaml (>=5.1)", "uvloop (>=0.14.0,!=0.15.0,!=0.15.1)", "watchfiles (>=0.13)", "websockets (>=10.4)"]
+standard = ["colorama (>=0.4)", "httptools (>=0.6.3)", "python-dotenv (>=0.13)", "pyyaml (>=5.1)", "uvloop (>=0.14.0,!=0.15.0,!=0.15.1)", "watchfiles (>=0.13)", "websockets (>=10.4)"]
 
 [[package]]
 name = "uvloop"
@@ -12283,4 +12333,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.13"
-content-hash = "7cba8f89b462ca63b8debd2c298c603638bd47dd34295b34d43f7d75e5bd3771"
+content-hash = "ca33059937646b9f5409a5d9f89a7091b89c943e19e1921b2d88ce31048f42aa"
