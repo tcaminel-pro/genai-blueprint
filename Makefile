@@ -91,8 +91,12 @@ check_poetry:  ## Check if poetry is installed, install if missing
 		echo "Poetry is not installed. Installing now..."; \
 		curl -sSL https://install.python-poetry.org | python3 -; \
 		echo "Poetry installed successfully."; \
+		@poetry self add poetry-plugin-shell
 	}
 
+install: check_poetry
+	@poetry lock
+	@poetry install
 
 ######################
 ##  Build Docker, and run locally
