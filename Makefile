@@ -95,9 +95,10 @@ check_poetry:  ## Check if poetry is installed, install if missing
 	}
 
 lock:  ## Generate poetry.lock file
-	@poetry lock
+
 
 install: check_poetry  ## Install project dependencies
+	@poetry lock
 	@poetry install
 
 ######################
