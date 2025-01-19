@@ -85,7 +85,6 @@ telemetry:  ## Run Phoenix telemetry server in background
 ##  Dependenticies intall
 #####################
 
-# correct error 'Makefile:89: *** missing separator.  Stop.'  AI!
 check_poetry:  ## Check if poetry is installed, install if missing
 	@command -v poetry >/dev/null 2>&1 || { \
 		echo "Poetry is not installed. Installing now..."; \
