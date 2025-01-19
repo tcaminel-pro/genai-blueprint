@@ -91,11 +91,13 @@ check_poetry:  ## Check if poetry is installed, install if missing
 		echo "Poetry is not installed. Installing now..."; \
 		curl -sSL https://install.python-poetry.org | python3 -; \
 		echo "Poetry installed successfully."; \
-		@poetry self add poetry-plugin-shell
+		poetry self add poetry-plugin-shell; \
 	}
 
-install: check_poetry
+lock:  ## Generate poetry.lock file
 	@poetry lock
+
+install: check_poetry  ## Install project dependencies
 	@poetry install
 
 ######################
