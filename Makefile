@@ -25,10 +25,23 @@ LOCATION=europe-west4
 PROJECT_ID_GCP=XXX
 
 
-.PHONY: check fast_api langserve webapp test rebase aider \
-        import_files sync_time build run save \
-        login_gcp build_gcp push_gcp create_repo_gcp \
-        push_az latest clean lint backup
+# Development targets
+.PHONY: check fast_api langserve webapp test rebase aider telemetry
+
+# Build and deployment targets
+.PHONY: build run save sync_time
+
+# GCP targets
+.PHONY: login_gcp build_gcp push_gcp create_repo_gcp
+
+# Azure targets
+.PHONY: push_az
+
+# Maintenance targets
+.PHONY: clean lint backup clean_notebooks dedupe_history quality latest
+
+# Poetry and installation targets
+.PHONY: check_poetry install
 
 
 ######################
