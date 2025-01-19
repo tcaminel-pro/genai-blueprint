@@ -82,7 +82,7 @@ telemetry:  ## Run Phoenix telemetry server in background
 
 
 ######################
-##  Dependenticies intall
+##  Poetry and project  intall
 #####################
 
 check_poetry:  ## Check if poetry is installed, install if missing
@@ -92,9 +92,6 @@ check_poetry:  ## Check if poetry is installed, install if missing
 		echo "Poetry installed successfully."; \
 		poetry self add poetry-plugin-shell; \
 	}
-
-lock:  ## Generate poetry.lock file
-
 
 install: check_poetry  ## Install project dependencies
 	@poetry lock
