@@ -82,6 +82,19 @@ telemetry:  ## Run Phoenix telemetry server in background
 
 
 ######################
+##  Dependenticies intall
+#####################
+
+# correct error 'Makefile:89: *** missing separator.  Stop.'  AI!
+check_poetry:
+    @command -v poetry >/dev/null 2>&1 || { \
+        echo "Poetry is not installed. Installing now..."; \
+        curl -sSL https://install.python-poetry.org | python3 -; \
+        echo "Poetry installed successfully."; \
+    }
+
+
+######################
 ##  Build Docker, and run locally
 #####################
 
