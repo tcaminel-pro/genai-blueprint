@@ -38,6 +38,7 @@ langchain-chroma = "^0.2.0"
 chromadb = "^0.5.17"
 #httpx = "^0.27.0"
 litellm = "^1.58.2"
+streamlit-pydantic = "^0.6.0"
 
 [tool.poetry.group.instrumentation]  # Install: poetry install --with ai_extra
 optional = false

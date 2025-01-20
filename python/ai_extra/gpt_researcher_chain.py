@@ -18,7 +18,7 @@ import json
 import tempfile
 import textwrap
 from pathlib import Path
-from typing import Any, List
+from typing import Any, List, Literal
 
 try:
     from gpt_researcher import GPTResearcher
@@ -32,15 +32,16 @@ from python.ai_core.llm import LlmFactory
 from python.utils.pydantic.kv_store import read_pydantic_from_store, save_pydantic_to_store
 
 
-class GptrConf(BaseModel):
-    """Configuration class for GPT Researcher's language models and settings.
+class GptrConfVariables(BaseModel):
+    """Essentially a mapping in a class of GPT Researcher's configuration variables, normaly set done through
+    environment variables or a JSON file . AllAlso used to define LLM by our llm-id. */.
 
     Attributes:
         fast_llm_id (str | None): Identifier for the fast language model.
         smart_llm_id (str | None): Identifier for the smart language model.
         strategic_llm_id (str | None): Identifier for the strategic language model.
         embeddings_id (str | None): Identifier for the embeddings model (not yet implemented).
-        extra_params (dict): Additional configuration parameters to include.
+        extra_params (dict): Additional configuration variables to include.
 
     Note:
         The LLM identifiers are in ours. They are converted to LiteLLM names.
@@ -92,6 +93,22 @@ class GptrConf(BaseModel):
         return str(path)
 
 
+class CommonConfigParams(BaseModel):
+    " NOT USED YET "
+    # https://docs.gptr.dev/docs/gpt-researcher/gptr/config
+
+    report_type: Literal["research_report", "detailed_report", "outline_report", "custom_report"] = "research_report"
+    tone: Literal["Objective", "Analytical", "Informative", "Formal", "Explanatory", "Descriptive"] = "Objective"
+    retriever: set[Literal["tavily", "duckduckgo", "google", "bing", "arxiv", "serpapi", "pubmed_central"]] = {"tavily"}
+    sources: list[str] = []
+    langage: Literal["english", "french", "dutch", "spanish", "german"] = "english"
+    max_iteration: int = Field(gt=0, lt=5, default=4)
+    max_search_result_per_query: int = Field(gt=0, lt=10, default=5)
+    curate_sources: bool = True
+    max_subtomic: int = Field(gt=0, lt=5, default=3)
+    temprature: float = Field(ge=0.0, le=1.0, default=0.55)
+
+
 class ResearchReport(BaseModel):
     """Container class for GPT Researcher results and metadata.
 
@@ -111,7 +128,7 @@ class ResearchReport(BaseModel):
 
 
 async def run_gpt_researcher(
-    query: str, gptr_config: GptrConf, verbose: bool = True, gptr_logger: Any | None = None, **kwargs
+    query: str, gptr_config: GptrConfVariables, verbose: bool = True, gptr_logger: Any | None = None, **kwargs
 ) -> ResearchReport:
     """Execute a GPT Researcher task with configurable parameters.
 
@@ -212,7 +229,7 @@ if __name__ == "__main__":
     async def main():
         query = "what are the ethical risks of LLM powered AI Agents"
         gpt_llm = "gpt_4omini_openrouter"
-        researcher_conf = GptrConf(
+        researcher_conf = GptrConfVariables(
             fast_llm_id=gpt_llm,
             smart_llm_id=gpt_llm,
             strategic_llm_id=gpt_llm,

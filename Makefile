@@ -28,6 +28,12 @@ PROJECT_ID_GCP=XXX
 # Development targets
 .PHONY: check fast_api langserve webapp test rebase aider telemetry
 
+# Maintenance targets
+.PHONY: clean lint backup clean_notebooks dedupe_history quality latest
+
+# Poetry and installation targets
+.PHONY: check_poetry install
+
 # Build and deployment targets
 .PHONY: build run save sync_time
 
@@ -36,12 +42,6 @@ PROJECT_ID_GCP=XXX
 
 # Azure targets
 .PHONY: push_az
-
-# Maintenance targets
-.PHONY: clean lint backup clean_notebooks dedupe_history quality latest
-
-# Poetry and installation targets
-.PHONY: check_poetry install
 
 
 ######################

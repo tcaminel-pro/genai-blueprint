@@ -47,20 +47,11 @@ async def mcp_agent_runner(model, servers: list[StdioServerParameters], prompt, 
             memory = None
         agent_executor = create_react_agent(model, tools, checkpointer=memory)
 
-        # if mode == "stream":
-        # async for event in agent_executor.astream(
-        #     {"messages": [HumanMessage(content=prompt)]},
-        #     config,
-        # ):
-        #     if agent_msg := event.get("agent"):
-        #         for msg in agent_msg["messages"]:
-        #             assert isinstance(msg, AIMessage)
-        #             yield msg.content
         result = await agent_executor.ainvoke(
             {"messages": [HumanMessage(content=prompt)]},
             config,
         )
-        return result
+        return result["messages"][-1].content
 
 
 if __name__ == "__main__":

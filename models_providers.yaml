@@ -96,6 +96,8 @@ llm:
       model: gemma2:2b
     - id: llava_phi3_ollama
       model: llava-phi3 
+    - id: falcon3_3_ollama
+      model: falcon3
 
 - cls: ChatEdenAI
   models:

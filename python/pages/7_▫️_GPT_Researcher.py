@@ -11,7 +11,7 @@ import streamlit as st
 from langchain.callbacks import tracing_v2_enabled
 
 from python.ai_core.llm import configurable
-from python.ai_extra.gpt_researcher_chain import GptrConf, gpt_researcher_chain
+from python.ai_extra.gpt_researcher_chain import GptrConfVariables, gpt_researcher_chain
 
 LOG_SIZE_MAX = 100
 
@@ -30,6 +30,13 @@ SAMPLE_SEARCH = [
     "What are the ethical issues with AI autonomous agents ? ",
     "What is the architecture of SmolAgents and how it compare with LangGraph ? ",
 ]
+
+
+with st.expander(label="Search Configuration"):
+    st.write("not yet implemented")
+    # import streamlit_pydantic as sp
+
+    # data = sp.pydantic_form(key="Configuration", model=CommonConfigParams)
 
 col1, co2 = st.columns([4, 1])
 sample_search = col1.selectbox("Sample queries", SAMPLE_SEARCH, index=None)
@@ -95,7 +102,7 @@ class CustomLogsHandler:
 # log_container = None
 
 
-researcher_conf = GptrConf(
+researcher_conf = GptrConfVariables(
     # fast_llm_id=gpt_llm,
     # smart_llm_id=gpt_llm,
     # strategic_llm_id=gpt_llm,
