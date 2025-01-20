@@ -94,7 +94,8 @@ class GptrConfVariables(BaseModel):
 
 
 class CommonConfigParams(BaseModel):
-    " NOT USED YET "
+    "NOT USED YET"
+
     # https://docs.gptr.dev/docs/gpt-researcher/gptr/config
 
     report_type: Literal["research_report", "detailed_report", "outline_report", "custom_report"] = "research_report"

@@ -29,7 +29,7 @@ PROJECT_ID_GCP=XXX
 .PHONY: check fast_api langserve webapp test rebase aider telemetry
 
 # Maintenance targets
-.PHONY: clean lint backup clean_notebooks dedupe_history quality latest
+.PHONY: clean lint clean_notebooks quality latest
 
 # Poetry and installation targets
 .PHONY: check_poetry install
@@ -43,6 +43,8 @@ PROJECT_ID_GCP=XXX
 # Azure targets
 .PHONY: push_az
 
+# Misc
+.PHONY:  backup 
 
 ######################
 ##  GenAI Blueprint related commands
@@ -93,6 +95,32 @@ telemetry:  ## Run Phoenix telemetry server in background
 #####################
 
 
+
+
+######################
+##  Maintenance Tasks
+#####################
+
+
+lint:
+	poetry run ruff check --select I --fix
+	poetry run ruff format
+
+quality:
+	find . -path "./python/wip" -prune -o -type f -name '*.py' | xargs ruff check --fix
+
+clean_notebooks:  ## Clean Jupyter notebook outputs. Require 'nbconvert' Python module
+	@find . -name "*.ipynb" | while read -r notebook; do \
+		echo "Cleaning outputs from: $$notebook"; \
+		jupyter-nbconvert --clear-output --inplace "$$notebook"; \
+	done
+
+latest:  # Update selected fast changing dependencies 
+	poetry add 	langchain@latest  langchain-core@latest langgraph@latest langserve@latest langchainhub@latest \
+				 langchain-experimental@latest   langchain-community@latest  \
+				 langchain-chroma@latest
+	poetry add  gpt-researcher@latest browser-use@latest smolagents@latest mcpadapt@latest  --group ai_extra
+#	poetry add crewai@latest[tools] --group demos
 
 ######################
 ##  Poetry and project  intall
@@ -173,18 +201,7 @@ push_az:  # Push to a registry
 ##  MISC  ###
 ##############
 
-clean_notebooks:  ## Clean Jupyter notebook outputs. Require 'nbconvert' Python module
-	@find . -name "*.ipynb" | while read -r notebook; do \
-		echo "Cleaning outputs from: $$notebook"; \
-		jupyter-nbconvert --clear-output --inplace "$$notebook"; \
-	done
 
-latest:  # Update selected fast changing dependencies 
-	poetry add 	langchain@latest  langchain-core@latest langgraph@latest langserve@latest langchainhub@latest \
-				 langchain-experimental@latest   langchain-community@latest  \
-				 langchain-chroma@latest
-	poetry add  gpt-researcher@latest browser-use@latest smolagents@latest mcpadapt@latest  --group ai_extra
-#	poetry add crewai@latest[tools] --group demos
 
 # aider-chat@latest
 
@@ -194,12 +211,6 @@ clean:  ## Clean Python bytecode and cache files
 	find . -type d -name ".ruff_cache" -delete
 	find . -type d -name ".mypy_cache" -delete
 
-lint:
-	poetry run ruff check --select I --fix
-	poetry run ruff format
-
-quality:
-	find . -path "./python/wip" -prune -o -type f -name '*.py' | xargs ruff check --fix
 
 backup:
 # copy to ln_to_onedrive, a symbolic link from WSL to OneDrive 

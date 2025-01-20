@@ -41,7 +41,7 @@ async def mcp_agent_runner(model, servers: list[StdioServerParameters], prompt, 
         # Merge and flatten tools from all MCP servers
         tools = list(chain.from_iterable(tools_list))
 
-        if thread_id := config.get("thread_id"):
+        if _ := config.get("thread_id"):
             memory = MemorySaver()
         else:
             memory = None

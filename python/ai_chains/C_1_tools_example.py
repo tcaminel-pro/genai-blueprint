@@ -15,7 +15,7 @@ from python.ai_core.chain_registry import (
     RunnableItem,
     register_runnable,
 )
-from python.ai_core.llm import get_llm, get_llm_info
+from python.ai_core.llm import get_llm
 
 
 @tool
@@ -64,7 +64,7 @@ register_runnable(
 def create_executor(config: dict) -> Runnable:
     llm_id = config["llm"]
     llm = get_llm(llm_id)
-    info = get_llm_info(llm_id)
+    # info = get_llm_info(llm_id)
 
     agent_builder = get_agent_builder("tool_calling")
 

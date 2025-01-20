@@ -11,7 +11,7 @@ import pandas as pd
 import typer
 
 from python.config import global_config
-from python.utils.pydantic.jsonl_store import load_objects_from_jsonl
+from python.utils.pydantic.jsonl_store import load_objects_from_jsonl, store_objects_to_jsonl
 
 try:
     from abbreviations import schwartz_hearst
@@ -28,7 +28,7 @@ from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.llm import get_llm
 from python.ai_core.prompts import def_prompt
 from python.ai_core.vector_store import VectorStoreFactory
-from python.ai_extra.bm25s_retriever import get_spacy_preprocess_fn
+from python.ai_extra.bm25s_retriever import BM25FastRetriever, get_spacy_preprocess_fn
 from python.demos.mon_master_search.model_subset import (
     ACRONYMS,
     STOP_WORDS,
@@ -192,6 +192,7 @@ def create_bm25_index(k: int = 20):
     docs_for_bm25 = list(load_objects_from_jsonl(FILES, Document))
     docs = docs_for_bm25
     path = Path(global_config().get_str("vector_store", "path")) / "bm25"
+    fn = get_spacy_preprocess_fn(model="fr_core_news_sm", more_stop_words=STOP_WORDS)  # noqa: F821
     retriever = BM25FastRetriever.from_documents(documents=docs, preprocess_func=fn, k=k, cache_dir=path)
     return retriever
 
@@ -216,7 +217,7 @@ def bm25_search(query: str, k: int = 10):
 def save_to_jsonl():
     loader = offre_formation_loader(REPO / "Offres_2024.tgz")
     processed = list(loader.load())
-    save_docs_to_jsonl(processed, FILES)
+    store_objects_to_jsonl(processed, FILES)
 
 
 @app.command()
@@ -279,7 +280,7 @@ def llm_for_abbrev():
     - ...
     """
 
-    llm_mistral = get_llm("mistral_large_edenai")
+    # llm_mistral = get_llm("mistral_large_edenai")
     llm_gpt4 = get_llm("gpt_4o_edenai")
 
     prompt = def_prompt(system, user)

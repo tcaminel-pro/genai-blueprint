@@ -143,11 +143,11 @@ if __name__ == "__main__":
         pd.DataFrame(d_vector).to_excel(writer, sheet_name="Vector_search", freeze_panes=(0, 2))
         format_sheet(writer.sheets["Vector_search"])
 
-        logger.info("Hybrid Search 50/50...")
-        d_hybrid = process_questions(_questions, SearchMode.HYBRID, 50)
-        sheet = "Hybrid_search_50_50"
-        pd.DataFrame(d_hybrid).to_excel(writer, sheet_name=sheet, freeze_panes=(0, 2))
-        format_sheet(writer.sheets[sheet])
+        # logger.info("Hybrid Search 50/50...")
+        # d_hybrid = process_questions(_questions, SearchMode.HYBRID, 50)
+        # sheet = "Hybrid_search_50_50"
+        # pd.DataFrame(d_hybrid).to_excel(writer, sheet_name=sheet, freeze_panes=(0, 2))
+        # format_sheet(writer.sheets[sheet])
 
         # logger.info("Hybrid Search 70/30...")
         # d_hybrid = process_questions(_questions, SearchMode.HYBRID, 70)

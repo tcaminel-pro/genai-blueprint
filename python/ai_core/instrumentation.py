@@ -1,6 +1,7 @@
 # utilities to instrument chain execution
+# WIP
 
-
+from openinference.instrumentation.langchain import LangChainInstrumentor
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
@@ -13,7 +14,5 @@ def get_telemetry_trace_provider() -> TracerProvider:
     # tracer_provider.add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter()))
     return trace_provider
 
-
-from openinference.instrumentation.langchain import LangChainInstrumentor
 
 LangChainInstrumentor().instrument(tracer_provider=get_telemetry_trace_provider())

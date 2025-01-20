@@ -15,17 +15,27 @@ This project has several goals:
 It's based mainly on the LangChain ecosystem, and integrate many other nice solutions.
 
 ## Install
-* Use 'poetry' to install and manage project
-  * Run 'poetry update' 
-  * Note : you can avoid calling "poetry run' by installing the 'shell' command: poetry self add poetry-plugin-shell
+We use Poetry. 
+You can either:
+* `make install`
+* or manually 
+  * `Install poetry` 
+  * Run `poetry install` 
+  * Note : you can avoid calling "poetry run' by installing the 'shell' command: `poetry self add poetry-plugin-shell`
 
-* Application settings are in file : app_conf.yaml ; Should likely be edited (and improved...)
+Configuration:
+* Application settings are in file : `app_conf.yaml` ; Should likely be edited (and improved...)
+* API keys are taken from  a `.env` file, in the project directory or its parents 
 
-* Run 'poetry run python python/main_cli.py echo "hello"  ' to check CLI
-* Run 'poetry run python python/main_cli.py run joke  for a quick end-to-end test. add '--help' to see the different options
+Quick test:
+* Run `poetry run python python/main_cli.py run joke  -m fake_parrot_local` 
+  * It should display 'Tell me a joke on Beaver' 
+  * Don't care about the warnings
+  * add `--help` to see the different options
+  * You can change the LLM by taking one in defined in `models_providers.yaml`  (if keys are in the `.env` file)
 * Run 'make test' 
   - There some issues with several tests in //. 
-  - You might need to change section 'pytest' app_conf.yaml too
+  - You might need to change section 'pytest' `app_conf.yaml` too
 
 
 
@@ -42,12 +52,15 @@ It's based mainly on the LangChain ecosystem, and integrate many other nice solu
   - `vector_store.py`: Vector store factory and operations
   - `chain_registry.py`: Runnable component registry
   - `cache.py`: LLM caching implementation
+  - `vision.py`: Faclitate use of multimodal LLM
+
 
 #### Reusable AI Components
 - `python/ai_extra/`: Generic and reusable AI components, integrated with LangChain
   - `react_agent_structured_output.py` : A ReAct agent generating Pydantic output
-  - `gpt_researcher_chain.py` : a LCEL encapsulation og GPT Researcher (A researcher agent)
+  - `gpt_researcher_chain.py` : a LCEL encapsulation of GPT Researcher (A researcher agent)
   - `smolagants_streamlit.py` : Display SmolAgents execution trace in Streamlit UI
+  - `mcp_tools.py` : Facilitate use of the Model Context Protocol.
 
 
 #### Demos with UI
@@ -65,6 +78,11 @@ It's based mainly on the LangChain ecosystem, and integrate many other nice solu
 
 #### Notebooks for GenAI training 
 - `python/Notebooks`
+
+#### Reusable UI Components
+- `python/ui/`: Generic and reusable User Interface components for Strealit
+  - `smolagants_streamlit.py` : Display SmolAgents execution trace in Streamlit UI
+  - `llm_config.py` : Form to select LLM and common configuration parameters (cache, monitoring, ...)
 
 #### Examples (more for training purpose) 
 - `python/ai_chains/`: Example chains and RAG implementations. Examples: 
