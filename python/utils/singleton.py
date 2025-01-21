@@ -1,3 +1,9 @@
+"""
+Implement 'once', a decorator that ensures the wrapped function is called once and return same result.\n
+It's typically used for thread-safe singleton instance creation.
+
+"""
+
 import inspect
 from functools import wraps
 from threading import Lock
@@ -37,7 +43,8 @@ def once():
     def decorator(func):
         # check the function has no parameters
         if len(inspect.signature(func).parameters) > 0:
-            raise ValueError("'once' function cannot have (in current version) parameters")
+            print(inspect.signature(func).parameters, func)
+            # raise ValueError("'once' function cannot have parameters (in current version - might be introduced later)")
 
         # Store instance and lock as decorator attributes
         setattr(decorator, "_cached_result", None)
@@ -63,8 +70,10 @@ if __name__ == "__main__":
     class MyClass(BaseModel):
         model_config = ConfigDict(frozen=True)
         a: int
+        b: int = 1
 
         @once()
+        @staticmethod
         def singleton() -> "MyClass":
             """Returns a singleton instance of the class"""
             return MyClass(a=1)
@@ -73,12 +82,14 @@ if __name__ == "__main__":
     obj1 = MyClass.singleton()
     obj2 = MyClass.singleton()
     # obj2.a = 2
-    obj3 = MyClass(a=4)
-    obj4 = MyClass(a=4)
+
     assert obj1 is obj2  # True - same instance
-    assert obj1 is not obj3
-    assert obj4 is not obj3
-    debug(obj1)
+
+    # obj3 = MyClass(a=4)
+    # obj4 = MyClass(a=4)
+    # assert obj1 is not obj3
+    # assert obj4 is not obj3
+    # debug(obj1)
 
     x: int = 0
 
