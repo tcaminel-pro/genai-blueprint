@@ -54,8 +54,9 @@ def once(with_args: bool = True):
         @wraps(func)
         def wrapper(*args, **kwargs):
             # Create a cache key based on the arguments
-            # sort kwargs so we can deal with named argumenys in different order AI!
-            cache_key = (args, frozenset(kwargs.items()))
+            # Sort kwargs items to handle different argument orders consistently
+            sorted_kwargs = tuple(sorted(kwargs.items()))
+            cache_key = (args, sorted_kwargs)
 
             if cache_key not in getattr(decorator, "_cached_results"):
                 with getattr(decorator, "_lock"):
