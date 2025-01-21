@@ -9,13 +9,13 @@ from functools import wraps
 from threading import Lock
 
 
-def once():
+def once(with_args: bool = True):
     """
     A decorator that ensures the wrapped function is called once and return same result.\n
     It's typically used for thread-safe singleton instance creation.
 
     It's inspired by the 'once' keyword in the Eiffel Programming language.
-    It's simpler and clearer than most usual approach to create singletons, such as inheriting a metaclass, overriding __init__(), etc.
+    It's simpler and arguably clearer than most usual approach to create singletons, such as inheriting a metaclass, overriding __init__(), etc.
 
     Purists might say it's not a 'real' Singleton class (as defined by the GoF), we can argue that it actually enforce reusability,
     since the class has not to be specialized to become a singleton.
@@ -40,11 +40,13 @@ def once():
 
     """
 
-    # Why f-string not interpolled in ValueError ?  AI?
+    # How to pass an argument to an operator (here :with_args - does not work ) AI?
     def decorator(func):
-        sig = inspect.signature(func)
-        if len(sig.parameters) > 0:
-            raise ValueError(f"'once' function cannot have parameters, but '{func.__name__}' has : {tuple(sig.parameters.keys())}")
+        params = inspect.signature(func).parameters
+        if len(params) > 0 and not with_args:
+            raise ValueError(
+                f"'once' function cannot have parameters if 'with_args' is False, but '{func.__name__}' has: {tuple(params.keys())}"
+            )
 
         setattr(decorator, "_cached_results", {})  # Store instance and lock as decorator attributes
         setattr(decorator, "_lock", Lock())
@@ -52,6 +54,7 @@ def once():
         @wraps(func)
         def wrapper(*args, **kwargs):
             # Create a cache key based on the arguments
+            # sort kwargs so we can deal with named argumenys in different order AI!
             cache_key = (args, frozenset(kwargs.items()))
 
             if cache_key not in getattr(decorator, "_cached_results"):
@@ -96,5 +99,21 @@ if __name__ == "__main__":
     assert obj1 is not obj3
 
     @once()
-    def do_something(x, y):  # raise an error
-        pass
+    def do_something_complicated(x: int, y: int):
+        return MyClass(a=x + y)
+
+    obj5 = do_something_complicated(1, 2)
+    obj6 = do_something_complicated(1, 2)
+    obj7 = do_something_complicated(2, 3)
+
+    assert obj5 is obj6
+    assert obj5 is not obj7
+    assert obj7.a == 5
+
+    # @once(with_args=False)
+    # def do_something_complicated_2(x: int, y: int):
+    #     return MyClass(a=x + y)
+
+    # obj5 = do_something_complicated_2(1, 2)
+    # obj6 = do_something_complicated_2(1, 2)
+    # obj7 = do_something_complicated_2(2, 3)
