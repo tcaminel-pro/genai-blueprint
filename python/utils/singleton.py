@@ -40,11 +40,14 @@ def once():
 
     """
 
+    # Why f-string not interpolled in ValueError ?  AI?
     def decorator(func):
         sig = inspect.signature(func)
         if len(sig.parameters) > 0:
-            error = f"'once' function cannot have parameters. Function '{func.__name__}' has parameters: {tuple(sig.parameters.keys())}"
-            raise ValueError(error)
+            error = (
+               
+            )
+            raise ValueError( f"'once' function cannot have parameters, but '{func.__name__}' has : {tuple(sig.parameters.keys())}")
 
         setattr(decorator, "_cached_results", {})  # Store instance and lock as decorator attributes
         setattr(decorator, "_lock", Lock())
