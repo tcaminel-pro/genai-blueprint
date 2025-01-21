@@ -20,24 +20,21 @@ def once(with_args: bool = True):
     Purists might say it's not a 'real' Singleton class (as defined by the GoF), we can argue that it actually enforce reusability,
     since the class has not to be specialized to become a singleton.
 
-    example use:
-    ```
-        class MyClass (BaseModel):
-            model_config = ConfigDict(frozen=True)
+    Args:
+        with_args: If True (default), allows caching based on function arguments. If False,
+                  the decorated function must not take any parameters.
 
-            @once()
-            def singleton() -> "MyClass":
-                "Returns a singleton instance of the class"
-                return MyClass()
+    Example:
+        @once(with_args=True)
+        def get_instance(x: int):
+            return MyClass(x)
+
+        @once()
+        def singleton() -> "MyClass":
+            "Returns a singleton instance of the class"
+            return MyClass()
 
         my_class_singleton = MyClass.singleton()
-
-    # work for functions, too:
-        @once()
-        def get_my_class_singleton():
-            return MyClass()
-            ...
-
     """
 
     # How to pass an argument to an operator (here :with_args - does not work ) AI?
