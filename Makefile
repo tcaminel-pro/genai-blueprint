@@ -7,9 +7,9 @@
 # Usage: make [target]
 
 
-##############################
+######################################
 ##  Development Environment ##
-##############################
+######################################
 
 # General settings, notably for deployment
 
@@ -46,10 +46,9 @@ PROJECT_ID_GCP=XXX
 # Misc
 .PHONY:  backup 
 
-######################
+##############################
 ##  GenAI Blueprint related commands
-#####################
-
+##############################
 check: ## Check if the image is built
 	docker images -a
 
@@ -90,17 +89,9 @@ telemetry:  ## Run Phoenix telemetry server in background
 		echo "Phoenix server is already running"; \
 	fi
 
-######################
-##  Project build commands
-#####################
-
-
-
-
-######################
+##############################
 ##  Maintenance Tasks
-#####################
-
+##############################
 
 lint:
 	poetry run ruff check --select I --fix
@@ -122,10 +113,9 @@ latest:  # Update selected fast changing dependencies
 	poetry add  gpt-researcher@latest browser-use@latest smolagents@latest mcpadapt@latest  --group ai_extra
 #	poetry add crewai@latest[tools] --group demos
 
-######################
+##############################
 ##  Poetry and project  intall
-#####################
-
+##############################
 check_poetry:  ## Check if poetry is installed, install if missing
 	@command -v poetry >/dev/null 2>&1 || { \
 		echo "Poetry is not installed. Installing now..."; \
@@ -138,10 +128,9 @@ install: check_poetry  ## Install project dependencies
 	@poetry lock
 	@poetry install
 
-######################
+##############################
 ##  Build Docker, and run locally
-#####################
-
+##############################
 #WARNING : Put the API key into the docker image. NOT RECOMMANDED IN PRODUCTION
 
 sync_time:  # Needed because WSL loose time after hibernation, and that can cause issues when pushing 
@@ -201,8 +190,6 @@ push_az:  # Push to a registry
 ##  MISC  ###
 ##############
 
-
-
 # aider-chat@latest
 
 clean:  ## Clean Python bytecode and cache files
@@ -235,3 +222,11 @@ dedupe_history:  ## Remove duplicate entries from .bash_history while preserving
 	else \
 		echo "No .bash_history file found"; \
 	fi
+
+
+
+##############################
+##  Project specific commands
+##############################
+
+

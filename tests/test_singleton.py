@@ -1,4 +1,4 @@
-"""
+""" "
 Tests for the singleton.py module
 """
 
@@ -13,7 +13,7 @@ class TestModel(BaseModel):
     value: int
 
     @once()
-    def singleton(cls) -> "TestModel":
+    def singleton() -> "TestModel":
         """Returns a singleton instance of the class"""
         return TestModel(value=42)
 
@@ -28,9 +28,11 @@ def test_class_singleton():
     """Test that class method returns same instance"""
     instance1 = TestModel.singleton()
     instance2 = TestModel.singleton()
-    
+
     assert instance1 is instance2
     assert instance1.value == 42
+
+
     assert instance2.value == 42
 
 
@@ -38,7 +40,7 @@ def test_function_singleton():
     """Test that function returns same value"""
     val1 = test_singleton_func()
     val2 = test_singleton_func()
-    
+
     assert val1 is val2
     assert val1 == 100
 
@@ -56,5 +58,5 @@ def test_different_singletons():
     """Test that different singletons return different instances"""
     class_instance = TestModel.singleton()
     func_value = test_singleton_func()
-    
+
     assert class_instance is not func_value

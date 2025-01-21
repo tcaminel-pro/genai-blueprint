@@ -12,7 +12,7 @@ import streamlit as st
 from langsmith import Client
 from loguru import logger  # noqa: F401
 
-from python.ai_agents.maintenance_agents import (
+from python.demos.maintenance_agent.maintenance_agents import (
     DATA_PATH,
     PROCEDURES,
     create_maintenance_agent,
