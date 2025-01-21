@@ -41,15 +41,19 @@ def once():
     """
 
     def decorator(func):
-        # Store instance and lock as decorator attributes
-        setattr(decorator, "_cached_results", {})
+        sig = inspect.signature(func)
+        if len(sig.parameters) > 0:
+            error = f"'once' function cannot have parameters. Function '{func.__name__}' has parameters: {tuple(sig.parameters.keys())}"
+            raise ValueError(error)
+
+        setattr(decorator, "_cached_results", {})  # Store instance and lock as decorator attributes
         setattr(decorator, "_lock", Lock())
 
         @wraps(func)
         def wrapper(*args, **kwargs):
             # Create a cache key based on the arguments
             cache_key = (args, frozenset(kwargs.items()))
-            
+
             if cache_key not in getattr(decorator, "_cached_results"):
                 with getattr(decorator, "_lock"):
                     if cache_key not in getattr(decorator, "_cached_results"):
@@ -72,7 +76,6 @@ if __name__ == "__main__":
         b: int = 1
 
         @once()
-        @staticmethod
         def singleton() -> "MyClass":
             """Returns a singleton instance of the class"""
             return MyClass(a=1)
@@ -80,27 +83,21 @@ if __name__ == "__main__":
     # Usage example:
     obj1 = MyClass.singleton()
     obj2 = MyClass.singleton()
-    # obj2.a = 2
-
     assert obj1 is obj2  # True - same instance
 
-    # obj3 = MyClass(a=4)
-    # obj4 = MyClass(a=4)
-    # assert obj1 is not obj3
-    # assert obj4 is not obj3
-    # debug(obj1)
+    @once()
+    def get_my_class_singleton():
+        return MyClass(a=4)
 
-    x: int = 0
+    obj3 = get_my_class_singleton()
+    obj4 = get_my_class_singleton()
+    assert obj3 is obj4  # True - same instance
+
+    assert obj1 is not obj3
 
     @once()
-    def inc(a):
-        global x
-        print("execute code")
-        x = x + 1
-        return x
+    def do_something(x, y):  # raise an error
+        pass
 
-    print(inc(2))  # should be 1
-    print(inc(2))  # should be 1 (cached)
-    print(inc(3))  # should be 2 (new call with different arg)
-    print(inc(2))  # should be 1 (cached)
-    print(inc(3))  # should be 2 (cached)
+
+# create a pytest file AI!Y
