@@ -98,6 +98,3 @@ if __name__ == "__main__":
     @once()
     def do_something(x, y):  # raise an error
         pass
-
-
-# create a pytest file AI!Y
