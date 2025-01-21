@@ -44,10 +44,7 @@ def once():
     def decorator(func):
         sig = inspect.signature(func)
         if len(sig.parameters) > 0:
-            error = (
-               
-            )
-            raise ValueError( f"'once' function cannot have parameters, but '{func.__name__}' has : {tuple(sig.parameters.keys())}")
+            raise ValueError(f"'once' function cannot have parameters, but '{func.__name__}' has : {tuple(sig.parameters.keys())}")
 
         setattr(decorator, "_cached_results", {})  # Store instance and lock as decorator attributes
         setattr(decorator, "_lock", Lock())
