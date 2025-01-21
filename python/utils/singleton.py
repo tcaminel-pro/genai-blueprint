@@ -41,22 +41,21 @@ def once():
     """
 
     def decorator(func):
-        # check the function has no parameters
-        if len(inspect.signature(func).parameters) > 0:
-            print(inspect.signature(func).parameters, func)
-            # raise ValueError("'once' function cannot have parameters (in current version - might be introduced later)")
-
         # Store instance and lock as decorator attributes
-        setattr(decorator, "_cached_result", None)
+        setattr(decorator, "_cached_results", {})
         setattr(decorator, "_lock", Lock())
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            if getattr(decorator, "_cached_result") is None:
-                with getattr(decorator, "_lock"):  # acquire the lock for thread-safety
-                    if getattr(decorator, "_cached_result") is None:
-                        setattr(decorator, "_cached_result", func(*args[1:], **kwargs))
-            return getattr(decorator, "_cached_result")
+            # Create a cache key based on the arguments
+            cache_key = (args, frozenset(kwargs.items()))
+            
+            if cache_key not in getattr(decorator, "_cached_results"):
+                with getattr(decorator, "_lock"):
+                    if cache_key not in getattr(decorator, "_cached_results"):
+                        result = func(*args, **kwargs)
+                        getattr(decorator, "_cached_results")[cache_key] = result
+            return getattr(decorator, "_cached_results")[cache_key]
 
         return wrapper
 
@@ -101,5 +100,7 @@ if __name__ == "__main__":
         return x
 
     print(inc(2))  # should be 1
-    print(inc(2))  # should be 1
-    print(inc(2))  # should be 1
+    print(inc(2))  # should be 1 (cached)
+    print(inc(3))  # should be 2 (new call with different arg)
+    print(inc(2))  # should be 1 (cached)
+    print(inc(3))  # should be 2 (cached)
