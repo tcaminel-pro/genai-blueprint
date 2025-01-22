@@ -57,8 +57,14 @@ def once():
                     return make_hashable(vars(obj))
                 return str(obj)
 
-            sorted_kwargs = tuple(sorted((k, make_hashable(v)) for k, v in kwargs.items()))
-            cache_key = (make_hashable(args), sorted_kwargs)
+            # Get function signature to properly handle default args
+            sig = inspect.signature(func)
+            bound_args = sig.bind(*args, **kwargs)
+            bound_args.apply_defaults()
+            
+            # Create cache key that treats positional and keyword args the same
+            sorted_args = tuple(sorted((k, make_hashable(v)) for k, v in bound_args.arguments.items()))
+            cache_key = sorted_args
 
             if cache_key not in getattr(decorator, "_cached_results"):
                 with getattr(decorator, "_lock"):

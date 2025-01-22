@@ -134,21 +134,24 @@ def test_singleton_with_args():
 def test_thread_safety_with_cache():
     """Test that singleton creation is thread-safe with caching"""
     import threading
+    from threading import Barrier
 
     results = []
-    lock = threading.Lock()
     call_count = 0
+    call_count_lock = threading.Lock()
+    barrier = Barrier(10)
 
     @once()
     def thread_test_func(x):
         nonlocal call_count
-        with lock:
+        barrier.wait()  # Ensure all threads start at same time
+        with call_count_lock:
             call_count += 1
         return TestModel(value=x)
 
     def worker(x):
         instance = thread_test_func(x)
-        with lock:
+        with call_count_lock:
             results.append(instance)
 
     # Test with same args
@@ -172,7 +175,7 @@ def test_thread_safety_with_cache():
 
     # Should have 10 different instances
     assert len(set(results)) == 10
-    assert call_count == 11
+    assert call_count == 11  # 1 from first test + 10 new calls
 
 
 def test_different_singletons():
