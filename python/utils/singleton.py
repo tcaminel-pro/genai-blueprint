@@ -34,21 +34,31 @@ def once():
     """
 
     def decorator(func):
-        # Having more than 1 parameter in the function is not fully implemented, so we forbit that case
-        params = inspect.signature(func).parameters
-        if len(params) > 1:
-            raise ValueError(
-                f"'once' function cannot have more that 1 parameter, but '{func.__name__}' has: {tuple(params.keys())}"
-            )
-
         setattr(decorator, "_cached_results", {})  # Store instance and lock as decorator attributes
         setattr(decorator, "_lock", Lock())
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            # Create a cache key based on the arguments - But does not work well with several arguments
-            sorted_kwargs = tuple(sorted(kwargs.items()))
-            cache_key = (args, sorted_kwargs)
+            # Create a stable cache key that handles:
+            # - Multiple arguments
+            # - Mutable types (lists, dicts)
+            # - None values
+            # - Keyword argument order
+            def make_hashable(obj):
+                if obj is None:
+                    return None
+                if isinstance(obj, (int, float, str, bool)):
+                    return obj
+                if isinstance(obj, (list, tuple)):
+                    return tuple(make_hashable(x) for x in obj)
+                if isinstance(obj, dict):
+                    return tuple(sorted((k, make_hashable(v)) for k, v in obj.items()))
+                if hasattr(obj, '__dict__'):
+                    return make_hashable(vars(obj))
+                return str(obj)
+
+            sorted_kwargs = tuple(sorted((k, make_hashable(v)) for k, v in kwargs.items()))
+            cache_key = (make_hashable(args), sorted_kwargs)
 
             if cache_key not in getattr(decorator, "_cached_results"):
                 with getattr(decorator, "_lock"):

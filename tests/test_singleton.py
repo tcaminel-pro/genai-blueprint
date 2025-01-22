@@ -82,22 +82,53 @@ def test_singleton_with_args():
     instance5 = cached_func(y=4, x=1)
     assert instance5 is instance1
 
-    return
-    # # Test mutable args are handled correctly
-    # @once()
-    # def cached_list_func(items: list):
-    #     return TestModel(value=sum(items))
+    # Test mutable args are handled correctly
+    @once()
+    def cached_list_func(items: list):
+        return TestModel(value=sum(items))
 
-    # list1 = [1, 2, 3]
-    # instance6 = cached_list_func(list1)
-    # instance7 = cached_list_func(list1.copy())
-    # assert instance6 is instance7
+    list1 = [1, 2, 3]
+    instance6 = cached_list_func(list1)
+    instance7 = cached_list_func(list1.copy())
+    assert instance6 is instance7
 
-    # # Changing the list shouldn't affect cached result
-    # list1.append(4)
-    # instance8 = cached_list_func(list1)
-    # assert instance8 is not instance6
-    # assert instance8.value == 10
+    # Changing the list shouldn't affect cached result
+    list1.append(4)
+    instance8 = cached_list_func(list1)
+    assert instance8 is not instance6
+    assert instance8.value == 10
+
+    # Test multiple args with mutable types
+    @once()
+    def multi_arg_func(a: int, b: list, c: dict):
+        return TestModel(value=a + sum(b) + sum(c.values()))
+
+    list2 = [1, 2]
+    dict1 = {'x': 3}
+    instance9 = multi_arg_func(1, list2, dict1)
+    instance10 = multi_arg_func(1, list2.copy(), dict1.copy())
+    assert instance9 is instance10
+    assert instance9.value == 7
+
+    # Different args should create new instance
+    list2.append(3)
+    instance11 = multi_arg_func(1, list2, dict1)
+    assert instance11 is not instance9
+    assert instance11.value == 10
+
+    # Test with None values
+    @once()
+    def none_arg_func(a: int | None, b: str | None = None):
+        return TestModel(value=a if a else 0)
+
+    instance12 = none_arg_func(None)
+    instance13 = none_arg_func(None)
+    assert instance12 is instance13
+    assert instance12.value == 0
+
+    instance14 = none_arg_func(5)
+    assert instance14 is not instance12
+    assert instance14.value == 5
 
 
 def test_thread_safety_with_cache():
