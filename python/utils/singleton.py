@@ -9,7 +9,7 @@ from functools import wraps
 from threading import Lock
 
 
-def once(with_args: bool = True):
+def once():
     """
     A decorator that ensures the wrapped function is called once and return same result.\n
     It's typically used for thread-safe singleton instance creation.
@@ -20,12 +20,8 @@ def once(with_args: bool = True):
     Purists might say it's not a 'real' Singleton class (as defined by the GoF), we can argue that it actually enforce reusability,
     since the class has not to be specialized to become a singleton.
 
-    Args:
-        with_args: If True (default), allows caching based on function arguments. If False,
-                  the decorated function must not take any parameters.
-
     Example:
-        @once(with_args=True)
+        @once()
         def get_instance(x: int):
             return MyClass(x)
 
@@ -37,12 +33,12 @@ def once(with_args: bool = True):
         my_class_singleton = MyClass.singleton()
     """
 
-    # How to pass an argument to an operator (here :with_args - does not work ) AI?
     def decorator(func):
+        # Having more than 1 parameter in the function is not fully implemented, so we forbit that case
         params = inspect.signature(func).parameters
-        if len(params) > 0 and not with_args:
+        if len(params) > 1:
             raise ValueError(
-                f"'once' function cannot have parameters if 'with_args' is False, but '{func.__name__}' has: {tuple(params.keys())}"
+                f"'once' function cannot have more that 1 parameter, but '{func.__name__}' has: {tuple(params.keys())}"
             )
 
         setattr(decorator, "_cached_results", {})  # Store instance and lock as decorator attributes
@@ -50,8 +46,7 @@ def once(with_args: bool = True):
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            # Create a cache key based on the arguments
-            # Sort kwargs items to handle different argument orders consistently
+            # Create a cache key based on the arguments - But does not work well with several arguments
             sorted_kwargs = tuple(sorted(kwargs.items()))
             cache_key = (args, sorted_kwargs)
 
@@ -97,21 +92,17 @@ if __name__ == "__main__":
     assert obj1 is not obj3
 
     @once()
-    def do_something_complicated(x: int, y: int):
-        return MyClass(a=x + y)
+    def do_something_complicated(x: int):
+        return MyClass(a=x)
 
-    obj5 = do_something_complicated(1, 2)
-    obj6 = do_something_complicated(1, 2)
-    obj7 = do_something_complicated(2, 3)
+    obj5 = do_something_complicated(1)
+    obj6 = do_something_complicated(1)
+    obj7 = do_something_complicated(2)
 
     assert obj5 is obj6
     assert obj5 is not obj7
-    assert obj7.a == 5
+    assert obj7.a == 2
 
-    # @once(with_args=False)
-    # def do_something_complicated_2(x: int, y: int):
-    #     return MyClass(a=x + y)
-
-    # obj5 = do_something_complicated_2(1, 2)
-    # obj6 = do_something_complicated_2(1, 2)
-    # obj7 = do_something_complicated_2(2, 3)
+    @once()
+    def do_something_complicated_2(x: int, y: int):  # fail
+        return MyClass(a=x + y)
