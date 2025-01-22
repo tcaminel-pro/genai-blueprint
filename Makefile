@@ -61,9 +61,8 @@ langserve:
 webapp:
 	streamlit run $(STREAMLIT_ENTRY_POINT)
 
-# make posible to add an optional parameter to 'make test' to select which test to execute AI!
 test:
-	pytest -sv
+	pytest -sv $(if $(TEST),$(TEST),)
 
 rebase:
 	git fetch origin
