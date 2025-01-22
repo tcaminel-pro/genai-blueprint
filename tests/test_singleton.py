@@ -7,14 +7,14 @@ from pydantic import BaseModel, ConfigDict
 from python.utils.singleton import once
 
 
-class TestModel(BaseModel):
+class SingletonExample(BaseModel):
     model_config = ConfigDict(frozen=True)
     value: int
 
     @once()
-    def singleton() -> "TestModel":
+    def singleton() -> "SingletonExample":
         """Returns a singleton instance of the class"""
-        return TestModel(value=42)
+        return SingletonExample(value=42)
 
 
 @once()
@@ -25,8 +25,8 @@ def singleton_func() -> int:
 
 def test_class_singleton():
     """Test that class method returns same instance"""
-    instance1 = TestModel.singleton()
-    instance2 = TestModel.singleton()
+    instance1 = SingletonExample.singleton()
+    instance2 = SingletonExample.singleton()
 
     assert instance1 is instance2
     assert instance1.value == 42
@@ -46,7 +46,7 @@ def test_function_singleton():
 def test_singleton_with_args():
     @once()
     def do_something_complicated(x: int, y: int):
-        return TestModel(value=x + y)
+        return SingletonExample(value=x + y)
 
     obj5 = do_something_complicated(10, 2)
     obj6 = do_something_complicated(10, 2)
@@ -60,7 +60,7 @@ def test_singleton_with_args():
 
     @once()
     def cached_func(x: int, y: int = 0):
-        return TestModel(value=x + y)
+        return SingletonExample(value=x + y)
 
     # Same args - same instance
     instance1 = cached_func(1, 4)
@@ -85,7 +85,7 @@ def test_singleton_with_args():
     # Test mutable args are handled correctly
     @once()
     def cached_list_func(items: list):
-        return TestModel(value=sum(items))
+        return SingletonExample(value=sum(items))
 
     list1 = [1, 2, 3]
     instance6 = cached_list_func(list1)
@@ -101,7 +101,7 @@ def test_singleton_with_args():
     # Test multiple args with mutable types
     @once()
     def multi_arg_func(a: int, b: list, c: dict):
-        return TestModel(value=a + sum(b) + sum(c.values()))
+        return SingletonExample(value=a + sum(b) + sum(c.values()))
 
     list2 = [1, 2]
     dict1 = {'x': 3}
@@ -119,7 +119,7 @@ def test_singleton_with_args():
     # Test with None values
     @once()
     def none_arg_func(a: int | None, b: str | None = None):
-        return TestModel(value=a if a else 0)
+        return SingletonExample(value=a if a else 0)
 
     instance12 = none_arg_func(None)
     instance13 = none_arg_func(None)
@@ -180,7 +180,7 @@ def test_singleton_with_args():
 
 def test_different_singletons():
     """Test that different singletons return different instances"""
-    class_instance = TestModel.singleton()
+    class_instance = SingletonExample.singleton()
     func_value = singleton_func()
 
     assert class_instance is not func_value
@@ -195,7 +195,7 @@ def test_thread_safety():
 
     @once()
     def thread_test_func():
-        return TestModel(value=42)
+        return SingletonExample(value=42)
 
     def worker():
         instance = thread_test_func()

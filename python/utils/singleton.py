@@ -82,24 +82,24 @@ def once():
 if __name__ == "__main__":
     from pydantic import BaseModel, ConfigDict
 
-    class MyClass(BaseModel):
+    class SingletonTestModel(BaseModel):
         model_config = ConfigDict(frozen=True)
         a: int
         b: int = 1
 
         @once()
-        def singleton() -> "MyClass":
+        def singleton() -> "SingletonTestModel":
             """Returns a singleton instance of the class"""
-            return MyClass(a=1)
+            return SingletonTestModel(a=1)
 
     # Usage example:
-    obj1 = MyClass.singleton()
-    obj2 = MyClass.singleton()
+    obj1 = SingletonTestModel.singleton()
+    obj2 = SingletonTestModel.singleton()
     assert obj1 is obj2  # True - same instance
 
     @once()
     def get_my_class_singleton():
-        return MyClass(a=4)
+        return SingletonTestModel(a=4)
 
     obj3 = get_my_class_singleton()
     obj4 = get_my_class_singleton()
@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
     @once()
     def do_something_complicated(x: int):
-        return MyClass(a=x)
+        return SingletonTestModel(a=x)
 
     obj5 = do_something_complicated(1)
     obj6 = do_something_complicated(1)
@@ -121,7 +121,7 @@ if __name__ == "__main__":
 
     @once()
     def do_something_complicated_2(x: int, y: int):
-        return MyClass(a=x + y)
+        return SingletonTestModel(a=x + y)
         
     # Test multiple arguments
     obj8 = do_something_complicated_2(1, 2)
