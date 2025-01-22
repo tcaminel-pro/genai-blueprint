@@ -1,5 +1,8 @@
 #  Chain to call patterns (i.e. prompt + markdown) from the "fabric" project
-#  Prompts are here : https://github.com/danielmiessler/fabric/tree/main/patterns
+#  There are many of them, usually good quality, and crowed-sourced.
+#
+#  List here : https://github.com/danielmiessler/fabric/tree/main/patterns
+#  Description of patterns : https://github.com/danielmiessler/fabric/blob/main/patterns/suggest_pattern/user.md
 #
 #  Code inspired from : https://github.com/danielmiessler/fabric/tree/main?tab=readme-ov-file#directly-calling-patterns
 
@@ -8,7 +11,6 @@ import re
 import requests
 from devtools import debug  # noqa: F401
 from dotenv import load_dotenv
-from langchain.globals import set_debug, set_verbose
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import (
     RunnablePassthrough,
@@ -49,7 +51,6 @@ def fabric_prompt(param: dict):
     # Fetch the prompt content
     system_content = fetch_content_from_url(system_url)
     user_file_content = fetch_content_from_url(user_url)
-
     return def_prompt(system=system_content, user=user_file_content + f"\n{param['input_data']}")
 
 
@@ -74,8 +75,8 @@ register_runnable(
 
 # For quick test
 if __name__ == "__main__":
-    set_verbose(True)
-    set_debug(True)
+    # set_verbose(True)
+    # set_debug(True)
     load_dotenv(verbose=True)
     r = get_fabric_chain(config={"llm": None}).invoke({"pattern": "ai", "input_data": "tell me more about stoicism"})
     debug(r)

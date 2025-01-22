@@ -30,7 +30,6 @@ from langchain_core.runnables import Runnable
 from typer import Option
 from typing_extensions import Annotated
 
-from python.ai_chains.fabric import get_fabric_chain
 from python.ai_core.cache import LlmCache
 from python.ai_core.chain_registry import (
     find_runnable,
@@ -40,6 +39,7 @@ from python.ai_core.chain_registry import (
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.llm import LlmFactory
 from python.ai_core.vector_store import VectorStoreFactory
+from python.ai_extra.fabric_chain import get_fabric_chain
 from python.config import global_config
 
 load_dotenv(verbose=True)

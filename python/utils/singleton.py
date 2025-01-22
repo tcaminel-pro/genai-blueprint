@@ -21,16 +21,22 @@ def once():
     It's typically used for thread-safe singleton instance creation.
 
     Example:
-        @once()
-        def get_instance(x: int):
-            return MyClass(x)
+    ```
+        class MyClass (BaseModel):
+            model_config = ConfigDict(frozen=True)
 
-        @once()
-        def singleton() -> "MyClass":
-            "Returns a singleton instance of the class"
-            return MyClass()
+            @once()
+            def singleton() -> "MyClass":
+                "Returns a singleton instance of the class"
+                return MyClass()
 
         my_class_singleton = MyClass.singleton()
+
+    # work for functions, too:
+        @once()
+        def get_my_class_singleton():
+            return MyClass()
+            ...
     """
 
     def decorator(func):

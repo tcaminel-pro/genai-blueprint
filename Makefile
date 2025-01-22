@@ -25,32 +25,17 @@ LOCATION=europe-west4
 PROJECT_ID_GCP=XXX
 
 
-# Development targets
-.PHONY: check fast_api langserve webapp test rebase aider telemetry
-
-# Maintenance targets
-.PHONY: clean lint clean_notebooks quality latest
-
-# Poetry and installation targets
-.PHONY: check_poetry install
-
-# Build and deployment targets
-.PHONY: build run save sync_time
-
-# GCP targets
-.PHONY: login_gcp build_gcp push_gcp create_repo_gcp
-
-# Azure targets
-.PHONY: push_az
-
-# Misc
-.PHONY:  backup 
+.PHONY: check fast_api langserve webapp test rebase aider telemetry # Development 
+.PHONY: clean lint clean_notebooks quality latest # Maintenance 
+.PHONY: check_poetry install # Poetry and installation 
+.PHONY: build run save sync_time # Docker build and deployment 
+.PHONY: login_gcp build_gcp push_gcp create_repo_gcp # GCP targets
+.PHONY: push_az # Azure targets
+.PHONY: backup  # Misc
 
 ##############################
 ##  GenAI Blueprint related commands
 ##############################
-check: ## Check if the image is built
-	docker images -a
 
 fast_api:  # run Python code localy
 	uvicorn $(FASTAPI_ENTRY_POINT) --reload
@@ -122,14 +107,17 @@ check_poetry:  ## Check if poetry is installed, install if missing
 		echo "Plugin installed ""; \
 	}
 
-install: check_poetry  ## Install project dependencies
+install: check_poetry  ## Install project core dependencies
 	poetry lock
-	poetry install --without extra, demos, transformers
+	poetry install --without ai_extra, demos, transformers, instrumentation
 
 ##############################
 ##  Build Docker, and run locally
 ##############################
 #WARNING : Put the API key into the docker image. NOT RECOMMANDED IN PRODUCTION
+
+check: ## Check if the image is built
+	docker images -a
 
 sync_time:  # Needed because WSL loose time after hibernation, and that can cause issues when pushing 
 	sudo hwclock -s 

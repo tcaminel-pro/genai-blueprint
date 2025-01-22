@@ -104,7 +104,7 @@ def test_singleton_with_args():
         return SingletonExample(value=a + sum(b) + sum(c.values()))
 
     list2 = [1, 2]
-    dict1 = {'x': 3}
+    dict1 = {"x": 3}
     instance9 = multi_arg_func(1, list2, dict1)
     instance10 = multi_arg_func(1, list2.copy(), dict1.copy())
     assert instance9 is instance10
@@ -129,53 +129,6 @@ def test_singleton_with_args():
     instance14 = none_arg_func(5)
     assert instance14 is not instance12
     assert instance14.value == 5
-
-
-# def test_thread_safety_with_cache():
-#     """Test that singleton creation is thread-safe with caching"""
-#     import threading
-#     from threading import Barrier
-
-#     results = []
-#     call_count = 0
-#     call_count_lock = threading.Lock()
-#     barrier = Barrier(10)
-
-#     @once()
-#     def thread_test_func(x):
-#         nonlocal call_count
-#         barrier.wait()  # Ensure all threads start at same time
-#         with call_count_lock:
-#             call_count += 1
-#         return TestModel(value=x)
-
-#     def worker(x):
-#         instance = thread_test_func(x)
-#         with call_count_lock:
-#             results.append(instance)
-
-#     # Test with same args
-#     threads = [threading.Thread(target=worker, args=(1,)) for _ in range(10)]
-#     for t in threads:
-#         t.start()
-#     for t in threads:
-#         t.join()
-
-#     # All threads should get the same instance
-#     assert all(r is results[0] for r in results)
-#     assert call_count == 1
-
-#     # Test with different args
-#     results.clear()
-#     threads = [threading.Thread(target=worker, args=(i,)) for i in range(10)]
-#     for t in threads:
-#         t.start()
-#     for t in threads:
-#         t.join()
-
-#     # Should have 10 different instances
-#     assert len(set(results)) == 10
-#     assert call_count == 11  # 1 from first test + 10 new calls
 
 
 def test_different_singletons():

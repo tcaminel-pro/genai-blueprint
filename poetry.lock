@@ -245,7 +245,7 @@ version = "5.5.0"
 description = "Vega-Altair: A declarative statistical visualization library for Python."
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "ui"]
+groups = ["ui"]
 files = [
     {file = "altair-5.5.0-py3-none-any.whl", hash = "sha256:91a310b926508d560fe0148d02a194f38b824122641ef528113d029fcd129f8c"},
     {file = "altair-5.5.0.tar.gz", hash = "sha256:d960ebe6178c56de3855a68c47b516be38640b73fb3b5111c2a9ca90546dd73d"},
@@ -282,7 +282,7 @@ version = "0.44.0"
 description = "The official Python library for the anthropic API"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "anthropic-0.44.0-py3-none-any.whl", hash = "sha256:7087ccfc8ed7b164f971e094495cd3aeabac1e435fa393480cc146c87946c21c"},
     {file = "anthropic-0.44.0.tar.gz", hash = "sha256:dc5c91c8b0463f97513d2e79350511ef295a56910bac4fbbe9491016c71f2ef0"},
@@ -354,7 +354,7 @@ version = "1.4.0"
 description = "Python command-line parsing library"
 optional = false
 python-versions = "*"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "argparse-1.4.0-py2.py3-none-any.whl", hash = "sha256:c31647edb69fd3d465a847ea3157d37bed1f95f19760b11a47aa91c04b666314"},
     {file = "argparse-1.4.0.tar.gz", hash = "sha256:62b089a55be1d8949cd2bc7e0df0bddb9e028faefc8c32038cc84862aefdd6e4"},
@@ -571,7 +571,7 @@ version = "2.16.0"
 description = "Internationalization utilities"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "babel-2.16.0-py3-none-any.whl", hash = "sha256:368b5b98b37c06b7daf6696391c3240c938b37767d4584413e8438c5c435fa8b"},
     {file = "babel-2.16.0.tar.gz", hash = "sha256:d1f3554ca26605fe173f3de0c65f750f5a42f924499bf134de6423582298e316"},
@@ -637,7 +637,7 @@ version = "4.12.3"
 description = "Screen-scraping library"
 optional = false
 python-versions = ">=3.6.0"
-groups = ["main", "ai_extra", "demos"]
+groups = ["ai_extra", "demos"]
 files = [
     {file = "beautifulsoup4-4.12.3-py3-none-any.whl", hash = "sha256:b80878c9f40111313e55da8ba20bdba06d8fa3969fc68304167741bbf9e082ed"},
     {file = "beautifulsoup4-4.12.3.tar.gz", hash = "sha256:74e3d1928edc070d21748185c46e3fb33490f22f52a3addee9aee0f4f7781051"},
@@ -659,7 +659,7 @@ version = "1.9.0"
 description = "Fast, simple object-to-object and broadcast signaling"
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "demos", "ui"]
+groups = ["demos", "ui"]
 files = [
     {file = "blinker-1.9.0-py3-none-any.whl", hash = "sha256:ba0efaa9080b619ff2f3459d1d500c57bddea4a6b424b60a91141db6fd2f08bc"},
     {file = "blinker-1.9.0.tar.gz", hash = "sha256:b4ce2265a7abece45e7cc896e98dbebe6cead56bcf805a3d23136d145f5445bf"},
@@ -713,7 +713,7 @@ version = "1.36.3"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "boto3-1.36.3-py3-none-any.whl", hash = "sha256:f9843a5d06f501d66ada06f5a5417f671823af2cf319e36ceefa1bafaaaaa953"},
     {file = "boto3-1.36.3.tar.gz", hash = "sha256:53a5307f6a3526ee2f8590e3c45efa504a3ea4532c1bfe4926c0c19bf188d141"},
@@ -733,7 +733,7 @@ version = "1.36.3"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "botocore-1.36.3-py3-none-any.whl", hash = "sha256:536ab828e6f90dbb000e3702ac45fd76642113ae2db1b7b1373ad24104e89255"},
     {file = "botocore-1.36.3.tar.gz", hash = "sha256:775b835e979da5c96548ed1a0b798101a145aec3cd46541d62e27dda5a94d7f8"},
@@ -930,7 +930,7 @@ version = "0.1.27"
 description = "Make websites accessible for AI agents"
 optional = false
 python-versions = ">=3.11"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "browser_use-0.1.27-py3-none-any.whl", hash = "sha256:8a76c87ebbfdc75fbd1963e82739756a74e86573b9fc1e00d40434dfd27fc314"},
     {file = "browser_use-0.1.27.tar.gz", hash = "sha256:8fac46652009f6ee2a7a5a3d75c575d8f232a013f597c9a1f55ebbf0d9158404"},
@@ -1502,7 +1502,7 @@ version = "1.3.2"
 description = "Clean, filter and sample URLs to optimize data collection – includes spam, content type and language filters."
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "courlan-1.3.2-py3-none-any.whl", hash = "sha256:d0dab52cf5b5b1000ee2839fbc2837e93b2514d3cb5bb61ae158a55b7a04c6be"},
     {file = "courlan-1.3.2.tar.gz", hash = "sha256:0b66f4db3a9c39a6e22dd247c72cfaa57d68ea660e94bb2c84ec7db8712af190"},
@@ -1738,7 +1738,7 @@ version = "1.2.0"
 description = "Date parsing library designed to parse dates from HTML pages"
 optional = false
 python-versions = ">=3.7"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "dateparser-1.2.0-py2.py3-none-any.whl", hash = "sha256:0b21ad96534e562920a0083e97fd45fa959882d4162acc358705144520a35830"},
     {file = "dateparser-1.2.0.tar.gz", hash = "sha256:7975b43a4222283e0ae15be7b4999d08c9a70e2d378ac87385b1ccf2cffbbb30"},
@@ -1828,7 +1828,7 @@ version = "0.7.1"
 description = "XML bomb protection for Python stdlib modules"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "defusedxml-0.7.1-py2.py3-none-any.whl", hash = "sha256:a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61"},
     {file = "defusedxml-0.7.1.tar.gz", hash = "sha256:1bb3032db185915b62d7c6209c5a8792be6a32ab2fedacc84e01b52c51aa3e69"},
@@ -2099,7 +2099,7 @@ version = "1.2.0"
 description = "Infer file type and MIME type of any file/buffer. No external dependencies."
 optional = false
 python-versions = "*"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "filetype-1.2.0-py2.py3-none-any.whl", hash = "sha256:7ce71b6880181241cf7ac8697a2f1eb6a8bd9b429f7ad6d27b8db9ba5f1c2d25"},
     {file = "filetype-1.2.0.tar.gz", hash = "sha256:66b56cd6474bf41d8c54660347d37afcc3f7d1970648de365c102ef77548aadb"},
@@ -2111,7 +2111,7 @@ version = "0.15.12"
 description = "Python client library for the Fireworks.ai Generative AI Platform"
 optional = false
 python-versions = ">=3.7"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "fireworks_ai-0.15.12-py3-none-any.whl", hash = "sha256:3fbf3f89e65ccfc46c88b71246b9d4fdf3301955ac4050193d8f4b4058cb193a"},
     {file = "fireworks_ai-0.15.12.tar.gz", hash = "sha256:2380a53d92244c608fd398f8d97b97380d899f3ff710091f4b50917b75119ec2"},
@@ -2457,7 +2457,7 @@ version = "4.0.12"
 description = "Git Object Database"
 optional = false
 python-versions = ">=3.7"
-groups = ["main", "demos", "ui"]
+groups = ["demos", "ui"]
 files = [
     {file = "gitdb-4.0.12-py3-none-any.whl", hash = "sha256:67073e15955400952c6565cc3e707c554a4eea2e428946f7a4c162fab9bd9bcf"},
     {file = "gitdb-4.0.12.tar.gz", hash = "sha256:5ef71f855d191a3326fcfbc0d5da835f26b13fbcba60c32c21091c349ffdb571"},
@@ -2472,7 +2472,7 @@ version = "3.1.44"
 description = "GitPython is a Python library used to interact with Git repositories"
 optional = false
 python-versions = ">=3.7"
-groups = ["main", "demos", "ui"]
+groups = ["demos", "ui"]
 files = [
     {file = "GitPython-3.1.44-py3-none-any.whl", hash = "sha256:9e0e10cda9bed1ee64bc9a6de50e7e38a9c9943241cd7f585f6df3ed28011110"},
     {file = "gitpython-3.1.44.tar.gz", hash = "sha256:c87e30b26253bf5418b01b0660f818967f3c503193838337fe5e573331249269"},
@@ -2491,7 +2491,7 @@ version = "0.6.15"
 description = "Google Ai Generativelanguage API client library"
 optional = false
 python-versions = ">=3.7"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "google_ai_generativelanguage-0.6.15-py3-none-any.whl", hash = "sha256:5a03ef86377aa184ffef3662ca28f19eeee158733e45d7947982eb953c6ebb6c"},
     {file = "google_ai_generativelanguage-0.6.15.tar.gz", hash = "sha256:8f6d9dc4c12b065fe2d0289026171acea5183ebf2d0b11cefe12f3821e159ec3"},
@@ -2509,7 +2509,7 @@ version = "2.24.0"
 description = "Google API client core library"
 optional = false
 python-versions = ">=3.7"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "google_api_core-2.24.0-py3-none-any.whl", hash = "sha256:10d82ac0fca69c82a25b3efdeefccf6f28e02ebb97925a8cce8edbfe379929d9"},
     {file = "google_api_core-2.24.0.tar.gz", hash = "sha256:e255640547a597a4da010876d333208ddac417d60add22b6851a0c66a831fcaf"},
@@ -2536,7 +2536,7 @@ version = "2.159.0"
 description = "Google API Client Library for Python"
 optional = false
 python-versions = ">=3.7"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "google_api_python_client-2.159.0-py2.py3-none-any.whl", hash = "sha256:baef0bb631a60a0bd7c0bf12a5499e3a40cd4388484de7ee55c1950bf820a0cf"},
     {file = "google_api_python_client-2.159.0.tar.gz", hash = "sha256:55197f430f25c907394b44fa078545ffef89d33fd4dca501b7db9f0d8e224bd6"},
@@ -2580,7 +2580,7 @@ version = "0.2.0"
 description = "Google Authentication Library: httplib2 transport"
 optional = false
 python-versions = "*"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "google-auth-httplib2-0.2.0.tar.gz", hash = "sha256:38aa7badf48f974f1eb9861794e9c0cb2a0511a4ec0679b1f886d108f5640e05"},
     {file = "google_auth_httplib2-0.2.0-py2.py3-none-any.whl", hash = "sha256:b65a0a2123300dd71281a7bf6e64d65a0759287df52729bdd1ae2e47dc311a3d"},
@@ -2596,7 +2596,7 @@ version = "0.8.4"
 description = "Google Generative AI High level API client library and tools."
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "google_generativeai-0.8.4-py3-none-any.whl", hash = "sha256:e987b33ea6decde1e69191ddcaec6ef974458864d243de7191db50c21a7c5b82"},
 ]
@@ -2829,7 +2829,7 @@ files = [
     {file = "greenlet-3.1.1-cp39-cp39-win_amd64.whl", hash = "sha256:3319aa75e0e0639bc15ff54ca327e8dc7a6fe404003496e3c6925cd3142e0e22"},
     {file = "greenlet-3.1.1.tar.gz", hash = "sha256:4ce3ac6cdb6adf7946475d7ef31777c26d94bccc377e070a7986bd2d5c515467"},
 ]
-markers = {demos = "platform_machine == \"x86_64\" or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\"", instrumentation = "platform_machine == \"x86_64\" or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\""}
+markers = {main = "sys_platform == \"darwin\" and (platform_machine == \"x86_64\" or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\") or python_full_version < \"3.12.4\" and (platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\") or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\" or platform_machine == \"x86_64\"", demos = "sys_platform == \"darwin\" and (platform_machine == \"x86_64\" or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\") or python_full_version < \"3.12.4\" and (platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\") or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\" or platform_machine == \"x86_64\"", instrumentation = "sys_platform == \"darwin\" and (platform_machine == \"x86_64\" or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\") or python_full_version < \"3.12.4\" and (platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\") or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\" or platform_machine == \"x86_64\""}
 
 [package.extras]
 docs = ["Sphinx", "furo"]
@@ -2962,7 +2962,7 @@ version = "1.69.0"
 description = "Status proto mapping for gRPC"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "grpcio_status-1.69.0-py3-none-any.whl", hash = "sha256:d6b2a3c9562c03a817c628d7ba9a925e209c228762d6d7677ae5c9401a542853"},
     {file = "grpcio_status-1.69.0.tar.gz", hash = "sha256:595ef84e5178d6281caa732ccf68ff83259241608d26b0e9c40a5e66eee2a2d2"},
@@ -2991,7 +2991,7 @@ version = "2024.2.26"
 description = "Turn HTML into equivalent Markdown-structured text."
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "html2text-2024.2.26.tar.gz", hash = "sha256:05f8e367d15aaabc96415376776cdd11afd5127a77fce6e36afc60c563ca2c32"},
 ]
@@ -3024,7 +3024,7 @@ version = "1.9.3"
 description = "Fast and robust extraction of original and updated publication dates from URLs and web pages."
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "htmldate-1.9.3-py3-none-any.whl", hash = "sha256:3fadc422cf3c10a5cdb5e1b914daf37ec7270400a80a1b37e2673ff84faaaff8"},
     {file = "htmldate-1.9.3.tar.gz", hash = "sha256:ac0caf4628c3ded4042011e2d60dc68dfb314c77b106587dd307a80d77e708e9"},
@@ -3086,7 +3086,7 @@ version = "0.22.0"
 description = "A comprehensive HTTP client library."
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "httplib2-0.22.0-py3-none-any.whl", hash = "sha256:14ae0a53c1ba8f3d37e9e27cf37eabb0fb9980f435ba405d546948b009dd64dc"},
     {file = "httplib2-0.22.0.tar.gz", hash = "sha256:d7a10bc5ef5ab08322488bde8c726eeee5c8618723fdb399597ec58f3d82df81"},
@@ -3195,7 +3195,7 @@ version = "0.7.1"
 description = "WebSockets support for HTTPX"
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "httpx_ws-0.7.1-py3-none-any.whl", hash = "sha256:7970e470840d8e6c17bd45ed4e7af06f9144a4a9decab2ff226f3ff9accb65b4"},
     {file = "httpx_ws-0.7.1.tar.gz", hash = "sha256:72f355d4b9b16d8fa59e5e68efdfcb1f3c7dca944901b373791245c8f67f9f95"},
@@ -3587,7 +3587,7 @@ version = "1.0.1"
 description = "JSON Matching Expressions"
 optional = false
 python-versions = ">=3.7"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "jmespath-1.0.1-py3-none-any.whl", hash = "sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980"},
     {file = "jmespath-1.0.1.tar.gz", hash = "sha256:90261b206d6defd58fdd5e85f478bf633a2901798906be2ad389150c5c60edbe"},
@@ -3638,7 +3638,7 @@ version = "1.33"
 description = "Apply JSON-Patches (RFC 6902)"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*, !=3.6.*"
-groups = ["main", "ai_extra", "transformers"]
+groups = ["main", "ai_extra", "demos", "transformers"]
 files = [
     {file = "jsonpatch-1.33-py2.py3-none-any.whl", hash = "sha256:0ae28c0cd062bbd8b8ecc26d7d164fbbea9652a1a3693f3b956c1eae5145dade"},
     {file = "jsonpatch-1.33.tar.gz", hash = "sha256:9fcd4009c41e6d12348b4a0ff2563ba56a2923a7dfee731d004e212e1ee5030c"},
@@ -3684,7 +3684,7 @@ version = "3.0.0"
 description = "Identify specific nodes in a JSON document (RFC 6901)"
 optional = false
 python-versions = ">=3.7"
-groups = ["main", "ai_extra", "transformers"]
+groups = ["main", "ai_extra", "demos", "transformers"]
 files = [
     {file = "jsonpointer-3.0.0-py2.py3-none-any.whl", hash = "sha256:13e088adc14fca8b6aa8177c044e12701e6ad4b28ff10e65f2267a90109c9942"},
     {file = "jsonpointer-3.0.0.tar.gz", hash = "sha256:2b2d729f2091522d61c3b31f82e11870f60b68f43fbc705cb76bf4b832af59ef"},
@@ -3801,7 +3801,7 @@ version = "3.0.1"
 description = "Heuristic based boilerplate removal tool"
 optional = false
 python-versions = "*"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "jusText-3.0.1-py2.py3-none-any.whl", hash = "sha256:e0fb882dd7285415709f4b7466aed23d6b98b7b89404c36e8a2e730facfed02b"},
     {file = "justext-3.0.1.tar.gz", hash = "sha256:b6ed2fb6c5d21618e2e34b2295c4edfc0bcece3bd549ed5c8ef5a8d20f0b3451"},
@@ -3958,7 +3958,7 @@ version = "0.3.3"
 description = "An integration package connecting AnthropicMessages and LangChain"
 optional = false
 python-versions = "<4.0,>=3.9"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "langchain_anthropic-0.3.3-py3-none-any.whl", hash = "sha256:385e6d6d719514369f38304ed5e9b74827feca36f3391595695dcb82696ed04a"},
     {file = "langchain_anthropic-0.3.3.tar.gz", hash = "sha256:1faf0aa0aed392a18ed34d00e816d7c748ef342523deacc131690aae08ab4f1b"},
@@ -3976,7 +3976,7 @@ version = "0.2.11"
 description = "An integration package connecting AWS and LangChain"
 optional = false
 python-versions = "<4.0,>=3.9"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "langchain_aws-0.2.11-py3-none-any.whl", hash = "sha256:8351f5ea49da16ad67fd54801629d67ff71a204d0c6d80bd056fa451bcb43824"},
     {file = "langchain_aws-0.2.11.tar.gz", hash = "sha256:1ceb58e44d01bc4e90e05e340ae7f90331c7dda012bcf8e4a89d35d864994835"},
@@ -4038,7 +4038,7 @@ version = "0.3.31"
 description = "Building applications with LLMs through composability"
 optional = false
 python-versions = "<4.0,>=3.9"
-groups = ["main", "ai_extra", "transformers"]
+groups = ["main", "ai_extra", "demos", "transformers"]
 files = [
     {file = "langchain_core-0.3.31-py3-none-any.whl", hash = "sha256:882e64ad95887c951dce8e835889e43263b11848c394af3b73e06912624bd743"},
     {file = "langchain_core-0.3.31.tar.gz", hash = "sha256:5ffa56354c07de9efaa4139609659c63e7d9b29da2c825f6bab9392ec98300df"},
@@ -4078,7 +4078,7 @@ version = "0.2.6"
 description = "An integration package connecting Fireworks and LangChain"
 optional = false
 python-versions = "<4.0,>=3.9"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "langchain_fireworks-0.2.6-py3-none-any.whl", hash = "sha256:e6a917ec2337ec7ae5b497ec78afe8a66bf6868b5f4ca13e0c898adb44630078"},
     {file = "langchain_fireworks-0.2.6.tar.gz", hash = "sha256:b7a18fc2449aa7aeb44e4eee81d64c2d192e2fc4fc3075352400e59ba0c18495"},
@@ -4097,7 +4097,7 @@ version = "2.0.8"
 description = "An integration package connecting Google's genai package and LangChain"
 optional = false
 python-versions = "<4.0,>=3.9"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "langchain_google_genai-2.0.8-py3-none-any.whl", hash = "sha256:546f5bf4429fe322feb25b60111135477f9af027226be35b95e9ebcf265259fd"},
     {file = "langchain_google_genai-2.0.8.tar.gz", hash = "sha256:4ca8d2a4201ce8b741e372ef1a97c809a1beeae39a163eebfdaaa07009f44787"},
@@ -4150,7 +4150,7 @@ version = "0.2.2"
 description = "An integration package connecting Ollama and LangChain"
 optional = false
 python-versions = "<4.0,>=3.9"
-groups = ["main", "ai_extra"]
+groups = ["main", "ai_extra", "demos"]
 files = [
     {file = "langchain_ollama-0.2.2-py3-none-any.whl", hash = "sha256:8a1ee72dbb6ea3b3ace1d9dd317e472d667a8ed491328550da59f4893a6796f8"},
     {file = "langchain_ollama-0.2.2.tar.gz", hash = "sha256:2d9bcb06ffdbe43c7c6906c46e710d36d33b6b99cd4975cbf54060f13e51c875"},
@@ -4321,7 +4321,7 @@ version = "0.2.11"
 description = "Client library to connect to the LangSmith LLM Tracing and Evaluation Platform."
 optional = false
 python-versions = "<4.0,>=3.9"
-groups = ["main", "ai_extra", "transformers"]
+groups = ["main", "ai_extra", "demos", "transformers"]
 files = [
     {file = "langsmith-0.2.11-py3-none-any.whl", hash = "sha256:084cf66a7f093c25e6b30fb4005008ec5fa9843110e2f0b265ce133c6a0225e6"},
     {file = "langsmith-0.2.11.tar.gz", hash = "sha256:edf070349dbfc63dc4fc30e22533a11d77768e99ef269399b221c48fee25c737"},
@@ -4413,7 +4413,7 @@ version = "0.4.54"
 description = "Python SDK for Laminar"
 optional = false
 python-versions = "<4,>=3.9"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "lmnr-0.4.54-py3-none-any.whl", hash = "sha256:6d074e8cae23bf44609e8a91f71d94d0bd9b59a1dc6b4db84928fbc408807245"},
     {file = "lmnr-0.4.54.tar.gz", hash = "sha256:14e4cc2dcfbeb26f6215a551816a480a83bffc64a5baf2760e597afdd3f109f6"},
@@ -4492,7 +4492,7 @@ version = "5.3.0"
 description = "Powerful and Pythonic XML processing library combining libxml2/libxslt with the ElementTree API."
 optional = false
 python-versions = ">=3.6"
-groups = ["main", "ai_extra", "demos"]
+groups = ["ai_extra", "demos"]
 files = [
     {file = "lxml-5.3.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:dd36439be765e2dde7660212b5275641edbc813e7b24668831a5c8ac91180656"},
     {file = "lxml-5.3.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:ae5fe5c4b525aa82b8076c1a59d642c17b6e8739ecf852522c6321852178119d"},
@@ -4650,7 +4650,7 @@ version = "0.4.1"
 description = "HTML cleaner from lxml project"
 optional = false
 python-versions = "*"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "lxml_html_clean-0.4.1-py3-none-any.whl", hash = "sha256:b704f2757e61d793b1c08bf5ad69e4c0b68d6696f4c3c1429982caf90050bcaf"},
     {file = "lxml_html_clean-0.4.1.tar.gz", hash = "sha256:40c838bbcf1fc72ba4ce811fbb3135913017b27820d7c16e8bc412ae1d8bc00b"},
@@ -4665,7 +4665,7 @@ version = "0.0.4"
 description = "A library to extract the main content from html. Developed for information on LLM and for feeding data into LangChain and LlamaIndex."
 optional = false
 python-versions = ">=3.6"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "MainContentExtractor-0.0.4-py3-none-any.whl", hash = "sha256:77684179436e28eb2e19be26657cb2bbd7c1f9213a2c3ee163a8f9dfbca64107"},
     {file = "MainContentExtractor-0.0.4.tar.gz", hash = "sha256:697acc05909fb2f786d9cf7d4ff5bfbf14e4c3359c3a6eadc7ed4403fc2e66e5"},
@@ -5565,7 +5565,7 @@ version = "1.23.0"
 description = "Extremely lightweight compatibility layer between dataframe libraries"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ui"]
+groups = ["ui"]
 files = [
     {file = "narwhals-1.23.0-py3-none-any.whl", hash = "sha256:8d6e7fa0b13af01784837efc060e2a663e5d888decf31f261ff8fc06a7cefeb4"},
     {file = "narwhals-1.23.0.tar.gz", hash = "sha256:3da4b1e7675b3d8ed69bd40c263b135066248af28354f104ea36c788b23d1e3e"},
@@ -5934,7 +5934,7 @@ version = "0.4.7"
 description = "The official Python client for Ollama."
 optional = false
 python-versions = "<4.0,>=3.8"
-groups = ["main", "ai_extra"]
+groups = ["main", "ai_extra", "demos"]
 files = [
     {file = "ollama-0.4.7-py3-none-any.whl", hash = "sha256:85505663cca67a83707be5fb3aeff0ea72e67846cea5985529d8eca4366564a1"},
     {file = "ollama-0.4.7.tar.gz", hash = "sha256:891dcbe54f55397d82d289c459de0ea897e103b86a3f1fad0fdb1895922a75ff"},
@@ -5943,6 +5943,28 @@ files = [
 [package.dependencies]
 httpx = ">=0.27,<0.29"
 pydantic = ">=2.9.0,<3.0.0"
+
+[[package]]
+name = "ollama-ocr"
+version = "0.1.3"
+description = "OCR powered by Ollama Vision Models"
+optional = false
+python-versions = ">=3.8"
+groups = ["demos"]
+files = [
+    {file = "ollama_ocr-0.1.3-py3-none-any.whl", hash = "sha256:4d8beedc4274cb444e638a8eaf8d3f7f0b2e1174f031e1d5a4478c85b6de588b"},
+]
+
+[package.dependencies]
+langchain-ollama = ">=0.1.0"
+numpy = ">=1.24.0"
+opencv-python = ">=4.8.0"
+pdf2image = ">=1.16.3"
+Pillow = ">=10.0.0"
+python-magic = ">=0.4.0"
+requests = ">=2.25.0"
+tqdm = ">=4.65.0"
+transformers = ">=4.0.0"
 
 [[package]]
 name = "onnxruntime"
@@ -6008,6 +6030,26 @@ typing-extensions = ">=4.11,<5"
 [package.extras]
 datalib = ["numpy (>=1)", "pandas (>=1.2.3)", "pandas-stubs (>=1.1.0.11)"]
 realtime = ["websockets (>=13,<15)"]
+
+[[package]]
+name = "opencv-python"
+version = "4.11.0.86"
+description = "Wrapper package for OpenCV python bindings."
+optional = false
+python-versions = ">=3.6"
+groups = ["demos"]
+files = [
+    {file = "opencv-python-4.11.0.86.tar.gz", hash = "sha256:03d60ccae62304860d232272e4a4fda93c39d595780cb40b161b310244b736a4"},
+    {file = "opencv_python-4.11.0.86-cp37-abi3-macosx_13_0_arm64.whl", hash = "sha256:432f67c223f1dc2824f5e73cdfcd9db0efc8710647d4e813012195dc9122a52a"},
+    {file = "opencv_python-4.11.0.86-cp37-abi3-macosx_13_0_x86_64.whl", hash = "sha256:9d05ef13d23fe97f575153558653e2d6e87103995d54e6a35db3f282fe1f9c66"},
+    {file = "opencv_python-4.11.0.86-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:1b92ae2c8852208817e6776ba1ea0d6b1e0a1b5431e971a2a0ddd2a8cc398202"},
+    {file = "opencv_python-4.11.0.86-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6b02611523803495003bd87362db3e1d2a0454a6a63025dc6658a9830570aa0d"},
+    {file = "opencv_python-4.11.0.86-cp37-abi3-win32.whl", hash = "sha256:810549cb2a4aedaa84ad9a1c92fbfdfc14090e2749cedf2c1589ad8359aa169b"},
+    {file = "opencv_python-4.11.0.86-cp37-abi3-win_amd64.whl", hash = "sha256:085ad9b77c18853ea66283e98affefe2de8cc4c1f43eda4c100cf9b2721142ec"},
+]
+
+[package.dependencies]
+numpy = {version = ">=1.26.0", markers = "python_version >= \"3.12\""}
 
 [[package]]
 name = "openinference-instrumentation"
@@ -6202,7 +6244,7 @@ version = "1.29.0"
 description = "OpenTelemetry Collector Protobuf over HTTP Exporter"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ai_extra", "demos", "instrumentation"]
+groups = ["ai_extra", "demos", "instrumentation"]
 files = [
     {file = "opentelemetry_exporter_otlp_proto_http-1.29.0-py3-none-any.whl", hash = "sha256:b228bdc0f0cfab82eeea834a7f0ffdd2a258b26aa33d89fb426c29e8e934d9d0"},
     {file = "opentelemetry_exporter_otlp_proto_http-1.29.0.tar.gz", hash = "sha256:b10d174e3189716f49d386d66361fbcf6f2b9ad81e05404acdee3f65c8214204"},
@@ -6285,7 +6327,7 @@ version = "0.36.1"
 description = "OpenTelemetry Langchain instrumentation"
 optional = false
 python-versions = "<4,>=3.9"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "opentelemetry_instrumentation_langchain-0.36.1-py3-none-any.whl", hash = "sha256:198bfe0b09c61ca6f172b690cb73ce5a82e3fbe60b8c32d8e93fd5f795af3abd"},
     {file = "opentelemetry_instrumentation_langchain-0.36.1.tar.gz", hash = "sha256:72d580fe0c5da306271c4967342ef85144f1db86fe1ec3f5789cfb9404aa0567"},
@@ -6303,7 +6345,7 @@ version = "0.50b0"
 description = "OpenTelemetry requests instrumentation"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "opentelemetry_instrumentation_requests-0.50b0-py3-none-any.whl", hash = "sha256:2c60a890988d6765de9230004d0af9071b3b2e1ddba4ca3b631cfb8a1722208d"},
     {file = "opentelemetry_instrumentation_requests-0.50b0.tar.gz", hash = "sha256:f8088c76f757985b492aad33331d21aec2f99c197472a57091c2e986a4b7ec8b"},
@@ -6324,7 +6366,7 @@ version = "0.50b0"
 description = "OpenTelemetry SQLAlchemy instrumentation"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "opentelemetry_instrumentation_sqlalchemy-0.50b0-py3-none-any.whl", hash = "sha256:7385c380d3567f28a5a6e9b453400900f4b095230a244a13e3f54b4f3d36bd19"},
     {file = "opentelemetry_instrumentation_sqlalchemy-0.50b0.tar.gz", hash = "sha256:8560fe2375d973746907599f360199ba0f658189ef6feba73c1702e8d832bb6e"},
@@ -6346,7 +6388,7 @@ version = "0.50b0"
 description = "Thread context propagation support for OpenTelemetry"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "opentelemetry_instrumentation_threading-0.50b0-py3-none-any.whl", hash = "sha256:86c64fd50f0870b9dd000f923094a83a0d38d840d5bd6d4d5c91618219d9326e"},
     {file = "opentelemetry_instrumentation_threading-0.50b0.tar.gz", hash = "sha256:909062c95729e25f1e064cf770c241ddb26c91c787dff10c813ae0f630d75789"},
@@ -6363,7 +6405,7 @@ version = "0.50b0"
 description = "OpenTelemetry urllib3 instrumentation"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "opentelemetry_instrumentation_urllib3-0.50b0-py3-none-any.whl", hash = "sha256:c679b3908645b7d4d07c36960fe0efef490b403983e314108450146cc89bd675"},
     {file = "opentelemetry_instrumentation_urllib3-0.50b0.tar.gz", hash = "sha256:2c4a1d9f128eaf753871b1d90659c744691d039a6601ba546081347ae192bd0e"},
@@ -6433,7 +6475,7 @@ version = "0.4.2"
 description = "OpenTelemetry Semantic Conventions Extension for Large Language Models"
 optional = false
 python-versions = "<4,>=3.9"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "opentelemetry_semantic_conventions_ai-0.4.2-py3-none-any.whl", hash = "sha256:0a5432aacd441eb7dbdf62e0de3f3d90ed4f69595b687a6dd2ccc4c5b94c5861"},
     {file = "opentelemetry_semantic_conventions_ai-0.4.2.tar.gz", hash = "sha256:90b969c7d838e03e30a9150ffe46543d8e58e9d7370c7221fd30d4ce4d7a1b96"},
@@ -6583,7 +6625,7 @@ version = "2.2.3"
 description = "Powerful data structures for data analysis, time series, and statistics"
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "ai_extra", "demos", "instrumentation", "ui"]
+groups = ["ai_extra", "demos", "instrumentation", "ui"]
 files = [
     {file = "pandas-2.2.3-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:1948ddde24197a0f7add2bdc4ca83bf2b1ef84a1bc8ccffd95eda17fd836ecb5"},
     {file = "pandas-2.2.3-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:381175499d3802cde0eabbaf6324cce0c4f5d52ca6f8c377c29ad442f50f6348"},
@@ -6675,6 +6717,21 @@ files = [
 [package.extras]
 qa = ["flake8 (==5.0.4)", "mypy (==0.971)", "types-setuptools (==67.2.0.1)"]
 testing = ["docopt", "pytest"]
+
+[[package]]
+name = "pdf2image"
+version = "1.17.0"
+description = "A wrapper around the pdftoppm and pdftocairo command line tools to convert PDF to a PIL Image list."
+optional = false
+python-versions = "*"
+groups = ["demos"]
+files = [
+    {file = "pdf2image-1.17.0-py3-none-any.whl", hash = "sha256:ecdd58d7afb810dffe21ef2b1bbc057ef434dabbac6c33778a38a3f7744a27e2"},
+    {file = "pdf2image-1.17.0.tar.gz", hash = "sha256:eaa959bc116b420dd7ec415fcae49b98100dda3dd18cd2fdfa86d09f112f6d57"},
+]
+
+[package.dependencies]
+pillow = "*"
 
 [[package]]
 name = "pdfminer-six"
@@ -6853,7 +6910,7 @@ version = "1.49.1"
 description = "A high-level API to automate web browsers"
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "playwright-1.49.1-py3-none-macosx_10_13_x86_64.whl", hash = "sha256:1041ffb45a0d0bc44d698d3a5aa3ac4b67c9bd03540da43a0b70616ad52592b8"},
     {file = "playwright-1.49.1-py3-none-macosx_11_0_arm64.whl", hash = "sha256:9f38ed3d0c1f4e0a6d1c92e73dd9a61f8855133249d6f0cec28648d38a7137be"},
@@ -7107,7 +7164,7 @@ version = "1.25.0"
 description = "Beautiful, Pythonic protocol buffers."
 optional = false
 python-versions = ">=3.7"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "proto_plus-1.25.0-py3-none-any.whl", hash = "sha256:c91fc4a65074ade8e458e95ef8bac34d4008daa7cce4a12d6707066fca648961"},
     {file = "proto_plus-1.25.0.tar.gz", hash = "sha256:fbb17f57f7bd05a68b7707e745e26528b0b3c34e378db91eef93912c54982d91"},
@@ -7205,7 +7262,7 @@ version = "19.0.0"
 description = "Python library for Apache Arrow"
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "instrumentation", "ui"]
+groups = ["instrumentation", "ui"]
 files = [
     {file = "pyarrow-19.0.0-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:c318eda14f6627966997a7d8c374a87d084a94e4e38e9abbe97395c215830e0c"},
     {file = "pyarrow-19.0.0-cp310-cp310-macosx_12_0_x86_64.whl", hash = "sha256:62ef8360ff256e960f57ce0299090fb86423afed5e46f18f1225f960e05aae3d"},
@@ -7455,7 +7512,7 @@ version = "0.9.1"
 description = "Widget for deck.gl maps"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ui"]
+groups = ["ui"]
 files = [
     {file = "pydeck-0.9.1-py2.py3-none-any.whl", hash = "sha256:b3f75ba0d273fc917094fa61224f3f6076ca8752b93d46faf3bcfd9f9d59b038"},
     {file = "pydeck-0.9.1.tar.gz", hash = "sha256:f74475ae637951d63f2ee58326757f8d4f9cd9f2a457cf42950715003e2cb605"},
@@ -7503,7 +7560,7 @@ version = "12.0.0"
 description = "A rough port of Node.js's EventEmitter to Python with a few tricks of its own"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "pyee-12.0.0-py3-none-any.whl", hash = "sha256:7b14b74320600049ccc7d0e0b1becd3b4bd0a03c745758225e31a59f4095c990"},
     {file = "pyee-12.0.0.tar.gz", hash = "sha256:c480603f4aa2927d4766eb41fa82793fe60a82cbfdb8d688e0d08c55a534e145"},
@@ -7572,7 +7629,7 @@ version = "3.2.1"
 description = "pyparsing module - Classes and methods to define and execute parsing grammars"
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "ai_extra", "demos"]
+groups = ["ai_extra", "demos"]
 files = [
     {file = "pyparsing-3.2.1-py3-none-any.whl", hash = "sha256:506ff4f4386c4cec0590ec19e6302d3aedb992fdc02c761e90416f158dacf8e1"},
     {file = "pyparsing-3.2.1.tar.gz", hash = "sha256:61980854fd66de3a90028d679a954d5f2623e83144b5afe5ee86f43d762e5f0a"},
@@ -7767,7 +7824,7 @@ version = "0.4.27"
 description = "File type identification using libmagic"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-groups = ["ai_extra"]
+groups = ["ai_extra", "demos"]
 files = [
     {file = "python-magic-0.4.27.tar.gz", hash = "sha256:c1ba14b08e4a5f5c31a302b7721239695b2f0f058d125bd5ce1ee36b9d9d3c3b"},
     {file = "python_magic-0.4.27-py2.py3-none-any.whl", hash = "sha256:c212960ad306f700aa0d01e5d7a325d20548ff97eb9920dcd29513174f0294d3"},
@@ -7808,7 +7865,7 @@ version = "2024.2"
 description = "World timezone definitions, modern and historical"
 optional = false
 python-versions = "*"
-groups = ["main", "ai_extra", "demos", "instrumentation", "ui"]
+groups = ["ai_extra", "demos", "instrumentation", "ui"]
 files = [
     {file = "pytz-2024.2-py2.py3-none-any.whl", hash = "sha256:31c7c1817eb7fae7ca4b8c7ee50c72f93aa2dd863de768e1ef4245d426aa0725"},
     {file = "pytz-2024.2.tar.gz", hash = "sha256:2aa355083c50a0f93fa581709deac0c9ad65cca8a9e9beac660adcbd493c798a"},
@@ -8522,7 +8579,7 @@ version = "0.11.1"
 description = "An Amazon S3 Transfer Manager"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "s3transfer-0.11.1-py3-none-any.whl", hash = "sha256:8fa0aa48177be1f3425176dfe1ab85dcd3d962df603c3dbfc585e6bf857ef0ff"},
     {file = "s3transfer-0.11.1.tar.gz", hash = "sha256:3f25c900a367c8b7f7d8f9c34edc87e300bde424f779dc9f0a8ae4f9df9264f6"},
@@ -8558,7 +8615,7 @@ version = "0.5.2"
 description = ""
 optional = false
 python-versions = ">=3.7"
-groups = ["main", "ai_extra", "transformers"]
+groups = ["main", "ai_extra", "demos", "transformers"]
 files = [
     {file = "safetensors-0.5.2-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:45b6092997ceb8aa3801693781a71a99909ab9cc776fbc3fa9322d29b1d3bef2"},
     {file = "safetensors-0.5.2-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:6d0d6a8ee2215a440e1296b843edf44fd377b055ba350eaba74655a2fe2c4bae"},
@@ -8817,7 +8874,7 @@ version = "5.0.2"
 description = "A pure Python implementation of a sliding window memory map manager"
 optional = false
 python-versions = ">=3.7"
-groups = ["main", "demos", "ui"]
+groups = ["demos", "ui"]
 files = [
     {file = "smmap-5.0.2-py3-none-any.whl", hash = "sha256:b30115f0def7d7531d22a0fb6502488d879e75b260a9db4d0819cfb25403af5e"},
     {file = "smmap-5.0.2.tar.gz", hash = "sha256:26ea65a03958fa0c8a1c7e8c7a58fdc77221b8910f6be2131affade476898ad5"},
@@ -8877,7 +8934,7 @@ version = "2.6"
 description = "A modern CSS selector implementation for Beautiful Soup."
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ai_extra", "demos"]
+groups = ["ai_extra", "demos"]
 files = [
     {file = "soupsieve-2.6-py3-none-any.whl", hash = "sha256:e72c4ff06e4fb6e4b5a9f0f55fe6e81514581fca1515028625d0f299c602ccc9"},
     {file = "soupsieve-2.6.tar.gz", hash = "sha256:e2e68417777af359ec65daac1057404a3c8a5455bb8abc36f1a9866ab1a51abb"},
@@ -9284,7 +9341,7 @@ version = "1.41.1"
 description = "A faster way to build and share data apps"
 optional = false
 python-versions = "!=3.9.7,>=3.9"
-groups = ["main", "ui"]
+groups = ["ui"]
 files = [
     {file = "streamlit-1.41.1-py2.py3-none-any.whl", hash = "sha256:0def00822480071d642e6df36cd63c089f991da3a69fd9eb4ab8f65ce27de4e0"},
     {file = "streamlit-1.41.1.tar.gz", hash = "sha256:6626d32b098ba1458b71eebdd634c62af2dd876380e59c4b6a1e828a39d62d69"},
@@ -9313,26 +9370,6 @@ watchdog = {version = ">=2.1.5,<7", markers = "platform_system != \"Darwin\""}
 
 [package.extras]
 snowflake = ["snowflake-connector-python (>=2.8.0)", "snowflake-snowpark-python[modin] (>=1.17.0)"]
-
-[[package]]
-name = "streamlit-pydantic"
-version = "0.6.0"
-description = "Auto-generate Streamlit UI from Pydantic Models & Dataclasses."
-optional = false
-python-versions = ">=3.7"
-groups = ["main"]
-files = [
-    {file = "streamlit-pydantic-0.6.0.tar.gz", hash = "sha256:3bc5d51af085eb6791b360f569f1a541681ddcc51579b09a1e2ab54639b39d49"},
-    {file = "streamlit_pydantic-0.6.0-py3-none-any.whl", hash = "sha256:7a69ec6519f5de1b21bd9737891c61d8fea33d7727824ab19c4c65d49f136304"},
-]
-
-[package.dependencies]
-importlib-resources = "*"
-pydantic = ">=1.9"
-streamlit = ">=1.14.0"
-
-[package.extras]
-dev = ["black", "build", "colorama", "flake8", "isort", "lazydocs", "mypy", "pydocstyle", "pytest", "pytest-cov", "pytest-mock", "rope", "setuptools", "twine", "types-dataclasses", "universal-build", "wheel"]
 
 [[package]]
 name = "sympy"
@@ -9575,7 +9612,7 @@ version = "0.13"
 description = "Extract the top-level domain (TLD) from the URL given."
 optional = false
 python-versions = ">=3.7, <4"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "tld-0.13-py2.py3-none-any.whl", hash = "sha256:f75b2be080f767ed17c2338a339eaa4fab5792586319ca819119da252f9f3749"},
     {file = "tld-0.13.tar.gz", hash = "sha256:93dde5e1c04bdf1844976eae440706379d21f4ab235b73c05d7483e074fb5629"},
@@ -9717,7 +9754,7 @@ version = "0.10.2"
 description = "Python Library for Tom's Obvious, Minimal Language"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
-groups = ["main", "ui"]
+groups = ["ui"]
 files = [
     {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
     {file = "toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f"},
@@ -9883,7 +9920,7 @@ version = "6.4.2"
 description = "Tornado is a Python web framework and asynchronous networking library, originally developed at FriendFeed."
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "dev", "ui"]
+groups = ["dev", "ui"]
 files = [
     {file = "tornado-6.4.2-cp38-abi3-macosx_10_9_universal2.whl", hash = "sha256:e828cce1123e9e44ae2a50a9de3055497ab1d0aeb440c5ac23064d9e44880da1"},
     {file = "tornado-6.4.2-cp38-abi3-macosx_10_9_x86_64.whl", hash = "sha256:072ce12ada169c5b00b7d92a99ba089447ccc993ea2143c9ede887e0937aa803"},
@@ -9926,7 +9963,7 @@ version = "2.0.0"
 description = "Python & Command-line tool to gather text and metadata on the Web: Crawling, scraping, extraction, output as CSV, JSON, HTML, MD, TXT, XML."
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "trafilatura-2.0.0-py3-none-any.whl", hash = "sha256:77eb5d1e993747f6f20938e1de2d840020719735690c840b9a1024803a4cd51d"},
     {file = "trafilatura-2.0.0.tar.gz", hash = "sha256:ceb7094a6ecc97e72fea73c7dba36714c5c5b577b6470e4520dca893706d6247"},
@@ -9967,7 +10004,7 @@ version = "4.46.3"
 description = "State-of-the-art Machine Learning for JAX, PyTorch and TensorFlow"
 optional = false
 python-versions = ">=3.8.0"
-groups = ["main", "ai_extra", "transformers"]
+groups = ["main", "ai_extra", "demos", "transformers"]
 files = [
     {file = "transformers-4.46.3-py3-none-any.whl", hash = "sha256:a12ef6f52841fd190a3e5602145b542d03507222f2c64ebb7ee92e8788093aef"},
     {file = "transformers-4.46.3.tar.gz", hash = "sha256:8ee4b3ae943fe33e82afff8e837f4b052058b07ca9be3cb5b729ed31295f72cc"},
@@ -10122,7 +10159,7 @@ version = "2025.1"
 description = "Provider of IANA time zone data"
 optional = false
 python-versions = ">=2"
-groups = ["main", "ai_extra", "demos", "instrumentation", "ui"]
+groups = ["ai_extra", "demos", "instrumentation", "ui"]
 files = [
     {file = "tzdata-2025.1-py2.py3-none-any.whl", hash = "sha256:7e127113816800496f027041c570f50bcd464a020098a3b6b199517772303639"},
     {file = "tzdata-2025.1.tar.gz", hash = "sha256:24894909e88cdb28bd1636c6887801df64cb485bd593f2fd83ef29075a81d694"},
@@ -10134,7 +10171,7 @@ version = "5.2"
 description = "tzinfo object for the local timezone"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "tzlocal-5.2-py3-none-any.whl", hash = "sha256:49816ef2fe65ea8ac19d19aa7a1ae0551c834303d5014c6d5a62e4cbda8047b8"},
     {file = "tzlocal-5.2.tar.gz", hash = "sha256:8d399205578f1a9342816409cc1e46a93ebd5755e39ea2d85334bea911bf0e6e"},
@@ -10258,7 +10295,7 @@ version = "4.1.1"
 description = "Implementation of RFC 6570 URI Templates"
 optional = false
 python-versions = ">=3.6"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "uritemplate-4.1.1-py2.py3-none-any.whl", hash = "sha256:830c08b8d99bdd312ea4ead05994a38e8936266f84b9a7878232db50b044e02e"},
     {file = "uritemplate-4.1.1.tar.gz", hash = "sha256:4346edfc5c3b79f694bccd6d6099a322bbeb628dbf2cd86eea55a456ce5124f0"},
@@ -10409,7 +10446,7 @@ version = "6.0.0"
 description = "Filesystem events monitoring"
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "ui"]
+groups = ["ui"]
 markers = "platform_system != \"Darwin\""
 files = [
     {file = "watchdog-6.0.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:d1cdb490583ebd691c012b3d6dae011000fe42edb7a82ece80965b42abd61f26"},
@@ -10905,7 +10942,7 @@ version = "1.2.0"
 description = "WebSockets state-machine based protocol implementation"
 optional = false
 python-versions = ">=3.7.0"
-groups = ["main", "ai_extra"]
+groups = ["ai_extra"]
 files = [
     {file = "wsproto-1.2.0-py3-none-any.whl", hash = "sha256:b9acddd652b585d75b20477888c56642fdade28bdfd3579aa24a4d2c037dd736"},
     {file = "wsproto-1.2.0.tar.gz", hash = "sha256:ad565f26ecb92588a3e43bc3d96164de84cd9902482b130d0ddbaa9664a85065"},
@@ -11393,4 +11430,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.13"
-content-hash = "58179e99ba4412445186138dba99c2008bc410692d5de506badb64f98e0c87ff"
+content-hash = "30d7185bf25c68b6510077dc394a49ce1e830daa5f5879a390998f7091d42d79"

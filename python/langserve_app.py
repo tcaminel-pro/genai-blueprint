@@ -10,6 +10,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from langserve import add_routes
+from loguru import logger
 
 from python.ai_core.chain_registry import (
     get_runnable_registry,
@@ -33,13 +34,15 @@ app = FastAPI(
 # test at : http://localhost:8000/joke/playground/
 
 for runnable_item in get_runnable_registry() :
-    runnable = runnable_item.get()
-    debug(runnable.get_input_schema().schema())
-    add_routes(
-        app,
-        runnable,
-        path="/" + runnable_item.name.lower()
-    )
+    try:
+        runnable = runnable_item.get()
+        add_routes(
+            app,
+            runnable,
+            path="/" + runnable_item.name.lower()
+        )
+    except Exception as ex:
+        logger.error(f"cannot load module {runnable_item.name} : {ex}")
 
 if __name__ == "__main__":
     import uvicorn
