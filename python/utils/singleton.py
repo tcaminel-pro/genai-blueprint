@@ -2,6 +2,12 @@
 Implement 'once', a decorator that ensures the wrapped function is called once and return same result.\n
 It's typically used for thread-safe singleton instance creation.
 
+It's inspired by the 'once' keyword in the Eiffel Programming language.
+It's simpler and arguably clearer than most usual approach to create singletons, such as inheriting a metaclass, overriding __init__(), etc.
+
+Purists might say it's not a 'real' Singleton class (as defined by the GoF), we can argue that it actually enforce reusability,
+since the class has not to be specialized to become a singleton.
+
 """
 
 import inspect
@@ -13,12 +19,6 @@ def once():
     """
     A decorator that ensures the wrapped function is called once and return same result.\n
     It's typically used for thread-safe singleton instance creation.
-
-    It's inspired by the 'once' keyword in the Eiffel Programming language.
-    It's simpler and arguably clearer than most usual approach to create singletons, such as inheriting a metaclass, overriding __init__(), etc.
-
-    Purists might say it's not a 'real' Singleton class (as defined by the GoF), we can argue that it actually enforce reusability,
-    since the class has not to be specialized to become a singleton.
 
     Example:
         @once()
@@ -53,7 +53,7 @@ def once():
                     return tuple(make_hashable(x) for x in obj)
                 if isinstance(obj, dict):
                     return tuple(sorted((k, make_hashable(v)) for k, v in obj.items()))
-                if hasattr(obj, '__dict__'):
+                if hasattr(obj, "__dict__"):
                     return make_hashable(vars(obj))
                 return str(obj)
 
@@ -61,7 +61,7 @@ def once():
             sig = inspect.signature(func)
             bound_args = sig.bind(*args, **kwargs)
             bound_args.apply_defaults()
-            
+
             # Create cache key that treats positional and keyword args the same
             sorted_args = tuple(sorted((k, make_hashable(v)) for k, v in bound_args.arguments.items()))
             cache_key = sorted_args
@@ -122,12 +122,12 @@ if __name__ == "__main__":
     @once()
     def do_something_complicated_2(x: int, y: int):
         return SingletonTestModel(a=x + y)
-        
+
     # Test multiple arguments
     obj8 = do_something_complicated_2(1, 2)
     obj9 = do_something_complicated_2(1, 2)
     obj10 = do_something_complicated_2(2, 1)
-    
+
     assert obj8 is obj9  # Same args - same instance
     assert obj8 is not obj10  # Different args - different instance
     assert obj8.a == 3

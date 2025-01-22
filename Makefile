@@ -61,14 +61,11 @@ langserve:
 webapp:
 	streamlit run $(STREAMLIT_ENTRY_POINT)
 
-test:
-	pytest -sv $(if $(TEST),$(TEST),)
 
 rebase:
 	git fetch origin
 	git stash
 	git rebase origin/main
-
 
 AIDER_OPTS=--watch-files --no-auto-lint --read CONVENTIONS.md --editor nano
 aider:  ## launch aider-chat (a coding assistant) with our configuration. 
@@ -120,13 +117,14 @@ check_poetry:  ## Check if poetry is installed, install if missing
 	@command -v poetry >/dev/null 2>&1 || { \
 		echo "Poetry is not installed. Installing now..."; \
 		curl -sSL https://install.python-poetry.org | python3 -; \
-		echo "Poetry installed successfully."; \
+		echo "Poetry installed successfully.\n Installing 'shell'  plugin..."; \
 		poetry self add poetry-plugin-shell; \
+		echo "Plugin installed ""; \
 	}
 
 install: check_poetry  ## Install project dependencies
-	@poetry lock
-	@poetry install
+	poetry lock
+	poetry install --without extra, demos, transformers
 
 ##############################
 ##  Build Docker, and run locally
