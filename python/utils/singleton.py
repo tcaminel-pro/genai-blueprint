@@ -120,5 +120,15 @@ if __name__ == "__main__":
     assert obj7.a == 2
 
     @once()
-    def do_something_complicated_2(x: int, y: int):  # fail
+    def do_something_complicated_2(x: int, y: int):
         return MyClass(a=x + y)
+        
+    # Test multiple arguments
+    obj8 = do_something_complicated_2(1, 2)
+    obj9 = do_something_complicated_2(1, 2)
+    obj10 = do_something_complicated_2(2, 1)
+    
+    assert obj8 is obj9  # Same args - same instance
+    assert obj8 is not obj10  # Different args - different instance
+    assert obj8.a == 3
+    assert obj10.a == 3  # Same sum but different args
