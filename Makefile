@@ -110,9 +110,10 @@ telemetry:  ## Run Phoenix telemetry server in background
 ##  Poetry and project  intall
 ##############################
 
+# print a message if poerty is installed AI!
 .PHONY:  check_poetry  install
 check_poetry:  ## Check if poetry is installed, install if missing
-	@command -v poetry >/dev/null 2>&1 || { \
+	command -v poetry >/dev/null 2>&1 || { \
 		echo "Poetry is not installed. Installing now..."; \
 		curl -sSL https://install.python-poetry.org | python3 -; \
 		echo "Poetry installed successfully.\n Installing 'shell'  plugin..."; \
@@ -124,6 +125,14 @@ install: check_poetry  ## Install project core dependencies
 	poetry lock
 	poetry install --without ai_extra, demos, transformers, instrumentation
 
+
+check_truc:  ## Check if poetry is installed, install if missing
+	command -v poetry >/dev/null 2>&1 || { \
+		echo "truc is not installed. Installing now..."; \
+	}
+
+install2 : check_truc
+	echo "install 2"
 ##############################
 ##  Build Docker, and run locally
 ##############################
