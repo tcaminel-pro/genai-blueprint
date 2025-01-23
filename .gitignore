@@ -166,3 +166,4 @@ use_case_data/maintenance/demo.db
 .langchain.db
 .env
 .aider*
+test_db/*

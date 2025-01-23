@@ -1,3 +1,6 @@
+# Taken from https://github.com/imanoop7/Ollama-OCR
+#  DOES NOT WORK (yet ?)
+
 import json
 import os
 import tempfile

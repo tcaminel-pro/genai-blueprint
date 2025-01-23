@@ -1394,7 +1394,7 @@ version = "0.2.2"
 description = "Jupyter Python Comm implementation, for usage in ipykernel, xeus-python etc."
 optional = false
 python-versions = ">=3.8"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "comm-0.2.2-py3-none-any.whl", hash = "sha256:e6fb86cb70ff661ee8c9c14e7d36d6de3b4066f1441be4063df9c5009f0a64d3"},
     {file = "comm-0.2.2.tar.gz", hash = "sha256:3fd7a84065306e07bea1773df6eb8282de51ba82f77c72f9c85716ab11fe980e"},
@@ -1797,7 +1797,7 @@ version = "5.1.1"
 description = "Decorators for Humans"
 optional = false
 python-versions = ">=3.5"
-groups = ["demos", "dev"]
+groups = ["main", "demos", "dev"]
 files = [
     {file = "decorator-5.1.1-py3-none-any.whl", hash = "sha256:b8c3f85900b9dc423225913c5aace94729fe1fa9763b38939a95226f02d37186"},
     {file = "decorator-5.1.1.tar.gz", hash = "sha256:637996211036b6385ef91435e4fae22989472f9d571faba8927ba8253acbc330"},
@@ -2829,7 +2829,7 @@ files = [
     {file = "greenlet-3.1.1-cp39-cp39-win_amd64.whl", hash = "sha256:3319aa75e0e0639bc15ff54ca327e8dc7a6fe404003496e3c6925cd3142e0e22"},
     {file = "greenlet-3.1.1.tar.gz", hash = "sha256:4ce3ac6cdb6adf7946475d7ef31777c26d94bccc377e070a7986bd2d5c515467"},
 ]
-markers = {main = "sys_platform == \"darwin\" and (platform_machine == \"x86_64\" or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\") or python_full_version < \"3.12.4\" and (platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\") or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\" or platform_machine == \"x86_64\"", demos = "sys_platform == \"darwin\" and (platform_machine == \"x86_64\" or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\") or python_full_version < \"3.12.4\" and (platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\") or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\" or platform_machine == \"x86_64\"", instrumentation = "sys_platform == \"darwin\" and (platform_machine == \"x86_64\" or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\") or python_full_version < \"3.12.4\" and (platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\") or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\" or platform_machine == \"x86_64\""}
+markers = {main = "platform_machine == \"x86_64\" or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\" or python_full_version < \"3.12.4\" and (platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\")", demos = "platform_machine == \"x86_64\" or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\" or python_full_version < \"3.12.4\" and (platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\")", instrumentation = "platform_machine == \"x86_64\" or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\" or python_full_version < \"3.12.4\" and (platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\")"}
 
 [package.extras]
 docs = ["Sphinx", "furo"]
@@ -3365,6 +3365,28 @@ vertexai = ["google-cloud-aiplatform (>=1.53.0,<2.0.0)", "jsonref (>=1.1.0,<2.0.
 writer = ["writer-sdk (>=1.2.0,<2.0.0)"]
 
 [[package]]
+name = "ipycytoscape"
+version = "1.3.3"
+description = "A Cytoscape widget for Jupyter"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "ipycytoscape-1.3.3-py2.py3-none-any.whl", hash = "sha256:4bc205724971f5f7a3fc2b09dfec20c357c4c6dfa2b4bd41e7c33c995c3f6906"},
+    {file = "ipycytoscape-1.3.3.tar.gz", hash = "sha256:b6f3199df034f088e92d388e27e629f58ae2901b213cb9299e5b564272f9a2f8"},
+]
+
+[package.dependencies]
+ipywidgets = ">=7.6.0"
+spectate = ">=1.0.0"
+
+[package.extras]
+docs = ["jupyter-sphinx (>=0.3.1)", "nbsphinx", "nbsphinx-link", "networkx", "pandas", "sphinx", "sphinx-autobuild (>=2020.9.1)", "sphinx-copybutton", "sphinx-rtd-theme"]
+examples = ["monotonic", "pandas", "py2neo"]
+neo4j = ["monotonic", "py2neo"]
+test = ["nbclassic (>=0.2.8)", "nbval", "networkx", "pandas", "pre-commit", "pytest (>4.6)", "pytest-cov"]
+
+[[package]]
 name = "ipykernel"
 version = "6.29.5"
 description = "IPython Kernel for Jupyter"
@@ -3404,7 +3426,7 @@ version = "8.31.0"
 description = "IPython: Productive Interactive Computing"
 optional = false
 python-versions = ">=3.10"
-groups = ["demos", "dev"]
+groups = ["main", "demos", "dev"]
 files = [
     {file = "ipython-8.31.0-py3-none-any.whl", hash = "sha256:46ec58f8d3d076a61d128fe517a51eb730e3aaf0c184ea8c17d16e366660c6a6"},
     {file = "ipython-8.31.0.tar.gz", hash = "sha256:b6a2274606bec6166405ff05e54932ed6e5cfecaca1fc05f2cacde7bb074d70b"},
@@ -3441,7 +3463,7 @@ version = "8.1.5"
 description = "Jupyter interactive widgets"
 optional = false
 python-versions = ">=3.7"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "ipywidgets-8.1.5-py3-none-any.whl", hash = "sha256:3290f526f87ae6e77655555baba4f36681c555b8bdbbff430b70e52c34c86245"},
     {file = "ipywidgets-8.1.5.tar.gz", hash = "sha256:870e43b1a35656a80c18c9503bbf2d16802db1cb487eec6fab27d683381dde17"},
@@ -3463,7 +3485,7 @@ version = "0.19.2"
 description = "An autocompletion tool for Python that can be used for text editors."
 optional = false
 python-versions = ">=3.6"
-groups = ["demos", "dev"]
+groups = ["main", "demos", "dev"]
 files = [
     {file = "jedi-0.19.2-py2.py3-none-any.whl", hash = "sha256:a8ef22bde8490f57fe5c7681a3c83cb58874daf72b4784de3cce5b6ef6edb5b9"},
     {file = "jedi-0.19.2.tar.gz", hash = "sha256:4770dc3de41bde3966b02eb84fbcf557fb33cce26ad23da12c742fb50ecb11f0"},
@@ -3789,7 +3811,7 @@ version = "3.0.13"
 description = "Jupyter interactive widgets for JupyterLab"
 optional = false
 python-versions = ">=3.7"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "jupyterlab_widgets-3.0.13-py3-none-any.whl", hash = "sha256:e3cda2c233ce144192f1e29914ad522b2f4c40e77214b0cc97377ca3d323db54"},
     {file = "jupyterlab_widgets-3.0.13.tar.gz", hash = "sha256:a2966d385328c1942b683a8cd96b89b8dd82c8b8f81dda902bb2bc06d46f5bed"},
@@ -3929,12 +3951,59 @@ websocket-client = ">=0.32.0,<0.40.0 || >0.40.0,<0.41.dev0 || >=0.43.dev0"
 adal = ["adal (>=1.0.2)"]
 
 [[package]]
+name = "kuzu"
+version = "0.7.1"
+description = "Highly scalable, extremely fast, easy-to-use embeddable graph database"
+optional = false
+python-versions = "*"
+groups = ["demos"]
+files = [
+    {file = "kuzu-0.7.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:0084731ea2096e0f670b7d26284265448df4441584cda4d3b29ae1a0f35cf363"},
+    {file = "kuzu-0.7.1-cp310-cp310-macosx_11_0_x86_64.whl", hash = "sha256:e5ccdc5d6c6a10d0d64ed20835977c43fcd21922c2a06e0048d2817b1c2e21ba"},
+    {file = "kuzu-0.7.1-cp310-cp310-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:e88a861fcf893453a41656bc3401af0c1890d5528f71c046fc573dacffdf875e"},
+    {file = "kuzu-0.7.1-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:e813b945297ff32003a6565ee4abd6cbd62c23eae9cdb6bb106b90fb36661fab"},
+    {file = "kuzu-0.7.1-cp310-cp310-win_amd64.whl", hash = "sha256:691b034dc2001045fd0ed3dcb5fcbf37b788c56ef5be477a27588ebf70008ce3"},
+    {file = "kuzu-0.7.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:dc33907a16430ef7e606e6d28d418920428fb24261cbe9430c810efc9571d0cd"},
+    {file = "kuzu-0.7.1-cp311-cp311-macosx_11_0_x86_64.whl", hash = "sha256:360523de43ccdd4e8bbbf5b044e10f14ca7491f641b57cc758a3fa97d786d717"},
+    {file = "kuzu-0.7.1-cp311-cp311-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:793b68163ec7de3ea84e16ce9910295744495b0dd2d020153a7233036b2880e2"},
+    {file = "kuzu-0.7.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:5f6c4d23c64758feade1eb415270c76a43d62ac3915271322d909dd2718c7547"},
+    {file = "kuzu-0.7.1-cp311-cp311-win_amd64.whl", hash = "sha256:191a3075fc7e267b1789df49ba8a59a7b25de07d30a752603e6f308272794e75"},
+    {file = "kuzu-0.7.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:13cc34aec05f9a0cc17c29c51f391de1a3d943c334bcb597847b9d72badd4402"},
+    {file = "kuzu-0.7.1-cp312-cp312-macosx_11_0_x86_64.whl", hash = "sha256:037db397d88e6afcebe118f18f84a3c8ec94fc0ae7323f601dc36f94be6e4fe1"},
+    {file = "kuzu-0.7.1-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:cfb6f3f289e7c2ca22ac5a5bbe5baf067971975b8fef0c86bbfdc22d4f93ce26"},
+    {file = "kuzu-0.7.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:3a3b5fe7f097117ef1df41895f78a0fe75b0a496e1a2cd8e7bb3fcb848b45cff"},
+    {file = "kuzu-0.7.1-cp312-cp312-win_amd64.whl", hash = "sha256:eb78c204ea509f723673105ffd8265dc5c97cf4b05838d7a453283b78f211712"},
+    {file = "kuzu-0.7.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:0d89c7a1447943333e59e04c9d00603eb302ceca31bbf2ba0890722d2319730a"},
+    {file = "kuzu-0.7.1-cp313-cp313-macosx_11_0_x86_64.whl", hash = "sha256:406592a101a85615c46a4c6ca80e1b803ac609c82e25e5469ab7c585667a3fff"},
+    {file = "kuzu-0.7.1-cp313-cp313-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:5df1c36db81bb0957b013c48598d3467a962aa59cb9180ff95593ed40b9ac958"},
+    {file = "kuzu-0.7.1-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:526e099d74a93625db4200e3a8e4bc1c6f1b3ebef9d11ff4df59cc4a7f65dc09"},
+    {file = "kuzu-0.7.1-cp313-cp313-win_amd64.whl", hash = "sha256:3b5e8bffa080c7d121480e7d9040cfb352f6c29c85140ebf284ae663c21db7ca"},
+    {file = "kuzu-0.7.1-cp313-cp313t-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:eeb3d9a172c5b1ac3281e70a7debcbd26ceef3dd869299253c3083dd23542ed2"},
+    {file = "kuzu-0.7.1-cp313-cp313t-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:c129bd054876380a00fca17896f5d695bc1f32cfcab1642fec9c8dee5f7084cb"},
+    {file = "kuzu-0.7.1-cp37-cp37m-macosx_11_0_x86_64.whl", hash = "sha256:9d4faeeb66e3a8408fb9081063b86ba58f744fdb94c6b2345b25977fa090d300"},
+    {file = "kuzu-0.7.1-cp37-cp37m-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:ccd156adb75eb7400b42790e8ea9c851fe23e6d253077e02eca6a91e5d8985d3"},
+    {file = "kuzu-0.7.1-cp37-cp37m-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:9477c3555c6527d0b08069ebc167879064c9a0771544539b60b3949c528d2170"},
+    {file = "kuzu-0.7.1-cp37-cp37m-win_amd64.whl", hash = "sha256:5ee3d07ec38d26cacd4940631b91b9a77da08ca543fc3b4c9e91b11a00270245"},
+    {file = "kuzu-0.7.1-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:b89b6d7002e3b06c6481170029d914cb75f60af0258b0955199be7144ce37fb9"},
+    {file = "kuzu-0.7.1-cp38-cp38-macosx_11_0_x86_64.whl", hash = "sha256:279c672f8e332b493da522eff0a0709c38a6f8b4c7332fb50422821fe3a82825"},
+    {file = "kuzu-0.7.1-cp38-cp38-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:ccbdac3d9c38abf2677878170cd45401bb7670fc44180e9a2d6463a163285de4"},
+    {file = "kuzu-0.7.1-cp38-cp38-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:0a6c1990025e032737ce3010dd9fe9906f96cb8829fa0a5007260ecc5071d1c2"},
+    {file = "kuzu-0.7.1-cp38-cp38-win_amd64.whl", hash = "sha256:e733a04035d168b88aee64618b0ed43dc9ba7963ecb4729dc835f83ed22e1da0"},
+    {file = "kuzu-0.7.1-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:c83d2944a5b31d46dc2d1de3fe7a58a4a37719bc2b203103cf6f95ab86e13437"},
+    {file = "kuzu-0.7.1-cp39-cp39-macosx_11_0_x86_64.whl", hash = "sha256:faa014adeff95ffc80c86dbe84a0196c358bd81ae9c1de0da4bb7f9abb9bd843"},
+    {file = "kuzu-0.7.1-cp39-cp39-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:3a29d3db0b363c3d5e42425b891f2d6140096ffefbfaee101a7f3b3f368755a4"},
+    {file = "kuzu-0.7.1-cp39-cp39-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:71d6c5f37de025de99486f24fd88c753002cb59bb4d1cc46d531b2265d02a7dc"},
+    {file = "kuzu-0.7.1-cp39-cp39-win_amd64.whl", hash = "sha256:1c3877f08c42904304d6076a3207ddaa9ceb84898812eecdd5e4a022abc743d2"},
+    {file = "kuzu-0.7.1.tar.gz", hash = "sha256:a3a51601fc807a4369239ec7bacd739952caba092367a4739b28f4c5740fd97e"},
+]
+
+[[package]]
 name = "langchain"
 version = "0.3.14"
 description = "Building applications with LLMs through composability"
 optional = false
 python-versions = "<4.0,>=3.9"
-groups = ["main", "ai_extra"]
+groups = ["main", "ai_extra", "demos"]
 files = [
     {file = "langchain-0.3.14-py3-none-any.whl", hash = "sha256:5df9031702f7fe6c956e84256b4639a46d5d03a75be1ca4c1bc9479b358061a2"},
     {file = "langchain-0.3.14.tar.gz", hash = "sha256:4a5ae817b5832fa0e1fcadc5353fbf74bebd2f8e550294d4dc039f651ddcd3d1"},
@@ -4145,6 +4214,23 @@ tokenizers = ">=0.19.1"
 transformers = ">=4.39.0"
 
 [[package]]
+name = "langchain-kuzu"
+version = "0.3.0"
+description = "An integration package connecting Kùzu, an embedded graph database, and LangChain"
+optional = false
+python-versions = "<4.0,>=3.9"
+groups = ["demos"]
+files = [
+    {file = "langchain_kuzu-0.3.0-py3-none-any.whl", hash = "sha256:a25fd078ccb12abaac3e3294497757377e6ccc3f72247e6be16f3495b1735099"},
+    {file = "langchain_kuzu-0.3.0.tar.gz", hash = "sha256:e495ae39fa17fb123a08c384818665f58477efe3c015fb89f363ebf6b6aea2d0"},
+]
+
+[package.dependencies]
+kuzu = ">=0.7.1,<0.8.0"
+langchain = ">=0.3.13,<0.4.0"
+langchain-core = ">=0.3.28,<0.4.0"
+
+[[package]]
 name = "langchain-ollama"
 version = "0.2.2"
 description = "An integration package connecting Ollama and LangChain"
@@ -4183,7 +4269,7 @@ version = "0.3.5"
 description = "LangChain text splitting utilities"
 optional = false
 python-versions = "<4.0,>=3.9"
-groups = ["main", "ai_extra"]
+groups = ["main", "ai_extra", "demos"]
 files = [
     {file = "langchain_text_splitters-0.3.5-py3-none-any.whl", hash = "sha256:8c9b059827438c5fa8f327b4df857e307828a5ec815163c9b5c9569a3e82c8ee"},
     {file = "langchain_text_splitters-0.3.5.tar.gz", hash = "sha256:11cb7ca3694e5bdd342bc16d3875b7f7381651d4a53cbb91d34f22412ae16443"},
@@ -5017,7 +5103,7 @@ version = "0.1.7"
 description = "Inline Matplotlib backend for Jupyter"
 optional = false
 python-versions = ">=3.8"
-groups = ["demos", "dev"]
+groups = ["main", "demos", "dev"]
 files = [
     {file = "matplotlib_inline-0.1.7-py3-none-any.whl", hash = "sha256:df192d39a4ff8f21b1895d72e6a13f5fcc5099f00fa84384e0ea28c2cc0653ca"},
     {file = "matplotlib_inline-0.1.7.tar.gz", hash = "sha256:8423b23ec666be3d16e16b60bdd8ac4e86e840ebd1dd11a30b9f117f2fa0ab90"},
@@ -6708,7 +6794,7 @@ version = "0.8.4"
 description = "A Python Parser"
 optional = false
 python-versions = ">=3.6"
-groups = ["demos", "dev"]
+groups = ["main", "demos", "dev"]
 files = [
     {file = "parso-0.8.4-py2.py3-none-any.whl", hash = "sha256:a418670a20291dacd2dddc80c377c5c3791378ee1e8d12bffc35420643d43f18"},
     {file = "parso-0.8.4.tar.gz", hash = "sha256:eb3a7b58240fb99099a345571deecc0f9540ea5f4dd2fe14c2a99d6b281ab92d"},
@@ -6788,7 +6874,7 @@ version = "4.9.0"
 description = "Pexpect allows easy control of interactive console applications."
 optional = false
 python-versions = "*"
-groups = ["demos", "dev"]
+groups = ["main", "demos", "dev"]
 markers = "sys_platform != \"win32\" and sys_platform != \"emscripten\""
 files = [
     {file = "pexpect-4.9.0-py2.py3-none-any.whl", hash = "sha256:7236d1e080e4936be2dc3e326cec0af72acf9212a7e1d060210e70a47e253523"},
@@ -7057,7 +7143,7 @@ version = "3.0.50"
 description = "Library for building powerful interactive command lines in Python"
 optional = false
 python-versions = ">=3.8.0"
-groups = ["demos", "dev"]
+groups = ["main", "demos", "dev"]
 files = [
     {file = "prompt_toolkit-3.0.50-py3-none-any.whl", hash = "sha256:9b6427eb19e479d98acff65196a307c555eb567989e6d88ebbb1b509d9779198"},
     {file = "prompt_toolkit-3.0.50.tar.gz", hash = "sha256:544748f3860a2623ca5cd6d2795e7a14f3d0e1c3c9728359013f79877fc89bab"},
@@ -7234,7 +7320,7 @@ version = "0.7.0"
 description = "Run a subprocess in a pseudo terminal"
 optional = false
 python-versions = "*"
-groups = ["demos", "dev"]
+groups = ["main", "demos", "dev"]
 markers = "sys_platform != \"win32\" and sys_platform != \"emscripten\""
 files = [
     {file = "ptyprocess-0.7.0-py2.py3-none-any.whl", hash = "sha256:4b41f3967fce3af57cc7e94b888626c18bf37a083e3651ca8feeb66d492fef35"},
@@ -7247,7 +7333,7 @@ version = "0.2.3"
 description = "Safely evaluate AST nodes without side effects"
 optional = false
 python-versions = "*"
-groups = ["demos", "dev"]
+groups = ["main", "demos", "dev"]
 files = [
     {file = "pure_eval-0.2.3-py3-none-any.whl", hash = "sha256:1db8e35b67b3d218d818ae653e27f06c3aa420901fa7b081ca98cbedc874e0d0"},
     {file = "pure_eval-0.2.3.tar.gz", hash = "sha256:5f4e983f40564c576c7c8635ae88db5956bb2229d7e9237d03b3c0b0190eaf42"},
@@ -9038,6 +9124,18 @@ files = [
 ]
 
 [[package]]
+name = "spectate"
+version = "1.0.1"
+description = "Track changes to mutable data types."
+optional = false
+python-versions = ">=3.6"
+groups = ["main"]
+files = [
+    {file = "spectate-1.0.1-py2.py3-none-any.whl", hash = "sha256:c4585194c238979f953fbf2ecf9f94c84d9d0a929432c7104e39984f52c9e718"},
+    {file = "spectate-1.0.1.tar.gz", hash = "sha256:49a2dde0962fcecf120cb361cc293989489078eb29ba1d8c3d342a741e898b7e"},
+]
+
+[[package]]
 name = "sqlalchemy"
 version = "2.0.37"
 description = "Database Abstraction Library"
@@ -9268,7 +9366,7 @@ version = "0.6.3"
 description = "Extract data from python stack frames and tracebacks for informative displays"
 optional = false
 python-versions = "*"
-groups = ["demos", "dev"]
+groups = ["main", "demos", "dev"]
 files = [
     {file = "stack_data-0.6.3-py3-none-any.whl", hash = "sha256:d5558e0c25a4cb0853cddad3d77da9891a08cb85dd9f9f91b9f8cd66e511e695"},
     {file = "stack_data-0.6.3.tar.gz", hash = "sha256:836a778de4fec4dcd1dcd89ed8abff8a221f58308462e1c4aa2a3cf30148f0b9"},
@@ -9988,7 +10086,7 @@ version = "5.14.3"
 description = "Traitlets Python configuration system"
 optional = false
 python-versions = ">=3.8"
-groups = ["demos", "dev"]
+groups = ["main", "demos", "dev"]
 files = [
     {file = "traitlets-5.14.3-py3-none-any.whl", hash = "sha256:b74e89e397b1ed28cc831db7aea759ba6640cb3de13090ca145426688ff1ac4f"},
     {file = "traitlets-5.14.3.tar.gz", hash = "sha256:9ed0579d3502c94b4b3732ac120375cda96f923114522847de4b3bb98b96b6b7"},
@@ -10574,7 +10672,7 @@ version = "0.2.13"
 description = "Measures the displayed width of unicode strings in a terminal"
 optional = false
 python-versions = "*"
-groups = ["demos", "dev"]
+groups = ["main", "demos", "dev"]
 files = [
     {file = "wcwidth-0.2.13-py2.py3-none-any.whl", hash = "sha256:3da69048e4540d84af32131829ff948f1e022c1c6bdb8d6102117aac784f6859"},
     {file = "wcwidth-0.2.13.tar.gz", hash = "sha256:72ea0c06399eb286d978fdedb6923a9eb47e1c486ce63e9b4e64fc18303972b5"},
@@ -10743,7 +10841,7 @@ version = "4.0.13"
 description = "Jupyter interactive widgets for Jupyter Notebook"
 optional = false
 python-versions = ">=3.7"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "widgetsnbextension-4.0.13-py3-none-any.whl", hash = "sha256:74b2692e8500525cc38c2b877236ba51d34541e6385eeed5aec15a70f88a6c71"},
     {file = "widgetsnbextension-4.0.13.tar.gz", hash = "sha256:ffcb67bc9febd10234a362795f643927f4e0c05d9342c727b65d2384f8feacb6"},
@@ -11430,4 +11528,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.13"
-content-hash = "30d7185bf25c68b6510077dc394a49ce1e830daa5f5879a390998f7091d42d79"
+content-hash = "eaa7084e90f0f74154ec0936aac85ca656c8fca2d414c8e7a089ccd3ba3fe4be"
