@@ -52,6 +52,9 @@ rebase:
 	git stash
 	git rebase origin/main
 
+
+# Add case when parameter is 'R1", then call 'deepseek-reasoner' AI!
+
 AIDER_OPTS=--watch-files --no-auto-lint --read CONVENTIONS.md --editor nano
 aider:  ## launch aider-chat (a coding assistant) with our configuration. 
 	if [ "$(filter haiku,$(MAKECMDGOALS))" ]; then \
