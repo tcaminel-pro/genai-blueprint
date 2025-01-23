@@ -56,9 +56,11 @@ rebase:
 # Add case when parameter is 'R1", then call 'deepseek-reasoner' AI!
 
 AIDER_OPTS=--watch-files --no-auto-lint --read CONVENTIONS.md --editor nano
-aider:  ## launch aider-chat (a coding assistant) with our configuration. 
+aider:  ## launch aider-chat (a coding assistant) with our configuration.
 	if [ "$(filter haiku,$(MAKECMDGOALS))" ]; then \
 		aider $(AIDER_OPTS) --cache-prompts --model openrouter/anthropic/claude-3-5-haiku; \
+	elif [ "$(filter R1,$(MAKECMDGOALS))" ]; then \
+		aider $(AIDER_OPTS) --model deepseek/deepseek-reasoner; \
 	else \
 		aider $(AIDER_OPTS) --model deepseek/deepseek-chat; \
 	fi
