@@ -1,11 +1,24 @@
-# Add module doc and function docstrings AI!
+"""Cypher graph visualization utilities for Streamlit UI.
 
+This module provides functions to convert graph data from a Kuzu GraphStore into 
+Cytoscape-compatible JSON format and styling for visualization in Streamlit apps.
+
+The visualization excludes 'text_chunk' nodes and their relationships to focus on 
+higher-level graph structures.
+"""
 
 from langchain_kuzu.graphs.graph_store import GraphStore
 
 
 def get_cytoscape_json(graph: GraphStore) -> dict:
-    # Get all nodes and relationships in Cytoscape JSON format
+    """Convert GraphStore data to Cytoscape JSON format.
+
+    Args:
+        graph: The GraphStore containing nodes and relationships
+
+    Returns:
+        dict: Cytoscape-compatible JSON with nodes and edges, excluding text_chunk nodes
+    """
     cyto_data = {"nodes": [], "edges": []}
 
     # Query all nodes
@@ -40,6 +53,11 @@ def get_cytoscape_json(graph: GraphStore) -> dict:
 
 
 def get_cytoscape_style() -> list[dict]:
+    """Get default styling for Cytoscape graph visualization.
+
+    Returns:
+        list[dict]: List of style definitions for nodes and edges
+    """
     style = [
         {
             "selector": "node",
