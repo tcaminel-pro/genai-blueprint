@@ -117,7 +117,7 @@ check_poetry:  ## Check if poetry is installed, install if missing
 		curl -sSL https://install.python-poetry.org | python3 -; \
 		echo "Poetry installed successfully.\n Installing 'shell'  plugin..."; \
 		poetry self add poetry-plugin-shell; \
-		echo "Plugin installed ""; \
+		echo "Plugin installed"; \
 	}
 
 install: check_poetry  ## Install project core dependencies
