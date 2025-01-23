@@ -46,6 +46,7 @@
         "iloc",
         "informatica",
         "Instrumentor",
+        "Kuzu",
         "langchain",
         "langgraph",
         "langserve",

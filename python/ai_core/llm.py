@@ -283,6 +283,7 @@ class LlmFactory(BaseModel):
 
             llm = ChatOpenAI(
                 base_url="https://api.openai.com/v1/",
+                model=self.info.model,
                 **llm_params,
             )
         elif self.info.cls == "ChatGroq":

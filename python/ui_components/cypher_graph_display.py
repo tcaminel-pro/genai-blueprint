@@ -1,13 +1,15 @@
-"""Cypher graph visualization utilities for Streamlit UI.
+"""Cypher graph visualization utilities.
 
-This module provides functions to convert graph data from a Kuzu GraphStore into 
-Cytoscape-compatible JSON format and styling for visualization in Streamlit apps.
+This module provides functions to convert graph data from a Cypher grap database to
+a JSON format usable by Cytoscape-js, a graph visualisation library.
 
-The visualization excludes 'text_chunk' nodes and their relationships to focus on 
-higher-level graph structures.
+It's been tested with Kuzu, but should work with limited change with other Cyper graph databases.
+
 """
 
-from langchain_kuzu.graphs.graph_store import GraphStore
+from langchain_community.graphs.graph_store import GraphStore
+
+# should work with langchain_community.graphs.graph_store.GraphStore
 
 
 def get_cytoscape_json(graph: GraphStore) -> dict:
