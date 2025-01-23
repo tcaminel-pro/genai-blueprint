@@ -25,10 +25,11 @@ LOCATION=europe-west4
 PROJECT_ID_GCP=XXX
 
 
-.PHONY: check fast_api langserve webapp test rebase aider telemetry # Development 
+
+.PHONY: telemetry 
 .PHONY: clean lint clean_notebooks quality latest # Maintenance 
 .PHONY: check_poetry install # Poetry and installation 
-.PHONY: build run save sync_time # Docker build and deployment 
+.PHONY: build run save sync_time check # Docker build and deployment 
 .PHONY: login_gcp build_gcp push_gcp create_repo_gcp # GCP targets
 .PHONY: push_az # Azure targets
 .PHONY: backup  # Misc
@@ -36,7 +37,7 @@ PROJECT_ID_GCP=XXX
 ##############################
 ##  GenAI Blueprint related commands
 ##############################
-
+.PHONY: fast_api langserve webapp test rebase aider aider_haiku aider_r1  
 fast_api:  # run Python code localy
 	uvicorn $(FASTAPI_ENTRY_POINT) --reload
 
@@ -46,39 +47,26 @@ langserve:
 webapp:
 	streamlit run $(STREAMLIT_ENTRY_POINT)
 
-
+##############################
+##  Development
+##############################
+.PHONY: rebase aider aider_haiku aider_r1
+.PHONY: lint quality clean_notebooks latest
 rebase:
 	git fetch origin
 	git stash
 	git rebase origin/main
 
-
-# Add case when parameter is 'R1", then call 'deepseek-reasoner' AI!
-
 AIDER_OPTS=--watch-files --no-auto-lint --read CONVENTIONS.md --editor nano
-aider:  ## launch aider-chat (a coding assistant) with our configuration.
-	if [ "$(filter haiku,$(MAKECMDGOALS))" ]; then \
-		aider $(AIDER_OPTS) --cache-prompts --model openrouter/anthropic/claude-3-5-haiku; \
-	elif [ "$(filter R1,$(MAKECMDGOALS))" ]; then \
-		aider $(AIDER_OPTS) --model deepseek/deepseek-reasoner; \
-	else \
-		aider $(AIDER_OPTS) --model deepseek/deepseek-chat; \
-	fi
+aider:
+	aider $(AIDER_OPTS) --model deepseek/deepseek-chat; 
 
-telemetry:  ## Run Phoenix telemetry server in background
-	@echo "Starting Phoenix telemetry server..."
-	@if ! pgrep -f "phoenix.server.main" > /dev/null; then \
-		python -m phoenix.server.main serve > /tmp/phoenix.log 2>&1 & \
-		echo "Phoenix server started in background (PID: $$!)"; \
-		echo "Logs are being written to /tmp/phoenix.log"; \
-		echo "look at: http://localhost:6006/projects" \
-	else \
-		echo "Phoenix server is already running"; \
-	fi
+# not sure --cache-prompts works
+aider_haiku: 
+	aider $(AIDER_OPTS) / --cache-prompts --model openrouter/anthropic/claude-3-5-haiku;   
+aider_r1:
+	aider $(AIDER_OPTS) --model deepseek/deepseek-reasoner; 
 
-##############################
-##  Maintenance Tasks
-##############################
 
 lint:
 	poetry run ruff check --select I --fix
@@ -100,9 +88,29 @@ latest:  # Update selected fast changing dependencies
 	poetry add  gpt-researcher@latest browser-use@latest smolagents@latest mcpadapt@latest  --group ai_extra
 #	poetry add crewai@latest[tools] --group demos
 
+
+
+##############################
+##  Telemetry  Tasks
+##############################
+.PHONY: telemetry
+
+telemetry:  ## Run Phoenix telemetry server in background
+	@echo "Starting Phoenix telemetry server..."
+	@if ! pgrep -f "phoenix.server.main" > /dev/null; then \
+		python -m phoenix.server.main serve > /tmp/phoenix.log 2>&1 & \
+		echo "Phoenix server started in background (PID: $$!)"; \
+		echo "Logs are being written to /tmp/phoenix.log"; \
+		echo "look at: http://localhost:6006/projects" \
+	else \
+		echo "Phoenix server is already running"; \
+	fi
+
 ##############################
 ##  Poetry and project  intall
 ##############################
+
+.PHONY:  check_poetry  install
 check_poetry:  ## Check if poetry is installed, install if missing
 	@command -v poetry >/dev/null 2>&1 || { \
 		echo "Poetry is not installed. Installing now..."; \
@@ -120,6 +128,9 @@ install: check_poetry  ## Install project core dependencies
 ##  Build Docker, and run locally
 ##############################
 #WARNING : Put the API key into the docker image. NOT RECOMMANDED IN PRODUCTION
+
+.PHONY: build run save sync_time check # Docker build and deployment 
+
 
 check: ## Check if the image is built
 	docker images -a
@@ -143,6 +154,8 @@ save:  # Create a zipped version of the image
 ##############
 ##  GCP  ###
 ##############
+
+.PHONY: login_gcp build_gcp push_gcp create_repo_gcp # GCP targets
 
 # To be completed...
 
@@ -168,7 +181,7 @@ create_repo_gcp:
 ##############
 ##  AZURE  ###
 ##############
-
+.PHONY: push_az # Azure targets
 	
 push_az:  # Push to a registry
 	docker tag $(APP):$(IMAGE_VERSION) $(REGISTRY_AZ)/$(APP):$(IMAGE_VERSION)
@@ -181,7 +194,7 @@ push_az:  # Push to a registry
 ##  MISC  ###
 ##############
 
-# aider-chat@latest
+.PHONY: backup  clean dedupe_history
 
 clean:  ## Clean Python bytecode and cache files
 	find . -type f -name "*.py[co]" -delete
@@ -205,6 +218,7 @@ backup:
 	~/prj ~/ln_to_onedrive/backup/wsl/tcl
 
 
+# remove also from history commands 'ls', 'cat' 'hgrep' AI!
 dedupe_history:  ## Remove duplicate entries from .bash_history while preserving order
 	@if [ -f ~/.bash_history ]; then \
 		awk '!seen[$$0]++' ~/.bash_history > ~/.bash_history_unique && \
