@@ -218,9 +218,9 @@ backup:
 	~/prj ~/ln_to_onedrive/backup/wsl/tcl
 
 
-dedupe_history:  ## Remove duplicate entries and common commands from .bash_history while preserving order
+clean_history:  ## Remove duplicate entries and common commands from .bash_history while preserving order
 	@if [ -f ~/.bash_history ]; then \
-		awk '!/^(ls|cat|hgrep)( |$$)/ && !seen[$$0]++' ~/.bash_history > ~/.bash_history_unique && \
+		awk '!/^(ls|cat|hgrep|h|cd|p|m)( |$$)/ && !seen[$$0]++' ~/.bash_history > ~/.bash_history_unique && \
 		mv ~/.bash_history_unique ~/.bash_history; \
 		echo "Done : duplicates and common commands removed. \nRun 'history -c; history -r' in your shell to reload the cleaned history"; \
 	else \

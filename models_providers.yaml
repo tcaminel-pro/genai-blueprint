@@ -131,6 +131,8 @@ llm:
   models:
   - id :   deepseek_chatv3_deepseek
     model : deepseek-chat
+  - id :   deepseek_R1_deepseek
+    model : deepseek-reasoner
     
 - cls: ChatOpenrouter
   models:
