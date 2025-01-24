@@ -124,11 +124,11 @@ check_poetry:  ## Check if poetry is installed, install if missing
 
 install: check_poetry  ## Install project core dependencies
 	poetry lock
-	poetry install --without ai_extra, demos, transformers, instrumentation
+	poetry install --without ai_extra,demos,transformers,instrumentation,autogen
 
 
 check_truc:  ## Check if poetry is installed, install if missing
-	command -v poetry >/dev/null 2>&1 || { \
+	@command -v poetry >/dev/null 2>&1 || { \
 		echo "truc is not installed. Installing now..."; \
 	}
 
@@ -230,7 +230,7 @@ backup:
 
 clean_history:  ## Remove duplicate entries and common commands from .bash_history while preserving order
 	@if [ -f ~/.bash_history ]; then \
-		awk '!/^(ls|cat|hgrep|h|cd|p|m)( |$$)/ && !seen[$$0]++' ~/.bash_history > ~/.bash_history_unique && \
+		awk '!/^(ls|cat|hgrep|h|cd|p|m|ll|pwd|code|mkdir)( |$$)/ && !seen[$$0]++' ~/.bash_history > ~/.bash_history_unique && \
 		mv ~/.bash_history_unique ~/.bash_history; \
 		echo "Done : duplicates and common commands removed. \nRun 'history -c; history -r' in your shell to reload the cleaned history"; \
 	else \

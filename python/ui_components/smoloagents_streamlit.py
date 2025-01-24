@@ -1,3 +1,17 @@
+"""
+Ported from https://github.com/huggingface/smolagents/blob/main/src/smolagents/gradio_ui.py
+
+Aider prompt :
+    Port following code from Gradio to Streamlit and replace it.
+    Modify class and function name, but don't add new class method.
+    Use the 'to_raw' method to use AgentImage in st.image().
+    Replace relative import by absolute import from smolagents.
+    Add in comment that it's a port from  https://github.com/huggingface/smolagents/blob/main/src/smolagents/gradio_ui.py.
+    Insert that prompt in the module comments.
+
+
+"""
+
 #!/usr/bin/env python
 # coding=utf-8
 # Copyright 2024 The HuggingFace Inc. team. All rights reserved.
@@ -16,7 +30,6 @@
 import mimetypes
 import os
 import re
-import shutil
 from typing import Optional
 
 from smolagents.agents import ActionStep, AgentStepLog, MultiStepAgent
@@ -52,9 +65,7 @@ def stream_to_streamlit(
 ):
     """Runs an agent with the given task and displays the messages in Streamlit."""
     if not _is_package_available("streamlit"):
-        raise ModuleNotFoundError(
-            "Please install 'streamlit' to use the StreamlitUI: `pip install streamlit`"
-        )
+        raise ModuleNotFoundError("Please install 'streamlit' to use the StreamlitUI: `pip install streamlit`")
     import streamlit as st
 
     for step_log in agent.run(task, stream=True, reset=reset_agent_memory, additional_args=additional_args):
@@ -78,9 +89,7 @@ class StreamlitUI:
 
     def __init__(self, agent: MultiStepAgent, file_upload_folder: str | None = None):
         if not _is_package_available("streamlit"):
-            raise ModuleNotFoundError(
-                "Please install 'streamlit' to use the StreamlitUI: `pip install streamlit`"
-            )
+            raise ModuleNotFoundError("Please install 'streamlit' to use the StreamlitUI: `pip install streamlit`")
         self.agent = agent
         self.file_upload_folder = file_upload_folder
         if self.file_upload_folder is not None:
@@ -100,7 +109,9 @@ class StreamlitUI:
         """
         import streamlit as st
 
-        uploaded_file = st.file_uploader("Upload a file", type=[mimetypes.guess_extension(t) for t in allowed_file_types])
+        uploaded_file = st.file_uploader(
+            "Upload a file", type=[mimetypes.guess_extension(t) for t in allowed_file_types]
+        )
         if uploaded_file is None:
             return None
 
@@ -142,7 +153,7 @@ class StreamlitUI:
         import streamlit as st
 
         st.title("Smol Agents")
-        
+
         if self.file_upload_folder is not None:
             file_path = self.upload_file()
             if file_path:
@@ -152,7 +163,7 @@ class StreamlitUI:
         if prompt:
             if st.session_state.get("file_uploads"):
                 prompt += f"\nYou have been provided with these files, which might be helpful or not: {st.session_state.file_uploads}"
-            
+
             stream_to_streamlit(self.agent, task=prompt, reset_agent_memory=False)
 
 
