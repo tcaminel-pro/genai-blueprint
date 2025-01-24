@@ -12,6 +12,8 @@ NOT FULLY TESTED !!
 # Copyright 2024 The HuggingFace Inc. team. All rights reserved.
 
 import os
+import re
+import mimetypes
 from typing import Optional
 
 import streamlit as st
@@ -72,15 +74,41 @@ class StreamlitUI:
             with st.chat_message(message["role"]):
                 st.write(message["content"])
 
-        # File upload
+        # File upload with validation
         if self.file_upload_folder is not None:
-            uploaded_file = st.file_uploader("Upload a file", type=["pdf", "docx", "txt"])
+            uploaded_file = st.file_uploader(
+                "Upload a file", 
+                type=["pdf", "docx", "txt"],
+                help="Supported formats: PDF, DOCX, TXT"
+            )
+            
             if uploaded_file is not None:
-                file_path = os.path.join(self.file_upload_folder, uploaded_file.name)
-                with open(file_path, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-                st.session_state.file_uploads.append(file_path)
-                st.success(f"File uploaded: {uploaded_file.name}")
+                # Sanitize file name
+                original_name = os.path.basename(uploaded_file.name)
+                sanitized_name = re.sub(
+                    r"[^\w\-.]", "_", original_name
+                )  # Replace any non-alphanumeric, non-dash, or non-dot characters with underscores
+                
+                # Ensure proper extension
+                mime_type, _ = mimetypes.guess_type(sanitized_name)
+                if mime_type not in ["application/pdf", 
+                                   "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 
+                                   "text/plain"]:
+                    st.error(f"Unsupported file type: {mime_type}")
+                    return
+                
+                # Save the file
+                try:
+                    file_path = os.path.join(self.file_upload_folder, sanitized_name)
+                    with open(file_path, "wb") as f:
+                        f.write(uploaded_file.getbuffer())
+                    
+                    st.session_state.file_uploads.append(file_path)
+                    st.toast(f"File uploaded successfully: {sanitized_name}", icon="✅")
+                    st.success(f"File ready for use: {sanitized_name}")
+                    
+                except Exception as e:
+                    st.error(f"Error uploading file: {str(e)}")
 
         # Chat input
         if prompt := st.chat_input("Type your message..."):
