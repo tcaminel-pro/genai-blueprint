@@ -1,4 +1,5 @@
-# Add commment here AI!
+# Configuration for the GenAI Blueprint project - a comprehensive framework for building Generative AI applications
+# Includes core dependencies, UI components, instrumentation, and demo capabilities
 #cSpell: disable
 [tool.poetry]
 name = "genai-blueprint"
