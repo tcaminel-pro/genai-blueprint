@@ -11,6 +11,16 @@ def get_autogen_model_from_llm_id(llm_id: str, kwargs) -> OpenAIChatCompletionCl
     factory = LlmFactory(llm_id = llm_id)
     llm = get_llm(llm_id, **kwargs)  
     if isinstance(llm, ChatOpenAI) :
-        # pass all attributes of 'llm' to OpenAIChatCompletionClient AI!
-        return OpenAIChatCompletionClient()
+        return OpenAIChatCompletionClient(
+            model=llm.model_name,
+            api_key=llm.openai_api_key,
+            base_url=llm.openai_api_base,
+            temperature=llm.temperature,
+            max_tokens=llm.max_tokens,
+            top_p=llm.top_p,
+            frequency_penalty=llm.frequency_penalty,
+            presence_penalty=llm.presence_penalty,
+            timeout=llm.request_timeout,
+            **kwargs
+        )
 
