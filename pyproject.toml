@@ -135,7 +135,8 @@ line-length = 120  # default is 88
 select = [ 
     "E", # Pycodestyle errors (PEP 8 style violations)
     "F", # Pyflakes errors (basic syntax and logic errors)
-    "I"  # isort rules (import sorting)
+    "I", # isort rules (import sorting)
+    "W"  # Pycodestyle warnings (style issues that aren't errors)
 ]
 ignore = [ "E501" ] # Line length violations (disabled since we use 120 chars)
 
