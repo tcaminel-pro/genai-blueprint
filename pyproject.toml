@@ -132,14 +132,12 @@ line-length = 120  # default is 88
 
 [tool.ruff.lint]
 # Lint rule configuration:
-# select = Enable these rule categories:
-#   E: Pycodestyle errors (PEP 8 style violations)
-#   F: Pyflakes errors (basic syntax and logic errors)
-#   I: isort rules (import sorting)
-# ignore = Disable specific rules:
-#   E501: Line length violations (disabled since we use 120 chars)
-select = [ "E", "F", "I" ]
-ignore = [ "E501" ]
+select = [ 
+    "E", # Pycodestyle errors (PEP 8 style violations)
+    "F", # Pyflakes errors (basic syntax and logic errors)
+    "I"  # isort rules (import sorting)
+]
+ignore = [ "E501" ] # Line length violations (disabled since we use 120 chars)
 
 [tool.ruff.lint.pycodestyle]
 ignore-overlong-task-comments = true
