@@ -100,6 +100,7 @@ ollama-ocr = "^0.1.3"
 langchain-kuzu = "^0.3.0"
 playwright = "^1.49.1"
 #browser-use = "^0.1"
+helium = "^5.1.0"
 
 [tool.poetry.group.autogen.dependencies]
 autogen-openaiext-client = "^0.0.3"
