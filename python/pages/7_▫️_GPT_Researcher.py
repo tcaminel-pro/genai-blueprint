@@ -51,7 +51,7 @@ if "research_full_report" not in st.session_state:
     st.session_state.research_full_report = None
 
 if "traces" not in st.session_state:
-    st.session_state.traces = dict()
+    st.session_state.traces = {}
 
 
 class CustomLogsHandler:

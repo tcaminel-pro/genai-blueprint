@@ -80,22 +80,22 @@ def plot_price_over_time(historical_price_dfs: list[pd.DataFrame]):
         yaxis_title="Stock Price (USD)",
         yaxis_tickprefix="$",
         yaxis_tickformat=",.2f",
-        xaxis=dict(
-            tickangle=-45,
-            nticks=20,
-            tickfont=dict(size=10),
-        ),
-        yaxis=dict(
-            showgrid=True,  # Enable y-axis grid lines
-            gridcolor="lightgrey",  # Set grid line color
-        ),
+        xaxis={
+            "tickangle": -45,
+            "nticks": 20,
+            "tickfont": {"size": 10},
+        },
+        yaxis={
+            "showgrid": True,  # Enable y-axis grid lines
+            "gridcolor": "lightgrey",  # Set grid line color
+        },
         legend_title_text="Stock Symbol",
         plot_bgcolor="gray",  # Set plot background to white
         paper_bgcolor="gray",  # Set overall figure background to white
-        legend=dict(
-            bgcolor="gray",  # Optional: Set legend background to white
-            bordercolor="black",
-        ),
+        legend={
+            "bgcolor": "gray",  # Optional: Set legend background to white
+            "bordercolor": "black",
+        },
     )
 
     # Show the figure

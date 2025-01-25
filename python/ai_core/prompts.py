@@ -49,7 +49,7 @@ def dedent_ws(text: str) -> str:
     return result
 
 
-def def_prompt(system: str | None = None, user: str = "", other_msg: dict = {}) -> BasePromptTemplate:
+def def_prompt(system: str | None = None, user: str = "", other_msg: dict = None) -> BasePromptTemplate:
     """
     Small wrapper around 'ChatPromptTemplate.from_messages" with just a user  and optional system prompt and other messages.
     Common leading whitespace and tags are removed from the system and user strings
@@ -59,6 +59,8 @@ def def_prompt(system: str | None = None, user: str = "", other_msg: dict = {}) 
         prompt = def_prompt(system="You are an helpful agent", other_msg={"placeholder": "{agent_scratchpad}"})
 
     """
+    if other_msg is None:
+        other_msg = {}
     messages: list = []
     if system:
         messages.append(("system", dedent_ws(system)))

@@ -31,8 +31,10 @@ def get_autogen_model_from_llm_id(llm_id: str, **kwargs) -> OpenAIChatCompletion
         # NOT FINISHED ,
         try:
             return GroqChatCompletionClient(model=llm.name)
-        except KeyError:
-            raise ValueError(f"Cannot use llm-id '{llm_id}' to setup Autogen model - not in  GroqChatCompletionClient)")
+        except KeyError as ex:
+            raise ValueError(
+                f"Cannot use llm-id '{llm_id}' to setup Autogen model - not in  GroqChatCompletionClient)"
+            ) from ex
     else:
         raise ValueError(f"Cannot use llm-id '{llm_id}' to setup Autogen model")
 

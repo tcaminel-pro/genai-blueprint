@@ -15,8 +15,8 @@ import streamlit as st
 
 try:
     from crewai import Agent, Crew, Process, Task
-except ImportError:
-    raise ImportError("Could not import crewai, please install with `poetry add crewai --group demos")
+except ImportError as ex:
+    raise ImportError("Could not import crewai, please install with `poetry add crewai --group demos") from ex
 
 from langchain_community.tools import DuckDuckGoSearchRun
 

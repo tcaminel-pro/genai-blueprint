@@ -31,10 +31,12 @@ class MCPServerConfig(BaseModel):
     doc: str | None = None
 
 
-async def mcp_agent_runner(model, servers: list[StdioServerParameters], prompt, config: RunnableConfig = {}):
+async def mcp_agent_runner(model, servers: list[StdioServerParameters], prompt, config: RunnableConfig = None):
     # mode = config["configurable"].get("mode") or "async"
     # assert mode in ["async", "stream"], "'mode' should be either 'async' or 'stream"
 
+    if config is None:
+        config = {}
     async with AsyncExitStack() as stack:
         tools_list = [stack.enter_context(MCPAdapt(server, LangChainAdapter())) for server in servers]
 

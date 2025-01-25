@@ -198,7 +198,7 @@ class LlmFactory(BaseModel):
     def known_items() -> list[str]:
         """Return id of known LLM in the registry whose API key environment variable is known and Python module installed"""
 
-        return sorted(list(LlmFactory.known_items_dict().keys()))
+        return sorted(LlmFactory.known_items_dict().keys())
 
     @staticmethod
     def find_llm_id_from_type(llm_type: str) -> str:

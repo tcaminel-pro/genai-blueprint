@@ -227,8 +227,8 @@ def find_acronyms():
 
     try:
         import enchant
-    except ImportError:
-        raise ImportError("enchant package is required. Install with: poetry add enchant --group demos")
+    except ImportError as ex:
+        raise ImportError("enchant package is required. Install with: poetry add enchant --group demos") from ex
 
     french_dict = enchant.Dict("fr")
     english_dict = enchant.Dict("en")
@@ -289,7 +289,7 @@ def llm_for_abbrev():
     logger.info("call llm")
     rep = chain.invoke({"abrev": unknown_list, "first_one": first})
 
-    d = dict()
+    d = {}
     for line in rep.split("\n"):
         print(line)
         k, _, v = line.partition(":")

@@ -18,7 +18,7 @@ def default_preprocessing_func(text: str) -> List[str]:
     return text.split()
 
 
-def get_spacy_preprocess_fn(model: str, more_stop_words: list[str] = []) -> Callable[[str], list[str]]:
+def get_spacy_preprocess_fn(model: str, more_stop_words: list[str] = None) -> Callable[[str], list[str]]:
     """
     Return a function that preprocess a string for search :  lemmanisation, lower_case, and strop word removal.
 
@@ -28,12 +28,14 @@ def get_spacy_preprocess_fn(model: str, more_stop_words: list[str] = []) -> Call
     """
     import spacy
 
+    if more_stop_words is None:
+        more_stop_words = []
     logger.info(f"load spacy model {model}")
 
     try:
         nlp = spacy.load(model)
-    except IOError:
-        raise ModuleNotFoundError(f"Cannot load Spacy model.  Try install it with : 'python -m spacy download {model}'")
+    except IOError as ex:
+        raise ModuleNotFoundError(f"Cannot load Spacy model.  Try install it with : 'python -m spacy download {model}'") from ex
 
     stop_words = nlp.Defaults.stop_words
     stop_words.update(more_stop_words or [])
@@ -87,8 +89,8 @@ class BM25FastRetriever(BaseRetriever):
         """
         try:
             import bm25s  # type: ignore
-        except ImportError:
-            raise ImportError("Could not import bm25s, please install with `pip install bm25s")
+        except ImportError as ex:
+            raise ImportError("Could not import bm25s, please install with `pip install bm25s") from ex
 
         texts_processed = [preprocess_func(t) for t in texts]
         bm25_params = bm25_params or {}
