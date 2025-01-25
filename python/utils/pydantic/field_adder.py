@@ -45,8 +45,8 @@ def test():
         model: str
         year: int
 
-    CarWithColor = add_field_to_class(Car, "color", str, required=True)
-    my_car = CarWithColor(brand="Toyota", model="Camry", year=2022, color="Red")
+    car_with_color = add_field_to_class(Car, "color", str, required=True)
+    my_car = car_with_color(brand="Toyota", model="Camry", year=2022, color="Red")
     new_car = add_field_to_obj(my_car, "id", "12345")
     print(new_car)
 

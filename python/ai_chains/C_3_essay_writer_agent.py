@@ -52,7 +52,7 @@ tavily = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
 def plan_node(state: AgentState) -> AgentState:
     PLAN_PROMPT = """
         You are an expert writer tasked with writing a high level outline of an essay.
-        Write such an outline for the user provided topic. Give an outline of the essay along with any relevant notes 
+        Write such an outline for the user provided topic. Give an outline of the essay along with any relevant notes
         or instructions for the sections."""
 
     chain = def_prompt(system=PLAN_PROMPT, user=state["task"]) | llm | StrOutputParser()
@@ -63,7 +63,7 @@ def plan_node(state: AgentState) -> AgentState:
 
 def research_plan_node(state: AgentState):
     RESEARCH_PLAN_PROMPT = """
-        You are a researcher charged with providing information that can 
+        You are a researcher charged with providing information that can
         be used when writing the following essay. Generate a list of search queries that will gather
         any relevant information. Only generate 3 queries max."""
 
@@ -82,9 +82,9 @@ def research_plan_node(state: AgentState):
 def generation_node(state: AgentState) -> AgentState:
     WRITER_PROMPT = """
         You are an essay assistant tasked with writing excellent 5-paragraph essays.
-        Generate the best essay possible for the user's request and the initial outline. 
-        If the user provides critique, respond with a revised version of your previous attempts. 
-        Utilize all the information below as needed: 
+        Generate the best essay possible for the user's request and the initial outline.
+        If the user provides critique, respond with a revised version of your previous attempts.
+        Utilize all the information below as needed:
         ------
         {content}"""
 
@@ -108,8 +108,8 @@ def generation_node(state: AgentState) -> AgentState:
 
 def reflection_node(state: AgentState) -> AgentState:
     REFLECTION_PROMPT = """
-        You are a teacher grading an essay submission. 
-        Generate critique and recommendations for the user's submission. 
+        You are a teacher grading an essay submission.
+        Generate critique and recommendations for the user's submission.
         Provide detailed recommendations, including requests for length, depth, style, etc."""
 
     chain = def_prompt(system=REFLECTION_PROMPT, user=state["draft"]) | llm | StrOutputParser()

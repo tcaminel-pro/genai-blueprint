@@ -31,7 +31,7 @@ from python.ai_core.vector_store import VectorStoreFactory
 
 """
 Suggested extensions :
-- Rewrite query as in https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_adaptive_rag.ipynb 
+- Rewrite query as in https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_adaptive_rag.ipynb
 
 """
 
@@ -86,8 +86,8 @@ def retrieval_grader() -> Runnable[Any, YesOrNo]:
     ### Retrieval Grader
 
     system_prompt = """
-        You are a grader assessing relevance  of a retrieved document to a user question. 
-        If the document contains keywords related to the user question, grade it as relevant. 
+        You are a grader assessing relevance  of a retrieved document to a user question.
+        If the document contains keywords related to the user question, grade it as relevant.
         It does not need to be a stringent test. The goal is to filter out erroneous retrievals. \n
         Evaluate whether the document is relevant to the question. Answer only by 'yes' or 'no', without any other comment.
         """
@@ -106,12 +106,12 @@ def retrieval_grader() -> Runnable[Any, YesOrNo]:
 
 def rag_chain() -> Runnable[Any, str]:
     system_prompt = """
-        You are an assistant for question-answering tasks. 
-        Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. 
+        You are an assistant for question-answering tasks.
+        Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know.
         Use three sentences maximum and keep the answer concise."""
     user_prompt = """
-        Question: {question} 
-        Context: {context} 
+        Question: {question}
+        Context: {context}
         Answer: """
     logger.debug("Rag chain'")
     prompt = def_prompt(system=system_prompt, user=user_prompt)
@@ -120,8 +120,8 @@ def rag_chain() -> Runnable[Any, str]:
 
 def hallucination_grader() -> Runnable[Any, YesOrNo]:
     system_prompt = """
-        You are a grader assessing whether an answer is grounded in / supported by a set of facts. 
-        Evaluate  whether the answer is grounded in / supported by a set of facts. 
+        You are a grader assessing whether an answer is grounded in / supported by a set of facts.
+        Evaluate  whether the answer is grounded in / supported by a set of facts.
         Answer only by 'yes' or 'no', without any other comment.\n"""
     user_prompt = """
         Here are the facts:
@@ -134,8 +134,8 @@ def hallucination_grader() -> Runnable[Any, YesOrNo]:
 
 def answer_grader() -> Runnable[Any, YesOrNo]:
     system_prompt = """
-        You are a grader assessing whether an answer is useful to resolve a question. 
-        Evaluate whether the answer is useful to resolve a question. 
+        You are a grader assessing whether an answer is useful to resolve a question.
+        Evaluate whether the answer is useful to resolve a question.
         Answer only by 'yes' or 'no', without any other comment.\n"""
     user_prompt = """
         Here are the answer:
@@ -151,10 +151,10 @@ def question_router() -> Runnable[Any, DataRoute]:
     parser = EnumOutputParser(enum=DataRoute)
 
     system_prompt = """
-        You are an expert at routing a user question to a vectorstore or web search. 
-        Use the vectorstore for questions on LLM  agents, prompt engineering, and adversarial attacks. 
-        You do not need to be stringent with the keywords in the question related to these topics. 
-        Otherwise, use web-search. 
+        You are an expert at routing a user question to a vectorstore or web search.
+        Use the vectorstore for questions on LLM  agents, prompt engineering, and adversarial attacks.
+        You do not need to be stringent with the keywords in the question related to these topics.
+        Otherwise, use web-search.
         Give a binary choice 'web_search' or 'vectorstore' based on the question with no permeable or explanation.
 
         """

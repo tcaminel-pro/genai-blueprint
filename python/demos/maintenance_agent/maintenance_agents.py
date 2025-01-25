@@ -72,9 +72,9 @@ def create_sql_agent_tool(embeddings_factory: EmbeddingsFactory) -> AgentExecuto
     """Create an agent for Text-2-SQL."""
     # fmt: off
     few_shots = {
-        "Tasks assigned to employee 'employee_name' between '2023-10-22' and '2023-10-28'.": 
+        "Tasks assigned to employee 'employee_name' between '2023-10-22' and '2023-10-28'.":
             """SELECT task FROM "tasks" WHERE employee = 'employee_name' AND start_date > '2023-10-22' and end_date  < '2023-10-28';""",
-        "List of procedures that employee 'employee_name'' knows. ": 
+        "List of procedures that employee 'employee_name'' knows. ":
             """SELECT  DISTINCT employee, procedure FROM tasks WHERE employee = 'employee_name';"""
     }
     # fmt: on
@@ -188,7 +188,7 @@ def create_maintenance_tools() -> list[BaseTool]:
         debug(sensor_name, start_time, end_time)
         ls = ",".join([f"'{n}'" for n in sensor_name])
         db = SQLDatabase.from_uri(dummy_database())
-        sql = f"""SELECT date, sensor, value, unit FROM  sensor_data 
+        sql = f"""SELECT date, sensor, value, unit FROM  sensor_data
                   WHERE  sensor IN ({ls}) and date >= '{start_time}' and date <= '{end_time}'"""
         debug(sql)
         result = db.run(sql)
@@ -217,7 +217,7 @@ def create_maintenance_agent(
 
     system = dedent_ws(
         """
-        You are a helpful assistant to help a maintenance engineer. 
+        You are a helpful assistant to help a maintenance engineer.
         To do so, you have different tools (functions)  to access maintenance planning, spares etc.
         Make sure to use only the provided tools (functions) to answer the user request.
         If you don't find relevant tool, answer "I don't know"

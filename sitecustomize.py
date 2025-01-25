@@ -18,5 +18,5 @@ if not sys.argv[0].endswith("pytest"):
     except ImportError:
         pass
     else:
-        setattr(builtins, "debug", debug)
+        builtins.debug = debug
         # debug("devtools.debug loaded")

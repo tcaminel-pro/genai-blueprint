@@ -292,7 +292,7 @@ class LlmFactory(BaseModel):
             seed = llm_params.pop("seed")
 
             llm = ChatGroq(name=self.info.model, **llm_params, model_kwargs={"seed": seed})
-            
+
         elif self.info.cls == "ChatDeepInfra":
             from langchain_community.chat_models.deepinfra import ChatDeepInfra
 

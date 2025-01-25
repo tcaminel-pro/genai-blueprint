@@ -9,7 +9,7 @@ from browser_use.browser.browser import Browser, BrowserConfig
 from langchain_openai import ChatOpenAI
 
 # "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-browser_path = "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe" 
+browser_path = "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
 browser = Browser(
     config=BrowserConfig(
         headless=False,
@@ -48,5 +48,6 @@ async def main():
     )
     result = await agent.run()
     print(result)
+
 
 asyncio.run(main())

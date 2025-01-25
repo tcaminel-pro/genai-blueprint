@@ -11,14 +11,14 @@ import streamlit as st
 from langsmith import Client
 from loguru import logger  # noqa: F401
 
+from python.ai_core.llm import get_llm
+from python.ai_core.prompts import dedent_ws
 from python.demos.maintenance_agent.maintenance_agents import (
     DATA_PATH,
     PROCEDURES,
     create_maintenance_agent,
     create_maintenance_tools,
 )
-from python.ai_core.llm import get_llm
-from python.ai_core.prompts import dedent_ws
 from python.demos.maintenance_agent.maintenance_data import dummy_database
 from python.GenAI_Lab import config_sidebar
 from python.utils.streamlit.clear_result import with_clear_container
@@ -28,18 +28,18 @@ from python.utils.streamlit.thread_issue_fix import get_streamlit_cb
 SAMPLE_PROMPTS = {
   #  "Display a diagram" : "Display a diagram",
 
-    "Task prerequisite and required tools": 
+    "Task prerequisite and required tools":
         "What are the required tools and prerequisite for task 'Diaphragm Inspection' of procedure 'Power Plant Steam Turbine'?",
     "Required tools availability and localization":  """
-            Print the required tools for task 'Diaphragm Inspection' in procedure 'Power Plant Steam Turbine', 
+            Print the required tools for task 'Diaphragm Inspection' in procedure 'Power Plant Steam Turbine',
             check if they are available and print their localization""",
     "Tasks assigned to an employee":
             "print the tasks assigned to employee 'John Smith' next 2 days",
     "Print assigned tasks to an employee, spares needed, required tools, their availability and localization": """
-        Follow these steps: 
-        -  print the tasks assigned to employee John Smith next 2 days. 
+        Follow these steps:
+        -  print the tasks assigned to employee John Smith next 2 days.
         -  print the tools required for these tasks
-        -  print the spare parts required for these tasks. 
+        -  print the spare parts required for these tasks.
         -  for each of these spare parts, print their availability and localization.
         Print different sections for each step.""",
     "Values from the sensor 'signal_1' last 2 weeks":
@@ -69,9 +69,9 @@ title_col2.image(logo_eviden, width=250)
 title_col1.markdown(
     """
     ## LLM-Augmented Autonomous Agents Demo for Maintenance Operation.
-    
 
-    The goal is to support  plant turbine maintenance operations. 
+
+    The goal is to support  plant turbine maintenance operations.
     Currently, we gather information from:
     - Maintenance procedures  (text document)
     - Planning System   (SQL database)

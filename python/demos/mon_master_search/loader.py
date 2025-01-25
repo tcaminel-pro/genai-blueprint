@@ -15,8 +15,8 @@ from python.utils.pydantic.jsonl_store import load_objects_from_jsonl, store_obj
 
 try:
     from abbreviations import schwartz_hearst
-except ImportError:
-    raise ImportError("abbreviations package is required. Install with: poetry add abbreviations --group demos")
+except ImportError as ex:
+    raise ImportError("abbreviations package is required. Install with: poetry add abbreviations --group demos") from ex
 from langchain_community.document_loaders.base import BaseLoader
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
@@ -264,7 +264,7 @@ def llm_for_abbrev():
     unknown_list = "\n".join(unknown.index.tolist())
     first = unknown.index.to_list()[0]
 
-    system = """ 
+    system = """
     Vous êtes expert du domaine de l'enseignement supérieur en France.
     Repondez uniquement en Francais.
     Pour chacune des abréviations suivantes, completez par la signification si vous la connaissez.

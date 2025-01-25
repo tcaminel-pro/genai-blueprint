@@ -136,9 +136,12 @@ select = [
     "E", # Pycodestyle errors (PEP 8 style violations)
     "F", # Pyflakes errors (basic syntax and logic errors)
     "I", # isort rules (import sorting)
-    "W"  # Pycodestyle warnings (style issues that aren't errors)
+    # "W",  # Pycodestyle warnings (style issues that aren't errors)
+    # "B", # Bugbear - catches common bugs and anti-patterns                                                                                      
+    # "N", # Naming conventions                                                                                                                                  
+    # "C", # Better comprehensions    
 ]
-ignore = [ "E501" ] # Line length violations (disabled since we use 120 chars)
+ignore = [ "E501", "W291", "B006", "C901" ] # Line length violations (disabled since we use 120 chars)
 
 [tool.ruff.lint.pycodestyle]
 ignore-overlong-task-comments = true

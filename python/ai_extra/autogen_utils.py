@@ -29,17 +29,17 @@ def get_autogen_model_from_llm_id(llm_id: str, **kwargs) -> OpenAIChatCompletion
         )
     elif factory.info.cls == "ChatGroq":
         # NOT FINISHED ,
-        try :
+        try:
             return GroqChatCompletionClient(model=llm.name)
-        except KeyError: 
-            raise  ValueError(f"Cannot use llm-id '{llm_id}' to setup Autogen model - not in  GroqChatCompletionClient)")
+        except KeyError:
+            raise ValueError(f"Cannot use llm-id '{llm_id}' to setup Autogen model - not in  GroqChatCompletionClient)")
     else:
         raise ValueError(f"Cannot use llm-id '{llm_id}' to setup Autogen model")
 
 
 if __name__ == "__main__":
     l = get_autogen_model_from_llm_id(llm_id="gpt_4o_openai")
-   # l = get_autogen_model_from_llm_id(llm_id="llama33_70_groq")
+    # l = get_autogen_model_from_llm_id(llm_id="llama33_70_groq")
     l = get_autogen_model_from_llm_id(llm_id="deepseek_v3_openrouter")
     l = get_autogen_model_from_llm_id(llm_id="llama32_3_ollama")
     debug(l)

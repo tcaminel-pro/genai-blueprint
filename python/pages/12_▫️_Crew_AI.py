@@ -35,11 +35,11 @@ def create_crewai_setup(product_name):
     # Define Agents
     market_research_analyst = Agent(
         role="Market Research Analyst",
-        goal=f"""Analyze the market demand for {product_name} and 
+        goal=f"""Analyze the market demand for {product_name} and
                  suggest marketing strategies""",
-        backstory=f"""Expert at understanding market demand, target audience, 
-                      and competition for products like {product_name}. 
-                      Skilled in developing marketing strategies 
+        backstory=f"""Expert at understanding market demand, target audience,
+                      and competition for products like {product_name}.
+                      Skilled in developing marketing strategies
                       to reach a wide audience.""",
         verbose=True,
         allow_delegation=True,
@@ -50,9 +50,9 @@ def create_crewai_setup(product_name):
     technology_expert = Agent(
         role="Technology Expert",
         goal=f"Assess technological feasibility and requirements for producing high-quality {product_name}",
-        backstory=f"""Visionary in current and emerging technological trends, 
-                      especially in products like {product_name}. 
-                      Identifies which technologies are best suited 
+        backstory=f"""Visionary in current and emerging technological trends,
+                      especially in products like {product_name}.
+                      Identifies which technologies are best suited
                       for different business models.""",
         verbose=True,
         allow_delegation=True,
@@ -61,10 +61,10 @@ def create_crewai_setup(product_name):
 
     business_consultant = Agent(
         role="Business Development Consultant",
-        goal=f"""Evaluate the business model for {product_name}, 
+        goal=f"""Evaluate the business model for {product_name},
                focusing on scalability and revenue streams""",
-        backstory=f"""Seasoned in shaping business strategies for products like {product_name}. 
-                      Understands scalability and potential 
+        backstory=f"""Seasoned in shaping business strategies for products like {product_name}.
+                      Understands scalability and potential
                       revenue streams to ensure long-term sustainability.""",
         verbose=True,
         allow_delegation=True,
@@ -74,28 +74,28 @@ def create_crewai_setup(product_name):
     # Define Tasks
     task1 = Task(
         description=f"""Analyze the market demand for {product_name}. Current month is Jan 2024.
-                        Write a report on the ideal customer profile and marketing 
-                        strategies to reach the widest possible audience. 
+                        Write a report on the ideal customer profile and marketing
+                        strategies to reach the widest possible audience.
                         Include at least 10 bullet points addressing key marketing areas.""",
         expected_output="Report on market demand analysis and marketing strategies.",
         agent=market_research_analyst,
     )
     # Define Task 2
     task2 = Task(
-        description=f"""Assess the technological aspects of manufacturing 
-                    high-quality {product_name}. Write a report detailing necessary 
-                    technologies and manufacturing approaches. 
+        description=f"""Assess the technological aspects of manufacturing
+                    high-quality {product_name}. Write a report detailing necessary
+                    technologies and manufacturing approaches.
                     Include at least 10 bullet points on key technological areas.""",
         expected_output="Report on technological aspects of manufacturing.",
         agent=technology_expert,
     )
     # Define Task 3
     task3 = Task(
-        description=f"""Summarize the market and technological reports 
-                    and evaluate the business model for {product_name}. 
-                    Write a report on the scalability and revenue streams 
-                    for the product. Include at least 10 bullet points 
-                    on key business areas. Give Business Plan, 
+        description=f"""Summarize the market and technological reports
+                    and evaluate the business model for {product_name}.
+                    Write a report on the scalability and revenue streams
+                    for the product. Include at least 10 bullet points
+                    on key business areas. Give Business Plan,
                     Goals and Timeline for the product launch. Current month is Jan 2024.""",
         expected_output="Report on business model evaluation and product launch plan.",
         agent=business_consultant,
@@ -185,48 +185,48 @@ def run_crewai_app():
 
         st.subheader("Market Research Analyst")
         st.text(
-            """       
+            """
         Role = Market Research Analyst
         Goal = Analyze the market demand for {product_name} and suggest marketing strategies
-        Backstory = Expert at understanding market demand, target audience, 
-                    and competition for products like {product_name}. 
-                    Skilled in developing marketing strategies 
+        Backstory = Expert at understanding market demand, target audience,
+                    and competition for products like {product_name}.
+                    Skilled in developing marketing strategies
                     to reach a wide audience.
         Task = Analyze the market demand for {product_name}. Current month is Jan 2024.
-               Write a report on the ideal customer profile and marketing 
-               strategies to reach the widest possible audience. 
+               Write a report on the ideal customer profile and marketing
+               strategies to reach the widest possible audience.
                Include at least 10 bullet points addressing key marketing areas. """
         )
 
         st.subheader("Technology Expert")
         st.text(
-            """       
+            """
         Role = Technology Expert
         Goal = Assess technological feasibility and requirements for producing high-quality {product_name}
-        Backstory = Visionary in current and emerging technological trends, 
-                    especially in products like {product_name}. 
-                    Identifies which technologies are best suited 
-                    for different business models. 
-        Task = Assess the technological aspects of manufacturing 
-               high-quality {product_name}. Write a report detailing necessary 
-               technologies and manufacturing approaches. 
+        Backstory = Visionary in current and emerging technological trends,
+                    especially in products like {product_name}.
+                    Identifies which technologies are best suited
+                    for different business models.
+        Task = Assess the technological aspects of manufacturing
+               high-quality {product_name}. Write a report detailing necessary
+               technologies and manufacturing approaches.
                Include at least 10 bullet points on key technological areas."""
         )
 
         st.subheader("Business Development Consultant")
         st.text(
-            """       
-        Role = Business Development Consultant 
+            """
+        Role = Business Development Consultant
         Goal= Evaluate the business model for {product_name}
               focusing on scalability and revenue streams
-        Backstory = Seasoned in shaping business strategies for products like {product_name}. 
-                    Understands scalability and potential 
+        Backstory = Seasoned in shaping business strategies for products like {product_name}.
+                    Understands scalability and potential
                     revenue streams to ensure long-term sustainability.
-        Task = Summarize the market and technological reports 
-               and evaluate the business model for {product_name}. 
-               Write a report on the scalability and revenue streams 
-               for the product. Include at least 10 bullet points 
-               on key business areas. Give Business Plan, 
+        Task = Summarize the market and technological reports
+               and evaluate the business model for {product_name}.
+               Write a report on the scalability and revenue streams
+               for the product. Include at least 10 bullet points
+               on key business areas. Give Business Plan,
                Goals and Timeline for the product launch. Current month is Jan 2024. """
         )
 

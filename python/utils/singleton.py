@@ -40,8 +40,8 @@ def once():
     """
 
     def decorator(func):
-        setattr(decorator, "_cached_results", {})  # Store instance and lock as decorator attributes
-        setattr(decorator, "_lock", Lock())
+        decorator._cached_results = {}  # Store instance and lock as decorator attributes
+        decorator._lock = Lock()
 
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -72,12 +72,12 @@ def once():
             sorted_args = tuple(sorted((k, make_hashable(v)) for k, v in bound_args.arguments.items()))
             cache_key = sorted_args
 
-            if cache_key not in getattr(decorator, "_cached_results"):
-                with getattr(decorator, "_lock"):
-                    if cache_key not in getattr(decorator, "_cached_results"):
+            if cache_key not in decorator._cached_results:
+                with decorator._lock:
+                    if cache_key not in decorator._cached_results:
                         result = func(*args, **kwargs)
-                        getattr(decorator, "_cached_results")[cache_key] = result
-            return getattr(decorator, "_cached_results")[cache_key]
+                        decorator._cached_results[cache_key] = result
+            return decorator._cached_results[cache_key]
 
         return wrapper
 

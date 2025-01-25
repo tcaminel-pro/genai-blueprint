@@ -43,12 +43,12 @@ def get_retriever(config: dict):
 
 
 prompt_system = """
-    You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. 
+    You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question.
     If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
     """
 prompt_user = """
-    Question: {question} 
-    Context: {context} 
+    Question: {question}
+    Context: {context}
 
     Answer:
     """

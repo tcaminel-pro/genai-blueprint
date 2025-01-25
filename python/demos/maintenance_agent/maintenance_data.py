@@ -48,19 +48,19 @@ def dummy_database() -> str:
         {"employee": "John Smith", "start_date": today_plus(8),  "end_date": today_plus(13), "procedure": proc, "task": "Bearing Inspection"},
         {"employee": "John Smith", "start_date": today_plus(10),  "end_date": today_plus(12), "procedure": proc, "task": "Final Checks and Cleanup"},
         {"employee": "John Smith", "start_date": today_plus(12), "end_date": today_plus(14), "procedure": proc, "task": "Preparations for Maintenance"},
-        
+
         {"employee": "Alice Johnson", "start_date": today_plus(0), "end_date": today_plus(2), "procedure": proc, "task": "Turbine Shutdown"},
         {"employee": "Alice Johnson", "start_date": today_plus(2),  "end_date": today_plus(4), "procedure": proc, "task": "Rotor Inspection"},
         {"employee": "Alice Johnson", "start_date": today_plus(4),  "end_date": today_plus(7), "procedure": proc, "task": "Blade Inspection"},
         {"employee": "Alice Johnson", "start_date": today_plus(6),  "end_date": today_plus(12), "procedure": proc, "task": "Diaphragm Inspection"},
         {"employee": "Alice Johnson", "start_date": today_plus(8),  "end_date": today_plus(9), "procedure": proc, "task": "Bearing Inspection"},
-        {"employee": "Alice Johnson", "start_date": today_plus(10),  "end_date": today_plus(14), "procedure": proc, "task": "Final Checks and Cleanup"},                  
+        {"employee": "Alice Johnson", "start_date": today_plus(10),  "end_date": today_plus(14), "procedure": proc, "task": "Final Checks and Cleanup"},
     ]
 
     sensors = [
-        ("signal_1", "Volt", 30), 
-        ("signal_2", "A", 60), 
-        ("signal_3", "SI", 90), 
+        ("signal_1", "Volt", 30),
+        ("signal_2", "A", 60),
+        ("signal_3", "SI", 90),
     ]
     dates = pd.date_range(start=today_minus(90), end=today_minus(0))
     sensor_data = pd.DataFrame(columns=['date', 'sensor', 'value', 'unit'])
