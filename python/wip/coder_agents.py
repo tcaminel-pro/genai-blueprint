@@ -1,7 +1,6 @@
 """
 OLD CODE !
 
-Copyright (C) 2023 Eviden. All rights reserved
 """
 
 from textwrap import dedent

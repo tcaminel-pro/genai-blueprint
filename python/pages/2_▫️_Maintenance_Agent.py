@@ -1,7 +1,6 @@
 """
 Demo of an LLM Augmented Autonomous Agent for Maintenance
 
-Copyright (C) 2023 Eviden. All rights reserved
 """
 
 from datetime import datetime

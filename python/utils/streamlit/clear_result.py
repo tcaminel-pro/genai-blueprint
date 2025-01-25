@@ -4,7 +4,6 @@ the "previous run's text is grayed-out but visible during rerun" Streamlit behav
 
 Taken from an example found somewhere.
 
-Copyright (C) 2023 Eviden. All rights reserved
 """
 
 import streamlit as st

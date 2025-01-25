@@ -3,7 +3,6 @@ Callback Handler captures all callbacks in a session for future offline playback
 
 Taken from an example.
 
-Copyright (C) 2023 Eviden. All rights reserved
 """
 
 from __future__ import annotations

@@ -1,7 +1,6 @@
 """
 API Test
 
-Copyright (C) 2023 Eviden. All rights reserved
 """
 
 from fastapi.testclient import TestClient

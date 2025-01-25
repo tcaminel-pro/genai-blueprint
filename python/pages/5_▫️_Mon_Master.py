@@ -1,7 +1,7 @@
 """
 Demo of Semantic Search
 
-Copyright (C) 2024 Eviden. All rights reserved
+
 """
 
 # cSpell: disable
