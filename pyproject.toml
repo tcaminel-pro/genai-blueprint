@@ -131,6 +131,7 @@ builtins = ["ic", "debug"]
 line-length = 120  # default is 88
 
 [tool.ruff.lint]
+# explain the following lint configuration AI! 
 select = [ "E", "F", "I" ]
 ignore = [ "E501" ]
 
