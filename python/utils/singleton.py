@@ -1,4 +1,5 @@
-r"""Implement 'once', a decorator that ensures the wrapped function is called once and return same result.\n
+"""
+Implement 'once', a decorator that ensures the wrapped function is called once and return same result.\n
 It's typically used for thread-safe singleton instance creation.
 
 It's inspired by the 'once' keyword in the Eiffel Programming language.
@@ -12,10 +13,13 @@ since the class has not to be specialized to become a singleton.
 import inspect
 from functools import wraps
 from threading import Lock
+from typing import Any
 
+# disable ANN rff linint rules for that file AI!
 
 def once():
-    r"""A decorator that ensures the wrapped function is called once and return same result.\n
+    """
+    A decorator that ensures the wrapped function is called once and return same result.\n
     It's typically used for thread-safe singleton instance creation.
 
     Example:
@@ -37,18 +41,18 @@ def once():
             ...
     """
 
-    def decorator(func):
-        decorator._cached_results = {}  # Store instance and lock as decorator attributes
-        decorator._lock = Lock()
+    def decorator(func):  # noqa: ANN001
+        decorator._cached_results = {}  # type: ignore # Store instance and lock as decorator attributes
+        decorator._lock = Lock()  # type: ignore
 
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, **kwargs) -> Any:
             # Create a stable cache key that handles:
             # - Multiple arguments
             # - Mutable types (lists, dicts)
             # - None values
             # - Keyword argument order
-            def make_hashable(obj):
+            def make_hashable(obj) -> Any:
                 if obj is None:
                     return None
                 if isinstance(obj, (int, float, str, bool)):
@@ -93,7 +97,7 @@ if __name__ == "__main__":
 
         @once()
         def singleton() -> "SingletonTestModel":
-            """Returns a singleton instance of the class."""
+            """Returns a singleton instance of the class"""
             return SingletonTestModel(a=1)
 
     # Usage example:
@@ -102,7 +106,7 @@ if __name__ == "__main__":
     assert obj1 is obj2  # True - same instance
 
     @once()
-    def get_my_class_singleton()-> SingletonTestModel:
+    def get_my_class_singleton() -> SingletonTestModel:
         return SingletonTestModel(a=4)
 
     obj3 = get_my_class_singleton()
@@ -124,7 +128,7 @@ if __name__ == "__main__":
     assert obj7.a == 2
 
     @once()
-    def do_something_complicated_2(x: int, y: int):
+    def do_something_complicated_2(x: int, y: int) -> SingletonTestModel:
         return SingletonTestModel(a=x + y)
 
     # Test multiple arguments
