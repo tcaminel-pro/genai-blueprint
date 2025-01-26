@@ -35,7 +35,7 @@ def load_objects_from_jsonl(file_path: Path, model_class: type[T]) -> list[T]:
     return array
 
 
-def store_objects_to_jsonl(objects: Iterable[BaseModel], file_path: Path):
+def store_objects_to_jsonl(objects: Iterable[BaseModel], file_path: Path) -> None:
     with open(file_path, "w") as jsonl_file:
         for doc in objects:
             jsonl_file.write(doc.model_dump_json(indent=None) + "\n")

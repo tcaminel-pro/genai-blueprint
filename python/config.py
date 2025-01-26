@@ -198,7 +198,7 @@ def global_config() -> Config:
     return Config.singleton()
 
 
-def config_loguru():
+def config_loguru() -> None:
     """Configure the logger."""
     # @TODO: Set config in config file
 

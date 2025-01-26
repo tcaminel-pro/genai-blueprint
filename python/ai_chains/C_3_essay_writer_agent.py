@@ -189,7 +189,7 @@ register_runnable(
 )
 
 
-def test():
+def test() -> None:
     graph = create_graph()
     thread = RunnableConfig({"configurable": {"thread_id": "1"}})
     for s in graph.stream(

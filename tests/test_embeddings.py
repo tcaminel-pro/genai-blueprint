@@ -13,7 +13,7 @@ SENTENCE_2 = "Tokens can be words, phrases, or even individual characters."
 global_config().select_config("pytest")
 
 
-def test_default_embeddings():
+def test_default_embeddings() -> None:
     """Test that default embeddings can be created and used."""
     embedder = get_embeddings()
     vectors = embedder.embed_documents([SENTENCE_1, SENTENCE_2])
@@ -24,7 +24,7 @@ def test_default_embeddings():
     assert len(vectors[1]) > 0
 
 
-def test_known_embeddings_list():
+def test_known_embeddings_list() -> None:
     """Test that known embeddings list is not empty."""
     embeddings_list = EmbeddingsFactory.known_items()
     assert len(embeddings_list) > 0

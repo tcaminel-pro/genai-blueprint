@@ -13,14 +13,14 @@ import pytest
 from python.config import Config
 
 
-def test_singleton():
+def test_singleton() -> None:
     """Verify the singleton pattern works correctly."""
     config1 = Config.singleton()
     config2 = Config.singleton()
     assert config1 is config2
 
 
-def test_get_str_with_env_var(monkeypatch):
+def test_get_str_with_env_var(monkeypatch) -> None:
     """Test environment variable substitution in config values."""
     monkeypatch.setenv("TEST_VAR", "substituted_value")
     config = Config.singleton()
@@ -28,7 +28,7 @@ def test_get_str_with_env_var(monkeypatch):
     assert config.get_str("test", "path") == "substituted_value/file.txt"
 
 
-def test_config_section_switch():
+def test_config_section_switch() -> None:
     """Verify switching between configuration sections works."""
     config = Config.singleton()
     original_value = config.get_str("llm", "default_model")
@@ -40,7 +40,7 @@ def test_config_section_switch():
     assert new_value != original_value
 
 
-def test_runtime_modification():
+def test_runtime_modification() -> None:
     """Verify runtime modifications to config values."""
     config = Config.singleton()
     config.set_str("test", "temp_value", "initial")
@@ -51,14 +51,14 @@ def test_runtime_modification():
     assert config.get_str("test", "temp_value") == "modified"
 
 
-def test_missing_key():
+def test_missing_key() -> None:
     """Verify error handling for missing configuration keys."""
     config = Config.singleton()
     with pytest.raises(ValueError):
         config.get_str("nonexistent", "key")
 
 
-def test_get_list():
+def test_get_list() -> None:
     """Verify retrieval of list values from config."""
     config = Config.singleton()
 

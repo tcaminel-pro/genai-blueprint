@@ -21,7 +21,7 @@ class AgentState(TypedDict):
 
 
 class Agent:
-    def __init__(self, model, tools, system=""):
+    def __init__(self, model, tools, system="") -> None:
         self.system = system
         graph = StateGraph(AgentState)
         graph.add_node("llm", self.call_openai)

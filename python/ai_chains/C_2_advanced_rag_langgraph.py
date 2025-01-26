@@ -408,7 +408,7 @@ ri = RunnableItem(
 # Test
 
 
-def test_graph_stream():
+def test_graph_stream() -> None:
     app = create_graph({})
     inputs = {"question": "What are the types of agent memory?"}
     for output in app.stream(inputs):
@@ -426,14 +426,14 @@ def test_graph_stream():
     app.get_graph().draw_png("test_graph")
 
 
-def test_graph():
+def test_graph() -> None:
     chain = query_graph({})
     input = {"question": "What are the types of agent memory?"}
     r = chain.invoke(input)
     debug(r)
 
 
-def test_nodes():
+def test_nodes() -> None:
     question = "agent memory"
     docs = retriever().invoke(question)
     assert len(docs) > 0

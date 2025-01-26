@@ -88,7 +88,7 @@ def process_batch_images(processor, image_paths, format_type, enable_preprocessi
         return {"error": str(e)}
 
 
-def main():
+def main() -> None:
     st.title("🔍 Vision OCR Lab")
     st.markdown(
         "<p style='text-align: center; color: #666;'>Powered by Ollama Vision Models</p>", unsafe_allow_html=True

@@ -18,7 +18,7 @@ from python.utils.streamlit.load_data import (
 )
 
 
-def clear_submit():
+def clear_submit() -> None:
     """Clear the Submit Button State
     Returns:
 

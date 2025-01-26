@@ -81,7 +81,7 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
         verbose: Annotated[bool, Option("--verbose", "-v")] = False,
         debug: Annotated[bool, Option("--debug", "-d")] = False,
         llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
-    ):
+    ) -> None:
         """Run a given Runnable with the specified input. The LLM can be changed, otherwise the default one is selected.
         'cache' is the prompt caching strategy, and it can be either 'sqlite' (default) or 'memory'.
         """
@@ -128,7 +128,7 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
             print(f"Runnable not found in config: '{name}'. Should be in: {runnables_list_str}")
 
     @cli_app.command()
-    def chain_info(name: str):
+    def chain_info(name: str) -> None:
         """Return information on a given chain, including input and output schema."""
         runnable_desc = find_runnable(name)
         if runnable_desc:
@@ -152,7 +152,7 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
                 pass
 
     @cli_app.command()
-    def list_models():
+    def list_models() -> None:
         """List the known LLMs, embeddings models, and vector stores."""
         print("factories:")
         tab = 2 * " "
@@ -167,7 +167,7 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
             print(f"{tab}{tab}- {vc}")
 
     @cli_app.command()
-    def llm_info_dump(file_name: Path):
+    def llm_info_dump(file_name: Path) -> None:
         """Write a list of LLMs in YAML format to the specified file."""
         import yaml
 
@@ -188,7 +188,7 @@ def define_other_commands(cli_app: typer.Typer) -> None:
     """
 
     @cli_app.command()
-    def echo(message: str):
+    def echo(message: str) -> None:
         print(message)
 
     @cli_app.command()
@@ -199,7 +199,7 @@ def define_other_commands(cli_app: typer.Typer) -> None:
         stream: Annotated[bool, Option("--stream", "-s")] = False,
         # temperature: float = 0.0,
         llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
-    ):
+    ) -> None:
         """Run 'fabric' pattern on standard input.
 
         Pattern list is here: https://github.com/danielmiessler/fabric/tree/main/patterns

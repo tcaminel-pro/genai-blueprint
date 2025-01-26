@@ -58,7 +58,7 @@ def get_historical_price(symbol: str, start_date: date, end_date: date) -> pd.Da
         return pd.DataFrame()
 
 
-def plot_price_over_time(historical_price_dfs: list[pd.DataFrame]):
+def plot_price_over_time(historical_price_dfs: list[pd.DataFrame]) -> None:
     full_df = pd.DataFrame(columns=["Date"])
     for df in historical_price_dfs:
         full_df = full_df.merge(df, on="Date", how="outer")
@@ -135,7 +135,7 @@ def call_functions(llm_with_tools, user_prompt):
     return llm_with_tools.invoke(messages).content
 
 
-def main():
+def main() -> None:
     llm = get_llm(llm_id=LLM_ID, streaming=False)
 
     #    llm = LlmFactory(llm_id="gpt_35_openai").get()

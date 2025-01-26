@@ -18,7 +18,7 @@ global_config().select_config("pytest")
 another_llm = global_config().get_str("llm", "model2")
 
 
-def test_basic_joke_generation():
+def test_basic_joke_generation() -> None:
     """Test that we can generate a simple joke using the default LLM."""
     llm = get_llm()
     joke = llm.invoke("Tell me a short joke about computers")
@@ -26,7 +26,7 @@ def test_basic_joke_generation():
     assert len(joke.content) > 10  # Basic check that we got some content
 
 
-def test_configurable_llm_switching():
+def test_configurable_llm_switching() -> None:
     """Test that we can switch LLMs at runtime using config."""
     chain = def_prompt("Tell me a joke about {topic}") | get_configurable_llm()
 
@@ -39,14 +39,14 @@ def test_configurable_llm_switching():
     assert result1 != result2  # Different LLMs should produce different results
 
 
-def test_invalid_llm_config():
+def test_invalid_llm_config() -> None:
     """Test error handling for invalid LLM configurations."""
     with pytest.raises(ValueError):
         # This should fail since "invalid_llm" doesn't exist
         get_llm(llm_id="invalid_llm")
 
 
-def test_streaming_joke():
+def test_streaming_joke() -> None:
     """Test streaming joke generation."""
     llm = get_llm(streaming=True)
     chunks = []

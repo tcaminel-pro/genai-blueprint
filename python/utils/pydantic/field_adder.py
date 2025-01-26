@@ -35,7 +35,7 @@ def add_field_to_obj(obj: BaseModel, field_name: str, value: Any) -> BaseModel:
     return new_obj
 
 
-def test():
+def test() -> None:
     class Car(BaseModel):
         brand: str
         model: str

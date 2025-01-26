@@ -105,7 +105,7 @@ if __name__ == "__main__":
         ),
     }
 
-    async def main():
+    async def main() -> None:
         # r = await mcp_run(timeserver_mcp_params, llm, "current time in New york")
         # message = r["messages"][-1]
         # # message.pretty_print()

@@ -115,13 +115,13 @@ def create_crewai_setup(product_name):
 
 # display the console processing on streamlit UI
 class StreamToExpander:
-    def __init__(self, expander):
+    def __init__(self, expander) -> None:
         self.expander = expander
         self.buffer = []
         self.colors = ["red", "green", "blue", "orange"]  # Define a list of colors
         self.color_index = 0  # Initialize color index
 
-    def write(self, data):
+    def write(self, data) -> None:
         # Filter out ANSI escape codes using a regular expression
         cleaned_data = re.sub(r"\x1B\[[0-9;]*[mK]", "", data)
 
@@ -175,7 +175,7 @@ class StreamToExpander:
 
 
 # Streamlit interface
-def run_crewai_app():
+def run_crewai_app() -> None:
     st.title("AI Agent Business Product Launch")
     with st.expander("About the Team:"):
         # st.subheader("Diagram")

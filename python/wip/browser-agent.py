@@ -20,7 +20,7 @@ browser = Browser(
 controller = Controller()
 
 
-async def main():
+async def main() -> None:
     task = "In docs.google.com write my Papa a quick thank you for everything letter \n - Magnus"
     task += " and save the document as pdf"
     model = ChatOpenAI(model="gpt-4o")
@@ -41,7 +41,7 @@ async def main():
 #     asyncio.run(main())
 
 
-async def main():
+async def main() -> None:
     agent = Agent(
         task="Go to Reddit, search for 'browser-use' in the search bar, click on the first post and return the first comment.",
         llm=ChatOpenAI(model="gpt-4o"),

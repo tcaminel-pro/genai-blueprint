@@ -164,7 +164,7 @@ class LlmFactory(BaseModel):
         return llm_id
 
     @field_validator("cache")
-    def check_known_cache(self, cache: str | None):
+    def check_known_cache(self, cache: str | None) -> None:
         if cache and cache not in LlmCache.values():
             raise ValueError(f"Unknown cache method: '{cache} '; Should be in {LlmCache.values()}")
 

@@ -23,7 +23,7 @@ def singleton_func() -> int:
     return 100
 
 
-def test_class_singleton():
+def test_class_singleton() -> None:
     """Test that class method returns same instance."""
     instance1 = SingletonExample.singleton()
     instance2 = SingletonExample.singleton()
@@ -34,7 +34,7 @@ def test_class_singleton():
     assert instance2.value == 42
 
 
-def test_function_singleton():
+def test_function_singleton() -> None:
     """Test that function returns same value."""
     val1 = singleton_func()
     val2 = singleton_func()
@@ -43,7 +43,7 @@ def test_function_singleton():
     assert val1 == 100
 
 
-def test_singleton_with_args():
+def test_singleton_with_args() -> None:
     @once()
     def do_something_complicated(x: int, y: int):
         return SingletonExample(value=x + y)
@@ -131,7 +131,7 @@ def test_singleton_with_args():
     assert instance14.value == 5
 
 
-def test_different_singletons():
+def test_different_singletons() -> None:
     """Test that different singletons return different instances."""
     class_instance = SingletonExample.singleton()
     func_value = singleton_func()
@@ -139,7 +139,7 @@ def test_different_singletons():
     assert class_instance is not func_value
 
 
-def test_thread_safety():
+def test_thread_safety() -> None:
     """Test that singleton creation is thread-safe."""
     import threading
 
@@ -150,7 +150,7 @@ def test_thread_safety():
     def thread_test_func():
         return SingletonExample(value=42)
 
-    def worker():
+    def worker() -> None:
         instance = thread_test_func()
         with lock:
             results.append(instance)

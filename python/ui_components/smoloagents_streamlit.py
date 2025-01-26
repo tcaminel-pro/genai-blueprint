@@ -36,7 +36,7 @@ from smolagents.types import AgentAudio, AgentImage, AgentText, handle_agent_out
 from smolagents.utils import _is_package_available
 
 
-def display_step(step_log: AgentStepLog):
+def display_step(step_log: AgentStepLog) -> None:
     """Display agent steps in Streamlit."""
     import streamlit as st
 
@@ -61,7 +61,7 @@ def stream_to_streamlit(
     task: str,
     reset_agent_memory: bool = False,
     additional_args: Optional[dict] = None,
-):
+) -> None:
     """Runs an agent with the given task and displays the messages in Streamlit."""
     if not _is_package_available("streamlit"):
         raise ModuleNotFoundError("Please install 'streamlit' to use the StreamlitUI: `pip install streamlit`")
@@ -86,7 +86,7 @@ def stream_to_streamlit(
 class StreamlitUI:
     """A one-line interface to launch your agent in Streamlit."""
 
-    def __init__(self, agent: MultiStepAgent, file_upload_folder: str | None = None):
+    def __init__(self, agent: MultiStepAgent, file_upload_folder: str | None = None) -> None:
         if not _is_package_available("streamlit"):
             raise ModuleNotFoundError("Please install 'streamlit' to use the StreamlitUI: `pip install streamlit`")
         self.agent = agent
@@ -146,7 +146,7 @@ class StreamlitUI:
         st.success(f"File uploaded: {file_path}")
         return file_path
 
-    def launch(self):
+    def launch(self) -> None:
         import streamlit as st
 
         st.title("Smol Agents")

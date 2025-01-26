@@ -64,7 +64,7 @@ class CustomLogsHandler:
         log_container: Streamlit container element for displaying logs
     """
 
-    def __init__(self, log_container, height=200):
+    def __init__(self, log_container, height=200) -> None:
         self.log_container = log_container.container(height=height)
 
     async def send_json(self, data: dict[str, Any]) -> None:
@@ -94,7 +94,7 @@ class CustomLogsHandler:
 
             st.write_stream(stream_log)
 
-    async def write_log(self, line: str):
+    async def write_log(self, line: str) -> None:
         """Write a single log line to the streamlit container"""
         await self.send_json({"output": line})
 
@@ -110,7 +110,7 @@ researcher_conf = GptrConfVariables(
 )
 
 
-async def main():
+async def main() -> None:
     """Main async function handling the Streamlit UI and search operations
 
     Manages:

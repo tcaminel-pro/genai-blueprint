@@ -134,7 +134,7 @@ def process_json(source: str, formation: ParcoursFormations) -> Iterator[Documen
 
 
 class offre_formation_loader(BaseLoader):
-    def __init__(self, doc_list: Path):
+    def __init__(self, doc_list: Path) -> None:
         self.parcours_json_archive = doc_list
 
     def lazy_load(self) -> Iterator[Document]:
@@ -162,7 +162,7 @@ EMBEDDINGS_MODEL = "solon-large"
 
 
 @app.command()
-def create_embeddings(embeddings_id: str = EMBEDDINGS_MODEL):
+def create_embeddings(embeddings_id: str = EMBEDDINGS_MODEL) -> None:
     embeddings_factory = EmbeddingsFactory(embeddings_id=embeddings_id)
     vector_factory = VectorStoreFactory(
         id="Chroma",
@@ -197,14 +197,14 @@ def create_bm25_index(k: int = 20):
 
 
 @app.command()
-def bm25_index_search(query: str, k: int = 20):
+def bm25_index_search(query: str, k: int = 20) -> None:
     retriever = create_bm25_index(k)
     r = retriever.invoke(query)
     debug(r)
 
 
 @app.command()
-def bm25_search(query: str, k: int = 10):
+def bm25_search(query: str, k: int = 10) -> None:
     path = Path(global_config().get_str("vector_store", "path")) / "bm25"
 
     fn = get_spacy_preprocess_fn(model="fr_core_news_sm", more_stop_words=STOP_WORDS)  # noqa: F821
@@ -213,7 +213,7 @@ def bm25_search(query: str, k: int = 10):
 
 
 @app.command()
-def save_to_jsonl():
+def save_to_jsonl() -> None:
     loader = offre_formation_loader(REPO / "Offres_2024.tgz")
     processed = list(loader.load())
     store_objects_to_jsonl(processed, FILES)
@@ -256,7 +256,7 @@ def find_acronyms():
 
 
 @app.command()
-def llm_for_abbrev():
+def llm_for_abbrev() -> None:
     df_extract = pd.read_excel(REPO / "abbreviations.xlsx", index_col=0)
     # df_extract = find_acronyms()
     unknown = df_extract[df_extract.iloc[:, 0].isnull()]

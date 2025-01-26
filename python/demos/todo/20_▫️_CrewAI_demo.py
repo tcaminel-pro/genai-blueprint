@@ -14,7 +14,7 @@ except ImportError as e:
     raise
 
 
-def main():
+def main() -> None:
     llm = LlmFactory(llm_id="mixtral_7x8_groq").get()
 
     # Streamlit UI

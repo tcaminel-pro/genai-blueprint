@@ -57,7 +57,7 @@ tool = TavilySearchResults(max_results=2)
 
 
 class Agent:
-    def __init__(self, model, tools, system="", checkpointer=None):
+    def __init__(self, model, tools, system="", checkpointer=None) -> None:
         self.system = system
         graph = StateGraph(AgentState)
         graph.add_node("llm", self.call_openai)

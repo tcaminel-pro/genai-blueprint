@@ -19,7 +19,7 @@ class WeatherResponse(BaseModel):
 
 
 @tool
-def get_weather(city: Literal["nyc", "sf"]):
+def get_weather(city: Literal["nyc", "sf"]) -> str:
     """Use this to get weather information."""
     if city == "nyc":
         return "It is cloudy in NYC, with 10 mph winds in the North-East direction and a temperature of 66 degrees"

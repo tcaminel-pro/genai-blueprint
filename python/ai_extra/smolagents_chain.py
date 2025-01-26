@@ -28,7 +28,7 @@ class RetrieverTool(Tool):
     }
     output_type = "string"
 
-    def __init__(self, retriever: BaseRetriever, **kwargs):
+    def __init__(self, retriever: BaseRetriever, **kwargs) -> None:
         super().__init__(**kwargs)
         self.retriever = retriever
 

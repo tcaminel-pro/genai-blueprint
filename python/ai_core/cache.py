@@ -72,7 +72,7 @@ class LlmCache:
         return [method.name.lower() for method in CacheMethod]
 
     @staticmethod
-    def set_method(cache: str):
+    def set_method(cache: str) -> None:
         """Define caching method. If 'None', take the one defined in configuration. \
         Currently implemented : "memory', 'sqlite".
 

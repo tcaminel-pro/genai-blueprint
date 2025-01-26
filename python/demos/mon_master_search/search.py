@@ -124,7 +124,7 @@ def process_questions(
     return result
 
 
-def format_sheet(worksheet):
+def format_sheet(worksheet) -> None:
     for column in worksheet.columns:
         column_letter = column[0].column_letter  # Get the column letter
         if column_letter > "A":

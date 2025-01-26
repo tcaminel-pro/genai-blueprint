@@ -5,11 +5,11 @@
 from crewai.telemetry import Telemetry
 
 
-def noop(*args, **kwargs):
+def noop(*args, **kwargs) -> None:
     pass
 
 
-def disable_crewai_telemetry():
+def disable_crewai_telemetry() -> None:
     for attr in dir(Telemetry):
         if callable(getattr(Telemetry, attr)) and not attr.startswith("__"):
             setattr(Telemetry, attr, noop)

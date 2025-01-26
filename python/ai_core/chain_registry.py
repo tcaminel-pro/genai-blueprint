@@ -126,7 +126,7 @@ class RunnableItem(BaseModel):
 _registry: list[RunnableItem] = []
 
 
-def register_runnable(r: RunnableItem):
+def register_runnable(r: RunnableItem) -> None:
     """Register a new RunnableItem in the global registry.
 
     Args:
@@ -173,7 +173,7 @@ def _to_key_param_callable(key: str, function: Callable[[dict[str, Any]], Runnab
     return lambda conf: RunnableLambda(lambda x: {key: x}) | function(conf)
 
 
-def load_modules_with_chains():
+def load_modules_with_chains() -> None:
     """Dynamically load chain modules specified in the configuration.
 
     This function reads the configuration to find and import modules containing
