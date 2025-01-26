@@ -157,7 +157,12 @@ select = [
     "FURB" #refurbishing and modernizing
 ]
 
-# explain in comment these linter rules exception AI!
+# Ignored linter rules:
+# E501 - Line too long (we use 120 chars instead of default 88)
+# W291 - Trailing whitespace (sometimes needed for formatting)
+# B006 - Do not use mutable data structures for argument defaults
+# C901 - Function is too complex (some complex functions are necessary)
+# PD901 - Use of .loc in pandas (sometimes direct access is preferred)
 ignore = [ "E501", "W291", "B006", "C901", "PD901"]
 
 [tool.ruff.lint.pycodestyle]
