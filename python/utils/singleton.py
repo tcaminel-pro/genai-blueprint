@@ -17,6 +17,7 @@ from typing import Any
 
 # disable ANN rff linint rules for that file AI!
 
+
 def once():
     """
     A decorator that ensures the wrapped function is called once and return same result.\n
@@ -41,7 +42,7 @@ def once():
             ...
     """
 
-    def decorator(func):  # noqa: ANN001
+    def decorator(func):  # noqa: ANN202
         decorator._cached_results = {}  # type: ignore # Store instance and lock as decorator attributes
         decorator._lock = Lock()  # type: ignore
 
