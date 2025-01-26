@@ -15,8 +15,9 @@ from functools import wraps
 from threading import Lock
 from typing import Any
 
+# add typying annotations whenever possible AI!
 
-def once():  # noqa: ANN
+def once():
     """
     A decorator that ensures the wrapped function is called once and return same result.\n
     It's typically used for thread-safe singleton instance creation.
@@ -40,18 +41,18 @@ def once():  # noqa: ANN
             ...
     """
 
-    def decorator(func):  # noqa: ANN202
+    def decorator(func):
         decorator._cached_results = {}  # type: ignore # Store instance and lock as decorator attributes
         decorator._lock = Lock()  # type: ignore
 
         @wraps(func)
-        def wrapper(*args, **kwargs) -> Any:  # noqa: ANN
+        def wrapper(*args, **kwargs) -> Any:
             # Create a stable cache key that handles:
             # - Multiple arguments
             # - Mutable types (lists, dicts)
             # - None values
             # - Keyword argument order
-            def make_hashable(obj) -> Any:  # noqa: ANN
+            def make_hashable(obj) -> Any:
                 if obj is None:
                     return None
                 if isinstance(obj, (int, float, str, bool)):
