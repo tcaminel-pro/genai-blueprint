@@ -45,7 +45,6 @@ class Description(BaseModel):
     intitule_parcours: set[str] = set()
     modalite_enseignement: set[str] = set()
     licences_conseillees: set[str] = set()
-    intitule_parcours: set[str] = set()
     disciplines: set[str] = set()
     secteurs: set[str] = set()
     metiers: set[str] = set()

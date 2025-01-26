@@ -140,8 +140,13 @@ select = [
     "B", # Bugbear - catches common bugs and anti-patterns                                                                                      
     # "N", # Naming conventions                                                                                                                                  
     "C", # Better comprehensions    
+    "ASYNC", # Async 
+    "ANN",  # Annotations
+    "PIE",
+    "PD",# Pandas
+    "FURB" #refurbishing and modernizing
 ]
-ignore = [ "E501", "W291", "B006", "C901" ] # Line length violations (disabled since we use 120 chars)
+ignore = [ "E501", "W291", "B006", "C901", "PD901"]
 
 [tool.ruff.lint.pycodestyle]
 ignore-overlong-task-comments = true
