@@ -15,10 +15,8 @@ from functools import wraps
 from threading import Lock
 from typing import Any
 
-# disable ANN rff linint rules for that file AI!
 
-
-def once():
+def once():  # noqa: ANN
     """
     A decorator that ensures the wrapped function is called once and return same result.\n
     It's typically used for thread-safe singleton instance creation.
@@ -47,13 +45,13 @@ def once():
         decorator._lock = Lock()  # type: ignore
 
         @wraps(func)
-        def wrapper(*args, **kwargs) -> Any:
+        def wrapper(*args, **kwargs) -> Any:  # noqa: ANN
             # Create a stable cache key that handles:
             # - Multiple arguments
             # - Mutable types (lists, dicts)
             # - None values
             # - Keyword argument order
-            def make_hashable(obj) -> Any:
+            def make_hashable(obj) -> Any:  # noqa: ANN
                 if obj is None:
                     return None
                 if isinstance(obj, (int, float, str, bool)):
