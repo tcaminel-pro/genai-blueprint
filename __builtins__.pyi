@@ -1,3 +1,3 @@
 def debug(*args) -> None:
-    """devtools.debug 'print" function replacement"""
+    """devtools.debug 'print" function replacement."""
     ...

@@ -150,9 +150,7 @@ class EmbeddingsFactory(BaseModel):
         return list(EmbeddingsFactory.known_items_dict().keys())
 
     def get(self) -> Embeddings:
-        """Create an embeddings model object.
-
-        """
+        """Create an embeddings model object."""
         if self.info.key and self.info.key not in os.environ:
             raise ValueError(f"No known API key for : {self.info.id}")
         llm = self.model_factory()

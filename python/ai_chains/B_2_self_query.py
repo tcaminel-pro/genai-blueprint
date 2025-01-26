@@ -1,5 +1,4 @@
-"""Copyright (C) 2024 Eviden. All rights reserved
-"""
+"""Copyright (C) 2024 Eviden. All rights reserved."""
 
 #
 # Adapted from: https://python.langchain.com/docs/modules/data_connection/retrievers/self_query/

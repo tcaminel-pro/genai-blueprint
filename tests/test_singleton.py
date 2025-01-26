@@ -1,5 +1,5 @@
 """ "
-Tests for the singleton.py module
+Tests for the singleton.py module.
 """
 
 from pydantic import BaseModel, ConfigDict
@@ -13,18 +13,18 @@ class SingletonExample(BaseModel):
 
     @once()
     def singleton() -> "SingletonExample":
-        """Returns a singleton instance of the class"""
+        """Returns a singleton instance of the class."""
         return SingletonExample(value=42)
 
 
 @once()
 def singleton_func() -> int:
-    """Test singleton function"""
+    """Test singleton function."""
     return 100
 
 
 def test_class_singleton():
-    """Test that class method returns same instance"""
+    """Test that class method returns same instance."""
     instance1 = SingletonExample.singleton()
     instance2 = SingletonExample.singleton()
 
@@ -35,7 +35,7 @@ def test_class_singleton():
 
 
 def test_function_singleton():
-    """Test that function returns same value"""
+    """Test that function returns same value."""
     val1 = singleton_func()
     val2 = singleton_func()
 
@@ -132,7 +132,7 @@ def test_singleton_with_args():
 
 
 def test_different_singletons():
-    """Test that different singletons return different instances"""
+    """Test that different singletons return different instances."""
     class_instance = SingletonExample.singleton()
     func_value = singleton_func()
 
@@ -140,7 +140,7 @@ def test_different_singletons():
 
 
 def test_thread_safety():
-    """Test that singleton creation is thread-safe"""
+    """Test that singleton creation is thread-safe."""
     import threading
 
     results = []

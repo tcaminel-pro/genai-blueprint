@@ -11,7 +11,7 @@ from python.ai_core.llm import get_llm, llm_config
 
 
 class WeatherResponse(BaseModel):
-    """Respond to the user with this"""
+    """Respond to the user with this."""
 
     temperature: float = Field(description="The temperature in fahrenheit")
     wind_direction: str = Field(description="The direction of the wind in abbreviated form")

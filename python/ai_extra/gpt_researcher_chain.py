@@ -55,7 +55,7 @@ class GptrConfVariables(BaseModel):
     extra_params: dict = {}
 
     def get_config_path(self) -> str:
-        """Create a temporary configuration file with GPT Researcher configuration settings, that override the default one
+        """Create a temporary configuration file with GPT Researcher configuration settings, that override the default one.
 
         (See  https://github.com/assafelovic/gpt-researcher/blob/master/gpt_researcher/config/variables/default.py)
         The configuration file is created in the system's temporary directory.
@@ -94,7 +94,7 @@ class GptrConfVariables(BaseModel):
 
 
 class CommonConfigParams(BaseModel):
-    """NOT USED YET"""
+    """NOT USED YET."""
 
     # https://docs.gptr.dev/docs/gpt-researcher/gptr/config
 

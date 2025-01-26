@@ -1,4 +1,4 @@
-"""GenAI Lab Command Line Interface
+"""GenAI Lab Command Line Interface.
 
 This module provides the main entry point for the GenAI Lab CLI, offering commands to:
 - Run and test LangChain Runnables with various configurations
@@ -59,7 +59,7 @@ cli_app = typer.Typer(
 
 
 def define_llm_related_commands(cli_app: typer.Typer) -> None:
-    """Define all LLM-related commands for the CLI
+    """Define all LLM-related commands for the CLI.
 
     Args:
         cli_app: The Typer app instance to add commands to
@@ -130,8 +130,7 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
 
     @cli_app.command()
     def chain_info(name: str):
-        """Return information on a given chain, including input and output schema.
-        """
+        """Return information on a given chain, including input and output schema."""
         runnable_desc = find_runnable(name)
         if runnable_desc:
             r = runnable_desc.runnable
@@ -155,8 +154,7 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
 
     @cli_app.command()
     def list_models():
-        """List the known LLMs, embeddings models, and vector stores.
-        """
+        """List the known LLMs, embeddings models, and vector stores."""
         print("factories:")
         tab = 2 * " "
         print(f"{tab}llm:")
@@ -171,8 +169,7 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
 
     @cli_app.command()
     def llm_info_dump(file_name: Path):
-        """Write a list of LLMs in YAML format to the specified file.
-        """
+        """Write a list of LLMs in YAML format to the specified file."""
         import yaml
 
         data = [llm.model_dump() for llm in LlmFactory.known_list()]
@@ -181,7 +178,7 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
 
 
 def define_other_commands(cli_app: typer.Typer) -> None:
-    """Define additional utility commands for the CLI
+    """Define additional utility commands for the CLI.
 
     Args:
         cli_app: The Typer app instance to add commands to
@@ -204,7 +201,7 @@ def define_other_commands(cli_app: typer.Typer) -> None:
         # temperature: float = 0.0,
         llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
     ):
-        """Run 'fabric' pattern on standard input
+        """Run 'fabric' pattern on standard input.
 
         Pattern list is here: https://github.com/danielmiessler/fabric/tree/main/patterns
         Also described here : https://github.com/danielmiessler/fabric/blob/main/patterns/suggest_pattern/user.md

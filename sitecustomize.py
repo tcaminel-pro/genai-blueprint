@@ -1,4 +1,4 @@
-"""Install new builtins functions
+"""Install new builtins functions.
 
 Taken from https://python-devtools.helpmanual.io/usage/#manual-install
 

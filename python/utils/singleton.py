@@ -1,4 +1,4 @@
-"""Implement 'once', a decorator that ensures the wrapped function is called once and return same result.\n
+r"""Implement 'once', a decorator that ensures the wrapped function is called once and return same result.\n
 It's typically used for thread-safe singleton instance creation.
 
 It's inspired by the 'once' keyword in the Eiffel Programming language.
@@ -15,7 +15,7 @@ from threading import Lock
 
 
 def once():
-    """A decorator that ensures the wrapped function is called once and return same result.\n
+    r"""A decorator that ensures the wrapped function is called once and return same result.\n
     It's typically used for thread-safe singleton instance creation.
 
     Example:
@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
         @once()
         def singleton() -> "SingletonTestModel":
-            """Returns a singleton instance of the class"""
+            """Returns a singleton instance of the class."""
             return SingletonTestModel(a=1)
 
     # Usage example:

@@ -1,7 +1,4 @@
-"""Demo of Semantic Search
-
-
-"""
+"""Demo of Semantic Search."""
 
 # cSpell: disable
 

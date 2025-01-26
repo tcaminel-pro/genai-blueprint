@@ -32,7 +32,7 @@ from langchain_core.messages.base import BaseMessage
 
 
 def image_query_message(param_dict: dict, config: dict) -> list[BaseMessage]:
-    """Create a multimodal message for AI images analysis with optional structured output
+    """Create a multimodal message for AI images analysis with optional structured output.
 
     This function prepares a message suitable for vision-enabled language models,
     supporting both local image files and image URLs. It can include a custom

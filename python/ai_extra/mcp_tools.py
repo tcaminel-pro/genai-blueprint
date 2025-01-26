@@ -1,4 +1,4 @@
-"""MCP (Model Context Protocol) tool calling from LangChain (WIP !!)
+"""MCP (Model Context Protocol) tool calling from LangChain (WIP !!).
 
 Adapted from : https://github.com/rectalogic/langchain-mcp
 
@@ -23,7 +23,7 @@ from python.ai_core.llm import get_llm
 
 
 class MCPServerConfig(BaseModel):
-    """Configuration for an MCP server instance"""
+    """Configuration for an MCP server instance."""
 
     params: StdioServerParameters
     description: str

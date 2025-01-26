@@ -1,4 +1,4 @@
-"""Ported from https://github.com/huggingface/smolagents/blob/main/src/smolagents/gradio_ui.py
+"""Ported from https://github.com/huggingface/smolagents/blob/main/src/smolagents/gradio_ui.py.
 
 Aider prompt :
     Port following code from Gradio to Streamlit and replace it.
@@ -37,7 +37,7 @@ from smolagents.utils import _is_package_available
 
 
 def display_step(step_log: AgentStepLog):
-    """Display agent steps in Streamlit"""
+    """Display agent steps in Streamlit."""
     import streamlit as st
 
     if isinstance(step_log, ActionStep):
@@ -84,7 +84,7 @@ def stream_to_streamlit(
 
 
 class StreamlitUI:
-    """A one-line interface to launch your agent in Streamlit"""
+    """A one-line interface to launch your agent in Streamlit."""
 
     def __init__(self, agent: MultiStepAgent, file_upload_folder: str | None = None):
         if not _is_package_available("streamlit"):
@@ -103,8 +103,7 @@ class StreamlitUI:
             "text/plain",
         ],
     ):
-        """Handle file uploads, default allowed types are .pdf, .docx, and .txt
-        """
+        """Handle file uploads, default allowed types are .pdf, .docx, and .txt."""
         import streamlit as st
 
         uploaded_file = st.file_uploader(

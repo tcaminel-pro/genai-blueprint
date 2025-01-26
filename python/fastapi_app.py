@@ -1,6 +1,4 @@
-"""Entry point for the REST API
-
-"""
+"""Entry point for the REST API."""
 
 from devtools import debug  # type: ignore  # noqa: F401
 from dotenv import load_dotenv
@@ -21,7 +19,7 @@ def read_root(message: str):
 
 @app.post("/joke")
 async def tell_a_joke(topic: str):
-    """Return a joke on a given topic"""
+    """Return a joke on a given topic."""
     result = get_chain({}).invoke(input={"topic": topic})
     return result
 

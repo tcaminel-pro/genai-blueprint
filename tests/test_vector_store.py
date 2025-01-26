@@ -44,8 +44,7 @@ def test_vector_store_creation_and_search(sample_documents, vector_store_type):
 
 
 def test_vector_store_factory_methods():
-    """Test VectorStoreFactory class methods.
-    """
+    """Test VectorStoreFactory class methods."""
     # Test known items method
     known_stores = VectorStoreFactory.known_items()
     assert isinstance(known_stores, list)
@@ -53,8 +52,7 @@ def test_vector_store_factory_methods():
 
 
 def test_vector_store_retriever():
-    """Test vector store retriever functionality.
-    """
+    """Test vector store retriever functionality."""
     vs_factory = VectorStoreFactory(
         embeddings_factory=EmbeddingsFactory(),
     )

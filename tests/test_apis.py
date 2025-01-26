@@ -1,6 +1,4 @@
-"""API Test
-
-"""
+"""API Test."""
 
 from fastapi.testclient import TestClient
 

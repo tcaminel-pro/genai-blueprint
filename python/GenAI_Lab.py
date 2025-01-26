@@ -1,4 +1,4 @@
-"""GenAI Lab - Streamlit Web Application
+"""GenAI Lab - Streamlit Web Application.
 
 This module serves as the main entry point for the GenAI Lab web application.
 It provides a user interface for experimenting with and demonstrating various
@@ -42,7 +42,7 @@ title_col1.markdown(
 
 
 def config_sidebar() -> None:
-    """Configure the sidebar with LLM settings and monitoring options
+    """Configure the sidebar with LLM settings and monitoring options.
 
     This function creates an expandable sidebar section that allows users to:
     - Select the default LLM model

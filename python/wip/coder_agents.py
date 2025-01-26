@@ -1,6 +1,4 @@
-"""OLD CODE !
-
-"""
+"""OLD CODE !"""
 
 from textwrap import dedent
 from typing import Optional

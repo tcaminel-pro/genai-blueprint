@@ -189,8 +189,7 @@ class Config(BaseModel):
         raise ValueError(f"configuration key {group}/{key} is not a list")
 
     def set_str(self, group: str, key: str, value: str) -> None:
-        """Add or override a key value in the runtime configuration.
-        """
+        """Add or override a key value in the runtime configuration."""
         self._modified_fields[group][key] = value
 
 
@@ -200,8 +199,7 @@ def global_config() -> Config:
 
 
 def config_loguru():
-    """Configure the logger.
-    """
+    """Configure the logger."""
     # @TODO: Set config in config file
 
     FORMAT_STR = "<green>{time:HH:mm:ss}</green> | <level>{level: <7}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"

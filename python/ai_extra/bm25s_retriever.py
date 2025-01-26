@@ -1,4 +1,4 @@
-"""A replacement of the BM25Retriever, much faster
+"""A replacement of the BM25Retriever, much faster.
 
 **  NOT WELL TESTED **
 """

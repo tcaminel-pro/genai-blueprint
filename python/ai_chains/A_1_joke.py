@@ -1,5 +1,4 @@
-"""The usual "tell me a joke" LLM call.
-"""
+"""The usual "tell me a joke" LLM call."""
 
 from dotenv import load_dotenv
 from langchain_core.output_parsers import StrOutputParser

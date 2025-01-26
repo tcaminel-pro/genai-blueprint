@@ -1,5 +1,5 @@
 """Taken from :    https://learn.deeplearning.ai/courses/ai-agents-in-langgraph/lesson/7/essay-writer
-Full source code with UI is here : https://s172-31-15-23p21826.lab-aws-production.deeplearning.ai/edit/helper.py
+Full source code with UI is here : https://s172-31-15-23p21826.lab-aws-production.deeplearning.ai/edit/helper.py.
 
 Also of interest: https://github.com/langchain-ai/langgraph/blob/main/examples/multi_agent/multi-agent-collaboration.ipynb
 """

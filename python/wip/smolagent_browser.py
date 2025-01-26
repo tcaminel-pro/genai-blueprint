@@ -101,8 +101,7 @@ def go_back() -> None:
 
 @tool
 def close_popups() -> str:
-    """Closes any visible modal or pop-up on the page. Use this to dismiss pop-up windows! This does not work on cookie consent banners.
-    """
+    """Closes any visible modal or pop-up on the page. Use this to dismiss pop-up windows! This does not work on cookie consent banners."""
     # Common selectors for modal close buttons and overlay elements
     modal_selectors = [
         "button[class*='close']",

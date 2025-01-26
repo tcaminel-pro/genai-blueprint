@@ -67,7 +67,7 @@ def get_available_models():
 
 
 def process_single_image(processor, image_path, format_type, enable_preprocessing):
-    """Process a single image and return the result"""
+    """Process a single image and return the result."""
     try:
         result = processor.process_image(
             image_path=image_path, format_type=format_type, preprocess=enable_preprocessing
@@ -78,7 +78,7 @@ def process_single_image(processor, image_path, format_type, enable_preprocessin
 
 
 def process_batch_images(processor, image_paths, format_type, enable_preprocessing):
-    """Process multiple images and return results"""
+    """Process multiple images and return results."""
     try:
         results = processor.process_batch(
             input_path=image_paths, format_type=format_type, preprocess=enable_preprocessing

@@ -110,7 +110,7 @@ class LlmInfo(BaseModel):
 
 
 def _read_llm_list_file() -> list[LlmInfo]:
-    """Read the YAML file with list of LLM providers and info"""
+    """Read the YAML file with list of LLM providers and info."""
     # The name of the file is in the configuration file
     yml_file = Path(global_config().get_str("llm", "list"))
     assert yml_file.exists(), f"cannot find {yml_file}"
@@ -149,7 +149,7 @@ class LlmFactory(BaseModel):
     @computed_field
     @cached_property
     def info(self) -> LlmInfo:
-        """Return LLM_INFO information on LLM"""
+        """Return LLM_INFO information on LLM."""
         assert self.llm_id
         return LlmFactory.known_items_dict().get(self.llm_id)  # type: ignore
 
@@ -176,7 +176,7 @@ class LlmFactory(BaseModel):
 
     @staticmethod
     def known_items_dict() -> dict[str, LlmInfo]:
-        """Return known LLM in the registry whose API key environment variable is known and module can be imported"""
+        """Return known LLM in the registry whose API key environment variable is known and module can be imported."""
         known_items = {}
         for item in LlmFactory.known_list():
             module_name, api_key = PROVIDER_INFO.get(item.cls, (None, None))
@@ -192,7 +192,7 @@ class LlmFactory(BaseModel):
 
     @staticmethod
     def known_items() -> list[str]:
-        """Return id of known LLM in the registry whose API key environment variable is known and Python module installed"""
+        """Return id of known LLM in the registry whose API key environment variable is known and Python module installed."""
         return sorted(LlmFactory.known_items_dict().keys())
 
     @staticmethod
@@ -205,12 +205,12 @@ class LlmFactory(BaseModel):
         return llm_id
 
     def get_id(self) -> str:
-        """Return the id of the LLM"""
+        """Return the id of the LLM."""
         assert self.llm_id
         return self.llm_id
 
     def short_name(self) -> str:
-        """Return the name and version of the LLMn without the provider"""
+        """Return the name and version of the LLMn without the provider."""
         return self.info.id.rsplit("_", maxsplit=1)[0]
 
     def get_litellm_model_name(self) -> str:
@@ -253,7 +253,7 @@ class LlmFactory(BaseModel):
         return llm
 
     def model_factory(self) -> BaseChatModel:
-        """Model factory, according to the model class"""
+        """Model factory, according to the model class."""
         if self.cache:
             cache = LlmCache.from_value(self.cache)
         else:
@@ -529,8 +529,7 @@ get_configurable_llm = functools.wraps(get_configurable_llm)(functools.cache(get
 
 
 def get_llm_info(llm_id: str) -> LlmInfo:
-    """Return information on given LLM
-    """
+    """Return information on given LLM."""
     factory = LlmFactory(llm_id=llm_id)
     r = factory.known_items_dict().get(llm_id)
     if r is None:
@@ -557,7 +556,7 @@ def llm_config(llm_id: str) -> RunnableConfig:
 
 
 def configurable(conf: dict) -> RunnableConfig:
-    """Return a dict with key 'configurable', to be used in 'with_config'
+    """Return a dict with key 'configurable', to be used in 'with_config'.
 
     Example:
     ```

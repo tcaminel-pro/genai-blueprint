@@ -1,4 +1,4 @@
-"""LLM Augmented Autonomous Agent for Maintenance
+"""LLM Augmented Autonomous Agent for Maintenance.
 
 Copyright (C) 2023 Eviden. All rights reserved
 """
@@ -122,7 +122,7 @@ def create_sql_agent_tool(embeddings_factory: EmbeddingsFactory) -> AgentExecuto
 
 @cache
 def create_maintenance_tools() -> list[BaseTool]:
-    """Create the tools for the Maintenance Agent"""
+    """Create the tools for the Maintenance Agent."""
     logger.info("create tools")
 
     @tool
@@ -132,7 +132,7 @@ def create_maintenance_tools() -> list[BaseTool]:
 
     @tool
     def get_current_time() -> str:
-        """A tool to get the current time"""
+        """A tool to get the current time."""
         return datetime.now().isoformat()
 
     @tool
@@ -147,7 +147,7 @@ def create_maintenance_tools() -> list[BaseTool]:
 
     @tool
     def get_maintenance_issues(area: str, time: str) -> str:
-        """Searches for the issues during the maintenance of a given area at a given time"""
+        """Searches for the issues during the maintenance of a given area at a given time."""
         result = f"""
         Big big problem in area {area} at {time}
         """
@@ -155,8 +155,7 @@ def create_maintenance_tools() -> list[BaseTool]:
 
     @tool
     def maintenance_procedure_retriever(full_query: str) -> str:
-        """Answer to any questions about maintenance procedures, such as tasks, prerequisite, spare parts, required tools etc.
-        """
+        """Answer to any questions about maintenance procedures, such as tasks, prerequisite, spare parts, required tools etc."""
         system_prompt = (
             "Use the given context to answer the question. If you don't know the answer, say you don't know. "
             "Use three sentence maximum and keep the answer concise. \n"

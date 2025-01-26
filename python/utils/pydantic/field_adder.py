@@ -29,8 +29,7 @@ def add_field_to_class(base_class: Type[T], field_name: str, field_type: Type, r
 
 
 def add_field_to_obj(obj: BaseModel, field_name: str, value: Any) -> BaseModel:
-    """Creates a new Pydantic object having a descendant class and a new field with the specified name and type.
-    """
+    """Creates a new Pydantic object having a descendant class and a new field with the specified name and type."""
     new_cls = add_field_to_class(type(obj), field_name, type(value), True)
     new_obj = new_cls.model_validate(obj.model_dump() | {field_name: value})
     return new_obj

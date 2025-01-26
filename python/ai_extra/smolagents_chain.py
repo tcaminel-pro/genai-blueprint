@@ -1,5 +1,4 @@
-"""Wrappers to facilitate SmallAgents and LangChain integration
-"""
+"""Wrappers to facilitate SmallAgents and LangChain integration."""
 
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.runnables import RunnableLambda
