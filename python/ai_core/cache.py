@@ -1,5 +1,4 @@
-"""
-LLM caching configuration and management.
+"""LLM caching configuration and management.
 
 This module provides a unified interface for configuring and managing caching
 mechanisms for Language Learning Models (LLMs). It supports multiple caching
@@ -69,15 +68,13 @@ class LlmCache:
 
     @classmethod
     def values(cls) -> list[str]:
-        """
-        Returns possible cache method values.
+        """Returns possible cache method values.
         """
         return [method.name.lower() for method in CacheMethod]
 
     @staticmethod
     def set_method(cache: str):
-        """
-        Define caching method. If 'None', take the one defined in configuration. \
+        """Define caching method. If 'None', take the one defined in configuration. \
         Currently implemented : "memory', 'sqlite"
 
         Args:

@@ -1,5 +1,4 @@
-"""
-Vector store factory and management system.
+"""Vector store factory and management system.
 
 This module provides a comprehensive interface for creating and managing vector
 stores, supporting multiple storage backends and advanced features for document
@@ -78,8 +77,7 @@ def get_vector_vector_store_path() -> str:
 
 
 class VectorStoreFactory(BaseModel):
-    """
-    Factory class for creating and managing vector stores.
+    """Factory class for creating and managing vector stores.
 
     This class handles the creation and configuration of vector stores with appropriate
     embeddings, collection management, and document indexing capabilities.
@@ -134,7 +132,7 @@ class VectorStoreFactory(BaseModel):
         return list(get_args(VECTOR_STORE_ENGINE))
 
     @field_validator("id", mode="before")
-    def check_known(cls, id: str | None) -> str:
+    def check_known(self, id: str | None) -> str:
         if id is None:
             id = global_config().get_str("vector_store", "default")
         if id not in VectorStoreFactory.known_items():
@@ -144,8 +142,7 @@ class VectorStoreFactory(BaseModel):
     @computed_field
     @cached_property
     def vector_store(self) -> VectorStore:
-        """
-        Factory for the vector database
+        """Factory for the vector database
         """
         embeddings = self.embeddings_factory.get()  # get the embedding function
         store_path = get_vector_vector_store_path()
@@ -197,8 +194,7 @@ class VectorStoreFactory(BaseModel):
         return vector_store
 
     def change_top_k(self, k: int = 4) -> VectorStoreRetriever:
-        """
-        Return a retriever with changed number of most relevant document returned.
+        """Return a retriever with changed number of most relevant document returned.
         """
         retriever = self.vector_store.as_retriever(search_kwargs={"k": k}).configurable_fields(
             search_kwargs=ConfigurableField(
@@ -208,8 +204,7 @@ class VectorStoreFactory(BaseModel):
         return retriever  # type: ignore
 
     def add_documents(self, docs: Iterable[Document]) -> IndexingResult | list[str]:
-        """
-        Add documents to the vector store with optional deduplication.
+        """Add documents to the vector store with optional deduplication.
 
         Args:
             docs: Iterable of Document objects to add to the store
@@ -238,8 +233,7 @@ class VectorStoreFactory(BaseModel):
             return info
 
     def document_count(self):
-        """
-        Return the number of documents in the store.
+        """Return the number of documents in the store.
         """
         # It seems there's no generic way to get the number of docs stored in a Vector Store.
         if self.id in ["Chroma", "Chroma_in_memory"]:
@@ -249,8 +243,7 @@ class VectorStoreFactory(BaseModel):
 
 
 def search_one(vc: VectorStore, query: str) -> list[Document]:
-    """
-    Perform a similarity search for a single most relevant document.
+    """Perform a similarity search for a single most relevant document.
 
     Args:
         vc: Vector store instance to search in

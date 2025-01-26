@@ -1,5 +1,4 @@
-"""
-GenAI Lab Command Line Interface
+"""GenAI Lab Command Line Interface
 
 This module provides the main entry point for the GenAI Lab CLI, offering commands to:
 - Run and test LangChain Runnables with various configurations
@@ -84,8 +83,7 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
         debug: Annotated[bool, Option("--debug", "-d")] = False,
         llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
     ):
-        """
-        Run a given Runnable with the specified input. The LLM can be changed, otherwise the default one is selected.
+        """Run a given Runnable with the specified input. The LLM can be changed, otherwise the default one is selected.
         'cache' is the prompt caching strategy, and it can be either 'sqlite' (default) or 'memory'.
         """
         set_debug(debug)
@@ -132,8 +130,7 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
 
     @cli_app.command()
     def chain_info(name: str):
-        """
-        Return information on a given chain, including input and output schema.
+        """Return information on a given chain, including input and output schema.
         """
         runnable_desc = find_runnable(name)
         if runnable_desc:
@@ -158,8 +155,7 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
 
     @cli_app.command()
     def list_models():
-        """
-        List the known LLMs, embeddings models, and vector stores.
+        """List the known LLMs, embeddings models, and vector stores.
         """
         print("factories:")
         tab = 2 * " "
@@ -175,8 +171,7 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
 
     @cli_app.command()
     def llm_info_dump(file_name: Path):
-        """
-        Write a list of LLMs in YAML format to the specified file.
+        """Write a list of LLMs in YAML format to the specified file.
         """
         import yaml
 
@@ -209,8 +204,7 @@ def define_other_commands(cli_app: typer.Typer) -> None:
         # temperature: float = 0.0,
         llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
     ):
-        """
-        Run 'fabric' pattern on standard input
+        """Run 'fabric' pattern on standard input
 
         Pattern list is here: https://github.com/danielmiessler/fabric/tree/main/patterns
         Also described here : https://github.com/danielmiessler/fabric/blob/main/patterns/suggest_pattern/user.md

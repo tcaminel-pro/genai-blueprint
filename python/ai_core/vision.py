@@ -1,5 +1,4 @@
-"""
-Vision processing and image analysis utilities.
+"""Vision processing and image analysis utilities.
 
 This module provides tools for integrating image analysis capabilities into AI workflows,
 supporting both local and remote image sources. It creates multimodal messages compatible
@@ -33,8 +32,7 @@ from langchain_core.messages.base import BaseMessage
 
 
 def image_query_message(param_dict: dict, config: dict) -> list[BaseMessage]:
-    """
-    Create a multimodal message for AI images analysis with optional structured output
+    """Create a multimodal message for AI images analysis with optional structured output
 
     This function prepares a message suitable for vision-enabled language models,
     supporting both local image files and image URLs. It can include a custom
@@ -65,7 +63,6 @@ def image_query_message(param_dict: dict, config: dict) -> list[BaseMessage]:
         chain = image_query_message | llm | parser  # ignore
         response = chain.invoke({"query": "describe that image in JSON", "image_paths": image_url, "output_parser": parser})
     """
-
     allowed_params = ["query", "image_paths", "output_parser", "system"]
     for key in param_dict:
         if key not in allowed_params:

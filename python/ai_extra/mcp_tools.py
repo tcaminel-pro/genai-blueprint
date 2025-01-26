@@ -1,5 +1,4 @@
-"""
-MCP (Model Context Protocol) tool calling from LangChain (WIP !!)
+"""MCP (Model Context Protocol) tool calling from LangChain (WIP !!)
 
 Adapted from : https://github.com/rectalogic/langchain-mcp
 

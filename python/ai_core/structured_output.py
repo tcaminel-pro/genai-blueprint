@@ -1,5 +1,4 @@
-"""
-Structured output utilities for LLM responses.
+"""Structured output utilities for LLM responses.
 
 This module provides functions to handle structured output generation from language models,
 supporting multiple methods like output parsing and structured output generation.

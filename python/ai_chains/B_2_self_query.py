@@ -1,7 +1,4 @@
-"""
-
-
-Copyright (C) 2024 Eviden. All rights reserved
+"""Copyright (C) 2024 Eviden. All rights reserved
 """
 
 #

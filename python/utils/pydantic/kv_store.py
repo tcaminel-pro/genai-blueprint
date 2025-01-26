@@ -1,5 +1,4 @@
-"""
-Local file-based storage for Pydantic objects.
+"""Local file-based storage for Pydantic objects.
 
 Provides functions to save and retrieve Pydantic object using a key-value store.
 Keys are automatically encoded for filesystem compatibility.
@@ -23,8 +22,7 @@ T = TypeVar("T", bound=BaseModel)
 
 
 def encode_to_alphanumeric(input_string: str) -> str:
-    """
-    Encode a string to alphanumeric by first transliterating  it to ASCII, then replace  non alphanumeric char (plus . and -) by _
+    """Encode a string to alphanumeric by first transliterating  it to ASCII, then replace  non alphanumeric char (plus . and -) by _
     """
     ascii_string = unidecode(input_string)
     encoded_string = re.sub(r"[^a-zA-Z0-9_.-]", "_", ascii_string)

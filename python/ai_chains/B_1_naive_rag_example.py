@@ -1,5 +1,4 @@
-"""
-A simple RAG chain
+"""A simple RAG chain
 """
 
 from pathlib import Path

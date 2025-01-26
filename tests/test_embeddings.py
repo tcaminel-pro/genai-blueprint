@@ -1,5 +1,4 @@
-"""
-Tests for embeddings functionality.
+"""Tests for embeddings functionality.
 
 This module contains basic regression tests for the embeddings factory and utilities.
 """

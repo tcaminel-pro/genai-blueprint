@@ -1,5 +1,4 @@
-"""
-LLM Augmented Autonomous Agent for Maintenance
+"""LLM Augmented Autonomous Agent for Maintenance
 
 Copyright (C) 2023 Eviden. All rights reserved
 """
@@ -156,8 +155,7 @@ def create_maintenance_tools() -> list[BaseTool]:
 
     @tool
     def maintenance_procedure_retriever(full_query: str) -> str:
-        """
-        Answer to any questions about maintenance procedures, such as tasks, prerequisite, spare parts, required tools etc.
+        """Answer to any questions about maintenance procedures, such as tasks, prerequisite, spare parts, required tools etc.
         """
         system_prompt = (
             "Use the given context to answer the question. If you don't know the answer, say you don't know. "

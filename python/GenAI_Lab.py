@@ -1,5 +1,4 @@
-"""
-GenAI Lab - Streamlit Web Application
+"""GenAI Lab - Streamlit Web Application
 
 This module serves as the main entry point for the GenAI Lab web application.
 It provides a user interface for experimenting with and demonstrating various

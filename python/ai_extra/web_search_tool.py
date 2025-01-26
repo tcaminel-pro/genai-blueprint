@@ -1,5 +1,4 @@
-"""
-Web search tools for AI applications.
+"""Web search tools for AI applications.
 
 This module provides tools for performing web searches, with support for multiple
 search providers including Tavily and DuckDuckGo. The tools are designed to be

@@ -1,5 +1,4 @@
-"""
-Ported from https://github.com/huggingface/smolagents/blob/main/src/smolagents/gradio_ui.py
+"""Ported from https://github.com/huggingface/smolagents/blob/main/src/smolagents/gradio_ui.py
 
 Aider prompt :
     Port following code from Gradio to Streamlit and replace it.
@@ -104,8 +103,7 @@ class StreamlitUI:
             "text/plain",
         ],
     ):
-        """
-        Handle file uploads, default allowed types are .pdf, .docx, and .txt
+        """Handle file uploads, default allowed types are .pdf, .docx, and .txt
         """
         import streamlit as st
 

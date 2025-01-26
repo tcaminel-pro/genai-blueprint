@@ -116,7 +116,7 @@ for event in bot.graph.stream(None, thread):
     for v in event.values():
         print(v)
 
-#bot.graph.get_state(thread).next
+# bot.graph.get_state(thread).next
 
 messages = [HumanMessage("Whats the weather in LA?")]
 thread = {"configurable": {"thread_id": "2"}}

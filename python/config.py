@@ -1,5 +1,4 @@
-"""
-Configuration Manager for the application.
+"""Configuration Manager for the application.
 
 This module handles loading and managing application configuration from a YAML file (app_conf.yaml).
 The configuration supports environment variable substitution and multiple environments.
@@ -79,7 +78,6 @@ class Config(BaseModel):
     @once()
     def singleton() -> "Config":
         """Returns the singleton instance of Config."""
-
         """Load configuration from YAML file in current dir or its parent."""
         yml_file = Path.cwd() / CONFIG_FILE
         if not yml_file.exists():
@@ -126,8 +124,7 @@ class Config(BaseModel):
         self.selected_config_name = config_name
 
     def _get_config(self, group: str, key: str, default_value: Any | None = None) -> Any:
-        """
-        Return the value of a key using ChainMap to query runtime, overridden, and default config.
+        """Return the value of a key using ChainMap to query runtime, overridden, and default config.
         Raise an exception if key not found and no default value is given.
         """
         # Create a ChainMap with runtime modifications first, then overridden, then default
@@ -150,8 +147,7 @@ class Config(BaseModel):
     #         overridden_config = {}
 
     def get_str(self, group: str, key: str, default_value: str | None = None) -> str:
-        """
-        Return the value of a key of type string.
+        """Return the value of a key of type string.
         If it contains an environment variable in the form $(XXX), replace it.
         Raise an exception if key not found and no default value is given.
 
@@ -174,8 +170,7 @@ class Config(BaseModel):
         return value
 
     def get_list(self, group: str, key: str, default_value: list[str] | None = None) -> list:
-        """
-        Return the value of a key of type list.
+        """Return the value of a key of type list.
         Raise an exception if key not found and no default value is given.
 
         Example:
@@ -194,8 +189,7 @@ class Config(BaseModel):
         raise ValueError(f"configuration key {group}/{key} is not a list")
 
     def set_str(self, group: str, key: str, value: str) -> None:
-        """
-        Add or override a key value in the runtime configuration.
+        """Add or override a key value in the runtime configuration.
         """
         self._modified_fields[group][key] = value
 
@@ -206,10 +200,8 @@ def global_config() -> Config:
 
 
 def config_loguru():
+    """Configure the logger.
     """
-    Configure the logger.
-    """
-
     # @TODO: Set config in config file
 
     FORMAT_STR = "<green>{time:HH:mm:ss}</green> | <level>{level: <7}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"

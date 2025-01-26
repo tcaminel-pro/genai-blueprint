@@ -1,5 +1,4 @@
-"""
-JSON Lines (JSONL) storage for Pydantic models.
+"""JSON Lines (JSONL) storage for Pydantic models.
 
 Provides functions to load and store Pydantic models in JSONL format.
 Each line contains a separate JSON object representing a model instance.

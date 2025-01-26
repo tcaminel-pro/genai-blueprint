@@ -1,5 +1,4 @@
-"""
-Runnable Playground - Interactive testing environment for LangChain Runnables.
+"""Runnable Playground - Interactive testing environment for LangChain Runnables.
 
 This module provides a Streamlit-based interface for testing and exploring LangChain Runnable components.
 It allows users to:

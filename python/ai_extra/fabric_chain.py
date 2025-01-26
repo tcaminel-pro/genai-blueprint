@@ -25,7 +25,6 @@ from python.ai_core.prompts import def_prompt
 # Pull the URL content's from the GitHub repo
 def fetch_content_from_url(url):
     """Fetches content from the given URL."""
-
     ALLOWLIST_PATTERN = re.compile(r"^[a-zA-Z0-9\s.,;:!?\-]+$")
 
     try:
@@ -43,7 +42,6 @@ def fabric_prompt(param: dict):
 
     Argument is a dict with 2 keys: pattern name, and input date
     """
-
     URL = "https://raw.githubusercontent.com/danielmiessler/fabric/main/patterns/"
     URL = "https://raw.githubusercontent.com/danielmiessler/fabric/refs/heads/main/patterns/"
     system_url = f"{URL}/{param['pattern']}/system.md"

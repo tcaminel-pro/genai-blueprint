@@ -1,5 +1,4 @@
-"""
-GPT Researcher integration utilities.
+"""GPT Researcher integration utilities.
 
 This module provides classes and functions to manage and configure GPT Researcher's
 language models, settings, and research operations. It handles:
@@ -71,7 +70,6 @@ class GptrConfVariables(BaseModel):
                 }
         ... )
         """
-
         config_dict = {}
         if self.embeddings_id is not None:
             raise NotImplementedError("configuring Embeddings model not yet implemented....")
@@ -96,7 +94,7 @@ class GptrConfVariables(BaseModel):
 
 
 class CommonConfigParams(BaseModel):
-    "NOT USED YET"
+    """NOT USED YET"""
 
     # https://docs.gptr.dev/docs/gpt-researcher/gptr/config
 
@@ -138,7 +136,6 @@ async def run_gpt_researcher(
     Returns:
         ResearchReport: Container with research results and metadata
     """
-
     researcher = GPTResearcher(
         query=query, verbose=verbose, websocket=gptr_logger, config_path=gptr_config.get_config_path(), **kwargs
     )
@@ -156,8 +153,7 @@ async def run_gpt_researcher(
 
 
 def gpt_researcher_chain() -> Runnable[str, ResearchReport]:
-    """
-    LCEL wrapper for the async research function, usable as Langchain callable.
+    """LCEL wrapper for the async research function, usable as Langchain callable.
 
     Returns:
         ResearchReport: Comprehensive research report.

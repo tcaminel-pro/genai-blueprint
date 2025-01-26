@@ -3,8 +3,7 @@
 import asyncio
 import textwrap
 from collections import deque
-from datetime import datetime
-from typing import Any
+from datetime import datetimefrom typing import Any, Final
 
 import pandas as pd
 import streamlit as st
@@ -161,7 +160,7 @@ async def main():
                 context_tab.write(research_full_report.context)
 
                 # 'Image' tab content
-                NB_COL = 4
+                NB_COL: Final = 4
                 image_tab.write(f"Found images (len: {len(research_full_report.images)})")
                 image_cols = image_tab.columns(NB_COL)
                 for index, image_path in enumerate(research_full_report.images):

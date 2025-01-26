@@ -1,5 +1,4 @@
-"""
-Embedding models factory and management.
+"""Embedding models factory and management.
 
 This module provides a factory pattern implementation for creating and managing
 embedding models from various providers. It supports both cloud-based and local
@@ -47,8 +46,7 @@ _ = load_dotenv(verbose=True)
 
 
 class EmbeddingsInfo(BaseModel):
-    """
-    Information about an embeddings model.
+    """Information about an embeddings model.
 
     Attributes:
         id (str): A unique identifier for the embeddings model.
@@ -101,8 +99,7 @@ def _read_embeddings_list_file() -> list[EmbeddingsInfo]:
 
 
 class EmbeddingsFactory(BaseModel):
-    """
-    Factory class for creating and managing embeddings models.
+    """Factory class for creating and managing embeddings models.
 
     Attributes:
         embeddings_id (str | None): The unique identifier for the embeddings model.
@@ -153,8 +150,7 @@ class EmbeddingsFactory(BaseModel):
         return list(EmbeddingsFactory.known_items_dict().keys())
 
     def get(self) -> Embeddings:
-        """
-        Create an embeddings model object.
+        """Create an embeddings model object.
 
         """
         if self.info.key and self.info.key not in os.environ:
@@ -163,8 +159,7 @@ class EmbeddingsFactory(BaseModel):
         return llm
 
     def model_factory(self) -> Embeddings:
-        """
-        Create an embeddings model object based on the configuration.
+        """Create an embeddings model object based on the configuration.
 
         Returns:
             Embeddings: An instance of the configured embeddings model.
@@ -220,8 +215,7 @@ def get_embeddings(
     encoding_str: str | None = None,
     retrieving_str: str | None = None,
 ) -> Embeddings:
-    """
-    Get an embeddings model.
+    """Get an embeddings model.
 
     Args:
         embeddings_id: The unique identifier for the embeddings model. If None, uses default from config.

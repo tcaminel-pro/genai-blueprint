@@ -1,5 +1,4 @@
-"""
-Demo of an LLM Augmented Autonomous Agent for Maintenance
+"""Demo of an LLM Augmented Autonomous Agent for Maintenance
 
 """
 

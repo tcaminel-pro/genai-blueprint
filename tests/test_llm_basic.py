@@ -1,5 +1,4 @@
-"""
-Tests for LLM joke generation functionality.
+"""Tests for LLM joke generation functionality.
 
 This module contains tests that verify:
 - Basic LLM joke generation

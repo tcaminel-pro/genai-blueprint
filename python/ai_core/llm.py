@@ -1,5 +1,4 @@
-"""
-Language Model (LLM) factory and configuration management.
+"""Language Model (LLM) factory and configuration management.
 
 This module implements a factory pattern for creating and managing Language Learning Models
 from various providers. It handles model configuration, runtime switching, and integration
@@ -82,8 +81,7 @@ PROVIDER_INFO = {
 
 
 class LlmInfo(BaseModel):
-    """
-    Description of an LLM model and its configuration.
+    """Description of an LLM model and its configuration.
 
     Attributes:
         id: Unique identifier in format model_version_provider (e.g. gpt_35_openai)
@@ -113,7 +111,6 @@ class LlmInfo(BaseModel):
 
 def _read_llm_list_file() -> list[LlmInfo]:
     """Read the YAML file with list of LLM providers and info"""
-
     # The name of the file is in the configuration file
     yml_file = Path(global_config().get_str("llm", "list"))
     assert yml_file.exists(), f"cannot find {yml_file}"
@@ -130,8 +127,7 @@ def _read_llm_list_file() -> list[LlmInfo]:
 
 
 class LlmFactory(BaseModel):
-    """
-    Factory for creating and configuring LLM instances.
+    """Factory for creating and configuring LLM instances.
 
     Handles the creation of LangChain BaseLanguageModel instances with appropriate
     configuration based on the model type and provider.
@@ -158,7 +154,7 @@ class LlmFactory(BaseModel):
         return LlmFactory.known_items_dict().get(self.llm_id)  # type: ignore
 
     @field_validator("llm_id", mode="before")
-    def check_known(cls, llm_id: str | None) -> str:
+    def check_known(self, llm_id: str | None) -> str:
         if llm_id is None:
             llm_id = global_config().get_str("llm", "default_model")
         if llm_id not in LlmFactory.known_items():
@@ -169,7 +165,7 @@ class LlmFactory(BaseModel):
         return llm_id
 
     @field_validator("cache")
-    def check_known_cache(cls, cache: str | None):
+    def check_known_cache(self, cache: str | None):
         if cache and cache not in LlmCache.values():
             raise ValueError(f"Unknown cache method: '{cache} '; Should be in {LlmCache.values()}")
 
@@ -197,7 +193,6 @@ class LlmFactory(BaseModel):
     @staticmethod
     def known_items() -> list[str]:
         """Return id of known LLM in the registry whose API key environment variable is known and Python module installed"""
-
         return sorted(LlmFactory.known_items_dict().keys())
 
     @staticmethod
@@ -210,12 +205,12 @@ class LlmFactory(BaseModel):
         return llm_id
 
     def get_id(self) -> str:
-        "Return the id of the LLM"
+        """Return the id of the LLM"""
         assert self.llm_id
         return self.llm_id
 
     def short_name(self) -> str:
-        "Return the name and version of the LLMn without the provider"
+        """Return the name and version of the LLMn without the provider"""
         return self.info.id.rsplit("_", maxsplit=1)[0]
 
     def get_litellm_model_name(self) -> str:
@@ -235,8 +230,7 @@ class LlmFactory(BaseModel):
         return result
 
     def get(self) -> BaseChatModel:
-        """
-        Create an LLM model.
+        """Create an LLM model.
         'model' is our internal name for the model and its provider. If None, take the default one.
         We select a LiteLLM wrapper if it's defined in the known_llm_list() table, otherwise
         we create the LLM from a LangChain LLM class.
@@ -260,7 +254,6 @@ class LlmFactory(BaseModel):
 
     def model_factory(self) -> BaseChatModel:
         """Model factory, according to the model class"""
-
         if self.cache:
             cache = LlmCache.from_value(self.cache)
         else:
@@ -437,8 +430,7 @@ def get_llm(
     cache: str | None = None,
     **kwargs,
 ) -> BaseChatModel:
-    """
-    Create a configured LangChain BaseLanguageModel instance.
+    """Create a configured LangChain BaseLanguageModel instance.
 
     Args:
         llm_id: Unique model identifier (if None, uses default from config)
@@ -469,7 +461,6 @@ def get_llm(
         result = chain.invoke({"topic": "AI"})
         ```
     """
-
     if llm_type and llm_id:
         logger.warning(
             "llm_type and llm_id both  defined whereas they are normally exclusive.  llm_id has the preference"
@@ -496,8 +487,7 @@ def get_llm(
 def get_configurable_llm(
     json_mode: bool = False, with_fallback=False, streaming: bool = False, cache: str | None = None, **kwargs
 ) -> BaseChatModel:
-    """
-    Create a configurable LangChain BaseLanguageModel instance.
+    """Create a configurable LangChain BaseLanguageModel instance.
 
     Args:
         json_mode: Whether to force JSON output format (where supported)
@@ -539,8 +529,7 @@ get_configurable_llm = functools.wraps(get_configurable_llm)(functools.cache(get
 
 
 def get_llm_info(llm_id: str) -> LlmInfo:
-    """
-    Return information on given LLM
+    """Return information on given LLM
     """
     factory = LlmFactory(llm_id=llm_id)
     r = factory.known_items_dict().get(llm_id)
@@ -551,8 +540,7 @@ def get_llm_info(llm_id: str) -> LlmInfo:
 
 
 def llm_config(llm_id: str) -> RunnableConfig:
-    """
-    Return a 'RunnableConfig' to configure an LLM at run-time. Check LLM is known.
+    """Return a 'RunnableConfig' to configure an LLM at run-time. Check LLM is known.
 
     Examples :
     ```
@@ -561,7 +549,6 @@ def llm_config(llm_id: str) -> RunnableConfig:
         r = graph.invoke({}, config=llm_config("gpt_35_openai") | {"recursion_limit": 6}) )
     ```
     """
-
     if llm_id not in LlmFactory.known_items():
         raise ValueError(
             f"Unknown LLM: {llm_id}; Check API key and module imports. Should be in {LlmFactory.known_items()}"
@@ -570,7 +557,7 @@ def llm_config(llm_id: str) -> RunnableConfig:
 
 
 def configurable(conf: dict) -> RunnableConfig:
-    """return a dict with key 'configurable', to be used in 'with_config'
+    """Return a dict with key 'configurable', to be used in 'with_config'
 
     Example:
     ```
@@ -581,8 +568,7 @@ def configurable(conf: dict) -> RunnableConfig:
 
 
 def get_print_chain(string: str = "") -> RunnableLambda:
-    """
-    Return a chain that print the passed input and the config. Useful for debugging.
+    """Return a chain that print the passed input and the config. Useful for debugging.
 
     Example:
     ```
@@ -590,7 +576,8 @@ def get_print_chain(string: str = "") -> RunnableLambda:
 
         add_1 = get_print_chain("before") | RunnableLambda(lambda x: x + 1) | get_print_chain("after")
         chain = add_1.with_config(configurable({"my_conf": "my_conf_value"}))
-        print(chain.invoke(1))"""
+        print(chain.invoke(1))
+    """
 
     def fn(input: Any, config: RunnableConfig):
         debug(string, input, config)

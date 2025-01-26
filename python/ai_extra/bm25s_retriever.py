@@ -1,5 +1,4 @@
-"""
-A replacement of the BM25Retriever, much faster
+"""A replacement of the BM25Retriever, much faster
 
 **  NOT WELL TESTED **
 """
@@ -19,8 +18,7 @@ def default_preprocessing_func(text: str) -> List[str]:
 
 
 def get_spacy_preprocess_fn(model: str, more_stop_words: list[str] = None) -> Callable[[str], list[str]]:
-    """
-    Return a function that preprocess a string for search :  lemmanisation, lower_case, and strop word removal.
+    """Return a function that preprocess a string for search :  lemmanisation, lower_case, and strop word removal.
 
     Args:
     - model: spacy model for lemmanisation
@@ -35,7 +33,9 @@ def get_spacy_preprocess_fn(model: str, more_stop_words: list[str] = None) -> Ca
     try:
         nlp = spacy.load(model)
     except IOError as ex:
-        raise ModuleNotFoundError(f"Cannot load Spacy model.  Try install it with : 'python -m spacy download {model}'") from ex
+        raise ModuleNotFoundError(
+            f"Cannot load Spacy model.  Try install it with : 'python -m spacy download {model}'"
+        ) from ex
 
     stop_words = nlp.Defaults.stop_words
     stop_words.update(more_stop_words or [])
@@ -75,8 +75,8 @@ class BM25FastRetriever(BaseRetriever):
         cache_path: Optional[Path] = None,
         **kwargs: Any,
     ) -> "BM25FastRetriever":
-        """
-        Create a BM25S_Retriever from a list of texts.
+        """Create a BM25S_Retriever from a list of texts.
+
         Args:
             texts: A list of texts to vectorize.
             metadatas: A list of metadata dicts to associate with each text.
@@ -115,8 +115,8 @@ class BM25FastRetriever(BaseRetriever):
         cache_dir: Optional[Path] = None,
         **kwargs: Any,
     ) -> "BM25FastRetriever":
-        """
-        Create a BM25S_Retriever from a list of Documents.
+        """Create a BM25S_Retriever from a list of Documents.
+
         Args:
             documents: A list of Documents to vectorize.
             bm25_params: Parameters to pass to the BM25 vectorizer.

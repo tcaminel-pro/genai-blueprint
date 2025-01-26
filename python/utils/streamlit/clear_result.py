@@ -1,5 +1,4 @@
-"""
-A hack to "clear" the previous result when submitting a new prompt. This avoids
+"""A hack to "clear" the previous result when submitting a new prompt. This avoids
 the "previous run's text is grayed-out but visible during rerun" Streamlit behavior.
 
 Taken from an example found somewhere.

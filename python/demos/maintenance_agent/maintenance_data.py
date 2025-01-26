@@ -18,7 +18,6 @@ def dummy_database() -> str:
     - a table with sensor events
     - a table with employees planning in the last few weeks
     """
-
     # DATABASE_URI = "sqlite:///:memory:"
     DATABASE_URI = "sqlite:////tmp/demo.db"
     # fmt: off

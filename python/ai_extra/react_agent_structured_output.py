@@ -1,7 +1,5 @@
-"""
-
-This module provides an implementation of a ReAct agent that can generate structured output.
-    The agent is built using LangChain components and is designed to be flexible and reusable for various applications.
+"""This module provides an implementation of a ReAct agent that can generate structured output.
+The agent is built using LangChain components and is designed to be flexible and reusable for various applications.
 """
 
 from typing import Literal, Type, TypeVar
@@ -19,8 +17,7 @@ T = TypeVar("T", bound=BaseModel)
 def create_react_structured_output_graph(
     llm: BaseChatModel, tools: list[BaseTool], out_model_class: Type[T]
 ) -> CompiledGraph:
-    """
-    Creates a compiled LangGraph graph for a ReAct agent that can generate structured output.
+    """Creates a compiled LangGraph graph for a ReAct agent that can generate structured output.
 
     This function sets up a state graph with an agent node, a tool node, and a respond node.
     The agent node calls the model, the tool node processes the tools, and the respond node

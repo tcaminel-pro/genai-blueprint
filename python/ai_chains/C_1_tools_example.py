@@ -1,6 +1,4 @@
-"""
-
-Adapted from https://blog.langchain.dev/tool-calling-with-langchain/
+"""Adapted from https://blog.langchain.dev/tool-calling-with-langchain/
 """
 
 from langchain import hub

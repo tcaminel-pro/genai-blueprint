@@ -1,5 +1,4 @@
-"""
-LangChain Runnable registry and management system.
+"""LangChain Runnable registry and management system.
 
 This module implements a centralized registry for managing LangChain Runnables,
 providing a unified interface for registration, retrieval, and execution of
@@ -42,8 +41,7 @@ from python.config import Config
 
 
 class Example(BaseModel):
-    """
-    Defines examples for demonstrating and testing Runnable behavior.
+    """Defines examples for demonstrating and testing Runnable behavior.
 
     This class encapsulates example queries and optional file paths for
     demonstration purposes, particularly useful for RAG (Retrieval Augmented Generation)
@@ -60,8 +58,7 @@ class Example(BaseModel):
 
 
 class RunnableItem(BaseModel):
-    """
-    A comprehensive wrapper for LangChain Runnable components with metadata and execution capabilities.
+    """A comprehensive wrapper for LangChain Runnable components with metadata and execution capabilities.
 
     This class encapsulates a LangChain Runnable along with associated metadata and provides
     methods for executing the Runnable with various configurations. It supports multiple
@@ -129,8 +126,7 @@ _registry: list[RunnableItem] = []
 
 
 def register_runnable(r: RunnableItem):
-    """
-    Register a new RunnableItem in the global registry.
+    """Register a new RunnableItem in the global registry.
 
     Args:
         r (RunnableItem): The Runnable item to register
@@ -139,8 +135,7 @@ def register_runnable(r: RunnableItem):
 
 
 def get_runnable_registry() -> list[RunnableItem]:
-    """
-    Retrieve the complete list of registered Runnables.
+    """Retrieve the complete list of registered Runnables.
 
     Returns:
         list[RunnableItem]: List of all registered Runnable items
@@ -149,8 +144,7 @@ def get_runnable_registry() -> list[RunnableItem]:
 
 
 def find_runnable(name: str) -> RunnableItem | None:
-    """
-    Find a registered Runnable by its name (case-insensitive).
+    """Find a registered Runnable by its name (case-insensitive).
 
     Args:
         name (str): Name of the Runnable to find
@@ -162,8 +156,7 @@ def find_runnable(name: str) -> RunnableItem | None:
 
 
 def _to_key_param_callable(key: str, function: Callable[[dict[str, Any]], Runnable]) -> Callable[[Any], Runnable]:
-    """
-    Convert a key-based function to a callable that works with the Runnable pipeline.
+    """Convert a key-based function to a callable that works with the Runnable pipeline.
 
     This helper function transforms a function that expects a configuration dictionary
     and returns a Runnable into a pipeline-compatible function that automatically
@@ -180,8 +173,7 @@ def _to_key_param_callable(key: str, function: Callable[[dict[str, Any]], Runnab
 
 
 def load_modules_with_chains():
-    """
-    Dynamically load chain modules specified in the configuration.
+    """Dynamically load chain modules specified in the configuration.
 
     This function reads the configuration to find and import modules containing
     chain definitions. It uses the 'chains.path' and 'chains.modules' configuration
@@ -191,7 +183,6 @@ def load_modules_with_chains():
         AssertionError: If the specified path doesn't exist
         Exception: If module loading fails (logged as warning)
     """
-
     config = Config.singleton()
     path = config.get_str("chains", "path")
     modules = config.get_list("chains", "modules")

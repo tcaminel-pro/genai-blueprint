@@ -1,5 +1,4 @@
-"""
-Tests for the Config class and its configuration management features.
+"""Tests for the Config class and its configuration management features.
 
 These tests verify:
 - Basic configuration loading and retrieval

@@ -1,5 +1,4 @@
-"""
-Prompt utilities and wrapper functions.
+"""Prompt utilities and wrapper functions.
 
 This module provides utilities for creating and managing LangChain prompts,
 with support for system messages, user inputs, and additional message types.
@@ -41,8 +40,8 @@ def dedent_ws(text: str) -> str:
     It address 'dedent' choice to not consider tabs and space as equivalent, by replacing tabs by 4 whitespace,
     so "   hello" and "\\thello" are considered to have common leading whitespace.
 
-    It also remove the first new_line if any"""
-
+    It also remove the first new_line if any
+    """
     # text = text.strip("\n")
     text = text.replace("\t", "    ")
     result = dedent(text).strip()
@@ -50,8 +49,7 @@ def dedent_ws(text: str) -> str:
 
 
 def def_prompt(system: str | None = None, user: str = "", other_msg: dict = None) -> BasePromptTemplate:
-    """
-    Small wrapper around 'ChatPromptTemplate.from_messages" with just a user  and optional system prompt and other messages.
+    """Small wrapper around 'ChatPromptTemplate.from_messages" with just a user  and optional system prompt and other messages.
     Common leading whitespace and tags are removed from the system and user strings
 
     Example:

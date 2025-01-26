@@ -1,5 +1,4 @@
-"""
-Callback Handler captures all callbacks in a session for future offline playback.
+"""Callback Handler captures all callbacks in a session for future offline playback.
 
 Taken from an example.
 

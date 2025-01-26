@@ -1,5 +1,4 @@
-"""
-Demo of Semantic Search
+"""Demo of Semantic Search
 
 
 """

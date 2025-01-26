@@ -1,5 +1,4 @@
-"""
-https://github.com/langc    hain-ai/langgraph/blob/main/examples/rag/langgraph_rag_agent_llama3_local.ipynb
+"""https://github.com/langc    hain-ai/langgraph/blob/main/examples/rag/langgraph_rag_agent_llama3_local.ipynb
 https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_agentic_rag.ipynb
 """
 
@@ -171,8 +170,7 @@ def question_router() -> Runnable[Any, DataRoute]:
 
 
 class GraphState(TypedDict, total=False):
-    """
-    Represents the state of our graph.
+    """Represents the state of our graph.
     """
 
     question: str  # the question
@@ -185,8 +183,7 @@ class GraphState(TypedDict, total=False):
 
 
 def retrieve(state: GraphState) -> GraphState:
-    """
-    Retrieve documents from vectorstore
+    """Retrieve documents from vectorstore
     Returns:
         state (dict): New key added to state, documents, that contains retrieved documents
     """
@@ -199,8 +196,7 @@ def retrieve(state: GraphState) -> GraphState:
 
 
 def generate(state: GraphState) -> GraphState:
-    """
-    Generate answer using RAG on retrieved documents
+    """Generate answer using RAG on retrieved documents
     Returns:
         state (dict): New key added to state, generation, that contains LLM generation
     """
@@ -214,13 +210,11 @@ def generate(state: GraphState) -> GraphState:
 
 
 def grade_documents(state: GraphState) -> GraphState:
-    """
-    Determines whether the retrieved documents are relevant to the question
+    """Determines whether the retrieved documents are relevant to the question
     If any document is not relevant, we will set a flag to run web search
     Returns:
         state (dict): Filtered out irrelevant documents and updated web_search state
     """
-
     logger.debug("---CHECK DOCUMENT RELEVANCE TO QUESTION---")
     question = state["question"]
     documents = state["documents"]
@@ -245,12 +239,10 @@ def grade_documents(state: GraphState) -> GraphState:
 
 
 def web_search(state: GraphState) -> GraphState:
-    """
-    Web search based based on the question
+    """Web search based based on the question
     Returns:
         state (dict): Appended web results to documents
     """
-
     logger.debug("---WEB SEARCH---")
     question = state["question"]
     documents = state.get("documents") or []
@@ -268,11 +260,9 @@ def web_search(state: GraphState) -> GraphState:
 
 
 def route_question(state: GraphState) -> Literal["websearch", "vectorstore"]:
-    """
-    Route question to web search or RAG.
+    """Route question to web search or RAG.
     Returns next node to call
     """
-
     logger.debug("---ROUTE QUESTION---")
     question = state["question"]
     source = question_router().invoke({"question": question})
@@ -288,11 +278,9 @@ def route_question(state: GraphState) -> Literal["websearch", "vectorstore"]:
 
 
 def decide_to_generate(state: GraphState) -> Literal["websearch", "generate"]:
-    """
-    Determines whether to generate an answer, or add web search
+    """Determines whether to generate an answer, or add web search
     Returns binary decision for next node to call
     """
-
     logger.debug("---ASSESS GRADED DOCUMENTS---")
     # state["question"]
     web_search = state["web_search"]
@@ -312,12 +300,10 @@ def decide_to_generate(state: GraphState) -> Literal["websearch", "generate"]:
 def grade_generation_v_documents_and_question(
     state: GraphState,
 ) -> Literal["useful", "not useful", "not supported"]:
-    """
-    Determines whether the generation is grounded in the document and answers question.
+    """Determines whether the generation is grounded in the document and answers question.
 
     Returns: Decision for next node to call
     """
-
     logger.debug("---CHECK HALLUCINATIONS---")
     question = state["question"]
     documents = state["documents"]
