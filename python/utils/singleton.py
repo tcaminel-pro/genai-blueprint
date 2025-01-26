@@ -102,7 +102,7 @@ if __name__ == "__main__":
     assert obj1 is obj2  # True - same instance
 
     @once()
-    def get_my_class_singleton():
+    def get_my_class_singleton()-> SingletonTestModel:
         return SingletonTestModel(a=4)
 
     obj3 = get_my_class_singleton()
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     assert obj1 is not obj3
 
     @once()
-    def do_something_complicated(x: int):
+    def do_something_complicated(x: int) -> SingletonTestModel:
         return SingletonTestModel(a=x)
 
     obj5 = do_something_complicated(1)

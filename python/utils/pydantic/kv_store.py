@@ -9,7 +9,7 @@ import hashlib
 import json
 import re
 from pathlib import Path
-from typing import Type, TypeVar
+from typing import TypeVar
 
 from langchain.storage import LocalFileStore
 from loguru import logger

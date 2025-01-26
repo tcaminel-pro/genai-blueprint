@@ -132,7 +132,7 @@ class VectorStoreFactory(BaseModel):
         return list(get_args(VECTOR_STORE_ENGINE))
 
     @field_validator("id", mode="before")
-    def check_known(self, id: str | None) -> str:
+    def check_known(cls, id: str | None) -> str:
         if id is None:
             id = global_config().get_str("vector_store", "default")
         if id not in VectorStoreFactory.known_items():
@@ -192,7 +192,7 @@ class VectorStoreFactory(BaseModel):
 
         return vector_store
 
-    def change_top_k(self, k: int = 4) -> VectorStoreRetriever:
+    def set_number_of_doc_to_fetch(self, k: int = 4) -> VectorStoreRetriever:
         """Return a retriever with changed number of most relevant document returned."""
         retriever = self.vector_store.as_retriever(search_kwargs={"k": k}).configurable_fields(
             search_kwargs=ConfigurableField(

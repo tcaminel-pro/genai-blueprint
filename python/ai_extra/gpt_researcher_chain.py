@@ -17,7 +17,7 @@ import json
 import tempfile
 import textwrap
 from pathlib import Path
-from typing import Any, List, Literal
+from typing import Any, Literal
 
 try:
     from gpt_researcher import GPTResearcher

@@ -7,7 +7,7 @@ Each line contains a separate JSON object representing a model instance.
 import json
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Type, TypeVar
+from typing import TypeVar
 
 from loguru import logger
 from pydantic import BaseModel

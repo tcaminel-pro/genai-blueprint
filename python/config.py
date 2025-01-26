@@ -33,7 +33,7 @@ import re
 import sys
 from collections import ChainMap, defaultdict
 from pathlib import Path
-from typing import Any, Dict, cast
+from typing import Any, cast
 
 import yaml
 from dotenv import load_dotenv

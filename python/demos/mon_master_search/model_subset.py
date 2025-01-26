@@ -1,5 +1,5 @@
 # cSpell: disable
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 

@@ -65,7 +65,7 @@ def test_vector_store_retriever() -> None:
     )
 
     # Test default retriever
-    retriever = vs_factory.change_top_k(k=1)
+    retriever = vs_factory.set_number_of_doc_to_fetch(k=1)
     results = retriever.invoke("AI technology")
 
     assert len(results) == 1

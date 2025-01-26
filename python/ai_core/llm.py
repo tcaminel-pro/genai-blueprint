@@ -153,7 +153,7 @@ class LlmFactory(BaseModel):
         return LlmFactory.known_items_dict().get(self.llm_id)  # type: ignore
 
     @field_validator("llm_id", mode="before")
-    def check_known(self, llm_id: str | None) -> str:
+    def check_known(cls, llm_id: str | None) -> str:
         if llm_id is None:
             llm_id = global_config().get_str("llm", "default_model")
         if llm_id not in LlmFactory.known_items():
@@ -164,7 +164,7 @@ class LlmFactory(BaseModel):
         return llm_id
 
     @field_validator("cache")
-    def check_known_cache(self, cache: str | None) -> None:
+    def check_known_cache(cls, cache: str | None) -> None:
         if cache and cache not in LlmCache.values():
             raise ValueError(f"Unknown cache method: '{cache} '; Should be in {LlmCache.values()}")
 

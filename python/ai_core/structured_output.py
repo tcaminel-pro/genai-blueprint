@@ -8,7 +8,7 @@ output according to a specified Pydantic model using different approaches
 
 """
 
-from typing import Literal, Type, TypeVar
+from typing import Literal, TypeVar
 
 from langchain.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field

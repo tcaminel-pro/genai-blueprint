@@ -2,7 +2,7 @@
 The agent is built using LangChain components and is designed to be flexible and reusable for various applications.
 """
 
-from typing import Literal, Type, TypeVar
+from typing import Literal, TypeVar
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.tools import BaseTool

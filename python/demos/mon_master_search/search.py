@@ -37,7 +37,7 @@ def get_sparse_retriever(embeddings_model_id: str) -> Runnable:
         id="Chroma",
         embeddings_factory=embeddings_factory,
         collection_name="offres_formation",
-    ).change_top_k(k=DEFAULT_RESULT_COUNT)
+    ).set_number_of_doc_to_fetch(k=DEFAULT_RESULT_COUNT)
     return retriever
 
 

@@ -5,7 +5,7 @@ https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_agent
 import sys
 from enum import Enum
 from operator import itemgetter
-from typing import Any, List, Literal
+from typing import Any, Literal
 
 from devtools import debug
 from dotenv import load_dotenv

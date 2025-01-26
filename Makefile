@@ -127,13 +127,6 @@ install: check_poetry  ## Install project core dependencies
 	poetry install --without ai_extra,demos,transformers,instrumentation,autogen
 
 
-check_truc:  ## Check if poetry is installed, install if missing
-	@command -v poetry >/dev/null 2>&1 || { \
-		echo "truc is not installed. Installing now..."; \
-	}
-
-install2 : check_truc
-	echo "install 2"
 ##############################
 ##  Build Docker, and run locally
 ##############################

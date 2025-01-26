@@ -32,7 +32,7 @@ Example:
 import importlib
 from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Callable, Tuple
+from typing import Any, Callable
 
 from langchain_core.runnables import Runnable, RunnableLambda
 from loguru import logger

@@ -7,7 +7,7 @@ Also of interest: https://github.com/langchain-ai/langgraph/blob/main/examples/m
 import os
 import sys
 from operator import itemgetter
-from typing import List, Literal, TypedDict
+from typing import Literal, TypedDict
 
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import (
