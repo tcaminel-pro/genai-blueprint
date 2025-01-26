@@ -3,8 +3,9 @@
 **  NOT WELL TESTED **
 """
 
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterable, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from langchain_core.callbacks import CallbackManagerForRetrieverRun
 from langchain_core.documents import Document
@@ -13,7 +14,7 @@ from loguru import logger
 from pydantic import Field
 
 
-def default_preprocessing_func(text: str) -> List[str]:
+def default_preprocessing_func(text: str) -> list[str]:
     return text.split()
 
 
@@ -32,7 +33,7 @@ def get_spacy_preprocess_fn(model: str, more_stop_words: list[str] = None) -> Ca
 
     try:
         nlp = spacy.load(model)
-    except IOError as ex:
+    except OSError as ex:
         raise ModuleNotFoundError(
             f"Cannot load Spacy model.  Try install it with : 'python -m spacy download {model}'"
         ) from ex
@@ -53,11 +54,11 @@ class BM25FastRetriever(BaseRetriever):
 
     vectorizer: Any
     """ BM25 vectorizer."""
-    docs: List[Document] = Field(repr=False)
+    docs: list[Document] = Field(repr=False)
     """ List of documents."""
     k: int = 4
     """ Number of documents to return."""
-    preprocess_func: Callable[[str], List[str]] = default_preprocessing_func
+    preprocess_func: Callable[[str], list[str]] = default_preprocessing_func
     """ Preprocessing function to use on the text before BM25 vectorization."""
 
     class Config:
@@ -70,8 +71,8 @@ class BM25FastRetriever(BaseRetriever):
         cls,
         texts: Iterable[str],
         metadatas: Optional[Iterable[dict]] = None,
-        bm25_params: Optional[Dict[str, Any]] = None,
-        preprocess_func: Callable[[str], List[str]] = default_preprocessing_func,
+        bm25_params: Optional[dict[str, Any]] = None,
+        preprocess_func: Callable[[str], list[str]] = default_preprocessing_func,
         cache_path: Optional[Path] = None,
         **kwargs: Any,
     ) -> "BM25FastRetriever":
@@ -110,8 +111,8 @@ class BM25FastRetriever(BaseRetriever):
         cls,
         documents: Iterable[Document],
         *,
-        bm25_params: Optional[Dict[str, Any]] = None,
-        preprocess_func: Callable[[str], List[str]] = default_preprocessing_func,
+        bm25_params: Optional[dict[str, Any]] = None,
+        preprocess_func: Callable[[str], list[str]] = default_preprocessing_func,
         cache_dir: Optional[Path] = None,
         **kwargs: Any,
     ) -> "BM25FastRetriever":
@@ -140,7 +141,7 @@ class BM25FastRetriever(BaseRetriever):
     def from_cache(
         cls,
         cache_dir: Path,
-        preprocess_func: Callable[[str], List[str]] = default_preprocessing_func,
+        preprocess_func: Callable[[str], list[str]] = default_preprocessing_func,
         **kwargs: Any,
     ) -> "BM25FastRetriever":
         try:
@@ -152,7 +153,7 @@ class BM25FastRetriever(BaseRetriever):
         vectorizer = bm25s.BM25.load(cache_dir, mmap=False, allow_pickle=True)
         return cls(vectorizer=vectorizer, preprocess_func=preprocess_func, docs=[], **kwargs)
 
-    def _get_relevant_documents(self, query: str, *, run_manager: CallbackManagerForRetrieverRun) -> List[Document]:
+    def _get_relevant_documents(self, query: str, *, run_manager: CallbackManagerForRetrieverRun) -> list[Document]:
         processed_query = self.preprocess_func(query)
         # return_docs = self.vectorizer.get_top_n(processed_query, self.docs, n=self.k)
         results = self.vectorizer.retrieve(processed_query, corpus=self.docs, k=self.k, return_as="documents")

@@ -175,7 +175,7 @@ class GraphState(TypedDict, total=False):
     question: str  # the question
     generation: str  # LLM generation
     web_search: str  # whether to add search
-    documents: List[Document]  # list of documents
+    documents: list[Document]  # list of documents
 
 
 ### Nodes

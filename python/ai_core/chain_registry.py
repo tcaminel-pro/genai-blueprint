@@ -30,8 +30,9 @@ Example:
 """
 
 import importlib
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Callable, Iterator, Tuple
+from typing import Any, Callable, Tuple
 
 from langchain_core.runnables import Runnable, RunnableLambda
 from loguru import logger
@@ -85,7 +86,7 @@ class RunnableItem(BaseModel):
     name: str
     tag: str | None = None
     runnable: (
-        Runnable | Tuple[str, Callable[[dict[str, Any]], Runnable]] | Callable[[dict[str, Any]], Runnable]
+        Runnable | tuple[str, Callable[[dict[str, Any]], Runnable]] | Callable[[dict[str, Any]], Runnable]
     )  # Either a Runnable, or ...
     examples: list[Example] = []
     diagram: str | None = None
@@ -111,7 +112,7 @@ class RunnableItem(BaseModel):
             runnable = self.runnable
         elif isinstance(self.runnable, Callable):
             runnable = self.runnable(conf)
-        elif isinstance(self.runnable, Tuple):
+        elif isinstance(self.runnable, tuple):
             key, func = self.runnable
             func_runnable = _to_key_param_callable(key, func)
             runnable = func_runnable(conf)

@@ -34,9 +34,10 @@ Example:
 """
 
 import os
+from collections.abc import Iterable
 from functools import cached_property
 from pathlib import Path
-from typing import Iterable, Literal, get_args
+from typing import Annotated, Literal, get_args
 
 from langchain.indexes import IndexingResult, SQLRecordManager, index
 from langchain.schema import Document
@@ -47,7 +48,6 @@ from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_core.vectorstores.base import VectorStoreRetriever
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
-from typing_extensions import Annotated
 
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.config import global_config

@@ -26,33 +26,33 @@ class LieuxItem(JsonModel):
 
 class InformationsPedagogiques(JsonModel):
     lien_fiche: str
-    mot_cle_disciplinaire: Optional[List[str]] = None
-    mot_cle_sectoriel: Optional[List[str]] = None
-    mot_cle_metier: Optional[List[str]] = None
-    mot_cle_libre: Optional[List[str]] = None
+    mot_cle_disciplinaire: Optional[list[str]] = None
+    mot_cle_sectoriel: Optional[list[str]] = None
+    mot_cle_metier: Optional[list[str]] = None
+    mot_cle_libre: Optional[list[str]] = None
 
 
 class Parcour(JsonModel):
     for_inmp: str
     intitule_parcours: str
     informations_pedagogiques: InformationsPedagogiques | None = None
-    licences_conseillees: Optional[List[str]] = None
-    modalite_enseignement: List[str] | None = None
+    licences_conseillees: Optional[list[str]] = None
+    modalite_enseignement: list[str] | None = None
 
 
 class Dnm(JsonModel):
     for_inm: str
     for_intitule: str
-    dom_libelle: List[str]
+    dom_libelle: list[str]
     informations_pedagogiques: Optional[InformationsPedagogiques] = None
-    parcours: Optional[List[Parcour]] = None
-    licences_conseillees: Optional[List[str]] = None
-    modalite_enseignement: List[str] | None = None
+    parcours: Optional[list[Parcour]] = None
+    licences_conseillees: Optional[list[str]] = None
+    modalite_enseignement: list[str] | None = None
 
 
 class ParcoursFormations(JsonModel):
     etab: Etab
-    dnms: List[Dnm]
+    dnms: list[Dnm]
 
 
 LICENCES_CONSEILLEES = [

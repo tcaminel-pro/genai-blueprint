@@ -32,13 +32,13 @@ Example:
 import os
 from functools import cached_property, lru_cache
 from pathlib import Path
+from typing import Annotated
 
 import yaml
 from dotenv import load_dotenv
 from langchain.embeddings.base import Embeddings
 from loguru import logger
 from pydantic import BaseModel, Field, computed_field, field_validator
-from typing_extensions import Annotated
 
 from python.config import global_config
 
@@ -87,7 +87,7 @@ class EmbeddingsInfo(BaseModel):
 def _read_embeddings_list_file() -> list[EmbeddingsInfo]:
     yml_file = Path(global_config().get_str("embeddings", "list"))
     assert yml_file.exists(), f"cannot find {yml_file}"
-    with open(yml_file, "r") as f:
+    with open(yml_file) as f:
         data = yaml.safe_load(f)
     embeddings = []
     for provider in data["embeddings"]:

@@ -22,7 +22,7 @@ T = TypeVar("T", bound=BaseModel)
 METHODS = Literal["output_parser", "function_calling", "json_schema"]
 
 
-def structured_output_chain(system: str, user: str, llm_id: str | None, output_class: Type[T], method: METHODS):
+def structured_output_chain(system: str, user: str, llm_id: str | None, output_class: type[T], method: METHODS):
     """Create a chain that generates structured output according to a Pydantic model.
 
     Methods can be:

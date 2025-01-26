@@ -101,9 +101,7 @@ def plot_price_over_time(historical_price_dfs: list[pd.DataFrame]):
 
 def call_functions(llm_with_tools, user_prompt):
     system_prompt = (
-        "You are a helpful finance assistant that analyzes stocks and stock prices. Today is {today}".format(
-            today=date.today()
-        )
+        f"You are a helpful finance assistant that analyzes stocks and stock prices. Today is {date.today()}"
     )
 
     messages = [SystemMessage(content=system_prompt), HumanMessage(content=user_prompt)]
@@ -129,9 +127,7 @@ def call_functions(llm_with_tools, user_prompt):
         symbols = " and ".join(symbols)
         messages.append(
             ToolMessage(
-                content="Tell the user that a historical stock price chart for {symbols} been generated.".format(
-                    symbols=symbols
-                ),
+                content=f"Tell the user that a historical stock price chart for {symbols} been generated.",
                 tool_call_id="0",
             )
         )
@@ -170,7 +166,7 @@ def main():
                     response = call_functions(llm_with_tools, user_question)
                     st.write(response)
                     url = cb.get_run_url()
-                    st.write("[trace](%s)" % url)
+                    st.write(f"[trace]({url})")
 
 
 main()

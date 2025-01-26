@@ -110,7 +110,7 @@ with st.form("my_form"):
             with tracing_v2_enabled() as cb:
                 result = runnable_desc.invoke(input, config)
                 url = cb.get_run_url()
-                st.write("[trace](%s)" % url)
+                st.write(f"[trace]({url})")
         else:
             result = runnable_desc.invoke(input, config)
         if isinstance(result, BaseModel):

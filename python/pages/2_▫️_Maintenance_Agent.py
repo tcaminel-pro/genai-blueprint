@@ -95,7 +95,7 @@ if b_column[1].button("See Sensors Values DB"):
 
 if b_column[2].button("See Procedure", key="procedure"):
     with st.expander("Maintenance Procedure", expanded=True):
-        with open(DATA_PATH / PROCEDURES[0], "r") as file:
+        with open(DATA_PATH / PROCEDURES[0]) as file:
             st.write(file.read())
 
 

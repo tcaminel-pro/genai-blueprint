@@ -17,7 +17,7 @@ The CLI is built using Typer and supports:
 
 import sys
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Annotated, Callable, Optional
 
 import typer
 from devtools import pprint
@@ -27,7 +27,6 @@ from langchain_core.runnables import Runnable
 
 # Import modules where runnables are registered
 from typer import Option
-from typing_extensions import Annotated
 
 from python.ai_core.cache import LlmCache
 from python.ai_core.chain_registry import (

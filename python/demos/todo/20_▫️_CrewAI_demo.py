@@ -115,29 +115,29 @@ def main():
 
     if user_question:
         task_define_problem = Task(
-            description="""Clarify and define the machine learning problem,
+            description=f"""Clarify and define the machine learning problem,
             including identifying the problem type and specific requirements.
 
             Here is the user's problem:
 
-            {ml_problem}
-            """.format(ml_problem=user_question),
+            {user_question}
+            """,
             agent=Problem_Definition_Agent,
             expected_output="A clear and concise definition of the machine learning problem.",
         )
 
         if data_upload:
             task_assess_data = Task(
-                description="""Evaluate the user's data for quality and suitability,
+                description=f"""Evaluate the user's data for quality and suitability,
                 suggesting preprocessing or augmentation steps if needed.
 
                 Here is a sample of the user's data:
 
-                {df}
+                {df.head()}
 
                 The file name is called {uploaded_file}
 
-                """.format(df=df.head(), uploaded_file=uploaded_file),
+                """,
                 agent=Data_Assessment_Agent,
                 expected_output="An assessment of the data's quality and suitability, with suggestions for preprocessing or augmentation if necessary.",
             )

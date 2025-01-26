@@ -5,8 +5,9 @@ Each line contains a separate JSON object representing a model instance.
 """
 
 import json
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, Type, TypeVar
+from typing import Type, TypeVar
 
 from loguru import logger
 from pydantic import BaseModel
@@ -14,7 +15,7 @@ from pydantic import BaseModel
 T = TypeVar("T", bound=BaseModel)
 
 
-def load_objects_from_jsonl(file_path: Path, model_class: Type[T]) -> list[T]:
+def load_objects_from_jsonl(file_path: Path, model_class: type[T]) -> list[T]:
     """Load objects from a JSONL file as Pydantic model instances.
 
     Args:
@@ -26,7 +27,7 @@ def load_objects_from_jsonl(file_path: Path, model_class: Type[T]) -> list[T]:
     """
     array = []
     logger.info(f"load {file_path} ")
-    with open(file_path, "r") as jsonl_file:
+    with open(file_path) as jsonl_file:
         for line in jsonl_file:
             data = json.loads(line)
             obj = model_class(**data)

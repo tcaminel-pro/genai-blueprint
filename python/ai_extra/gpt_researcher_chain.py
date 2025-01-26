@@ -124,8 +124,8 @@ class ResearchReport(BaseModel):
     report: str
     context: str
     costs: float = 0.0
-    images: List[str] = Field(default_factory=list)
-    sources: List[dict] = Field(default_factory=list)
+    images: list[str] = Field(default_factory=list)
+    sources: list[dict] = Field(default_factory=list)
 
 
 async def run_gpt_researcher(

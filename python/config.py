@@ -71,9 +71,9 @@ class Config(BaseModel):
         models = config.get_list("llm", "available_models")
     """
 
-    raw_config: Dict[str, Dict[str, Any]] = {}
+    raw_config: dict[str, dict[str, Any]] = {}
     selected_config_name: str = "default"
-    _modified_fields: Dict[str, Dict[str, Any]] = defaultdict(dict)
+    _modified_fields: dict[str, dict[str, Any]] = defaultdict(dict)
 
     @once()
     def singleton() -> "Config":
@@ -86,7 +86,7 @@ class Config(BaseModel):
         assert yml_file.exists(), f"cannot find {yml_file}"
         logger.info(f"load {yml_file}")
 
-        with open(yml_file, "r") as f:
+        with open(yml_file) as f:
             data = cast(dict, yaml.safe_load(f))
 
         config_name = os.environ.get("BLUEPRINT_CONFIG", "default")
@@ -101,12 +101,12 @@ class Config(BaseModel):
         return Config(raw_config=data, selected_config_name=config_name)
 
     @property
-    def default_config(self) -> Dict[str, Dict[str, Any]]:
+    def default_config(self) -> dict[str, dict[str, Any]]:
         """Get the default configuration section."""
         return self.raw_config.get("default", {})
 
     @property
-    def overridden_config(self) -> Dict[str, Dict[str, Any]]:
+    def overridden_config(self) -> dict[str, dict[str, Any]]:
         """Get the currently active overridden configuration section."""
         if self.selected_config_name == "default":
             return {}

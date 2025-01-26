@@ -15,7 +15,7 @@ T = TypeVar("T", bound=BaseModel)
 
 
 def create_react_structured_output_graph(
-    llm: BaseChatModel, tools: list[BaseTool], out_model_class: Type[T]
+    llm: BaseChatModel, tools: list[BaseTool], out_model_class: type[T]
 ) -> CompiledGraph:
     """Creates a compiled LangGraph graph for a ReAct agent that can generate structured output.
 

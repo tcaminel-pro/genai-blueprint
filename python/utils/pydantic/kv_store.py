@@ -67,7 +67,7 @@ def save_pydantic_to_store(key: str | dict, obj: BaseModel, file_store_path: Pat
     logger.debug(f"add key '{class_name}/{encoded_key}' to local kv_store {file_store_path}'")
 
 
-def read_pydantic_from_store(model_class: Type[T], key: str | dict, file_store_path: Path | None = None) -> T | None:
+def read_pydantic_from_store(model_class: type[T], key: str | dict, file_store_path: Path | None = None) -> T | None:
     """Read a Pydantic model from a local file-based key-value store.
 
     Args:

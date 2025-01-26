@@ -41,7 +41,7 @@ import importlib.util
 import os
 from functools import cached_property, lru_cache
 from pathlib import Path
-from typing import Any, cast
+from typing import Annotated, Any, cast
 
 import yaml
 from dotenv import load_dotenv
@@ -52,7 +52,6 @@ from langchain_core.runnables import ConfigurableField, RunnableConfig, Runnable
 from litellm import get_llm_provider
 from loguru import logger
 from pydantic import BaseModel, Field, computed_field, field_validator
-from typing_extensions import Annotated
 
 from python.ai_core.cache import LlmCache
 from python.config import global_config
@@ -114,7 +113,7 @@ def _read_llm_list_file() -> list[LlmInfo]:
     # The name of the file is in the configuration file
     yml_file = Path(global_config().get_str("llm", "list"))
     assert yml_file.exists(), f"cannot find {yml_file}"
-    with open(yml_file, "r") as f:
+    with open(yml_file) as f:
         data = yaml.safe_load(f)
 
     llms = []

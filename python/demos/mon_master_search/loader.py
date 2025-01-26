@@ -3,8 +3,8 @@ import codecs
 import fnmatch
 import re
 import tarfile
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 
 import json_repair
 import pandas as pd
@@ -149,8 +149,7 @@ class offre_formation_loader(BaseLoader):
                 json_obj = json_repair.loads(json_file)
                 parcours = ParcoursFormations(**json_obj)  # type: ignore
 
-                for doc in process_json(str(member.name), parcours):
-                    yield doc
+                yield from process_json(str(member.name), parcours)
 
 
 REPO = Path("/mnt/c/Users/a184094/OneDrive - Eviden/_En cours/mon_master/")

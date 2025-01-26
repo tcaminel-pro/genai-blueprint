@@ -29,13 +29,13 @@ class AgentState(TypedDict, total=False):
     plan: str
     draft: str
     critique: str
-    content: List[str]
+    content: list[str]
     revision_number: int
     max_revisions: int
 
 
 class Queries(BaseModel):
-    queries: List[str]
+    queries: list[str]
 
 
 LLM_ID = "gpt_4omini_edenai"
