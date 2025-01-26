@@ -13,11 +13,11 @@ since the class has not to be specialized to become a singleton.
 import inspect
 from functools import wraps
 from threading import Lock
-from typing import Any
+from typing import Any, Callable, TypeVar
 
-# add typying annotations whenever possible AI!
+F = TypeVar('F', bound=Callable[..., Any])
 
-def once():
+def once() -> Callable[[F], F]:
     """
     A decorator that ensures the wrapped function is called once and return same result.\n
     It's typically used for thread-safe singleton instance creation.
