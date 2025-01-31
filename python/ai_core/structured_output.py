@@ -11,6 +11,7 @@ output according to a specified Pydantic model using different approaches
 from typing import Literal, TypeVar
 
 from langchain.output_parsers import PydanticOutputParser
+from langchain_core.runnables import Runnable
 from pydantic import BaseModel, Field
 
 from python.ai_core.llm import get_llm
@@ -22,7 +23,9 @@ T = TypeVar("T", bound=BaseModel)
 METHODS = Literal["output_parser", "function_calling", "json_schema"]
 
 
-def structured_output_chain(system: str, user: str, llm_id: str | None, output_class: type[T], method: METHODS):
+def structured_output_chain(
+    system: str, user: str, llm_id: str | None, output_class: type[T], method: METHODS
+) -> Runnable[dict, T]:
     """Create a chain that generates structured output according to a Pydantic model.
 
     Methods can be:
@@ -67,7 +70,7 @@ def structured_output_chain(system: str, user: str, llm_id: str | None, output_c
         chain = def_prompt(system=system, user=user) | llm
     else:
         raise ValueError(f"Incorrect structured output method : {method}")
-    return chain
+    return chain  # type: ignore
 
 
 if __name__ == "__main__":
@@ -81,22 +84,24 @@ if __name__ == "__main__":
 
     MODEL = "gpt_4o_openai"
     MODEL = "claude_haiku35_openrouter"
-    # MODEL = "deepseek_chatv3_deepseek"
-
-    # a = structured_output_chain(
-    #     system="",
-    #     user="Tell me a joke about cats",
-    #     llm_id=MODEL,
-    #     output_class=Joke,
-    #     method="output_parser",
-    # )
-    # debug(a.invoke({}))
+    MODEL = "deepseek_chatv3_deepseek"
+    # MODEL = "llama33_70_deepinfra"  # function_calling NOT WORKING
+    #MODEL = "nvidia_nemotrom70_openrouter"  # function_calling NOT WORKING
+    #MODEL = "llama31_70_deepinfra"  # function_calling NOT WORKING
+    a = structured_output_chain(
+        system="",
+        user="Tell me a joke about {topic}",
+        llm_id=MODEL,
+        output_class=Joke,
+        method="output_parser",
+    )
+    debug(a.invoke({"topic": "cat"}))
 
     b = structured_output_chain(
         system="",
-        user="Tell me a joke about cats",
+        user="Tell me a joke about {topic}",
         llm_id=MODEL,
         output_class=Joke,
         method="function_calling",
     )
-    debug(b.invoke({}))
+    debug(b.invoke({"topic": "cat"}))

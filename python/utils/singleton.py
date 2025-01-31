@@ -15,7 +15,8 @@ from functools import wraps
 from threading import Lock
 from typing import Any, Callable, TypeVar
 
-F = TypeVar('F', bound=Callable[..., Any])
+F = TypeVar("F", bound=Callable[..., Any])
+
 
 def once() -> Callable[[F], F]:
     """
@@ -52,7 +53,7 @@ def once() -> Callable[[F], F]:
             # - Mutable types (lists, dicts)
             # - None values
             # - Keyword argument order
-            def make_hashable(obj) -> Any:
+            def make_hashable(obj) -> Any:  # noqa: ANN001
                 if obj is None:
                     return None
                 if isinstance(obj, (int, float, str, bool)):
@@ -74,16 +75,16 @@ def once() -> Callable[[F], F]:
             sorted_args = tuple(sorted((k, make_hashable(v)) for k, v in bound_args.arguments.items()))
             cache_key = sorted_args
 
-            if cache_key not in decorator._cached_results:
-                with decorator._lock:
-                    if cache_key not in decorator._cached_results:
+            if cache_key not in decorator._cached_results:  # type: ignore
+                with decorator._lock:  # type: ignore
+                    if cache_key not in decorator._cached_results:  # type: ignore
                         result = func(*args, **kwargs)
-                        decorator._cached_results[cache_key] = result
-            return decorator._cached_results[cache_key]
+                        decorator._cached_results[cache_key] = result  # type: ignore
+            return decorator._cached_results[cache_key]  # type: ignore
 
         return wrapper
 
-    return decorator
+    return decorator  # type: ignore
 
 
 # TEST

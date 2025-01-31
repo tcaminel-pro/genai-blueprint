@@ -49,7 +49,7 @@ from langchain.globals import get_llm_cache
 from langchain.schema.language_model import BaseLanguageModel
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import ConfigurableField, RunnableConfig, RunnableLambda
-from litellm import get_llm_provider
+from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
 from loguru import logger
 from pydantic import BaseModel, Field, computed_field, field_validator
 
@@ -60,22 +60,27 @@ load_dotenv(verbose=True, override=True)
 
 
 SEED = 42  # Arbitrary value....
+DEFAULT_MAX_RETRIES = 2
 
+OPENROUTER_BASE = "https://openrouter.ai"
+OPENROUTER_API_BASE = f"{OPENROUTER_BASE}/api/v1"
+DEEPSEEK_API_BASE = "https://api.deepseek.com"
 # cSpell: disable
 
 # List of implemented LLM providers, with the Python class to be loaded, and the name of the API key environment variable
 PROVIDER_INFO = {
-    "ChatOpenAI": ("langchain_openai", "OPENAI_API_KEY"),
-    "ChatDeepInfra": ("langchain_community.chat_models.deepinfra", "DEEPINFRA_API_TOKEN"),
-    "ChatGroq": ("langchain_groq", "GROQ_API_KEY"),
-    "ChatVertexAI": ("langchain_google_vertexai", "GOOGLE_API_KEY"),
-    "ChatOllama": ("langchain_ollama", ""),
-    "ChatEdenAI": ("langchain_community.chat_models.edenai", "EDENAI_API_KEY"),
-    "AzureChatOpenAI": ("langchain_openai", "AZURE_OPENAI_API_KEY"),
-    "ChatTogether": ("langchain_together", "TOGETHER_API_KEY"),
-    "ChatDeepSeek": ("langchain_openai", "DEEPSEEK_API_KEY"),
-    "ChatOpenrouter": ("langchain_openai", "OPENROUTER_API_KEY"),
-    "ChatFake": ("langchain_core", ""),
+    "Fake": ("langchain_core", ""),
+    "OpenAI": ("langchain_openai", "OPENAI_API_KEY"),
+    "DeepInfra": ("langchain_community.chat_models.deepinfra", "DEEPINFRA_API_TOKEN"),
+    "Groq": ("langchain_groq", "GROQ_API_KEY"),
+    "VertexAI": ("langchain_google_vertexai", "GOOGLE_API_KEY"),
+    "Ollama": ("langchain_ollama", ""),
+    "EdenAI": ("langchain_community.chat_models.edenai", "EDENAI_API_KEY"),
+    "AzureOpenAI": ("langchain_openai", "AZURE_OPENAI_API_KEY"),
+    "Together": ("langchain_together", "TOGETHER_API_KEY"),
+    "DeepSeek": ("langchain_deepseek", "DEEPSEEK_API_KEY"),
+    "Openrouter": ("langchain_openai", "OPENROUTER_API_KEY"),
+    "HuggingFace": {"langchain_huggingface", "HUGGINGFACEHUB_API_TOKEN"},
 }
 
 
@@ -84,20 +89,20 @@ class LlmInfo(BaseModel):
 
     Attributes:
         id: Unique identifier in format model_version_provider (e.g. gpt_35_openai)
-        cls: LangChain class name used to instantiate the model
+        provider: name of the provider
         model: Model identifier used by the provider
         key: API key environment variable name (computed from cls)
     """
 
     # an ID for the LLM; should follow Python variables constraints, and have 3 parts: model_version_provider
     id: str = Field(pattern=r"^[a-zA-Z_][a-zA-Z0-9_]*_[a-zA-Z0-9_]*_[a-zA-Z0-9_]*$")
-    cls: str  # Name of the LangChain class for the constructor
+    provider: str
     model: str  # Name of the model for the constructor
 
     @computed_field
     def key(self) -> str:
         # return API key name
-        return PROVIDER_INFO[self.cls][1]
+        return PROVIDER_INFO[self.provider][1]
 
     @field_validator("id")
     @classmethod
@@ -118,9 +123,9 @@ def _read_llm_list_file() -> list[LlmInfo]:
 
     llms = []
     for provider in data["llm"]:
-        cls = provider["cls"]
+        name = provider["provider"]
         for model in provider["models"]:
-            model["cls"] = cls
+            model["provider"] = name
             llms.append(LlmInfo(**model))
     return llms
 
@@ -178,8 +183,8 @@ class LlmFactory(BaseModel):
         """Return known LLM in the registry whose API key environment variable is known and module can be imported."""
         known_items = {}
         for item in LlmFactory.known_list():
-            module_name, api_key = PROVIDER_INFO.get(item.cls, (None, None))
-            assert module_name, f"No PROVIDER_INFO for LLM provider {item.cls}"
+            module_name, api_key = PROVIDER_INFO.get(item.provider, (None, None))
+            assert module_name, f"No PROVIDER_INFO for LLM provider {item.provider}"
             if api_key in os.environ or api_key == "":
                 spec = importlib.util.find_spec(module_name)
                 if spec is not None:
@@ -262,6 +267,7 @@ class LlmFactory(BaseModel):
             "temperature": 0.0,
             "cache": cache,
             "seed": SEED,
+            "max_retries": DEFAULT_MAX_RETRIES,
             "streaming": self.streaming,
         }
 
@@ -269,7 +275,7 @@ class LlmFactory(BaseModel):
         if self.json_mode:
             llm_params |= {"response_format": {"type": "json_object"}}
 
-        if self.info.cls == "ChatOpenAI":
+        if self.info.provider == "OpenAI":
             # TODO : replace import by langchain_core.utils.utils.guard_import(...)
             from langchain_openai import ChatOpenAI
 
@@ -278,21 +284,21 @@ class LlmFactory(BaseModel):
                 model=self.info.model,
                 **llm_params,
             )
-        elif self.info.cls == "ChatGroq":
+        elif self.info.provider == "Groq":
             from langchain_groq import ChatGroq
 
             seed = llm_params.pop("seed")
 
             llm = ChatGroq(name=self.info.model, **llm_params, model_kwargs={"seed": seed})
 
-        elif self.info.cls == "ChatDeepInfra":
+        elif self.info.provider == "DeepInfra":
             from langchain_community.chat_models.deepinfra import ChatDeepInfra
 
             llm = ChatDeepInfra(
                 name=self.info.model,
                 **llm_params,
             )
-        elif self.info.cls == "ChatEdenAI":
+        elif self.info.provider == "EdenAI":
             from langchain_community.chat_models.edenai import ChatEdenAI
 
             provider, _, model = self.info.model.partition("/")
@@ -305,7 +311,7 @@ class LlmFactory(BaseModel):
                 **llm_params,
             )
 
-        elif self.info.cls == "ChatVertexAI":
+        elif self.info.provider == "VertexAI":
             from langchain_google_vertexai import ChatVertexAI  # type: ignore  # noqa: I001
 
             llm = ChatVertexAI(
@@ -315,7 +321,7 @@ class LlmFactory(BaseModel):
                 **llm_params,
             )  # type: ignore
             assert not self.json_mode, "json_mode not supported or coded"
-        elif self.info.cls == "ChatOllama":
+        elif self.info.provider == "Ollama":
             from langchain_ollama import ChatOllama  # type: ignore
 
             # ChatOllama does not have a 'standard' way to set JSON mode and streaming
@@ -330,7 +336,7 @@ class LlmFactory(BaseModel):
                 disable_streaming=not self.streaming,
                 **llm_params,
             )
-        elif self.info.cls == "AzureChatOpenAI":
+        elif self.info.provider == "AzureOpenAI":
             from langchain_openai import AzureChatOpenAI
 
             name, _, api_version = self.info.model.partition("/")
@@ -343,16 +349,14 @@ class LlmFactory(BaseModel):
             )
             if self.json_mode:
                 llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
-        elif self.info.cls == "ChatTogether":
+        elif self.info.provider == "Together":
             from langchain_together import ChatTogether  # type: ignore
 
             llm = ChatTogether(model=self.info.model, **llm_params)
-        elif self.info.cls == "ChatOpenrouter":
+        elif self.info.provider == "Openrouter":
             from langchain_openai import ChatOpenAI
             # See https://openrouter.ai/docs/parameters
 
-            OPENROUTER_BASE = "https://openrouter.ai"
-            OPENROUTER_API_BASE = f"{OPENROUTER_BASE}/api/v1"
             # _ = llm_params.pop("response_format", None) or {}
             # Not sure.  See https://openrouter.ai/docs/structured-outputs
             llm = ChatOpenAI(
@@ -361,18 +365,31 @@ class LlmFactory(BaseModel):
                 api_key=os.environ["OPENROUTER_API_KEY"],  # type: ignore
                 **llm_params,
             )
-        elif self.info.cls == "ChatDeepSeek":
+        elif self.info.provider == "DeepSeek":
             from langchain_openai import ChatOpenAI
+            # from langchain_deepseek import ChatDeepSeek  # Bugged ? (29/01)
             # See https://api-docs.deepseek.com/guides/json_mode
 
-            DEEPSEEK_API_BASE = "https://api.deepseek.com"
             llm = ChatOpenAI(
                 base_url=DEEPSEEK_API_BASE,
                 model=self.info.model,
                 api_key=os.environ["DEEPSEEK_API_KEY"],  # type: ignore
                 **llm_params,
             )
-        elif self.info.cls == "ChatFake":
+        elif self.info.provider == "HuggingFace":
+            # NOT WELL TESTED
+            # Also consider : https://huggingface.co/blog/inference-providers
+            # see https://huggingface.co/blog/langchain
+            from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
+
+            llm = HuggingFaceEndpoint(
+                repo_id=self.info.model,
+                task="text-generation",
+                do_sample=False,
+            )  # type: ignore
+            return ChatHuggingFace(llm=llm)
+
+        elif self.info.provider == "Fake":
             from langchain_core.language_models.fake_chat_models import ParrotFakeChatModel
 
             if self.info.model == "parrot":
@@ -380,10 +397,10 @@ class LlmFactory(BaseModel):
             else:
                 raise ValueError(f"unsupported fake model {self.info.model}")
         else:
-            if self.info.cls in LlmFactory.known_items():
-                raise ValueError(f"No API key found for LLM: {self.info.cls}")
+            if self.info.provider in LlmFactory.known_items():
+                raise ValueError(f"No API key found for LLM: {self.info.provider}")
             else:
-                raise ValueError(f"unsupported LLM class {self.info.cls}")
+                raise ValueError(f"unsupported LLM class {self.info.provider}")
 
         return llm  # type: ignore
 

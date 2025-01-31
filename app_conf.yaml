@@ -1,6 +1,6 @@
 
-# Default configuration
-default:
+# Baseline configuration
+baseline:
   llm:
     list: ${PWD}/models_providers.yaml
     cache : no_cache
@@ -29,7 +29,6 @@ default:
     default : LocalFileStore  # no alternative yet
     path : ${HOME}/kv_store
 
-
   chains:
     path: python.ai_chains
     modules:
@@ -42,7 +41,7 @@ default:
 
 
 # Overridden configurations
-# Set by environment variable "BLUEPRINT_CONFIG" oy in code
+# Set by environment variable "BLUEPRINT_CONFIG", or by the 'default' key, or in code
 
 pytest:
   llm: 
@@ -71,3 +70,5 @@ training_azure:
   embeddings:
     default_model: ada_002_azure
 
+
+# default_config: training_azure   # can be overidden by 'BLUEPRINT_CONFIG' environment variable

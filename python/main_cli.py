@@ -57,36 +57,28 @@ cli_app = typer.Typer(
 )
 
 
-def define_llm_related_commands(cli_app: typer.Typer) -> None:
-    """Define all LLM-related commands for the CLI.
-
-    Args:
-        cli_app: The Typer app instance to add commands to
-
-    Adds commands:
-    - run: Execute a Runnable with input and configuration
-    - chain_info: Get detailed information about a Runnable chain
-    - list_models: List available models and vector stores
-    - llm_info_dump: Export LLM information to YAML file
-    """
-
+def define_llm_related_commands(cli_app: typer.Typer):
     @cli_app.command()
-    def run(
-        name: str,  # name (description) of the Runnable
+    def llm(
         input: str | None = None,  # input
-        path: Path | None = None,  # input
         cache="memory",
         temperature: Annotated[float, Option("--temperature", "--temp", min=0.0, max=1.0)] = 0.0,
         stream: Annotated[bool, Option("--stream", "-s")] = False,
-        verbose: Annotated[bool, Option("--verbose", "-v")] = False,
-        debug: Annotated[bool, Option("--debug", "-d")] = False,
+        lc_verbose: Annotated[bool, Option("--verbose", "-v")] = False,
+        lc_debug: Annotated[bool, Option("--debug", "-d")] = False,
         llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
-    ) -> None:
-        """Run a given Runnable with the specified input. The LLM can be changed, otherwise the default one is selected.
+    ):
+        """
+        Invoke an LLM.
+
+        input can be either taken from stdin (Unix pipe), or given with the --input param
+        If runnable_name is provided, runs the specified Runnable with the given input.
+
+        The LLM can be changed using --llm-id, otherwise the default one is selected.
         'cache' is the prompt caching strategy, and it can be either 'sqlite' (default) or 'memory'.
         """
-        set_debug(debug)
-        set_verbose(verbose)
+        set_debug(lc_debug)
+        set_verbose(lc_verbose)
         LlmCache.set_method(cache)
 
         if llm_id is not None:
@@ -95,41 +87,103 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
                 return
             global_config().set_str("llm", "default_model", llm_id)
 
-        runnables_list = sorted([f"'{o.name}'" for o in get_runnable_registry()])
-        runnables_list_str = ", ".join(runnables_list)
+        # Check if executed as part ot a pipe
+        if not input:
+            input = sys.stdin.read()
+        if not input or len(input) < 5:
+            print("Error: Input parameter or something in stdin is required when no runnable is specified.")
+            return
+
+        llm = LlmFactory(
+            llm_id=llm_id or global_config().get_str("llm", "default_model"),
+            json_mode=False,
+            streaming=stream,
+            cache=cache,
+            llm_params={"temperature": temperature},
+        ).get()
+        chain = llm | StrOutputParser()
+        if stream:
+            for s in chain.stream(input):
+                print(s, end="", flush=True)
+            print("\n")
+        else:
+            result = chain.invoke(input)
+            pprint(result)
+
+    @cli_app.command()
+    def run(
+        runnable_name: str,  # name (description) of the Runnable
+        input: str | None = None,  # input
+        path: Path | None = None,  # input
+        cache="memory",
+        temperature: Annotated[float, Option("--temperature", "--temp", min=0.0, max=1.0)] = 0.0,
+        stream: Annotated[bool, Option("--stream", "-s")] = False,
+        lc_verbose: Annotated[bool, Option("--verbose", "-v")] = False,
+        lc_debug: Annotated[bool, Option("--debug", "-d")] = False,
+        llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
+    ):
+        """
+        Run a Runnable or directly invoke an LLM.
+
+        If no runnable_name is provided, uses the default LLM to directly process the input, that
+        can be either taken from stdin (Unix pipe), or given with the --input param
+        If runnable_name is provided, runs the specified Runnable with the given input.
+
+        The LLM can be changed using --llm-id, otherwise the default one is selected.
+        'cache' is the prompt caching strategy, and it can be either 'sqlite' (default) or 'memory'.
+        """
+        set_debug(lc_debug)
+        set_verbose(lc_verbose)
+        LlmCache.set_method(cache)
+
+        if llm_id is not None:
+            if llm_id not in LlmFactory.known_items():
+                print(f"Error: {llm_id} is unknown llm_id.\nShould be in {LlmFactory.known_items()}")
+                return
+            global_config().set_str("llm", "default_model", llm_id)
 
         load_modules_with_chains()
 
-        config = {}
-        runnable_desc = find_runnable(name)
-        if runnable_desc:
-            first_example = runnable_desc.examples[0]
+        if not input:
+            input = sys.stdin.read()
+            if input and len(input) < 3:
+                input = None
+
+        # If runnable_name is provided, proceed with existing logic
+        runnables_list = sorted([f"'{o.name}'" for o in get_runnable_registry()])
+        runnables_list_str = ", ".join(runnables_list)
+        runnable_item = find_runnable(runnable_name)
+        if runnable_item:
+            first_example = runnable_item.examples[0]
             llm_args = {"temperature": temperature}
-            config |= {
+            config = {
                 "llm": llm_id if llm_id else global_config().get_str("llm", "default_model"),
                 "llm_args": llm_args,
             }
-            # TODO: Use llm_args and temperature in runnable_desc.invoke etc
             if path:
                 config |= {"path": path}
             elif first_example.path:
                 config |= {"path": first_example.path}
             if not input:
                 input = first_example.query[0]
-
-            if stream:
-                for s in runnable_desc.stream(input, config):
-                    print(s, end="", flush=True)
-                print("\n")
-            else:
-                result = runnable_desc.invoke(input, config)
-                pprint(result)
+            chain = runnable_item.get().with_config(configurable=config)
         else:
-            print(f"Runnable not found in config: '{name}'. Should be in: {runnables_list_str}")
+            print(f"Runnable '{runnable_name}' not found in config. Should be in: {runnables_list_str}")
+            return
+
+        if stream:
+            for s in chain.stream(input):
+                print(s, end="", flush=True)
+            print("\n")
+        else:
+            result = chain.invoke(input)
+            pprint(result)
 
     @cli_app.command()
-    def chain_info(name: str) -> None:
-        """Return information on a given chain, including input and output schema."""
+    def chain_info(name: str):
+        """
+        Return information on a given chain, including input and output schema.
+        """
         runnable_desc = find_runnable(name)
         if runnable_desc:
             r = runnable_desc.runnable
@@ -152,8 +206,10 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
                 pass
 
     @cli_app.command()
-    def list_models() -> None:
-        """List the known LLMs, embeddings models, and vector stores."""
+    def list_models():
+        """
+        List the known LLMs, embeddings models, and vector stores.
+        """
         print("factories:")
         tab = 2 * " "
         print(f"{tab}llm:")
@@ -167,8 +223,10 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
             print(f"{tab}{tab}- {vc}")
 
     @cli_app.command()
-    def llm_info_dump(file_name: Path) -> None:
-        """Write a list of LLMs in YAML format to the specified file."""
+    def llm_info_dump(file_name: Path):
+        """
+        Write a list of LLMs in YAML format to the specified file.
+        """
         import yaml
 
         data = [llm.model_dump() for llm in LlmFactory.known_list()]

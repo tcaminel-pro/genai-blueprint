@@ -1,34 +1,40 @@
-"""Vector store factory and management system.
+"""Vector Store Management and Factory System.
 
-This module provides a comprehensive interface for creating and managing vector
-stores, supporting multiple storage backends and advanced features for document
-indexing and retrieval.
+This module provides a comprehensive interface for creating, managing, and
+interacting with vector stores across multiple storage backends. It supports
+advanced document indexing, retrieval, and vector database operations.
 
 Key Features:
-- Support for multiple vector store implementations (Chroma, InMemory, Sklearn)
-- Document deduplication and indexing
-- Configurable retrieval parameters
-- Collection metadata management
-- Integration with embedding models
+- Multi-backend vector store support (Chroma, In-Memory, Sklearn)
+- Flexible document indexing and deduplication
+- Configurable retrieval strategies
+- Seamless integration with embedding models
+- Advanced search and filtering capabilities
 
 Supported Backends:
 - Chroma (persistent and in-memory)
 - InMemoryVectorStore
 - SKLearnVectorStore
 
+Design Patterns:
+- Factory Method for vector store creation
+- Configurable retrieval strategies
+- Singleton-like access to vector stores
+
 Example:
-    >>> # Create vector store factory
+    >>> # Create a vector store factory
     >>> factory = VectorStoreFactory(
     ...     id="Chroma",
-    ...     embeddings_factory=EmbeddingsFactory()
+    ...     embeddings_factory=EmbeddingsFactory(),
+    ...     collection_name="my_documents"
     ... )
-
-    >>> # Add documents to store
+    >>>
+    >>> # Add documents to the store
     >>> factory.add_documents([
-    ...     Document(page_content="text1"),
-    ...     Document(page_content="text2")
+    ...     Document(page_content="First document"),
+    ...     Document(page_content="Second document")
     ... ])
-
+    >>>
     >>> # Perform similarity search
     >>> results = factory.vector_store.similarity_search("query")
 """
@@ -52,9 +58,6 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validat
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.config import global_config
 
-# from langchain_chroma import Chroma  does not work (yet?) with self_query
-
-
 # List of known Vector Stores (created as Literal so can be checked by MyPy)
 VECTOR_STORE_ENGINE = Literal["Chroma", "Chroma_in_memory", "InMemory", "Sklearn"]
 
@@ -62,7 +65,13 @@ default_collection = global_config().get_str("vector_store", "default_collection
 
 
 def get_vector_vector_store_path() -> str:
-    """Get path to store vector database, using Modal volume if available."""
+    """Determine the appropriate path for storing vector databases.
+
+    Supports both Modal cloud environments and local development setups.
+
+    Returns:
+        Path to the vector store storage directory
+    """
     if modal_volume := os.environ.get("MODAL_VOLUME_PATH"):
         # Running in Modal environment
         return modal_volume
@@ -77,28 +86,27 @@ def get_vector_vector_store_path() -> str:
 
 
 class VectorStoreFactory(BaseModel):
-    """Factory class for creating and managing vector stores.
+    """Factory for creating and managing vector stores with advanced configuration.
 
-    This class handles the creation and configuration of vector stores with appropriate
-    embeddings, collection management, and document indexing capabilities.
+    Provides a flexible and powerful interface for creating vector stores with
+    support for multiple backends, document indexing, and advanced retrieval
+    strategies.
 
     Attributes:
-        id: Vector store type identifier (Chroma or Chroma_in_memory)
-        embeddings_factory: Factory to create embeddings for the vector store
+        id: Identifier for the vector store backend
+        embeddings_factory: Factory for creating embedding models
         collection_name: Name of the vector store collection
-        index_document: Whether to use LangChain indexer for document deduplication
+        index_document: Flag to enable document deduplication and indexing
         collection_metadata: Optional metadata for the collection
-        _record_manager: Internal SQL manager for document indexing
+        cache_embeddings: Flag to enable embedding caching
 
     Example:
-    .. code-block:: python
-        store_factory = VectorStoreFactory(
-                id="Chroma",
-                collection_name="some_name",
-                embeddings_factory=EmbeddingsFactory(embeddings_id=None),  # default model
-            )
-        vector_store = store_factory.vector_store
-        vector_store.add_documents([Document(page_content="hello world, metadata={"source": "a source})]
+        >>> factory = VectorStoreFactory(
+        ...     id="Chroma",
+        ...     embeddings_factory=EmbeddingsFactory(),
+        ...     collection_name="documents"
+        ... )
+        >>> factory.add_documents([Document(page_content="example")])
     """
 
     id: Annotated[VECTOR_STORE_ENGINE | None, Field(validate_default=True)] = None
@@ -106,6 +114,7 @@ class VectorStoreFactory(BaseModel):
     collection_name: str = default_collection
     index_document: bool = False
     collection_metadata: dict[str, str] | None = None
+    cache_embeddings: bool = False
     _record_manager: SQLRecordManager | None = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -113,26 +122,52 @@ class VectorStoreFactory(BaseModel):
     @computed_field
     @property
     def collection_full_name(self) -> str:
-        # Concatenate the collection and and the embeddings ID to avoid errors when changing embeddings
+        """Generate a unique collection name by combining collection and embeddings ID.
+
+        Returns:
+            Unique collection name to prevent conflicts
+        """
         assert self.embeddings_factory
         embeddings_id = self.embeddings_factory.info.id
         return f"{self.collection_name}_{embeddings_id}"
 
     @computed_field
     def description(self) -> str:
+        """Generate a detailed description of the vector store configuration.
+
+        Returns:
+            Comprehensive configuration description string
+        """
         r = f"{str(self.id)}/{self.collection_full_name}"
         if self.id == "Chroma":
-            r += f" => store: {get_vector_vector_store_path()}"
-        if self.index_document == Chroma and self._record_manager:
+            r += f" => '{get_vector_vector_store_path()}'"
+        if self.index_document and self._record_manager:
             r += f" indexer: {self._record_manager}"
+        r += f" cache_embeddings: {self.cache_embeddings}"
         return r
 
     @staticmethod
     def known_items() -> list[str]:
+        """List all supported vector store backends.
+
+        Returns:
+            List of supported vector store engine identifiers
+        """
         return list(get_args(VECTOR_STORE_ENGINE))
 
     @field_validator("id", mode="before")
     def check_known(cls, id: str | None) -> str:
+        """Validate and normalize the vector store backend identifier.
+
+        Args:
+            id: Vector store backend identifier
+
+        Returns:
+            Validated vector store backend identifier
+
+        Raises:
+            ValueError: If an unknown vector store backend is specified
+        """
         if id is None:
             id = global_config().get_str("vector_store", "default")
         if id not in VectorStoreFactory.known_items():
@@ -142,12 +177,18 @@ class VectorStoreFactory(BaseModel):
     @computed_field
     @cached_property
     def vector_store(self) -> VectorStore:
-        """Factory for the vector database."""
-        embeddings = self.embeddings_factory.get()  # get the embedding function
+        """Create and configure a vector store based on the specified backend.
+
+        Returns:
+            Configured vector store instance
+
+        Raises:
+            ValueError: If an unsupported vector store backend is specified
+        """
+        embeddings = self.embeddings_factory.get(cached=self.cache_embeddings)
         store_path = get_vector_vector_store_path()
 
         if self.id == "Chroma":
-            # Ensure the directory exists
             Path(store_path).mkdir(parents=True, exist_ok=True)
 
             vector_store = Chroma(
@@ -165,16 +206,12 @@ class VectorStoreFactory(BaseModel):
         elif self.id == "InMemory":
             vector_store = InMemoryVectorStore(
                 embedding=embeddings,
-                # collection_name=self.collection_full_name,  # TODO (?) : implement  an hash of InMemoryVectorStore
-                # collection_metadata=self.collection_metadata,
             )
         elif self.id == "Sklearn":
             from langchain_community.vectorstores import SKLearnVectorStore
 
             vector_store = SKLearnVectorStore(
                 embedding=embeddings,
-                # collection_name=self.collection_full_name,
-                # collection_metadata=self.collection_metadata,
             )
         else:
             raise ValueError(f"Unknown vector store: {self.id}")
@@ -186,14 +223,21 @@ class VectorStoreFactory(BaseModel):
             namespace = f"{id}/{self.collection_full_name}"
             self._record_manager = SQLRecordManager(
                 namespace,
-                db_url=db_url,  # @TODO: To improve !!
+                db_url=db_url,
             )
             self._record_manager.create_schema()
 
         return vector_store
 
     def set_number_of_doc_to_fetch(self, k: int = 4) -> VectorStoreRetriever:
-        """Return a retriever with changed number of most relevant document returned."""
+        """Configure a retriever with a specific number of most relevant documents.
+
+        Args:
+            k: Number of documents to retrieve (default 4)
+
+        Returns:
+            Configurable vector store retriever
+        """
         retriever = self.vector_store.as_retriever(search_kwargs={"k": k}).configurable_fields(
             search_kwargs=ConfigurableField(
                 id="search_kwargs",
@@ -205,16 +249,16 @@ class VectorStoreFactory(BaseModel):
         """Add documents to the vector store with optional deduplication.
 
         Args:
-            docs: Iterable of Document objects to add to the store
+            docs: Iterable of documents to add to the store
 
         Returns:
-            IndexingResult if using document indexing, or list of document IDs otherwise
+            Indexing result or list of document IDs
 
-        The method handles two scenarios:
-        1. Direct addition to vector store if index_document=False
-        2. Indexed addition with deduplication if index_document=True using LangChain's indexer
+        Notes:
+            Supports two modes of document addition:
+            1. Direct addition without indexing
+            2. Indexed addition with deduplication
         """
-        # TODO : accept BaseLoader
         if not self.index_document:
             return self.vector_store.add_documents(list(docs))
         else:
@@ -231,24 +275,28 @@ class VectorStoreFactory(BaseModel):
             return info
 
     def document_count(self):
-        """Return the number of documents in the store."""
-        # It seems there's no generic way to get the number of docs stored in a Vector Store.
+        """Count the number of documents in the vector store.
+
+        Returns:
+            Number of documents in the store
+
+        Raises:
+            NotImplementedError: For unsupported vector store backends
+        """
         if self.id in ["Chroma", "Chroma_in_memory"]:
             return self.vector_store._collection.count()  # type: ignore
         else:
-            raise NotImplementedError(f"Don'k know how to get collection count for {self.vector_store}")
+            raise NotImplementedError(f"Don't know how to get collection count for {self.vector_store}")
 
 
 def search_one(vc: VectorStore, query: str) -> list[Document]:
-    """Perform a similarity search for a single most relevant document.
+    """Perform a similarity search to find the single most relevant document.
 
     Args:
-        vc: Vector store instance to search in
+        vc: Vector store to search in
         query: Search query string
 
     Returns:
-        List containing the single most similar document found
-
-    This is a convenience function for quick lookups where only the best match is needed.
+        List containing the most similar document
     """
     return vc.similarity_search(query, k=1)

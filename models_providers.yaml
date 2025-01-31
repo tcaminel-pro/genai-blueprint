@@ -7,7 +7,7 @@
 # The class should be known in the llm.py' 
 
 # LLM_id should follow Python variables constraints - ie no '-' no space etc
-# Use pattern {self.model_name}_{version}_{inference provider or library}
+# Use pattern {self.model_family_name}_{version}_{inference provider or library}
 # model_name is provider specific.  It can contains several fields decoded in the factory.
 
 # Provider documentation links:
@@ -22,6 +22,7 @@
 # OpenRouter: https://openrouter.ai/docs#models
 # Amazon : https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html
 # DeepSeek: https://api-docs.deepseek.com/quick_start/pricing 
+# HuggingFace: https://huggingface.co/models
 
 # for Embeddings:
 # Ollama: https://ollama.com/search?q=embeddings&c=embedding 
@@ -32,12 +33,12 @@
 
 llm:
 
-- cls: ChatFake
+- provider: Fake
   models:
     - id: fake_parrot_local  # usefull for tests
       model: parrot 
 
-- cls: ChatOpenAI
+- provider: OpenAI
   models:
     - id: gpt_35_openai
       model: gpt-3.5-turbo-0125
@@ -46,8 +47,10 @@ llm:
     - id: gpt_4omini_openai
       model: gpt-4o-mini
 
-- cls: ChatDeepInfra
+- provider: DeepInfra
   models:
+    - id: llama31_70_deepinfra
+      model: meta-llama/Meta-Llama-3.1-70B-Instruct
     - id: llama33_70_deepinfra
       model: meta-llama/Llama-3.3-70B-Instruct
     - id: llama31_8_deepinfra
@@ -67,7 +70,7 @@ llm:
 
 
 
-- cls: ChatGroq
+- provider: Groq
   models:
     - id: llama33_70_groq
       model: llama-3.3-70b-versatile
@@ -76,19 +79,19 @@ llm:
     - id: mixtral_7x8_groq
       model: Mixtral-8x7b-32768
 
-- cls: ChatTogether
+- provider: Together
   models:
     - id: llama31_70_together
       model: meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo
     - id: qwen2_72_together
       model: Qwen/Qwen1.5-72B-Chat
 
-- cls: ChatVertexAI
+- provider: VertexAI
   models:
     - id: gemini_pro_google
       model: gemini-pro
 
-- cls: ChatOllama
+- provider: Ollama
   models:
     - id: llama32_3_ollama
       model: llama3.2:3b
@@ -99,7 +102,7 @@ llm:
     - id: falcon3_3_ollama
       model: falcon3
 
-- cls: ChatEdenAI
+- provider: EdenAI
   models:
     - id: gpt_4o_edenai
       model: open ai/gpt-4o
@@ -112,7 +115,7 @@ llm:
     - id: google_gemini15flash_edenai
       model: google/gemini-1.5-flash
 
-- cls: AzureChatOpenAI
+- provider: AzureOpenAI
   #Azure models using Eden provided API
   models:
     - id: gpt_4t_azure
@@ -127,14 +130,20 @@ llm:
     #   model: gpt-4o-mini/2024-02-15-preview
 
 
-- cls: ChatDeepSeek
+- provider: DeepSeek
   models:
   - id :   deepseek_chatv3_deepseek
     model : deepseek-chat
   - id :   deepseek_R1_deepseek
     model : deepseek-reasoner
-    
-- cls: ChatOpenrouter
+
+- provider: HuggingFace    
+  models:
+  - id: zephyr_7b_huggingface 
+    model: "HuggingFaceH4/zephyr-7b-beta"
+
+
+- provider: Openrouter
   models:
     - id: gpt_4omini_openrouter
       model: openai/o1-mini-2024-09-12
@@ -169,10 +178,10 @@ llm:
       model: meta-llama/llama-3.2-90b-vision-instruct
     - id: qwen2_vl72_openrouter
       model: qwen/qwen-2-vl-72b-instruct
-    - id: deepseek_v3_openrouter
+    - id: deepseek_chatv3_openrouter
       model: deepseek/deepseek-chat
-
-
+    - id: sonar_reasoning_openrouter
+      model: perplexity/sonar-reasoning
 
 ########################
 # Embeddings models 

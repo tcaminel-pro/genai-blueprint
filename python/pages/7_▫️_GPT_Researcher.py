@@ -161,11 +161,11 @@ async def main() -> None:
                 context_tab.write(research_full_report.context)
 
                 # 'Image' tab content
-                NB_COL: Final = 4
+                nb_col: Final = 4
                 image_tab.write(f"Found images (len: {len(research_full_report.images)})")
-                image_cols = image_tab.columns(NB_COL)
+                image_cols = image_tab.columns(nb_col)
                 for index, image_path in enumerate(research_full_report.images):
-                    with image_cols[index % NB_COL]:
+                    with image_cols[index % nb_col]:
                         try:
                             st.image(image_path, width=200, caption=f"Image {index + 1}", use_container_width=False)
                         except Exception:

@@ -16,10 +16,13 @@ from langchain_core.runnables import (
     RunnablePassthrough,
     chain,
 )
+from loguru import logger
 
 from python.ai_core.chain_registry import Example, RunnableItem, register_runnable
 from python.ai_core.llm import get_llm
 from python.ai_core.prompts import def_prompt
+
+FABRIC_PATTERNS_URL = "https://raw.githubusercontent.com/danielmiessler/fabric/refs/heads/main/patterns/"
 
 
 # Pull the URL content's from the GitHub repo
@@ -42,13 +45,13 @@ def fabric_prompt(param: dict):
 
     Argument is a dict with 2 keys: pattern name, and input date
     """
-    URL = "https://raw.githubusercontent.com/danielmiessler/fabric/main/patterns/"
-    URL = "https://raw.githubusercontent.com/danielmiessler/fabric/refs/heads/main/patterns/"
-    system_url = f"{URL}/{param['pattern']}/system.md"
-    user_url = f"{URL}/{param['pattern']}/user.md"
+    system_url = f"{FABRIC_PATTERNS_URL}/{param['pattern']}/system.md"
+    user_url = f"{FABRIC_PATTERNS_URL}/{param['pattern']}/user.md"
     # Fetch the prompt content
     system_content = fetch_content_from_url(system_url)
     user_file_content = fetch_content_from_url(user_url)
+    if len(system_content) < 10:
+        logger.error(f"cannot find fabric pattern '{param['pattern']}'")
     return def_prompt(system=system_content, user=user_file_content + f"\n{param['input_data']}")
 
 
@@ -61,7 +64,7 @@ def get_fabric_chain(config: dict):
 register_runnable(
     RunnableItem(
         tag="Fabric",
-        name="Fabric pattern",
+        name="fabric",
         runnable=get_fabric_chain,
         examples=[
             Example(

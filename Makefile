@@ -25,19 +25,10 @@ LOCATION=europe-west4
 PROJECT_ID_GCP=XXX
 
 
-
-.PHONY: telemetry 
-.PHONY: clean lint clean_notebooks quality latest # Maintenance 
-.PHONY: check_poetry install # Poetry and installation 
-.PHONY: build run save sync_time check # Docker build and deployment 
-.PHONY: login_gcp build_gcp push_gcp create_repo_gcp # GCP targets
-.PHONY: push_az # Azure targets
-.PHONY: backup  # Misc
-
 ##############################
 ##  GenAI Blueprint related commands
 ##############################
-.PHONY: fast_api langserve webapp test rebase aider aider_haiku aider_r1  
+.PHONY: fast_api langserve webapp 
 fast_api:  # run Python code localy
 	uvicorn $(FASTAPI_ENTRY_POINT) --reload
 

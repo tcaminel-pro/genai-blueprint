@@ -18,6 +18,7 @@ from pathlib import Path
 import streamlit as st
 from langchain.callbacks import tracing_v2_enabled
 from pydantic import BaseModel
+from langchain_core.runnables import RunnableLambda
 
 from python.ai_core.chain_registry import (
     find_runnable,
@@ -104,15 +105,17 @@ with st.expander("Runnable Graph", expanded=False):
 with st.form("my_form"):
     input = st.text_area("Enter input:", first_example.query[0], placeholder="")
     submitted = st.form_submit_button("Submit")
+    #debug(config)
     if submitted:
+        chain = runnable_desc.get().with_config(configurable=config)
         if global_config().get_str("monitoring", "default") == "langsmith":
             # use Langsmith context manager to get the UTL to the trace
             with tracing_v2_enabled() as cb:
-                result = runnable_desc.invoke(input, config)
+                result = chain.invoke(input)
                 url = cb.get_run_url()
                 st.write(f"[trace]({url})")
         else:
-            result = runnable_desc.invoke(input, config)
+            result = chain.invoke(input)
         if isinstance(result, BaseModel):
             st.json(result.json(exclude_none=True))
         else:

@@ -5,7 +5,7 @@ from pathlib import Path
 from devtools import debug  # noqa: F401
 from langchain_community.document_loaders.text import TextLoader
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
+from langchain_core.runnables import RunnableConfig, RunnableLambda, RunnablePassthrough
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from loguru import logger
 
@@ -16,9 +16,9 @@ from python.ai_core.prompts import def_prompt
 from python.ai_core.vector_store import VectorStoreFactory
 
 
-def get_retriever(config: dict):
-    debug(config)
-    path = config.get("path")
+def get_retriever_fn(query: str | None, config: RunnableConfig):
+
+    path = config["configurable"].get("path")
     if path is None:
         raise ValueError("Config should have a 'path' key")
     path = Path(path)
@@ -40,6 +40,8 @@ def get_retriever(config: dict):
     return vector_store.as_retriever(search_kwargs={"k": 3})
 
 
+get_retriever = RunnableLambda(func=get_retriever_fn)
+
 prompt_system = """
     You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question.
     If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
@@ -57,10 +59,10 @@ def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
 
-def get_chain(config: dict):
+def get_chain():
     chain = (
         {
-            "context": get_retriever(config) | format_docs,
+            "context": get_retriever | format_docs,
             "question": RunnablePassthrough(),
         }
         | prompt
@@ -74,7 +76,7 @@ register_runnable(
     RunnableItem(
         tag="RAG",
         name="Simple RAG chain",
-        runnable=get_chain,
+        runnable=get_chain(),
         examples=[
             Example(
                 path=Path("use_case_data/maintenance/maintenance_procedure_1.txt"),

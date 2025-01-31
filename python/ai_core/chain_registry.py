@@ -30,7 +30,6 @@ Example:
 """
 
 import importlib
-from collections.abc import Iterator
 from pathlib import Path
 from typing import Any, Callable
 
@@ -78,8 +77,6 @@ class RunnableItem(BaseModel):
         diagram (str | None): Optional diagram showing the Runnable's structure/flow
 
     Methods:
-        invoke: Execute the Runnable with a single input
-        stream: Stream the Runnable's execution results
         get: Retrieve the configured Runnable instance
     """
 
@@ -93,21 +90,9 @@ class RunnableItem(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def invoke(self, input: str, conf: dict[str, Any]) -> Any:
-        runnable = self.get(conf)
-        # is_agent = isinstance(runnable, AgentExecutor)
-        runnable = runnable.with_config(configurable=conf)
-        result = runnable.invoke(input)
-        return result
-
-    def stream(self, input: str, conf: dict[str, Any]) -> Iterator:
-        runnable = self.get(conf)
-        # is_agent = isinstance(runnable, AgentExecutor)
-        runnable = runnable.with_config(configurable=conf)
-        result = runnable.stream(input)
-        return result
-
-    def get(self, conf={"llm": None}) -> Runnable:
+    def get(self, conf=None) -> Runnable:
+        if conf is None:
+            conf = {}
         if isinstance(self.runnable, Runnable):
             runnable = self.runnable
         elif isinstance(self.runnable, Callable):

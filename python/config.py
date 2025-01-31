@@ -71,8 +71,8 @@ class Config(BaseModel):
         models = config.get_list("llm", "available_models")
     """
 
-    raw_config: dict[str, dict[str, Any]] = {}
-    selected_config_name: str = "default"
+    raw_config: dict[str, dict[str, Any] | str] = {}
+    selected_config_name: str = "baseline"
     _modified_fields: dict[str, dict[str, Any]] = defaultdict(dict)
 
     @once()
@@ -89,31 +89,40 @@ class Config(BaseModel):
         with open(yml_file) as f:
             data = cast(dict, yaml.safe_load(f))
 
-        config_name = os.environ.get("BLUEPRINT_CONFIG", "default")
-        if "BLUEPRINT_CONFIG" in os.environ:
-            logger.info(f"Configuration section selected by BLUEPRINT_CONFIG: {config_name}")
+        config_name_from_env = os.environ.get("BLUEPRINT_CONFIG", None)
+        config_name_from_yaml = data.get("default_config", None)
 
-        # Validate that the config section exists
-        if config_name != "default" and config_name not in data:
-            logger.warning(f"Configuration section '{config_name}' not found in {yml_file}. Continue with default")
-        # raise ValueError(f"Configuration section '{config_name}' not found")
+        if config_name_from_env and config_name_from_env not in data:
+            logger.warning(
+                f"Configuration selected by environment variable 'BLUEPRINT_CONFIG' not found in config file: {config_name_from_env}' "
+            )
+            config_name_from_env = None
+        if config_name_from_yaml and config_name_from_yaml not in data:
+            logger.warning(
+                f"Configuration selected by key 'default_config' not found in config file: {config_name_from_env}' "
+            )
+            config_name_from_yaml = None
+        config_name = config_name_from_env or config_name_from_yaml or "baseline"
 
         return Config(raw_config=data, selected_config_name=config_name)
 
     @property
-    def default_config(self) -> dict[str, dict[str, Any]]:
-        """Get the default configuration section."""
-        return self.raw_config.get("default", {})
+    def baseline_config(self) -> dict:
+        """Get the baseline configuration section."""
+        r = self.raw_config.get("baseline", {})
+        assert isinstance(r, dict)
+        return r
 
     @property
     def overridden_config(self) -> dict[str, dict[str, Any]]:
         """Get the currently active overridden configuration section."""
-        if self.selected_config_name == "default":
+        if self.selected_config_name == "baseline":
             return {}
         if result := self.raw_config.get(self.selected_config_name):
+            assert isinstance(result, dict)
             return result
         else:
-            return self.default_config
+            return self.baseline_config
 
     def select_config(self, config_name: str) -> None:
         """Select a different configuration section to override defaults."""
@@ -132,7 +141,7 @@ class Config(BaseModel):
         config_map = ChainMap(
             self._modified_fields.get(group, {}),
             self.overridden_config.get(group, {}),
-            self.default_config.get(group, {}),
+            self.baseline_config.get(group, {}),
         )
 
         value = config_map.get(key, default_value)
@@ -220,8 +229,7 @@ if __name__ == "__main__":
     llm = global_config().get_str("llm", "default_model")
     print(llm)
 
-    config = Config.singleton()
-    config.set_str("llm", "default_model", "another_llm")
+    global_config().set_str("llm", "default_model", "another_llm")
     llm = global_config().get_str("llm", "default_model")
     print(llm)
 
