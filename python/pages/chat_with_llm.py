@@ -8,7 +8,6 @@ from python.ai_core.llm import get_llm
 WEB_PAGES: list[str] = st.secrets.get("web_pages", [])
 
 
-# use LangChain WebBaseLoader AI!
 def load_web_pages(urls: list[str]) -> str:
     """Load content from the given web page URLs."""
     content = ""
