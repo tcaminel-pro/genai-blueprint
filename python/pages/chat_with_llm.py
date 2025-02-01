@@ -1,22 +1,12 @@
-import requests
 import streamlit as st
-
+from langchain_community.document_loaders import WebBaseLoader
 from python.ai_core.llm import get_llm
 
- # use LangChain WebBaseLoader AI!  
 def load_web_pages(urls: list[str]) -> str:
-    """Load content from the given web page URLs."""
-    content = ""
-    for url in urls:
-        try:
-            res = requests.get(url)
-            if res.status_code == 200:
-                content += res.text + "\n"
-            else:
-                content += f"Error loading {url}: Status {res.status_code}\n"
-        except Exception as e:
-            content += f"Error loading {url}: {e}\n"
-    return content
+    """Load content from the given web page URLs using LangChain's WebBaseLoader."""
+    loader = WebBaseLoader(urls)
+    docs = loader.load()
+    return "\n".join(doc.page_content for doc in docs)
 
 
 def init_session() -> None:
