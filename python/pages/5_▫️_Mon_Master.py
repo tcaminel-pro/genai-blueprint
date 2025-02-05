@@ -44,7 +44,7 @@ title_col2.image(logo_eviden, width=250)
 # filter3.multiselect("Villes", [])
 
 with st.sidebar:
-    search_method = st.radio("Search Method:", ["Vector", "Keyword", "Hybrid"], index=2)
+    search_method = st.radio("Select Search Method:", ["Vector", "Keyword", "Hybrid"], index=2)
     if search_method == "Hybrid":
         ratio_spinner = st.slider("Keyword  / Vector ratio", min_value=0.0, max_value=1.0, value=0.5, step=0.1)
 

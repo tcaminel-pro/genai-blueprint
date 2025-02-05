@@ -66,9 +66,9 @@ training_edenai:
 
 training_azure:
   llm:
-    default_model: gpt_4_azure
+    default_model: gpt_4o_azure
   embeddings:
     default_model: ada_002_azure
 
 
-# default_config: training_azure   # can be overidden by 'BLUEPRINT_CONFIG' environment variable
+default_config: training_azure   # can be overidden by 'BLUEPRINT_CONFIG' environment variable

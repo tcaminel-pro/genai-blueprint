@@ -48,15 +48,18 @@ rebase:
 	git stash
 	git rebase origin/main
 
-AIDER_OPTS=--watch-files --no-auto-lint --read CONVENTIONS.md --editor nano
+AIDER_OPTS=--watch-files --no-auto-lint --read CONVENTIONS.md --editor "code --wait"
 aider:
 	aider $(AIDER_OPTS) --model deepseek/deepseek-chat; 
+	#aider $(AIDER_OPTS) --model deepseek/deepseek-reasoner 
 
 # not sure --cache-prompts works
 aider_haiku: 
 	aider $(AIDER_OPTS) / --cache-prompts --model openrouter/anthropic/claude-3-5-haiku;   
 aider_r1:
 	aider $(AIDER_OPTS) --model deepseek/deepseek-reasoner; 
+aider_o3:
+	aider $(AIDER_OPTS) --model o3-mini; 
 
 
 lint:

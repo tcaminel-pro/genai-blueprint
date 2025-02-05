@@ -1,7 +1,7 @@
-import pytest
-from pathlib import Path
 from unittest.mock import Mock
-from langchain_core.messages import SystemMessage, HumanMessage
+
+import pytest
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from python.ai_core.vision import image_query_message
 
@@ -11,10 +11,7 @@ def test_image_query_message_local_image(tmp_path):
     test_image = tmp_path / "test_image.png"
     test_image.write_bytes(b"fake image content")
 
-    param_dict = {
-        "query": "What's in this image?",
-        "image_paths": [test_image]
-    }
+    param_dict = {"query": "What's in this image?", "image_paths": [test_image]}
     config = {"metadata": {}}
 
     messages = image_query_message(param_dict, config)
@@ -22,7 +19,7 @@ def test_image_query_message_local_image(tmp_path):
     assert len(messages) == 2
     assert isinstance(messages[0], SystemMessage)
     assert isinstance(messages[1], HumanMessage)
-    
+
     # Check human message content
     human_message_content = messages[1].content
     assert isinstance(human_message_content, list)
@@ -34,10 +31,7 @@ def test_image_query_message_local_image(tmp_path):
 
 
 def test_image_query_message_remote_image():
-    param_dict = {
-        "query": "Describe this remote image",
-        "image_paths": ["https://example.com/image.jpg"]
-    }
+    param_dict = {"query": "Describe this remote image", "image_paths": ["https://example.com/image.jpg"]}
     config = {"metadata": {}}
 
     messages = image_query_message(param_dict, config)
@@ -45,7 +39,7 @@ def test_image_query_message_remote_image():
     assert len(messages) == 2
     assert isinstance(messages[0], SystemMessage)
     assert isinstance(messages[1], HumanMessage)
-    
+
     human_message_content = messages[1].content
     assert isinstance(human_message_content, list)
     assert len(human_message_content) == 2  # query + image
@@ -57,10 +51,7 @@ def test_image_query_message_remote_image():
 
 def test_image_query_message_invalid_parameter():
     with pytest.raises(ValueError, match="Unexpected parameter"):
-        image_query_message(
-            {"invalid_param": "test"},
-            {"metadata": {}}
-        )
+        image_query_message({"invalid_param": "test"}, {"metadata": {}})
 
 
 def test_image_query_message_with_output_parser():
@@ -70,7 +61,7 @@ def test_image_query_message_with_output_parser():
     param_dict = {
         "query": "Parse this image",
         "image_paths": ["https://example.com/image.jpg"],
-        "output_parser": mock_parser
+        "output_parser": mock_parser,
     }
     config = {"metadata": {}}
 
@@ -85,9 +76,6 @@ def test_image_query_message_with_output_parser():
 def test_image_query_message_nova_api():
     with pytest.raises(NotImplementedError, match="Nova LLM support not implemented"):
         image_query_message(
-            {
-                "query": "Test Nova API",
-                "image_paths": ["https://example.com/image.jpg"]
-            },
-            {"metadata": {"llm_id": "nova-model"}}
+            {"query": "Test Nova API", "image_paths": ["https://example.com/image.jpg"]},
+            {"metadata": {"llm_id": "nova-model"}},
         )

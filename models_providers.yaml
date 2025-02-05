@@ -120,8 +120,8 @@ llm:
   models:
     - id: gpt_4t_azure
       model: gpt4-turbo/2023-05-15
-    # - id: gpt_4_azure
-    #   model: gpt4/2023-05-15
+    - id: gpt_4_azure
+      model: gpt4/2023-05-15
     - id: gpt_35_azure
       model: gpt-35-turbo/2023-05-15
     - id: gpt_4o_azure
