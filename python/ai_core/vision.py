@@ -17,8 +17,6 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.messages.base import BaseMessage
 
 
-# Create a simple pytest  for that function AI!Y
-
 def image_query_message(param_dict: dict, config: dict) -> list[BaseMessage]:
     """Create a multimodal message for AI image analysis.
 
