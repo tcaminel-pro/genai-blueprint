@@ -1,26 +1,12 @@
 """Vision processing and image analysis utilities.
 
-This module provides tools for integrating image analysis capabilities into AI workflows,
-supporting both local and remote image sources. It creates multimodal messages compatible
-with vision-enabled language models.
+This module provides tools for creating multimodal messages for AI image analysis,
+supporting local files, remote URLs, and vision-enabled language models.
 
 Key Features:
-- Support for local files and remote URLs
-- Structured output generation
+- Flexible image input (local/remote)
 - Customizable system prompts
-- Integration with output parsers
-- Base64 encoding for local images
-
-Example:
-    >>> # Analyze image with structured output
-    >>> messages = image_query_message({
-    ...     "query": "Describe the image",
-    ...     "image_paths": "path/to/image.jpg",
-    ...     "output_parser": MyOutputParser()
-    ... })
-
-    >>> # Send to vision-enabled LLM
-    >>> response = llm.invoke(messages)
+- Structured output generation
 """
 
 import base64
@@ -32,36 +18,21 @@ from langchain_core.messages.base import BaseMessage
 
 
 def image_query_message(param_dict: dict, config: dict) -> list[BaseMessage]:
-    """Create a multimodal message for AI images analysis with optional structured output.
+    """Create a multimodal message for AI image analysis.
 
-    This function prepares a message suitable for vision-enabled language models,
-    supporting both local image files and image URLs. It can include a custom
-    system message and optional output parsing instructions.
+    Prepares messages for vision-enabled language models with support for 
+    local and remote images, custom queries, and optional output parsing.
 
     Args:
-        param_dict (dict): A dictionary containing query parameters with these possible keys:
-            - 'query' (str): The main text query about the image(s)
-            - 'image_paths' (str or list): Path(s) to local image files or image URLs
-            - 'system' (str, optional): Custom system message for context setting
-            - 'output_parser' (object, optional): Langchain OutputParser object
+        param_dict (dict): Query parameters including 'query', 'image_paths', 
+                           optional 'system' and 'output_parser'
+        config (dict): Configuration dictionary
 
     Returns:
-        list[BaseMessage]: A list of messages ready for a multimodal AI model
+        list[BaseMessage]: Messages ready for a multimodal AI model
 
     Raises:
-        ValueError: If unexpected parameters are provided or image paths are invalid
-
-    Example :
-    .. code-block:: python
-        class ImageDesc(BaseModel):
-            background: str = Field(description="image background")
-            animals: list[str] = Field(description="Animals found in the image")
-            actions: str = Field(description="What are the animals doing")
-
-        parser = PydanticOutputParser(pydantic_object=ImageDesc)
-        image_url = "https://example.com/image.jpg"
-        chain = image_query_message | llm | parser  # ignore
-        response = chain.invoke({"query": "describe that image in JSON", "image_paths": image_url, "output_parser": parser})
+        ValueError: For invalid parameters or image paths
     """
     allowed_params = ["query", "image_paths", "output_parser", "system"]
     for key in param_dict:
