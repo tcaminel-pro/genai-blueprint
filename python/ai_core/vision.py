@@ -17,14 +17,16 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.messages.base import BaseMessage
 
 
+# Create a simple pytest  for that function AI!Y
+
 def image_query_message(param_dict: dict, config: dict) -> list[BaseMessage]:
     """Create a multimodal message for AI image analysis.
 
-    Prepares messages for vision-enabled language models with support for 
+    Prepares messages for vision-enabled language models with support for
     local and remote images, custom queries, and optional output parsing.
 
     Args:
-        param_dict (dict): Query parameters including 'query', 'image_paths', 
+        param_dict (dict): Query parameters including 'query', 'image_paths',
                            optional 'system' and 'output_parser'
         config (dict): Configuration dictionary
 
