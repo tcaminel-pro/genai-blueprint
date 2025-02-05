@@ -1,14 +1,11 @@
-"""Ported from https://github.com/huggingface/smolagents/blob/main/src/smolagents/gradio_ui.py.
-
-Aider prompt :
-    Port following code from Gradio to Streamlit and replace it.
-    Modify class and function name, but don't add new class method.
-    Use the 'to_raw' method to use AgentImage in st.image().
-    Replace relative import by absolute import from smolagents.
-    Add in comment that it's a port from  https://github.com/huggingface/smolagents/blob/main/src/smolagents/gradio_ui.py.
-    Insert that prompt in the module comments.
 """
-#AI!
+Port of https://github.com/huggingface/smolagents/blob/main/src/smolagents/gradio_ui.py to Streamlit.
+
+Original code ported from Gradio to Streamlit with the following changes:
+- Modified class and function names
+- Used 'to_raw' method for AgentImage in st.image()
+- Replaced relative imports with absolute imports from smolagents
+"""
 #!/usr/bin/env python
 # coding=utf-8
 # Copyright 2024 The HuggingFace Inc. team. All rights reserved.
