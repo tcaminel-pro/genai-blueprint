@@ -116,7 +116,7 @@ def get_retriever(config: dict):
         structured_query_translator=ChromaTranslator(),
         verbose=True,
     )
-    # debug(query_constructor, retriever)
+    #    debug(query_constructor, retriever)
     return retriever
 
 

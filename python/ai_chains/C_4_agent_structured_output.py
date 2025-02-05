@@ -41,7 +41,7 @@ def get_weather_fn(query: str, config: RunnableConfig) -> WeatherResponse:
 
 MODEL = "claude_haiku35_openrouter"  # Work
 MODEL = "nvidia_nemotrom70_openrouter"  # Do NOT work
-MODEL = "gpt_4omini_openai"  # Work
+MODEL = "gpt_4o_azure"  # Work
 MODEL = "google_gemini15flash_openrouter"  # Do NOT work
 MODEL = "qwen25_72_openrouter"  # Do NOT work
 MODEL = "gpt_4omini_edenai"  # ?

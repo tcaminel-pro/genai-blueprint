@@ -97,8 +97,10 @@ llm:
       model: llama3.2:3b
     - id: gemma2_2_ollama
       model: gemma2:2b
-    - id: llava_phi3_ollama
-      model: llava-phi3 
+    # - id: llava_phi3_ollama
+    #   model: llava-phi3 
+    - id: llava_16_ollama
+      model: llava:7b
     - id: falcon3_3_ollama
       model: falcon3
 

@@ -40,7 +40,7 @@ class Queries(BaseModel):
 
 LLM_ID = "gpt_4omini_edenai"
 # LLM_ID = "gpt_4_azure"
-LLM_ID = "gpt_4omini_openai"
+LLM_ID = "gpt_4o_azure"
 
 llm = get_llm(llm_id=LLM_ID, temperature=0.0)
 

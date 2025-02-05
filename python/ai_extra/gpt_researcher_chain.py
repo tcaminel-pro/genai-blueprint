@@ -62,7 +62,7 @@ class GptrConfVariables(BaseModel):
 
         Example:
         >>> config = GptResearcherConf(
-        ...     fast_llm_id = "gpt_4omini_openai",
+        ...     fast_llm_id = "gpt_4o_azure",
         ...     smart_llm_id="gpt_4_openai,"
                 extra_param = {
                     "MAX_ITERATIONS": 1,

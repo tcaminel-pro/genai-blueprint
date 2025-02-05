@@ -12,7 +12,7 @@ from python.ai_core.llm import LlmFactory
 from python.ui_components.llm_config import llm_config
 from python.ui_components.smoloagents_streamlit import stream_to_streamlit
 
-# MODEL_ID = "gpt_4omini_openai"
+# MODEL_ID = "gpt_4o_azure"
 MODEL_ID = None
 
 

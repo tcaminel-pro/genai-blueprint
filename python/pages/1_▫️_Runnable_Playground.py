@@ -115,8 +115,9 @@ with st.form("my_form"):
                 st.write(f"[trace]({url})")
         else:
             result = chain.invoke(input)
-        debug(result)
         if isinstance(result, BaseModel):
-            # remove first line AI!
-            result = debug.format(result)
-        st.write(result)
+            result_str = debug.format(result)
+
+            st.write(result_str)
+        else:
+            st.write(result)

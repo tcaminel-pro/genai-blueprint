@@ -9,7 +9,7 @@ from st_cytoscape import cytoscape
 from python.ai_core.llm import get_llm
 from python.ui_components.cypher_graph_display import get_cytoscape_json, get_cytoscape_style
 
-llm = get_llm(llm_id="gpt_4omini_openai")
+llm = get_llm(llm_id="gpt_4o_azure")
 
 st.set_page_config(page_title="Graph RAG with Kuzu", layout="wide")
 st.title("Graph RAG with Kuzu")

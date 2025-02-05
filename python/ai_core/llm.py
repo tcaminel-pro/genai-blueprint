@@ -70,7 +70,7 @@ DEEPSEEK_API_BASE = "https://api.deepseek.com"
 # List of implemented LLM providers, with the Python class to be loaded, and the name of the API key environment variable
 PROVIDER_INFO = {
     "Fake": ("langchain_core", ""),
-    "OpenAI": ("langchain_openai", "___OPENAI_API_KEY"),
+    "OpenAI": ("langchain_openai", "OPENAI_API_KEY"),
     "DeepInfra": ("langchain_community.chat_models.deepinfra", "DEEPINFRA_API_TOKEN"),
     "Groq": ("langchain_groq", "GROQ_API_KEY"),
     "VertexAI": ("langchain_google_vertexai", "GOOGLE_API_KEY"),
@@ -166,9 +166,9 @@ class LlmFactory(BaseModel):
             # raise ValueError(
             #     f"Unknown LLM: {llm_id}; Check API key and module imports. Should be in {LlmFactory.known_items()}"
             # )
-            logger.error(
-                "Unknown LLM: {llm_id}; Check API key and module imports. Should be in {LlmFactory.known_items()}"
-            )
+            logger.error(f"Unknown LLM: {llm_id}; Check API key and module imports: Return Fake one")
+            return "fake_parrot_local"
+
         return llm_id
 
     @field_validator("cache")
@@ -270,7 +270,7 @@ class LlmFactory(BaseModel):
             "temperature": 0.0,
             "cache": cache,
             "seed": SEED,
-            # "max_retries": DEFAULT_MAX_RETRIES,   # TODO : FIX IT !! 
+            # "max_retries": DEFAULT_MAX_RETRIES,   # TODO : FIX IT !!
             "streaming": self.streaming,
         }
 

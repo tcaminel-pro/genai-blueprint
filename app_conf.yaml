@@ -5,7 +5,7 @@ baseline:
     list: ${PWD}/models_providers.yaml
     cache : no_cache
     cache_path: ${HOME}/cache_ai/langchain.db
-    default_model: gpt_4omini_openai # gpt_35_azure # mistral_large_edenai 
+    default_model: gpt_4o_azure # gpt_35_azure # mistral_large_edenai 
 
     # optional model definitions (you can add your orn type): 
     coder_model : qwen25_coder32_openrouter
@@ -45,7 +45,7 @@ baseline:
 
 pytest:
   llm: 
-    default_model : gpt_4omini_openai
+    default_model : gpt_4o_azure
     model2 : llama31_8_deepinfra
     cache : in_memory
   embeddings:

@@ -44,7 +44,7 @@ class RetrieverTool(Tool):
 if __name__ == "__main__":
     from smolagents import DuckDuckGoSearchTool
 
-    MODEL_ID = "gpt_4omini_openai"
+    MODEL_ID = "gpt_4o_azure"
     llm_factory = LlmFactory(llm_id=MODEL_ID, llm_params={"temperature": 0.7})
 
     agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=get_model_from_factory(llm_factory))
