@@ -270,7 +270,7 @@ class LlmFactory(BaseModel):
             "temperature": 0.0,
             "cache": cache,
             "seed": SEED,
-            "max_retries": DEFAULT_MAX_RETRIES,
+            # "max_retries": DEFAULT_MAX_RETRIES,   # TODO : FIX IT !! 
             "streaming": self.streaming,
         }
 
