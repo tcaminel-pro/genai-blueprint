@@ -42,12 +42,11 @@ langchain-experimental = "^0.3"
 langchain-openai = "^0.3"
 langchain-huggingface = "^0.1"
 langchain-ollama = "^0.2"
-langchain-deepseek-official = "^0.1.0"
-langchain-groq = "^0.2"
-langchain-chroma = "^0.2"
 langgraph = "^0.2"
 langserve = "^0.3"
 langchainhub = "^0.1"
+langchain-groq = "^0.2"
+langchain-chroma = "^0.2"
 chromadb = "^0.5"
 #httpx = "^0.27.0"
 litellm = "^1"
@@ -55,8 +54,6 @@ litellm = "^1"
 #
 # Group 'instrumentation' 
 #
-azure-identity = "^1.19.0"
-
 
 [tool.poetry.group.instrumentation.dependencies]
 arize-phoenix = "^7.7"
@@ -136,7 +133,7 @@ grandalf = "^0.8"
 defusedxml = "^0.7.1"
 
 ###################
-# Ruff linters settings
+# Ruff é linters settings
 ###################
 
 [tool.ruff]
@@ -154,7 +151,7 @@ select = [
     # "N", # Naming conventions                                                                                                                                  
     "C", # Better comprehensions    
     "ASYNC", # Async 
-   #  "ANN",  # Annotations
+    "ANN",  # Annotations
     "PIE",
     "PD",# Pandas
     "FURB" #refurbishing and modernizing

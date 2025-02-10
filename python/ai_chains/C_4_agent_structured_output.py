@@ -6,8 +6,8 @@ from langchain_core.runnables import RunnableConfig, RunnableLambda
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
 
-from python.ai_core.custom_agents import create_react_structured_output_graph
 from python.ai_core.llm import get_llm, llm_config
+from python.ai_extra.react_agent_structured_output import create_react_structured_output_graph
 
 
 class WeatherResponse(BaseModel):

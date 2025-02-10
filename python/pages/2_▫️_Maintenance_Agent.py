@@ -145,6 +145,7 @@ if with_clear_container(submit_clicked):
             metadata={"st_container": ("answer_container", answer_container)}, callbacks=[streamlit_callback]
         )
         answer = chain.invoke({"input": query})
+        # answer = chain.invoke(query)
 
         # if global_config().get_str("monitoring", "default") == "langsmith":
         #     with tracing_v2_enabled() as cb:

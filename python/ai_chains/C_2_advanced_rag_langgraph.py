@@ -36,7 +36,7 @@ Suggested extensions :
 
 load_dotenv(verbose=True)
 
-LLM_ID = "gpt_4omini_edenai"
+LLM_ID = "gpt_4omini_azure"
 
 
 class YesOrNo(Enum):

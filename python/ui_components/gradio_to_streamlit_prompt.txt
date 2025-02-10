@@ -1,0 +1,11 @@
+# Aider prompt to port  https://github.com/huggingface/smolagents/blob/main/src/smolagents/gradio_ui.py. 4
+# from Gradio to Streamlit 
+
+"
+Port that code from Gradio to Streamlit and replace it.
+Modify class and function name, but don't add new class method.
+Use the 'to_raw' method to use AgentImage in st.image().
+Replace relative import by absolute import from smolagents.
+Insert that prompt in the module comments.
+Keep the licence text.
+"
