@@ -63,8 +63,8 @@ aider_o3:
 
 
 lint:
-	poetry run ruff check --select I --fix
-	poetry run ruff format
+	ruff check --select I --fix
+	ruff format
 
 quality:
 	find . -path "./python/wip" -prune -o -type f -name '*.py' | xargs ruff check --fix
@@ -72,7 +72,7 @@ quality:
 clean_notebooks:  ## Clean Jupyter notebook outputs. Require 'nbconvert' Python module
 	@find . -name "*.ipynb" | while read -r notebook; do \
 		echo "Cleaning outputs from: $$notebook"; \
-		jupyter-nbconvert --clear-output --inplace "$$notebook"; \
+		uvx jupyter nbconvert --clear-output --inplace "$$notebook"; \
 	done
 
 latest:  # Update selected fast changing dependencies 
@@ -104,16 +104,16 @@ telemetry:  ## Run Phoenix telemetry server in background
 ##  Poetry and project  intall
 ##############################
 
-.PHONY:  check_poetry  install
-check_poetry:  ## Check if poetry is installed, install if missing
-	@if command -v poetry >/dev/null 2>&1; then \
-		echo "Poetry is already installed"; \
+.PHONY:  check_uv  install
+
+# Replace poetry check and install by uv  AI!
+check_uv:  ## Check if poetry is installed, install if missing
+	@if command -v uv >/dev/null 2>&1; then \
+		echo "uv is already installed"; \
 	else \
 		echo "Poetry is not installed. Installing now..."; \
 		curl -sSL https://install.python-poetry.org | python3 -; \
-		echo "Poetry installed successfully.\n Installing 'shell'  plugin..."; \
-		poetry self add poetry-plugin-shell; \
-		echo "Plugin installed"; \
+		echo "Poetry installed successfully.\n"; \
 	fi
 
 install: check_poetry  ## Install project core dependencies
