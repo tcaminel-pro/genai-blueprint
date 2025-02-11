@@ -5,24 +5,24 @@
 
 FROM python:3.11-bookworm  as builder
 
-RUN apt-get update && apt-get install -y git
+RUN apt-get update && apt-get install -y git curl
 
 # Project specific install 
 RUN apt-get install -y graphviz-dev
 
-# Install and configure Poetry
-RUN pip install poetry==1.8.3
-ENV POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=1 \
-    POETRY_VIRTUALENVS_CREATE=1 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache
+# Install and configure uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.cargo/bin:$PATH"
 
 # A directory to have app data 
 WORKDIR /app
 
-COPY pyproject.toml poetry.lock ./
+COPY pyproject.toml requirements.txt ./
 
-RUN poetry install --without dev  --without extra --no-root && rm -rf $POETRY_CACHE_DIR
+RUN uv venv \
+    && . .venv/bin/activate \
+    && uv pip install -r requirements.txt \
+    && uv pip install --system --no-cache .
 
 # The runtime image, used to just run the code provided its virtual environment
 FROM python:3.11-slim-bookworm  as runtime
