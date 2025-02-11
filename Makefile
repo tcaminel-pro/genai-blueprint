@@ -113,12 +113,8 @@ check_uv:  ## Check if uv is installed, install if missing
 		echo "uv installed successfully"; \
 	fi
 
-install: check_uv  ## Install project core dependencies
-	uv venv
-	uv pip install -r requirements.txt
-	uv pip install --exclude-newer \
-		langchain langchain-core langgraph langserve langchainhub \
-		langchain-experimental langchain-community langchain-chroma
+install: check_uv  
+	uv sync
 
 
 ##############################
