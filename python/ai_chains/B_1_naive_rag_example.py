@@ -17,7 +17,6 @@ from python.ai_core.vector_store import VectorStoreFactory
 
 
 def get_retriever_fn(query: str | None, config: RunnableConfig):
-
     path = config["configurable"].get("path")
     if path is None:
         raise ValueError("Config should have a 'path' key")

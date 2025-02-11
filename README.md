@@ -15,21 +15,17 @@ This project has several goals:
 It's based mainly on the LangChain ecosystem, and integrate many other nice solutions.
 
 ## Install
-We use Poetry. 
-You can either:
-* `make install`
-* or manually 
-  * `Install poetry` 
-  * Run `poetry install` 
-  * Note : you can avoid calling "poetry run' by installing the 'shell' command: `poetry self add poetry-plugin-shell`
+We use make and uv. This command install uv if not present, then load the project dependencies.
+* `make install` 
+
 
 Configuration:
 * Application settings are in file : `app_conf.yaml` ; Should likely be edited (and improved...)
 * API keys are taken from  a `.env` file, in the project directory or its parents 
 
 Quick test:
-* Run `poetry run python python/main_cli.py run joke  -m fake_parrot_local` 
-  * It should display 'Tell me a joke on Beaver' 
+* Run `echo "computers" | uv run python/main_cli.py run joke  -m fake_parrot_local` 
+  * It should display 'Tell me a joke on computers' 
   * Don't care about the warnings
   * add `--help` to see the different options
   * You can change the LLM by taking one in defined in `models_providers.yaml`  (if keys are in the `.env` file)

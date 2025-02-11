@@ -24,41 +24,33 @@ REGISTRY_NAME=XXX
 LOCATION=europe-west4
 PROJECT_ID_GCP=XXX
 
-
-##############################
-##  Help Target
-##############################
-.PHONY: help
-help:
-	@echo "Available targets:"
-	@awk 'BEGIN {FS = ":.*##"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
-
+all: help 
 
 ##############################
 ##  GenAI Blueprint related commands
 ##############################
 .PHONY: fast_api langserve webapp 
-fast_api:  # run Python code localy
+fast_api:  ## langsLauch FastAPI server localy
 	uvicorn $(FASTAPI_ENTRY_POINT) --reload
 
-langserve:
+langserve: ## Lauch langserve app
 	python python/langserve_app.py
 
-webapp:
-	streamlit run $(STREAMLIT_ENTRY_POINT)
+webapp: ## Lauch Streamlit app
+	uv run streamlit run $(STREAMLIT_ENTRY_POINT)
 
 ##############################
 ##  Development
 ##############################
 .PHONY: rebase aider aider_haiku aider_r1
 .PHONY: lint quality clean_notebooks latest
-rebase:
+rebase: ## Sync local repo with remote one (changes are stashed before!)
 	git fetch origin
 	git stash
 	git rebase origin/main
 
 AIDER_OPTS=--watch-files --no-auto-lint --read CONVENTIONS.md --editor "code --wait"
-aider:
+aider:  ## Call aider-chat (a coding assistant)
 	aider $(AIDER_OPTS) --model deepseek/deepseek-chat; 
 	#aider $(AIDER_OPTS) --model deepseek/deepseek-reasoner 
 
@@ -71,12 +63,13 @@ aider_o3:
 	aider $(AIDER_OPTS) --model o3-mini; 
 
 
-lint:
+lint: ## Run Ruff an all Python files to format fix imports
 	ruff check --select I --fix
 	ruff format
 
-quality:
-	find . -path "./python/wip" -prune -o -type f -name '*.py' | xargs ruff check --fix
+
+quality: ## Run Ruff an all Python files to check quality
+	find . -path "./python/wip" -prune -o -path "./.venv" -prune -o -type f -name '*.py' | xargs ruff check --fix 
 
 clean_notebooks:  ## Clean Jupyter notebook outputs. Require 'nbconvert' Python module
 	@find . -name "*.ipynb" | while read -r notebook; do \
@@ -122,7 +115,7 @@ check_uv:  ## Check if uv is installed, install if missing
 		echo "uv installed successfully"; \
 	fi
 
-install: check_uv  
+install: check_uv   ## Install SW
 	uv sync
 
 
@@ -185,7 +178,7 @@ create_repo_gcp:
 ##############
 .PHONY: push_az # Azure targets
 	
-push_az:  # Push to a registry
+push_az:  ## Push to a Azure registry
 	docker tag $(APP):$(IMAGE_VERSION) $(REGISTRY_AZ)/$(APP):$(IMAGE_VERSION)
 	docker push $(REGISTRY_AZ)/$(APP):$(IMAGE_VERSION)
 
@@ -205,8 +198,7 @@ clean:  ## Clean Python bytecode and cache files
 	find . -type d -name ".mypy_cache" -delete
 
 
-backup:
-# copy to ln_to_onedrive, a symbolic link from WSL to OneDrive 
+backup: ## rsync project and shared files to ln_to_onedrive, a symbolic link from WSL to OneDrive 
 # (created as: ln -s '/mnt/c/Users/a184094/OneDrive - Eviden'  ~/ln_to_onedrive )
 	cp ~/.env ~/.bashrc ~/.dev.bash-profile ~/ln_to_onedrive/backup/wsl/tcl/
 	cp ~/install.sh  ~/ln_to_onedrive/backup/wsl/tcl/
@@ -229,6 +221,10 @@ clean_history:  ## Remove duplicate entries and common commands from .bash_histo
 		echo "No .bash_history file found"; \
 	fi
 
+.PHONY: help                                                                                                                                   
+help:                                                                                                                                          
+	@echo "Available targets:"                                                                                                                  
+	@awk 'BEGIN {FS = ":.*##"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST) | sort 
 
 
 ##############################

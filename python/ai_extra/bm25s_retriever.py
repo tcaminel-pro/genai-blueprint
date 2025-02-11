@@ -98,7 +98,7 @@ class BM25FastRetriever(BaseRetriever):
         vectorizer = bm25s.BM25(**bm25_params)
         vectorizer.index(texts_processed, show_progress=True)
         metadatas = metadatas or ({} for _ in texts)
-        docs = [Document(page_content=t, metadata=m) for t, m in zip(texts, metadatas)]
+        docs = [Document(page_content=t, metadata=m) for t, m in zip(texts, metadatas, strict=False)]
 
         if cache_path is not None:
             logger.info("Save BM25 cache")
@@ -127,7 +127,7 @@ class BM25FastRetriever(BaseRetriever):
         Returns:
             A BM25S_Retriever instance.
         """
-        texts, metadatas = zip(*((d.page_content, d.metadata) for d in documents))
+        texts, metadatas = zip(*((d.page_content, d.metadata) for d in documents), strict=False)
         return cls.from_texts(
             texts=texts,
             bm25_params=bm25_params,

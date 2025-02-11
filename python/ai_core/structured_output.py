@@ -86,8 +86,8 @@ if __name__ == "__main__":
     MODEL = "claude_haiku35_openrouter"
     MODEL = "deepseek_chatv3_deepseek"
     # MODEL = "llama33_70_deepinfra"  # function_calling NOT WORKING
-    #MODEL = "nvidia_nemotrom70_openrouter"  # function_calling NOT WORKING
-    #MODEL = "llama31_70_deepinfra"  # function_calling NOT WORKING
+    # MODEL = "nvidia_nemotrom70_openrouter"  # function_calling NOT WORKING
+    # MODEL = "llama31_70_deepinfra"  # function_calling NOT WORKING
     a = structured_output_chain(
         system="",
         user="Tell me a joke about {topic}",

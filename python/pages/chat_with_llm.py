@@ -1,6 +1,8 @@
 import streamlit as st
 from langchain_community.document_loaders import WebBaseLoader
+
 from python.ai_core.llm import get_llm
+
 
 def load_web_pages(urls: list[str]) -> str:
     """Load content from the given web page URLs using LangChain's WebBaseLoader."""
