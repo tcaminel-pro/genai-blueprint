@@ -76,12 +76,10 @@ clean_notebooks:  ## Clean Jupyter notebook outputs. Require 'nbconvert' Python 
 	done
 
 latest:  # Update selected fast changing dependencies 
-	poetry add 	langchain@latest  langchain-core@latest langgraph@latest langserve@latest langchainhub@latest \
-				 langchain-experimental@latest   langchain-community@latest  \
-				 langchain-chroma@latest
-	poetry add  gpt-researcher@latest smolagents@latest mcpadapt@latest  --group ai_extra
-#	poetry add crewai@latest[tools] --group demos
-
+	uv pip install --upgrade \
+		langchain langchain-core langgraph langserve langchainhub \
+		langchain-experimental langchain-community langchain-chroma \
+		gpt-researcher smolagents mcpadapt
 
 
 ##############################
@@ -101,24 +99,26 @@ telemetry:  ## Run Phoenix telemetry server in background
 	fi
 
 ##############################
-##  Poetry and project  intall
+##  uv and project  install
 ##############################
 
-.PHONY:  check_uv  install
+.PHONY: check_uv install
 
-# Replace poetry check and install by uv  AI!
-check_uv:  ## Check if poetry is installed, install if missing
+check_uv:  ## Check if uv is installed, install if missing
 	@if command -v uv >/dev/null 2>&1; then \
 		echo "uv is already installed"; \
 	else \
-		echo "Poetry is not installed. Installing now..."; \
-		curl -sSL https://install.python-poetry.org | python3 -; \
-		echo "Poetry installed successfully.\n"; \
+		echo "uv is not installed. Installing now..."; \
+		curl -LsSf https://astral.sh/uv/install.sh | sh; \
+		echo "uv installed successfully"; \
 	fi
 
-install: check_poetry  ## Install project core dependencies
-	poetry lock
-	poetry install --without ai_extra,demos,transformers,instrumentation,autogen
+install: check_uv  ## Install project core dependencies
+	uv venv
+	uv pip install -r requirements.txt
+	uv pip install --exclude-newer \
+		langchain langchain-core langgraph langserve langchainhub \
+		langchain-experimental langchain-community langchain-chroma
 
 
 ##############################
@@ -229,5 +229,4 @@ clean_history:  ## Remove duplicate entries and common commands from .bash_histo
 ##############################
 ##  Project specific commands
 ##############################
-
 
