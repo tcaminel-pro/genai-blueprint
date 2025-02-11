@@ -26,6 +26,15 @@ PROJECT_ID_GCP=XXX
 
 
 ##############################
+##  Help Target
+##############################
+.PHONY: help
+help:
+	@echo "Available targets:"
+	@awk 'BEGIN {FS = ":.*##"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+
+
+##############################
 ##  GenAI Blueprint related commands
 ##############################
 .PHONY: fast_api langserve webapp 
