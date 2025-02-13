@@ -28,6 +28,7 @@ dependencies = [
     "langchain-chroma>=0.2,<0.3",
     "chromadb>=0.5,<0.6",
     "litellm>=1,<2",
+    "omegaconf>=2.3.0",
 ]
 
 [project.urls]

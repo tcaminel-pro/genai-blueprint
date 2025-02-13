@@ -15,7 +15,7 @@ from python.config import global_config
 
 global_config().select_config("pytest")
 
-another_llm = global_config().get_str("llm", "model2")
+another_llm = global_config().get_str("llm.model2")
 
 
 def test_basic_joke_generation() -> None:

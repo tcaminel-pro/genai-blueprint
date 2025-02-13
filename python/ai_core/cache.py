@@ -16,7 +16,6 @@ Example:
 """
 
 from enum import Enum
-from pathlib import Path
 
 from devtools import debug
 from langchain.globals import get_llm_cache, set_llm_cache
@@ -43,7 +42,7 @@ class LlmCache:
         method = None
 
         if value == "default":
-            from_config = global_config().get_str("llm", "cache")
+            from_config = global_config().get_str("llm.cache")
             if from_config not in LlmCache.values():
                 logger.warning(f"Incorrect llm/cache configuration : {from_config}. Should be in {LlmCache.values()} ")
             value = from_config
@@ -54,7 +53,7 @@ class LlmCache:
             raise ValueError(f"Unknown cache method '{value}'. Should be in {LlmCache.values()}") from e
 
         if method == "sqlite":
-            path = Path(global_config().get_str("llm", "cache_path"))
+            path = global_config().get_path("llm.cache_path")
             if not path.parent.exists():
                 path.parent.mkdir(parents=True, exist_ok=True)
             return SQLiteCache(database_path=str(path))

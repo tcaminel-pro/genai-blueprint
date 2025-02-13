@@ -147,7 +147,7 @@ if with_clear_container(submit_clicked):
         answer = chain.invoke({"input": query})
         # answer = chain.invoke(query)
 
-        # if global_config().get_str("monitoring", "default") == "langsmith":
+        # if global_config().get_str("monitoring.default") == "langsmith":
         #     with tracing_v2_enabled() as cb:
         #         chain = create_maintenance_agent(
         #             metadata={"st_container": ("answer_container", answer_container) },

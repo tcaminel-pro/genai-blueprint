@@ -45,7 +45,7 @@ PROCEDURES = [
     "procedure_cooling_system.txt",
 ]
 
-DATA_PATH = Path(global_config().get_str("documents", "base")) / "maintenance"
+DATA_PATH = Path(global_config().get_str("documents.base")) / "maintenance"
 
 VECTOR_STORE_ID = "InMemory"
 

@@ -160,7 +160,7 @@ def main() -> None:
         submitted = st.form_submit_button("Search", disabled=user_question is None)
 
         if submitted and user_question:
-            if global_config().get_str("monitoring", "default") == "langsmith":
+            if global_config().get_str("monitoring.default") == "langsmith":
                 # use Langsmith context manager to get the UTL to the trace
                 with tracing_v2_enabled() as cb:
                     response = call_functions(llm_with_tools, user_question)

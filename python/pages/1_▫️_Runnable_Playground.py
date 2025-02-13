@@ -74,7 +74,7 @@ if path := first_example.path:
     if uploaded_file:
         path = Path(uploaded_file.name)
 
-llm_id = global_config().get_str("llm", "default_model")
+llm_id = global_config().get_str("llm.default_model")
 config = {}
 first_example = runnable_desc.examples[0]
 config |= {"llm": llm_id}
@@ -107,7 +107,7 @@ with st.form("my_form"):
     # debug(config)
     if submitted:
         chain = runnable_desc.get().with_config(configurable=config)
-        if global_config().get_str("monitoring", "default") == "langsmith":
+        if global_config().get_str("monitoring.default") == "langsmith":
             # use Langsmith context manager to get the UTL to the trace
             with tracing_v2_enabled() as cb:
                 result = chain.invoke(input)

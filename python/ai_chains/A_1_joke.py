@@ -2,7 +2,7 @@
 
 from dotenv import load_dotenv
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
+from langchain_core.runnables import Runnable, RunnablePassthrough
 
 from python.ai_core.chain_registry import (
     Example,
@@ -15,7 +15,7 @@ from python.ai_core.prompts import def_prompt
 load_dotenv(verbose=True)
 
 
-def get_chain(config: dict):
+def get_chain(config: dict) -> Runnable:
     simple_prompt = """Tell me a joke on {topic}"""
     chain = {"topic": RunnablePassthrough()} | def_prompt(user=simple_prompt) | get_llm() | StrOutputParser()
     return chain

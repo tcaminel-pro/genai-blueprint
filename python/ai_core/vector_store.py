@@ -61,7 +61,7 @@ from python.config import global_config
 # List of known Vector Stores (created as Literal so can be checked by MyPy)
 VECTOR_STORE_ENGINE = Literal["Chroma", "Chroma_in_memory", "InMemory", "Sklearn"]
 
-default_collection = global_config().get_str("vector_store", "default_collection")
+default_collection = global_config().get_str("vector_store.default_collection")
 
 
 def get_vector_vector_store_path() -> str:
@@ -77,11 +77,7 @@ def get_vector_vector_store_path() -> str:
         return modal_volume
     else:
         # Local development
-        dir = Path(global_config().get_str("vector_store", "path"))
-        try:
-            dir.mkdir()
-        except Exception:
-            pass  # TODO : log something
+        dir = global_config().get_path("vector_store.path", create_if_not_exists = True)
         return str(dir)
 
 
@@ -169,7 +165,7 @@ class VectorStoreFactory(BaseModel):
             ValueError: If an unknown vector store backend is specified
         """
         if id is None:
-            id = global_config().get_str("vector_store", "default")
+            id = global_config().get_str("vector_store.default")
         if id not in VectorStoreFactory.known_items():
             raise ValueError(f"Unknown Vector Store: {id}")
         return id

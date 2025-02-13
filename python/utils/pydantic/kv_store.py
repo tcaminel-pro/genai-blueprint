@@ -55,7 +55,7 @@ def save_pydantic_to_store(key: str | dict, obj: BaseModel, file_store_path: Pat
     class_name = obj.__class__.__name__
 
     if file_store_path is None:
-        file_store_path = Path(global_config().get_str("kv_store", "path"))
+        file_store_path = Path(global_config().get_str("kv_store.path"))
 
     dir_root_name = file_store_path / class_name
     file_store = LocalFileStore(dir_root_name)
@@ -81,7 +81,7 @@ def read_pydantic_from_store(model_class: type[T], key: str | dict, file_store_p
     # Use the lowercase class name of the Pydantic model
 
     if file_store_path is None:
-        file_store_path = Path(global_config().get_str("kv_store", "path"))
+        file_store_path = Path(global_config().get_str("kv_store.path"))
     class_name = model_class.__name__
     file_store = LocalFileStore(file_store_path / class_name)
 

@@ -7,24 +7,9 @@
 # Usage: make [target]
 
 
-######################################
-##  Development Environment ##
-######################################
-
-# General settings, notably for deployment
-
-APP=genai-blueprint
-STREAMLIT_ENTRY_POINT="python/GenAI_Lab.py"
-
-FASTAPI_ENTRY_POINT="python.fastapi_app:app"
-
-IMAGE_VERSION=0.2a
-REGISTRY_AZ=XXXX.azurecr.io
-REGISTRY_NAME=XXX
-LOCATION=europe-west4
-PROJECT_ID_GCP=XXX
-
 all: help 
+
+#cSpell: disable
 
 ##############################
 ##  GenAI Blueprint related commands
@@ -42,8 +27,7 @@ webapp: ## Lauch Streamlit app
 ##############################
 ##  Development
 ##############################
-.PHONY: rebase aider aider_haiku aider_r1
-.PHONY: lint quality clean_notebooks latest
+.PHONY: rebase aider aider-haiku aider-r1 lint quality clean_notebooks 
 rebase: ## Sync local repo with remote one (changes are stashed before!)
 	git fetch origin
 	git stash
@@ -55,11 +39,11 @@ aider:  ## Call aider-chat (a coding assistant)
 	#aider $(AIDER_OPTS) --model deepseek/deepseek-reasoner 
 
 # not sure --cache-prompts works
-aider_haiku: 
+aider-haiku: 
 	aider $(AIDER_OPTS) / --cache-prompts --model openrouter/anthropic/claude-3-5-haiku;   
-aider_r1:
+aider-r1:
 	aider $(AIDER_OPTS) --model deepseek/deepseek-reasoner; 
-aider_o3:
+aider-o3:
 	aider $(AIDER_OPTS) --model o3-mini; 
 
 
@@ -71,18 +55,11 @@ lint: ## Run Ruff an all Python files to format fix imports
 quality: ## Run Ruff an all Python files to check quality
 	find . -path "./python/wip" -prune -o -path "./.venv" -prune -o -type f -name '*.py' | xargs ruff check --fix 
 
-clean_notebooks:  ## Clean Jupyter notebook outputs. Require 'nbconvert' Python module
+clean_notebooks:  ## Clean Jupyter notebook outputs. 
 	@find . -name "*.ipynb" | while read -r notebook; do \
 		echo "Cleaning outputs from: $$notebook"; \
 		uvx jupyter nbconvert --clear-output --inplace "$$notebook"; \
 	done
-
-latest:  # Update selected fast changing dependencies 
-	uv pip install --upgrade \
-		langchain langchain-core langgraph langserve langchainhub \
-		langchain-experimental langchain-community langchain-chroma \
-		gpt-researcher smolagents mcpadapt
-
 
 ##############################
 ##  Telemetry  Tasks
@@ -158,10 +135,10 @@ login_gcp:
 	gcloud auth login
 	gcloud config set project  $(PROJECT_ID_GCP)
 
-build_gcp: ## build the image
+build_gcp: ## build the image gor GCP
 	docker build -t gcr.io/$(PROJECT_ID_GCP)/$(APP):$(IMAGE_VERSION) . --build-arg OPENAI_API=$(OPENAI_API_KEY) 
 
-push_gcp:
+push_gcp: ## Push to a GCP registry
 # gcloud auth configure-docker
 	docker tag $(APP):$(IMAGE_VERSION) $(LOCATION)-docker.pkg.dev/$(PROJECT_ID_GCP)/$(REGISTRY_NAME)/$(APP):$(IMAGE_VERSION)
 	docker push $(LOCATION)-docker.pkg.dev/$(PROJECT_ID_GCP)/$(REGISTRY_NAME)/$(APP):$(IMAGE_VERSION)
@@ -189,9 +166,10 @@ push_az:  ## Push to a Azure registry
 ##  MISC  ###
 ##############
 
-.PHONY: backup  clean dedupe_history
+.PHONY: backup  clean clean_history help
 
 clean:  ## Clean Python bytecode and cache files
+	uv cache prune
 	find . -type f -name "*.py[co]" -delete
 	find . -type d -name "__pycache__" -delete
 	find . -type d -name ".ruff_cache" -delete
@@ -214,14 +192,14 @@ backup: ## rsync project and shared files to ln_to_onedrive, a symbolic link fro
 
 clean_history:  ## Remove duplicate entries and common commands from .bash_history while preserving order
 	@if [ -f ~/.bash_history ]; then \
-		awk '!/^(ls|cat|hgrep|h|cd|p|m|ll|pwd|code|mkdir)( |$$)/ && !seen[$$0]++' ~/.bash_history > ~/.bash_history_unique && \
+		awk '!/^(ls|cat|hgrep|h|cd|p|m|ll|pwd|code|mkdir|export|poetry run ruff|rmdir)( |$$)/ && !seen[$$0]++' ~/.bash_history > ~/.bash_history_unique && \
 		mv ~/.bash_history_unique ~/.bash_history; \
 		echo "Done : duplicates and common commands removed. \nRun 'history -c; history -r' in your shell to reload the cleaned history"; \
 	else \
 		echo "No .bash_history file found"; \
 	fi
 
-.PHONY: help                                                                                                                                   
+                                                                                                                       
 help:                                                                                                                                          
 	@echo "Available targets:"                                                                                                                  
 	@awk 'BEGIN {FS = ":.*##"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST) | sort 

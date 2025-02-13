@@ -40,11 +40,12 @@ import functools
 import importlib.util
 import os
 from functools import cached_property, lru_cache
-from pathlib import Path
 from typing import Annotated, Any, cast
 
 import yaml
 from dotenv import load_dotenv
+from langchain.chat_models import init_chat_model
+from langchain.chat_models.base import _SUPPORTED_PROVIDERS
 from langchain.globals import get_llm_cache
 from langchain.schema.language_model import BaseLanguageModel
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -55,6 +56,10 @@ from pydantic import BaseModel, Field, computed_field, field_validator
 
 from python.ai_core.cache import LlmCache
 from python.config import global_config
+
+# model = init_chat_model("llama3-8b-8192", model_provider="XX")
+# Supported model providers are: bedrock_converse, openai, huggingface, google_anthropic_vertex, fireworks, together, mistralai, bedrock, deepseek, groq, google_vertexai, ollama, cohere, anthropic, google_genai, azure_openai
+
 
 load_dotenv(verbose=True, override=True)
 
@@ -69,18 +74,20 @@ DEEPSEEK_API_BASE = "https://api.deepseek.com"
 
 # List of implemented LLM providers, with the Python class to be loaded, and the name of the API key environment variable
 PROVIDER_INFO = {
-    "Fake": ("langchain_core", ""),
-    "OpenAI": ("langchain_openai", "OPENAI_API_KEY"),
-    "DeepInfra": ("langchain_community.chat_models.deepinfra", "DEEPINFRA_API_TOKEN"),
-    "Groq": ("langchain_groq", "GROQ_API_KEY"),
-    "VertexAI": ("langchain_google_vertexai", "GOOGLE_API_KEY"),
-    "Ollama": ("langchain_ollama", ""),
-    "EdenAI": ("langchain_community.chat_models.edenai", "EDENAI_API_KEY"),
-    "AzureOpenAI": ("langchain_openai", "AZURE_OPENAI_API_KEY"),
-    "Together": ("langchain_together", "TOGETHER_API_KEY"),
-    "DeepSeek": ("langchain_deepseek", "DEEPSEEK_API_KEY"),
-    "Openrouter": ("langchain_openai", "OPENROUTER_API_KEY"),
-    "HuggingFace": {"langchain_huggingface", "HUGGINGFACEHUB_API_TOKEN"},
+    "fake": ("langchain_core", ""),
+    "openai": ("langchain_openai", "OPENAI_API_KEY"),
+    "deepinfra": ("langchain_community.chat_models.deepinfra", "DEEPINFRA_API_TOKEN"),
+    "groq": ("langchain_groq", "GROQ_API_KEY"),
+    "google_vertexai": ("langchain_google_vertexai", "GOOGLE_API_KEY"),
+    "ollama": ("langchain_ollama", ""),
+    "edenai": ("langchain_community.chat_models.edenai", "EDENAI_API_KEY"),
+    "azure_openai": ("langchain_openai", "AZURE_OPENAI_API_KEY"),
+    "together": ("langchain_together", "TOGETHER_API_KEY"),
+    "deepseek": ("langchain_deepseek", "DEEPSEEK_API_KEY"),
+    "openrouter": ("langchain_openai", "OPENROUTER_API_KEY"),
+    "huggingface": ("langchain_huggingface", "HUGGINGFACEHUB_API_TOKEN"),
+    "bedrock": ("langchain_aws", "AWS_ACCESS_KEY_ID"),
+    "anthropic": ("langchain_anthropic", "ANTHROPIC_API_KEY"),
 }
 
 
@@ -116,8 +123,7 @@ class LlmInfo(BaseModel):
 def _read_llm_list_file() -> list[LlmInfo]:
     """Read the YAML file with list of LLM providers and info."""
     # The name of the file is in the configuration file
-    yml_file = Path(global_config().get_str("llm", "list"))
-    assert yml_file.exists(), f"cannot find {yml_file}"
+    yml_file = global_config().get_path("llm.list")
     with open(yml_file) as f:
         data = yaml.safe_load(f)
 
@@ -150,6 +156,10 @@ class LlmFactory(BaseModel):
     cache: str | None = None
     llm_params: dict = {}
 
+    @property
+    def provider(self) -> str:
+        return self.info.id.rsplit("_")[2]
+
     @computed_field
     @cached_property
     def info(self) -> LlmInfo:
@@ -160,15 +170,12 @@ class LlmFactory(BaseModel):
     @field_validator("llm_id", mode="before")
     def check_known(cls, llm_id: str | None) -> str:
         if llm_id is None:
-            llm_id = global_config().get_str("llm", "default_model")
+            llm_id = global_config().get_str("llm.default_model")
         if llm_id not in LlmFactory.known_items():
             # TODO : have a more detailed error message
-            # raise ValueError(
-            #     f"Unknown LLM: {llm_id}; Check API key and module imports. Should be in {LlmFactory.known_items()}"
-            # )
-            logger.error(f"Unknown LLM: {llm_id}; Check API key and module imports: Return Fake one")
-            return "fake_parrot_local"
-
+            raise ValueError(
+                f"Unknown LLM: {llm_id}; Check API key and module imports. Should be in {LlmFactory.known_items()}"
+            )
         return llm_id
 
     @field_validator("cache")
@@ -204,7 +211,7 @@ class LlmFactory(BaseModel):
 
     @staticmethod
     def find_llm_id_from_type(llm_type: str) -> str:
-        llm_id = global_config().get_str("llm", llm_type, default_value="default")
+        llm_id = global_config().get_str(f"llm.{llm_type}", default="default")
         if llm_id == "default":
             raise ValueError(f"Cannot find LLM of type type : '{llm_type}' (no key found in config file)")
         if llm_id not in LlmFactory.known_items():
@@ -221,11 +228,10 @@ class LlmFactory(BaseModel):
         return self.info.id.rsplit("_", maxsplit=1)[0]
 
     def get_litellm_model_name(self) -> str:
-        model_owner, model_short_name, provider = self.info.id.rsplit("_")
-        if provider in ["openai"]:
+        if self.provider in ["openai"]:
             result = f"{self.info.model}"
         else:
-            result = f"{provider}/{self.info.model}"
+            result = f"{self.provider}/{self.info.model}"
 
         try:
             get_llm_provider(result)
@@ -269,39 +275,29 @@ class LlmFactory(BaseModel):
         common_params = {
             "temperature": 0.0,
             "cache": cache,
-            "seed": SEED,
-            # "max_retries": DEFAULT_MAX_RETRIES,   # TODO : FIX IT !!
+            # "seed": SEED,
+            "max_retries": DEFAULT_MAX_RETRIES,
             "streaming": self.streaming,
+            "model_kwargs": {"seed": SEED},
         }
 
         llm_params = common_params | self.llm_params
         if self.json_mode:
             llm_params |= {"response_format": {"type": "json_object"}}
 
-        if self.info.provider == "OpenAI":
-            # TODO : replace import by langchain_core.utils.utils.guard_import(...)
-            from langchain_openai import ChatOpenAI
+        langchain_factory_supported_profider = set(_SUPPORTED_PROVIDERS)
+        langchain_factory_supported_profider -= {"huggingface", "google_vertexai", "azure_openai"}
+        if self.info.provider in langchain_factory_supported_profider:
+            llm = init_chat_model(model=self.info.model, model_provider=self.info.provider, **llm_params)
 
-            llm = ChatOpenAI(
-                base_url="https://api.openai.com/v1/",
-                model=self.info.model,
-                **llm_params,
-            )
-        elif self.info.provider == "Groq":
-            from langchain_groq import ChatGroq
-
-            seed = llm_params.pop("seed")
-
-            llm = ChatGroq(name=self.info.model, **llm_params, model_kwargs={"seed": seed})
-
-        elif self.info.provider == "DeepInfra":
+        elif self.info.provider == "deepinfra":
             from langchain_community.chat_models.deepinfra import ChatDeepInfra
 
             llm = ChatDeepInfra(
                 name=self.info.model,
                 **llm_params,
             )
-        elif self.info.provider == "EdenAI":
+        elif self.info.provider == "edenai":
             from langchain_community.chat_models.edenai import ChatEdenAI
 
             provider, _, model = self.info.model.partition("/")
@@ -314,7 +310,7 @@ class LlmFactory(BaseModel):
                 **llm_params,
             )
 
-        elif self.info.provider == "VertexAI":
+        elif self.info.provider == "google_vertexai":
             from langchain_google_vertexai import ChatVertexAI  # type: ignore  # noqa: I001
 
             llm = ChatVertexAI(
@@ -324,22 +320,8 @@ class LlmFactory(BaseModel):
                 **llm_params,
             )  # type: ignore
             assert not self.json_mode, "json_mode not supported or coded"
-        elif self.info.provider == "Ollama":
-            from langchain_ollama import ChatOllama  # type: ignore
 
-            # ChatOllama does not have a 'standard' way to set JSON mode and streaming
-            llm_params.pop("streaming")
-            if llm_params.pop("response_format", None):
-                format = "json"
-            else:
-                format = ""
-            llm = ChatOllama(
-                model=self.info.model,
-                format=format,
-                disable_streaming=not self.streaming,
-                **llm_params,
-            )
-        elif self.info.provider == "AzureOpenAI":
+        elif self.info.provider == "azure_openai":
             from langchain_openai import AzureChatOpenAI
 
             name, _, api_version = self.info.model.partition("/")
@@ -352,11 +334,7 @@ class LlmFactory(BaseModel):
             )
             if self.json_mode:
                 llm = cast(BaseLanguageModel, llm.bind(response_format={"type": "json_object"}))
-        elif self.info.provider == "Together":
-            from langchain_together import ChatTogether  # type: ignore
-
-            llm = ChatTogether(model=self.info.model, **llm_params)
-        elif self.info.provider == "Openrouter":
+        elif self.info.provider == "openrouter":
             from langchain_openai import ChatOpenAI
             # See https://openrouter.ai/docs/parameters
 
@@ -368,18 +346,7 @@ class LlmFactory(BaseModel):
                 api_key=os.environ["OPENROUTER_API_KEY"],  # type: ignore
                 **llm_params,
             )
-        elif self.info.provider == "DeepSeek":
-            from langchain_openai import ChatOpenAI
-            # from langchain_deepseek import ChatDeepSeek  # Bugged ? (29/01)
-            # See https://api-docs.deepseek.com/guides/json_mode
-
-            llm = ChatOpenAI(
-                base_url=DEEPSEEK_API_BASE,
-                model=self.info.model,
-                api_key=os.environ["DEEPSEEK_API_KEY"],  # type: ignore
-                **llm_params,
-            )
-        elif self.info.provider == "HuggingFace":
+        elif self.info.provider == "huggingface":
             # NOT WELL TESTED
             # Also consider : https://huggingface.co/blog/inference-providers
             # see https://huggingface.co/blog/langchain
@@ -391,14 +358,14 @@ class LlmFactory(BaseModel):
                 do_sample=False,
             )  # type: ignore
             return ChatHuggingFace(llm=llm)
-
-        elif self.info.provider == "Fake":
+        elif self.info.provider == "fake":
             from langchain_core.language_models.fake_chat_models import ParrotFakeChatModel
 
             if self.info.model == "parrot":
                 llm = ParrotFakeChatModel()
             else:
                 raise ValueError(f"unsupported fake model {self.info.model}")
+
         else:
             if self.info.provider in LlmFactory.known_items():
                 raise ValueError(f"No API key found for LLM: {self.info.provider}")
@@ -413,7 +380,7 @@ class LlmFactory(BaseModel):
 
         default_llm_id = self.llm_id
         if default_llm_id is None:
-            default_llm_id = global_config().get_str("llm", "default_model")
+            default_llm_id = global_config().get_str("llm.default_model")
 
         # The field alternatives is created from our list of LLM
         alternatives = {}
@@ -595,6 +562,7 @@ def get_print_chain(string: str = "") -> RunnableLambda:
         add_1 = get_print_chain("before") | RunnableLambda(lambda x: x + 1) | get_print_chain("after")
         chain = add_1.with_config(configurable({"my_conf": "my_conf_value"}))
         print(chain.invoke(1))
+    ```
     """
 
     def fn(input: Any, config: RunnableConfig):

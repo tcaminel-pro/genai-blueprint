@@ -10,7 +10,7 @@ from python.config import global_config
 
 def llm_config(expanded=True) -> None:
     with st.expander("LLM Configuration", expanded=expanded):
-        current_llm = global_config().get_str("llm", "default_model")
+        current_llm = global_config().get_str("llm.default_model")
         index = LlmFactory().known_items().index(current_llm)
         llm = st.selectbox("default", LlmFactory().known_items(), index=index, key="select_llm")
         global_config().set_str("llm", "default_model", str(llm))
@@ -39,7 +39,7 @@ def llm_config(expanded=True) -> None:
             if st.checkbox(label="Use LangSmith for monitoring", value=True):
                 global_config().set_str("monitoring", "default", "langsmith")
                 os.environ["LANGCHAIN_TRACING_V2"] = "true"
-                os.environ["LANGCHAIN_PROJECT"] = global_config().get_str("monitoring", "project")
+                os.environ["LANGCHAIN_PROJECT"] = global_config().get_str("monitoring.project")
                 os.environ["LANGCHAIN_TRACING_SAMPLING_RATE"] = "1.0"
 
             else:

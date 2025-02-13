@@ -189,7 +189,7 @@ def create_bm25_index(k: int = 20):
     logger.info("create BM25 index")
     docs_for_bm25 = list(load_objects_from_jsonl(FILES, Document))
     docs = docs_for_bm25
-    path = Path(global_config().get_str("vector_store", "path")) / "bm25"
+    path = Path(global_config().get_str("vector_store.path")) / "bm25"
     fn = get_spacy_preprocess_fn(model="fr_core_news_sm", more_stop_words=STOP_WORDS)  # noqa: F821
     retriever = BM25FastRetriever.from_documents(documents=docs, preprocess_func=fn, k=k, cache_dir=path)
     return retriever
@@ -204,7 +204,7 @@ def bm25_index_search(query: str, k: int = 20) -> None:
 
 @app.command()
 def bm25_search(query: str, k: int = 10) -> None:
-    path = Path(global_config().get_str("vector_store", "path")) / "bm25"
+    path = Path(global_config().get_str("vector_store.path")) / "bm25"
 
     fn = get_spacy_preprocess_fn(model="fr_core_news_sm", more_stop_words=STOP_WORDS)  # noqa: F821
     retriever = BM25FastRetriever.from_cache(preprocess_func=fn, k=k, cache_dir=path)

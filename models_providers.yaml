@@ -33,12 +33,12 @@
 
 llm:
 
-- provider: Fake
+- provider: fake
   models:
     - id: fake_parrot_local  # usefull for tests
       model: parrot 
 
-- provider: OpenAI
+- provider: openai
   models:
     - id: gpt_35_openai
       model: gpt-3.5-turbo-0125
@@ -47,7 +47,7 @@ llm:
     - id: gpt_4omini_openai
       model: gpt-4o-mini
 
-- provider: DeepInfra
+- provider: huggingface
   models:
     - id: llama31_70_deepinfra
       model: meta-llama/Meta-Llama-3.1-70B-Instruct
@@ -68,9 +68,7 @@ llm:
     - id: llama32_90V_deepinfra
       model: meta-llama/Llama-3.2-90B-Vision-Instruct
 
-
-
-- provider: Groq
+- provider: groq
   models:
     - id: llama33_70_groq
       model: llama-3.3-70b-versatile
@@ -79,35 +77,33 @@ llm:
     - id: mixtral_7x8_groq
       model: Mixtral-8x7b-32768
 
-- provider: Together
+- provider: together
   models:
     - id: llama31_70_together
       model: meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo
     - id: qwen2_72_together
       model: Qwen/Qwen1.5-72B-Chat
 
-- provider: VertexAI
+- provider: google_vertexai
   models:
     - id: gemini_pro_google
       model: gemini-pro
 
-- provider: Ollama
+- provider: ollama
   models:
     - id: llama32_3_ollama
-      model: llama3.2:3b
+      model: llama3.2:latest
     - id: gemma2_2_ollama
       model: gemma2:2b
-    # - id: llava_phi3_ollama
-    #   model: llava-phi3 
-    - id: llava_16_ollama
-      model: llava:7b
+    - id: llava_phi3_ollama
+      model: llava-phi3 
     - id: falcon3_3_ollama
       model: falcon3
 
-- provider: EdenAI
+- provider: edenai
   models:
     - id: gpt_4o_edenai
-      model: open ai/gpt-4o
+      model: openai/gpt-4o
     - id: gpt_4_edenai
       model: openai/gpt-4
     - id: gpt_4omini_edenai
@@ -117,92 +113,52 @@ llm:
     - id: google_gemini15flash_edenai
       model: google/gemini-1.5-flash
 
-- provider: AzureOpenAI
-  #Azure models using Eden provided API
+- provider: azure_openai
   models:
     - id: gpt_4t_azure
       model: gpt4-turbo/2023-05-15
-    - id: gpt_4_azure
-      model: gpt4/2023-05-15
     - id: gpt_35_azure
       model: gpt-35-turbo/2023-05-15
     - id: gpt_4o_azure
       model: gpt-4o/2024-02-15-preview
-    # - id: gpt_4omini_azure
-    #   model: gpt-4o-mini/2024-02-15-preview
 
-
-- provider: DeepSeek
+- provider: deepseek
   models:
   - id :   deepseek_chatv3_deepseek
     model : deepseek-chat
   - id :   deepseek_R1_deepseek
     model : deepseek-reasoner
 
-- provider: HuggingFace    
+- provider: huggingface    
   models:
   - id: zephyr_7b_huggingface 
     model: "HuggingFaceH4/zephyr-7b-beta"
 
-
-- provider: Openrouter
+- provider: anthropic
   models:
-    - id: gpt_4omini_openrouter
-      model: openai/o1-mini-2024-09-12
     - id: claude_sonnet35_openrouter
       model: anthropic/claude-3.5-sonnet
     - id: claude_haiku35_openrouter
       model: anthropic/claude-3-5-haiku
-    - id: qwen25_72_openrouter
-      model: qwen/qwen-2.5-72b-instruct
-    - id: qwen25_coder32_openrouter
-      model: qwen/qwen-2.5-coder-32b-instruct
-    - id: liquid_lfm40_openrouter
-      model: liquid/lfm-40b
-    - id: nvidia_nemotrom70_openrouter
-      model: nvidia/llama-3.1-nemotron-70b-instruct
-    - id: google_gemini15flash_openrouter
-      model: google/gemini-flash-1.5
-    - id: google_gemini15pro_openrouter
-      model: google/gemini-pro-1.5
-    - id: mistral_nemo_openrouter
-      model: mistralai/mistral-nemo
-    - id: mistral_large2_openrouter
-      model: mistralai/mistral-large-2411      
-    - id: llama33_70_openrouter
-      model: meta-llama/llama-3.3-70b-instruct   
-    - id: nova_pro10_openrouter
-      model: amazon/nova-pro-v1
-    - id: nova_lite10_openrouter
-      model: amazon/nova-lite-v1
-    - id: llama32_90V_openrouter
-      # model: meta-llama/llama-3.2-90b-vision-instruct:free
-      model: meta-llama/llama-3.2-90b-vision-instruct
-    - id: qwen2_vl72_openrouter
-      model: qwen/qwen-2-vl-72b-instruct
-    - id: deepseek_chatv3_openrouter
-      model: deepseek/deepseek-chat
-    - id: sonar_reasoning_openrouter
-      model: perplexity/sonar-reasoning
 
 ########################
 # Embeddings models 
 ########################
 
 embeddings:
-- cls: OpenAIEmbeddings
+- provider: openai
   models:
     - id: ada_002_openai
       model: text-embedding-ada-002
       key: OPENAI_API_KEY
 
-- cls: GoogleGenerativeAIEmbeddings
+- provider: google_genai
   models:
     - id: embedding_001_google
       model: text-embedding-ada-002
       key: GOOGLE_API_KEY
 
-- cls: HuggingFaceEmbeddings
+- provider: huggingface
   models:
     - id: multilingual_MiniLM_local
       model: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
@@ -235,13 +191,13 @@ embeddings:
       model: llmrails/ember-v1
       key: 
 
-- cls: HuggingFaceBgeEmbeddings  # Not implemented yet
+- provider: huggingface  # Not implemented yet
   models:
     - id: bge15_large
       model: BAAI/bge-large-en-v1.5
       key: 
 
-- cls: EdenAiEmbeddings
+- provider: edenai
   models:
     - id: ada_002_edenai
       model: openai/1536__text-embedding-ada-002
@@ -250,14 +206,13 @@ embeddings:
       model: mistral/1024__mistral-embed
       key: EDENAI_API_KEY
 
-- cls: AzureOpenAIEmbeddings
+- provider: azure_openai
   models:
     - id: ada_002_azure
       model: text-embedding-ada-002/2023-05-15
       key: AZURE_OPENAI_API_KEY
 
-- cls: OllamaEmbeddings
+- provider: ollama
   models:
     - id: artic_22_ollama
       model: snowflake-arctic-embed:22m
-

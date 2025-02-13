@@ -25,17 +25,17 @@ def test_get_str_with_env_var(monkeypatch) -> None:
     monkeypatch.setenv("TEST_VAR", "substituted_value")
     config = Config.singleton()
     config.set_str("test", "path", "${TEST_VAR}/file.txt")
-    assert config.get_str("test", "path") == "substituted_value/file.txt"
+    assert config.get_str("test.path") == "substituted_value/file.txt"
 
 
 def test_config_section_switch() -> None:
     """Verify switching between configuration sections works."""
     config = Config.singleton()
-    original_value = config.get_str("llm", "default_model")
+    original_value = config.get_str("llm.default_model")
 
     # Switch to a different config section
     config.select_config("training_azure")
-    new_value = config.get_str("llm", "default_model")
+    new_value = config.get_str("llm.default_model")
 
     assert new_value != original_value
 
@@ -44,18 +44,18 @@ def test_runtime_modification() -> None:
     """Verify runtime modifications to config values."""
     config = Config.singleton()
     config.set_str("test", "temp_value", "initial")
-    assert config.get_str("test", "temp_value") == "initial"
+    assert config.get_str("test.temp_value") == "initial"
 
     # Modify the value
     config.set_str("test", "temp_value", "modified")
-    assert config.get_str("test", "temp_value") == "modified"
+    assert config.get_str("test.temp_value") == "modified"
 
 
 def test_missing_key() -> None:
     """Verify error handling for missing configuration keys."""
     config = Config.singleton()
     with pytest.raises(ValueError):
-        config.get_str("nonexistent", "key")
+        config.get_str("nonexistent.key")
 
 
 def test_get_list() -> None:

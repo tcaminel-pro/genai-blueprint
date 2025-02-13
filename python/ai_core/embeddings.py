@@ -30,7 +30,6 @@ Example:
 
 import os
 from functools import cached_property, lru_cache
-from pathlib import Path
 from typing import Annotated
 
 import yaml
@@ -54,19 +53,19 @@ class EmbeddingsInfo(BaseModel):
 
     Attributes:
         id: Unique identifier for the embeddings model
-        cls: Name of the embeddings model constructor
+        provider: Name of the embeddings model constructor
         model: Provider name of the model
         key: Optional API key for accessing the model
         prefix: Optional prefix required by some models in API calls
     """
 
     id: str
-    cls: str
+    provider: str
     model: str
     key: str | None = None
     prefix: str = ""
 
-    def get_key(self):
+    def get_key(self) -> str:
         """Retrieve the API key from environment variables.
 
         Returns:
@@ -83,7 +82,7 @@ class EmbeddingsInfo(BaseModel):
         else:
             return ""
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.id)
 
 
@@ -96,15 +95,14 @@ def _read_embeddings_list_file() -> list[EmbeddingsInfo]:
     Raises:
         AssertionError: If configuration file is not found
     """
-    yml_file = Path(global_config().get_str("embeddings", "list"))
-    assert yml_file.exists(), f"cannot find {yml_file}"
+    yml_file = global_config().get_path("embeddings.list")
     with open(yml_file) as f:
         data = yaml.safe_load(f)
     embeddings = []
-    for provider in data["embeddings"]:
-        cls = provider["cls"]
-        for model in provider["models"]:
-            model["cls"] = cls
+    for item in data["embeddings"]:
+        provider = item["provider"]
+        for model in item["models"]:
+            model["provider"] = provider
             embeddings.append(EmbeddingsInfo(**model))
     return embeddings
 
@@ -147,7 +145,7 @@ class EmbeddingsFactory(BaseModel):
 
         """
         if embeddings_id is None:
-            embeddings_id = global_config().get_str("embeddings", "default_model")
+            embeddings_id = global_config().get_str("embeddings.default_model")
         if embeddings_id not in EmbeddingsFactory.known_items():
             raise ValueError(f"Unknown Embeddings: {embeddings_id}")
         return embeddings_id
@@ -208,30 +206,30 @@ class EmbeddingsFactory(BaseModel):
         Raises:
             ValueError: If embeddings model is not supported
         """
-        if self.info.cls == "OpenAIEmbeddings":
+        if self.info.provider == "openai":
             from langchain_openai import OpenAIEmbeddings
 
             emb = OpenAIEmbeddings()
-        elif self.info.cls == "GoogleGenerativeAIEmbeddings":
+        elif self.info.provider == "google_genai":
             from langchain_google_genai import GoogleGenerativeAIEmbeddings  # type: ignore  # noqa: I001
 
             emb = GoogleGenerativeAIEmbeddings(model=self.info.model)  # type: ignore
-        elif self.info.cls == "HuggingFaceEmbeddings":
+        elif self.info.provider == "huggingface":
             from langchain_huggingface import HuggingFaceEmbeddings
 
-            cache = global_config().get_str("embeddings", "cache")
+            cache = global_config().get_str("embeddings.cache")
             emb = HuggingFaceEmbeddings(
                 model_name=self.info.model,
                 model_kwargs={"device": "cpu", "trust_remote_code": True},
                 encode_kwargs={"normalize_embeddings": True},
                 cache_folder=cache,
             )
-        elif self.info.cls == "EdenAiEmbeddings":
+        elif self.info.provider == "edenai":
             from langchain_community.embeddings.edenai import EdenAiEmbeddings
 
             provider, _, model = self.info.model.partition("/")
             emb = EdenAiEmbeddings(model=model, provider=provider, edenai_api_key=None)
-        elif self.info.cls == "AzureOpenAIEmbeddings":
+        elif self.info.provider == "azure_openai":
             from langchain_openai import AzureOpenAIEmbeddings
 
             name, _, api_version = self.info.model.partition("/")
@@ -240,12 +238,12 @@ class EmbeddingsFactory(BaseModel):
                 model=name,  # Not sure it's needed
                 api_version=api_version,
             )
-        elif self.info.cls == "OllamaEmbeddings":
+        elif self.info.provider == "ollama":
             from langchain_ollama import OllamaEmbeddings
 
             emb = OllamaEmbeddings(model=self.info.model)
         else:
-            raise ValueError(f"unsupported Embeddings class {self.info.cls}")
+            raise ValueError(f"unsupported Embeddings class {self.info.provider}")
         return emb
 
     def get_cached_embedder(self) -> CacheBackedEmbeddings:
@@ -254,7 +252,7 @@ class EmbeddingsFactory(BaseModel):
         Returns:
             Cached embeddings model with persistent storage
         """
-        file_store_path = Path(global_config().get_str("kv_store", "path"))
+        file_store_path = global_config().get_path("kv_store.path")
         file_store = LocalFileStore(file_store_path / "embeddings_cache")
         cached_embedder = CacheBackedEmbeddings.from_bytes_store(self.get(), file_store, namespace=self.embeddings_id)  # type: ignore
         return cached_embedder

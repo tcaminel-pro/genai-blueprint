@@ -23,6 +23,7 @@ import typer
 from devtools import pprint
 from dotenv import load_dotenv
 from langchain.globals import set_debug, set_verbose
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import Runnable
 
 # Import modules where runnables are registered
@@ -57,17 +58,17 @@ cli_app = typer.Typer(
 )
 
 
-def define_llm_related_commands(cli_app: typer.Typer):
+def define_llm_related_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def llm(
         input: str | None = None,  # input
-        cache="memory",
+        cache: str = "memory",
         temperature: Annotated[float, Option("--temperature", "--temp", min=0.0, max=1.0)] = 0.0,
         stream: Annotated[bool, Option("--stream", "-s")] = False,
         lc_verbose: Annotated[bool, Option("--verbose", "-v")] = False,
         lc_debug: Annotated[bool, Option("--debug", "-d")] = False,
         llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
-    ):
+    ) -> None:
         """
         Invoke an LLM.
 
@@ -85,7 +86,7 @@ def define_llm_related_commands(cli_app: typer.Typer):
             if llm_id not in LlmFactory.known_items():
                 print(f"Error: {llm_id} is unknown llm_id.\nShould be in {LlmFactory.known_items()}")
                 return
-            global_config().set_str("llm", "default_model", llm_id)
+            global_config().set("llm.default_model", llm_id)
 
         # Check if executed as part ot a pipe
         if not input:
@@ -95,7 +96,7 @@ def define_llm_related_commands(cli_app: typer.Typer):
             return
 
         llm = LlmFactory(
-            llm_id=llm_id or global_config().get_str("llm", "default_model"),
+            llm_id=llm_id or global_config().get_str("llm.default_model"),
             json_mode=False,
             streaming=stream,
             cache=cache,
@@ -115,13 +116,13 @@ def define_llm_related_commands(cli_app: typer.Typer):
         runnable_name: str,  # name (description) of the Runnable
         input: str | None = None,  # input
         path: Path | None = None,  # input
-        cache="memory",
+        cache: str = "memory",
         temperature: Annotated[float, Option("--temperature", "--temp", min=0.0, max=1.0)] = 0.0,
         stream: Annotated[bool, Option("--stream", "-s")] = False,
         lc_verbose: Annotated[bool, Option("--verbose", "-v")] = False,
         lc_debug: Annotated[bool, Option("--debug", "-d")] = False,
         llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
-    ):
+    ) -> None:
         """
         Run a Runnable or directly invoke an LLM.
 
@@ -140,7 +141,7 @@ def define_llm_related_commands(cli_app: typer.Typer):
             if llm_id not in LlmFactory.known_items():
                 print(f"Error: {llm_id} is unknown llm_id.\nShould be in {LlmFactory.known_items()}")
                 return
-            global_config().set_str("llm", "default_model", llm_id)
+            global_config().set("llm.default_model", llm_id)
 
         load_modules_with_chains()
 
@@ -157,7 +158,7 @@ def define_llm_related_commands(cli_app: typer.Typer):
             first_example = runnable_item.examples[0]
             llm_args = {"temperature": temperature}
             config = {
-                "llm": llm_id if llm_id else global_config().get_str("llm", "default_model"),
+                "llm": llm_id if llm_id else global_config().get_str("llm.default_model"),
                 "llm_args": llm_args,
             }
             if path:
@@ -180,7 +181,7 @@ def define_llm_related_commands(cli_app: typer.Typer):
             pprint(result)
 
     @cli_app.command()
-    def chain_info(name: str):
+    def chain_info(name: str)-> None:
         """
         Return information on a given chain, including input and output schema.
         """
@@ -206,7 +207,7 @@ def define_llm_related_commands(cli_app: typer.Typer):
                 pass
 
     @cli_app.command()
-    def list_models():
+    def list_models()-> None:
         """
         List the known LLMs, embeddings models, and vector stores.
         """
@@ -223,7 +224,7 @@ def define_llm_related_commands(cli_app: typer.Typer):
             print(f"{tab}{tab}- {vc}")
 
     @cli_app.command()
-    def llm_info_dump(file_name: Path):
+    def llm_info_dump(file_name: Path)-> None:
         """
         Write a list of LLMs in YAML format to the specified file.
         """
@@ -272,7 +273,7 @@ def define_other_commands(cli_app: typer.Typer) -> None:
             print(f"Error: unknown llm_id. \n Should be in {LlmFactory.known_items()}")
             return
 
-        config = {"llm": llm_id if llm_id else global_config().get_str("llm", "default_model")}
+        config = {"llm": llm_id if llm_id else global_config().get_str("llm.default_model")}
         chain = get_fabric_chain(config)
         input = repr("\n".join(sys.stdin))
         input = input.replace("{", "{{").replace("}", "}}")

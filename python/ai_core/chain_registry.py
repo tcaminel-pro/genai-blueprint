@@ -30,7 +30,6 @@ Example:
 """
 
 import importlib
-from pathlib import Path
 from typing import Any, Callable
 
 from langchain_core.runnables import Runnable, RunnableLambda
@@ -92,7 +91,7 @@ class RunnableItem(BaseModel):
 
     def get(self, conf=None) -> Runnable:
         if conf is None:
-            conf = {}
+            conf = {"llm": None}
         if isinstance(self.runnable, Runnable):
             runnable = self.runnable
         elif isinstance(self.runnable, Callable):
@@ -170,12 +169,10 @@ def load_modules_with_chains() -> None:
         Exception: If module loading fails (logged as warning)
     """
     config = Config.singleton()
-    path = config.get_str("chains", "path")
-    modules = config.get_list("chains", "modules")
-    assert Path(path).exists
+    modules = config.get_list("chains.modules")
 
     for module in modules:
         try:
-            importlib.import_module(f"{path}.{module}")
+            importlib.import_module(module)
         except Exception as ex:
             logger.warning(f"Cannot load module {module}: {ex}")

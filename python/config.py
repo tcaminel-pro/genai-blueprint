@@ -1,223 +1,180 @@
-"""Configuration Manager for the application.
+"""
+Configuration Manager using OmegaConf.
 
 This module handles loading and managing application configuration from a YAML file (app_conf.yaml).
 The configuration supports environment variable substitution and multiple environments.
 
 Key Features:
 - Loads configuration from app_conf.yaml in current directory or parent directory
-- Supports environment variable substitution in config values (e.g., ${HOME})
-- Provides hierarchical configuration with default and environment-specific overrides
+- Supports environment variable substitution in config values (e.g., {oc.env:HOME})
+- Provides hierarchical configuration with baseline and environment-specific overrides
 - Allows runtime configuration modifications
 - Implements singleton pattern for global access
 
 Configuration File Structure:
-- 'default' section contains base configuration
+- 'baseline' section contains base configuration
 - Additional sections provide environment-specific overrides
-- Environment variables can be used in values (e.g., ${HOME}/path)
+- Environment variables can be used in values (e.g., {oc.env:HOME}/path)
 
-Environment Variables:
-- BLUEPRINT_CONFIG: Selects which configuration section to use as override
-- Other variables can be referenced in config values
+Configuration selection order:
+1 - selected programmatically by 'select_config"
+2 - defined in BLUEPRINT_CONFIG environment variable
+3 - defined by key 'default_config'
+4 - baseline only
+
 
 Example Usage:
     # Get a config value
-    model = global_config().get_str("llm", "default_model")
-
-    # Access singleton config
-    config = Config.singleton()
-    config.select_config("local")  # Switch to local config
+    model = global_config().get("llm.default_model")
+    global_config().select_config("local")  # Switch to local config
+    # Set a runtime override
+    global_config().set("llm.default_model", "gpt-4")
 """
 
-import os
-import re
-import sys
-from collections import ChainMap, defaultdict
-from pathlib import Path
-from typing import Any, cast
+# regexp :
+# get_str\(([^,]+)",\s"*([^,]+)\)
+# -> get_str($1.$2)
 
-import yaml
-from dotenv import load_dotenv
+import os
+import sys
+from pathlib import Path
+from typing import Any, Optional
+
 from loguru import logger
-from pydantic import BaseModel
+from omegaconf import DictConfig, ListConfig, OmegaConf
+from pydantic import BaseModel, ConfigDict
 
 from python.utils.singleton import once
 
-load_dotenv(verbose=True, override=True)
-
-
 CONFIG_FILE = "app_conf.yaml"
-
-
+# Ensure PWD is set correctly
 os.environ["PWD"] = os.getcwd()  # Hack because PWD is sometime set to a Windows path in WSL
 
 
 class Config(BaseModel):
-    """Application configuration manager.
+    """Application configuration manager using OmegaConf."""
 
-    Example usage:
-        # Get the singleton instance
-        config = Config.singleton()
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-        # Access configuration values
-        model = config.get_str("llm", "default_model")
+    root: DictConfig
+    selected_config: str
 
-        # Modify configuration at runtime
-        config.set_str("llm", "default_model", "gpt-4")
+    @property
+    def selected(self) -> DictConfig:
+        return self.root.get(self.selected_config)
 
-        # Switch to a different configuration section
-        config.select_config("production")
-
-        # Access list values
-        models = config.get_list("llm", "available_models")
-    """
-
-    raw_config: dict[str, dict[str, Any] | str] = {}
-    selected_config_name: str = "baseline"
-    _modified_fields: dict[str, dict[str, Any]] = defaultdict(dict)
+    @property
+    def baseline(self) -> DictConfig:
+        return self.root.get("baseline")
 
     @once()
     def singleton() -> "Config":
         """Returns the singleton instance of Config."""
-        """Load configuration from YAML file in current dir or its parent."""
+        # Find config file
         yml_file = Path.cwd() / CONFIG_FILE
         if not yml_file.exists():
             yml_file = Path.cwd().parent / CONFIG_FILE
-
-        assert yml_file.exists(), f"cannot find {yml_file}"
+        assert yml_file.exists(), f"cannot find config file: '{yml_file}'"
         logger.info(f"load {yml_file}")
+        config = OmegaConf.load(yml_file)
+        assert isinstance(config, DictConfig)
 
-        with open(yml_file) as f:
-            data = cast(dict, yaml.safe_load(f))
-
-        config_name_from_env = os.environ.get("BLUEPRINT_CONFIG", None)
-        config_name_from_yaml = data.get("default_config", None)
-
-        if config_name_from_env and config_name_from_env not in data:
+        # Determine which config to use
+        config_name_from_env = os.environ.get("BLUEPRINT_CONFIG")
+        config_name_from_yaml = config.get("default_config")
+        if config_name_from_env and config_name_from_env not in config:
             logger.warning(
-                f"Configuration selected by environment variable 'BLUEPRINT_CONFIG' not found in config file: {config_name_from_env}' "
+                f"Configuration selected by environment variable 'BLUEPRINT_CONFIG' not found: {config_name_from_env}"
             )
             config_name_from_env = None
-        if config_name_from_yaml and config_name_from_yaml not in data:
-            logger.warning(
-                f"Configuration selected by key 'default_config' not found in config file: {config_name_from_env}' "
-            )
+        if config_name_from_yaml and config_name_from_yaml not in config:
+            logger.warning(f"Configuration selected by key 'default_config' not found: {config_name_from_yaml}")
             config_name_from_yaml = None
-        config_name = config_name_from_env or config_name_from_yaml or "baseline"
-
-        return Config(raw_config=data, selected_config_name=config_name)
-
-    @property
-    def baseline_config(self) -> dict:
-        """Get the baseline configuration section."""
-        r = self.raw_config.get("baseline", {})
-        assert isinstance(r, dict)
-        return r
-
-    @property
-    def overridden_config(self) -> dict[str, dict[str, Any]]:
-        """Get the currently active overridden configuration section."""
-        if self.selected_config_name == "baseline":
-            return {}
-        if result := self.raw_config.get(self.selected_config_name):
-            assert isinstance(result, dict)
-            return result
-        else:
-            return self.baseline_config
+        selected_config = config_name_from_env or config_name_from_yaml or "baseline"
+        logger.info(f"selected_config={selected_config}")
+        return Config(root=config, selected_config=selected_config)
 
     def select_config(self, config_name: str) -> None:
         """Select a different configuration section to override defaults."""
-        if config_name not in self.raw_config:
+        if config_name not in self.root:
             logger.error(f"Configuration section '{config_name}' not found")
             raise ValueError(f"Configuration section '{config_name}' not found")
         logger.info(f"Switching to configuration section: {config_name}")
-        self.selected_config_name = config_name
+        self.selected_config = config_name
 
-    def _get_config(self, group: str, key: str, default_value: Any | None = None) -> Any:
-        """Return the value of a key using ChainMap to query runtime, overridden, and default config.
-        Raise an exception if key not found and no default value is given.
+    def get(self, key: str, default: Optional[Any] = None) -> Any:
+        """Get a configuration value using dot notation.
+        Args:
+            key: Configuration key in dot notation (e.g., "llm.default_model")
+            default: Default value if key not found
+        Returns:
+            The configuration value or default if not found
         """
-        # Create a ChainMap with runtime modifications first, then overridden, then default
-
-        config_map = ChainMap(
-            self._modified_fields.get(group, {}),
-            self.overridden_config.get(group, {}),
-            self.baseline_config.get(group, {}),
-        )
-
-        value = config_map.get(key, default_value)
-        if value is None:
-            logger.warning(f"Error accessing configuration for {group}/{key}")
-            raise ValueError(f"no key {group}/{key} in file {CONFIG_FILE}")
-        return value
-
-    # def select_config(self, config: str):
-    #     overridden_config = data.get(config, {})
-    #     else:
-    #         overridden_config = {}
-
-    def get_str(self, group: str, key: str, default_value: str | None = None) -> str:
-        """Return the value of a key of type string.
-        If it contains an environment variable in the form $(XXX), replace it.
-        Raise an exception if key not found and no default value is given.
-
-        Example:
-            # In config file:
-            # default:
-            #   paths:
-            #     data: "${HOME}/data"
-
-            # In code:
-            data_path = config.get_str("paths", "data")
-            # If HOME=/user, returns "/user/data"
-        """
-        value = self._get_config(group, key, default_value)
-        if isinstance(value, str):
-            # replace environment variable name by its value
-            value = re.sub(r"\${(\w+)}", lambda f: os.environ.get(f.group(1), ""), value)
-        else:
-            raise ValueError(f"configuration key {group}/{key} is not a string")
-        return value
-
-    def get_list(self, group: str, key: str, default_value: list[str] | None = None) -> list:
-        """Return the value of a key of type list.
-        Raise an exception if key not found and no default value is given.
-
-        Example:
-            # In config file:
-            # default:
-            #   llm:
-            #     models: ["gpt-3.5", "gpt-4"]
-
-            # In code:
-            models = config.get_list("llm", "models")
-            # Returns ["gpt-3.5", "gpt-4"]
-        """
-        value = self._get_config(group, key, default_value)
-        if isinstance(value, list):
+        # Create merged config with runtime overrides first
+        merged = OmegaConf.merge(self.baseline, self.selected)
+        try:
+            value = OmegaConf.select(merged, key)
+            if value is None:
+                if default is not None:
+                    return default
+                else:
+                    raise ValueError(f"Configuration key '{key}' not found")
             return value
-        raise ValueError(f"configuration key {group}/{key} is not a list")
+        except Exception as e:
+            if default is not None:
+                return default
+            raise ValueError(f"Configuration key '{key}' not found") from e
 
-    def set_str(self, group: str, key: str, value: str) -> None:
-        """Add or override a key value in the runtime configuration."""
-        self._modified_fields[group][key] = value
+    def set(self, key: str, value: Any) -> None:
+        """Set a runtime configuration value using dot notation.
+        Args:
+            key: Configuration key in dot notation (e.g., "llm.default_model")
+            value: Value to set
+        """
+        OmegaConf.update(self.selected, key, value, merge=True)
+
+    def get_str(self, key: str, default: Optional[str] = None) -> str:
+        """Get a string configuration value."""
+        value = self.get(key, default)
+        if not isinstance(value, str):
+            raise ValueError(f"Configuration value for '{key}' is not a string")
+        return value
+
+    def get_list(self, key: str, default: Optional[list] = None) -> list:
+        """Get a list configuration value."""
+        value = self.get(key, default)
+        if not isinstance(value, ListConfig):
+            raise ValueError(f"Configuration value for '{key}' is not a list")
+        return list(value)
+
+    def get_path(self, key: str, create_if_not_exists: bool = False) -> Path:
+        """Get a file or dir path."""
+        path = Path(self.get_str(key))
+        if not path.exists():
+            if create_if_not_exists:
+                path.mkdir()
+            else:
+                raise ValueError(f"Path value for '{key}' does not exists: '{path}'")
+        return path
 
 
 def global_config() -> Config:
-    ### Get the global config singleton ###
+    """Get the global config singleton."""
     return Config.singleton()
 
 
 def config_loguru() -> None:
     """Configure the logger."""
-    # @TODO: Set config in config file
-
-    FORMAT_STR = "<green>{time:HH:mm:ss}</green> | <level>{level: <7}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
+    format_str = global_config().root.get(
+        "log_format",
+        "<green>{time:HH:mm:ss}</green> | <level>{level: <7}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+    )
 
     logger.remove()
     logger.add(
         sys.stderr,
         colorize=True,
-        format=FORMAT_STR,
+        format=format_str,
         backtrace=False,
         diagnose=True,
     )
@@ -225,13 +182,24 @@ def config_loguru() -> None:
 
 ## for quick test ##
 if __name__ == "__main__":
-    global_config().select_config("training_azure")
-    llm = global_config().get_str("llm", "default_model")
-    print(llm)
+    # Get a config value
+    model = global_config().get("llm.default_model")
+    print(model)
+    # Set a runtime override
+    global_config().set("llm.default_model", "gpt-4")
+    model = global_config().get("llm.default_model")
+    print(model)
+    # Switch configurations
+    global_config().select_config("local")
+    model = global_config().get("llm.default_model")
+    print(model)
+    print(global_config().get_list("chains.modules"))
 
-    global_config().set_str("llm", "default_model", "another_llm")
-    llm = global_config().get_str("llm", "default_model")
-    print(llm)
+    global_config().set("llm.default_model", "foo")
+    print(global_config().get_str("llm.default_model"))
 
-    llm_list = global_config().get_str("llm", "list")
-    print(llm_list)
+    global_config().select_config("edc_local")
+    print(global_config().get_path("ecod_project.datasets_root"))
+
+    print(global_config().root.default_config)
+    print(global_config().selected.llm.default_model)
