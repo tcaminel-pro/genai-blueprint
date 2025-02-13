@@ -29,6 +29,7 @@ dependencies = [
     "chromadb>=0.5,<0.6",
     "litellm>=1,<2",
     "omegaconf>=2.3.0",
+    "langchain-deepseek>=0.1.2",
 ]
 
 [project.urls]

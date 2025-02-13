@@ -1125,6 +1125,7 @@ dependencies = [
     { name = "langchain-chroma" },
     { name = "langchain-community" },
     { name = "langchain-core" },
+    { name = "langchain-deepseek" },
     { name = "langchain-experimental" },
     { name = "langchain-groq" },
     { name = "langchain-huggingface" },
@@ -1212,6 +1213,7 @@ requires-dist = [
     { name = "langchain-chroma", specifier = ">=0.2,<0.3" },
     { name = "langchain-community", specifier = ">=0.3,<0.4" },
     { name = "langchain-core", specifier = ">=0.3,<0.4" },
+    { name = "langchain-deepseek", specifier = ">=0.1.2" },
     { name = "langchain-experimental", specifier = ">=0.3,<0.4" },
     { name = "langchain-groq", specifier = ">=0.2,<0.3" },
     { name = "langchain-huggingface", specifier = ">=0.1,<0.2" },
@@ -2052,6 +2054,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/56/5c/5ed0aa88d0ffc52634b97dcd971d675cfc55072b28f7723bba2ef9432bad/langchain_core-0.3.35.tar.gz", hash = "sha256:328688228ece259da734417d477994a69cf8202dea9ed4271f2d792e3575c6fc", size = 525736 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/94/63/be67b8ab4f4cf07b8da65a67ff72ea870ec8cf9f2e95e3a5b837a5604d1b/langchain_core-0.3.35-py3-none-any.whl", hash = "sha256:81a4097226e180fa6c64e2d2ab38dcacbbc23b64fc109fb15622910fe8951670", size = 413151 },
+]
+
+[[package]]
+name = "langchain-deepseek"
+version = "0.1.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "langchain-openai" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/76/50/53c67820df28cd15b53eb4bd6b8e212bf74ea50448637bd9c057897884db/langchain_deepseek-0.1.2.tar.gz", hash = "sha256:0ccb482d1241ed16a5578dcb7606b847d923b7dd56737e7e5ba20be635d0ca34", size = 5437 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/43/94/8a7b5629a784e40024ae9e352c656f63a8c94184f4477b60a6c2a42bac7d/langchain_deepseek-0.1.2-py3-none-any.whl", hash = "sha256:6ec76c621670afa763671eba8a54ff356b1772f3779fea4ea963cf01e5119145", size = 5627 },
 ]
 
 [[package]]

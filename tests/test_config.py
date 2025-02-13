@@ -10,27 +10,27 @@ These tests verify:
 
 import pytest
 
-from python.config import Config
+from python.config import OmegaConfig
 
 
 def test_singleton() -> None:
     """Verify the singleton pattern works correctly."""
-    config1 = Config.singleton()
-    config2 = Config.singleton()
+    config1 = OmegaConfig.singleton()
+    config2 = OmegaConfig.singleton()
     assert config1 is config2
 
 
 def test_get_str_with_env_var(monkeypatch) -> None:
     """Test environment variable substitution in config values."""
     monkeypatch.setenv("TEST_VAR", "substituted_value")
-    config = Config.singleton()
+    config = OmegaConfig.singleton()
     config.set_str("test", "path", "${TEST_VAR}/file.txt")
     assert config.get_str("test.path") == "substituted_value/file.txt"
 
 
 def test_config_section_switch() -> None:
     """Verify switching between configuration sections works."""
-    config = Config.singleton()
+    config = OmegaConfig.singleton()
     original_value = config.get_str("llm.default_model")
 
     # Switch to a different config section
@@ -42,7 +42,7 @@ def test_config_section_switch() -> None:
 
 def test_runtime_modification() -> None:
     """Verify runtime modifications to config values."""
-    config = Config.singleton()
+    config = OmegaConfig.singleton()
     config.set_str("test", "temp_value", "initial")
     assert config.get_str("test.temp_value") == "initial"
 
@@ -53,14 +53,14 @@ def test_runtime_modification() -> None:
 
 def test_missing_key() -> None:
     """Verify error handling for missing configuration keys."""
-    config = Config.singleton()
+    config = OmegaConfig.singleton()
     with pytest.raises(ValueError):
         config.get_str("nonexistent.key")
 
 
 def test_get_list() -> None:
     """Verify retrieval of list values from config."""
-    config = Config.singleton()
+    config = OmegaConfig.singleton()
 
     result = config.get_list("chains", "modules")
     assert isinstance(result, list)

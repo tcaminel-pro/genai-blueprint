@@ -78,7 +78,6 @@ PROVIDER_INFO = {
     "openai": ("langchain_openai", "OPENAI_API_KEY"),
     "deepinfra": ("langchain_community.chat_models.deepinfra", "DEEPINFRA_API_TOKEN"),
     "groq": ("langchain_groq", "GROQ_API_KEY"),
-    "google_vertexai": ("langchain_google_vertexai", "GOOGLE_API_KEY"),
     "ollama": ("langchain_ollama", ""),
     "edenai": ("langchain_community.chat_models.edenai", "EDENAI_API_KEY"),
     "azure_openai": ("langchain_openai", "AZURE_OPENAI_API_KEY"),
@@ -86,8 +85,10 @@ PROVIDER_INFO = {
     "deepseek": ("langchain_deepseek", "DEEPSEEK_API_KEY"),
     "openrouter": ("langchain_openai", "OPENROUTER_API_KEY"),
     "huggingface": ("langchain_huggingface", "HUGGINGFACEHUB_API_TOKEN"),
+    # NOT TESTED:
     "bedrock": ("langchain_aws", "AWS_ACCESS_KEY_ID"),
     "anthropic": ("langchain_anthropic", "ANTHROPIC_API_KEY"),
+    "google_vertexai": ("langchain_google_vertexai", "GOOGLE_API_KEY"),
 }
 
 
@@ -189,8 +190,11 @@ class LlmFactory(BaseModel):
         return _read_llm_list_file()
 
     @staticmethod
-    def known_items_dict() -> dict[str, LlmInfo]:
-        """Return known LLM in the registry whose API key environment variable is known and module can be imported."""
+    def known_items_dict(explain: bool = False) -> dict[str, LlmInfo]:
+        """Return known LLM in the registry whose API key environment variable is known and module can be imported.
+
+        If 'explain', add information on debug.trace
+        """
         known_items = {}
         for item in LlmFactory.known_list():
             module_name, api_key = PROVIDER_INFO.get(item.provider, (None, None))
@@ -199,9 +203,10 @@ class LlmFactory(BaseModel):
                 spec = importlib.util.find_spec(module_name)
                 if spec is not None:
                     known_items[item.id] = item
-                else:
-                    # logger.warning(f"Module {module_name} for {item.cls} could not be imported.")
-                    pass
+                elif explain:
+                    logger.debug(f"Module {module_name} for {item.provider} could not be imported.")
+            elif explain:
+                logger.debug(f"No API key {api_key} for {item.provider}")
         return known_items
 
     @staticmethod
@@ -275,10 +280,9 @@ class LlmFactory(BaseModel):
         common_params = {
             "temperature": 0.0,
             "cache": cache,
-            # "seed": SEED,
+            "seed": SEED,
             "max_retries": DEFAULT_MAX_RETRIES,
             "streaming": self.streaming,
-            "model_kwargs": {"seed": SEED},
         }
 
         llm_params = common_params | self.llm_params
@@ -287,7 +291,12 @@ class LlmFactory(BaseModel):
 
         langchain_factory_supported_profider = set(_SUPPORTED_PROVIDERS)
         langchain_factory_supported_profider -= {"huggingface", "google_vertexai", "azure_openai"}
+
         if self.info.provider in langchain_factory_supported_profider:
+            # Some parameters are handled differently between provider. Here some workaround:
+            if self.info.provider in ["groq"]:
+                seed = llm_params.pop("seed")
+                llm_params |= {"model_kwargs": {"seed": seed}}
             llm = init_chat_model(model=self.info.model, model_provider=self.info.provider, **llm_params)
 
         elif self.info.provider == "deepinfra":
@@ -519,7 +528,7 @@ def get_llm_info(llm_id: str) -> LlmInfo:
     factory = LlmFactory(llm_id=llm_id)
     r = factory.known_items_dict().get(llm_id)
     if r is None:
-        raise ValueError(f"Unknown llm_id: {llm_id} ")
+        raise ValueError(f"Unknown llm_id: '{llm_id}' ")
     else:
         return r
 

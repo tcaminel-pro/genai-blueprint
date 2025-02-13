@@ -36,7 +36,7 @@ from langchain_core.runnables import Runnable, RunnableLambda
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, FilePath
 
-from python.config import Config
+from python.config import global_config
 
 
 class Example(BaseModel):
@@ -168,8 +168,8 @@ def load_modules_with_chains() -> None:
         AssertionError: If the specified path doesn't exist
         Exception: If module loading fails (logged as warning)
     """
-    config = Config.singleton()
-    modules = config.get_list("chains.modules")
+
+    modules = global_config().get_list("chains.modules")
 
     for module in modules:
         try:

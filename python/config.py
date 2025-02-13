@@ -51,7 +51,7 @@ CONFIG_FILE = "app_conf.yaml"
 os.environ["PWD"] = os.getcwd()  # Hack because PWD is sometime set to a Windows path in WSL
 
 
-class Config(BaseModel):
+class OmegaConfig(BaseModel):
     """Application configuration manager using OmegaConf."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -68,7 +68,7 @@ class Config(BaseModel):
         return self.root.get("baseline")
 
     @once()
-    def singleton() -> "Config":
+    def singleton() -> "OmegaConfig":
         """Returns the singleton instance of Config."""
         # Find config file
         yml_file = Path.cwd() / CONFIG_FILE
@@ -92,7 +92,7 @@ class Config(BaseModel):
             config_name_from_yaml = None
         selected_config = config_name_from_env or config_name_from_yaml or "baseline"
         logger.info(f"selected_config={selected_config}")
-        return Config(root=config, selected_config=selected_config)
+        return OmegaConfig(root=config, selected_config=selected_config)
 
     def select_config(self, config_name: str) -> None:
         """Select a different configuration section to override defaults."""
@@ -158,9 +158,9 @@ class Config(BaseModel):
         return path
 
 
-def global_config() -> Config:
+def global_config() -> OmegaConfig:
     """Get the global config singleton."""
-    return Config.singleton()
+    return OmegaConfig.singleton()
 
 
 def config_loguru() -> None:
