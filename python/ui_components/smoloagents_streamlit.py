@@ -96,7 +96,6 @@ def stream_to_streamlit(agent, task: str, reset_agent_memory: bool = False, addi
     total_input_tokens = 0
     total_output_tokens = 0
     for step_log in agent.run(task, stream=True, reset=reset_agent_memory, additional_args=additional_args):
-        debug(agent.model.last_input_token_count)
         # Track tokens if model provides them
         if hasattr(agent.model, "last_input_token_count"):
             try:

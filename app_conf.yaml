@@ -74,4 +74,4 @@ training_azure:
   embeddings:
     default_model: ada_002_azure
 
-default_config: training_azure   # can be overidden by 'BLUEPRINT_CONFIG' environment variable
+default_config: training_edenai   # can be overidden by 'BLUEPRINT_CONFIG' environment variable

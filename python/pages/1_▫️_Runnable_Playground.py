@@ -19,11 +19,7 @@ import streamlit as st
 from langchain.callbacks import tracing_v2_enabled
 from pydantic import BaseModel
 
-from python.ai_core.chain_registry import (
-    find_runnable,
-    get_runnable_registry,
-    load_modules_with_chains,
-)
+from python.ai_core.chain_registry import ChainRegistry
 from python.config import global_config
 from python.GenAI_Lab import config_sidebar
 
@@ -39,15 +35,16 @@ st.title("💬 Runnable Playground")
 # 7. Input Form: Provides text input and submission controls
 
 # Load all available runnable components from registered modules
-load_modules_with_chains()
+chain_registry = ChainRegistry.instance()
+ChainRegistry.load_modules()
 
 # Get list of all available runnables with their tags and names
 
-runnables_list = sorted([(o.tag or "", o.name) for o in get_runnable_registry()])
+runnables_list = sorted([(o.tag or "", o.name) for o in chain_registry.get_runnable_list()])
 selection = st.selectbox("Runnable", runnables_list, index=0, format_func=lambda x: f"[{x[0]}] {x[1]}")
 if not selection:
     st.stop()
-runnable_desc = find_runnable(selection[1])
+runnable_desc = chain_registry.find(selection[1])
 if not runnable_desc:
     st.stop()
 

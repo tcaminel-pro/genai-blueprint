@@ -155,7 +155,9 @@ ignore = [ # Ignored linter rules:
     "W291", # Trailing whitespace 
     "B006", # Do not use mutable data structures for argument defaults
     "C901",   # Function is too complex , 
-    "PD901" # pandas-df-variable-name'
+    "PD901", # pandas-df-variable-name',
+    "ANN401",  # Annotated with Any
+    "ANN003"  # Annotate **kwarg
  ]
 
 [tool.ruff.lint.pycodestyle]

@@ -25,7 +25,7 @@ Example:
     ... ))
 
     >>> # Find and execute a chain
-    >>> chain = find_runnable("my_chain")
+    >>> chain = chain_registry.find("my_chain")
     >>> result = chain.invoke("input text")
 """
 
@@ -37,6 +37,7 @@ from loguru import logger
 from pydantic import BaseModel, ConfigDict, FilePath
 
 from python.config import global_config
+from python.utils.singleton import once
 
 
 class Example(BaseModel):
@@ -89,7 +90,7 @@ class RunnableItem(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def get(self, conf=None) -> Runnable:
+    def get(self, conf: dict | None = None) -> Runnable:
         if conf is None:
             conf = {"llm": None}
         if isinstance(self.runnable, Runnable):
@@ -98,7 +99,7 @@ class RunnableItem(BaseModel):
             runnable = self.runnable(conf)
         elif isinstance(self.runnable, tuple):
             key, func = self.runnable
-            func_runnable = _to_key_param_callable(key, func)
+            func_runnable = ChainRegistry._to_key_param_callable(key, func)
             runnable = func_runnable(conf)
         else:
             raise Exception("unknown or ill-formatted Runnable")
@@ -106,73 +107,63 @@ class RunnableItem(BaseModel):
         return runnable
 
 
-# Global registry
-_registry: list[RunnableItem] = []
+class ChainRegistry(BaseModel):
+    registry: list[RunnableItem] = []
+
+    @once()
+    def instance() -> "ChainRegistry":
+        """Create Registry instance"""
+
+        return ChainRegistry(registry=[])
+
+    @staticmethod
+    def load_modules() -> None:
+        """Create Registry instance and dynamically load chain modules specified in the configuration.
+
+        This function reads the configuration to find and import modules containing
+        chain definitions. It uses the 'chains.modules' configuration
+        values to determine which modules to load.
+        """
+        _ = ChainRegistry.instance()
+        modules = global_config().get_list("chains.modules")
+        for module in modules:
+            try:
+                importlib.import_module(module)
+            except Exception as ex:
+                logger.warning(f"Cannot load module {module}: {ex}")
+
+    def register(self, r: RunnableItem) -> None:
+        """Register a new RunnableItem in the global registry."""
+        self.registry.append(r)
+
+    def get_runnable_list(self) -> list[RunnableItem]:
+        """Retrieve the complete list of registered Runnables."""
+        return self.registry
+
+    def find(self, name: str) -> RunnableItem | None:
+        """Find a registered Runnable by its name (case-insensitive)."""
+
+        return next((x for x in self.registry if x.name.strip().lower() == name.strip().lower()), None)
+
+    @staticmethod
+    def _to_key_param_callable(key: str, function: Callable[[dict[str, Any]], Runnable]) -> Callable[[Any], Runnable]:
+        """Convert a key-based function to a callable that works with the Runnable pipeline.
+
+        This helper function transforms a function that expects a configuration dictionary
+        and returns a Runnable into a pipeline-compatible function that automatically
+        wraps string inputs into the expected dictionary format.
+
+        Args:
+            key (str): The dictionary key to use for the input value
+            function (Callable): The original function that creates a Runnable
+
+        Returns:
+            Callable[[Any], Runnable]: A wrapped function that creates a properly configured Runnable
+        """
+        return lambda conf: RunnableLambda(lambda x: {key: x}) | function(conf)
 
 
 def register_runnable(r: RunnableItem) -> None:
-    """Register a new RunnableItem in the global registry.
-
-    Args:
-        r (RunnableItem): The Runnable item to register
-    """
-    _registry.append(r)
-
-
-def get_runnable_registry() -> list[RunnableItem]:
-    """Retrieve the complete list of registered Runnables.
-
-    Returns:
-        list[RunnableItem]: List of all registered Runnable items
-    """
-    return _registry
-
-
-def find_runnable(name: str) -> RunnableItem | None:
-    """Find a registered Runnable by its name (case-insensitive).
-
-    Args:
-        name (str): Name of the Runnable to find
-
-    Returns:
-        RunnableItem | None: The matching Runnable item or None if not found
-    """
-    return next((x for x in _registry if x.name.strip().lower() == name.strip().lower()), None)
-
-
-def _to_key_param_callable(key: str, function: Callable[[dict[str, Any]], Runnable]) -> Callable[[Any], Runnable]:
-    """Convert a key-based function to a callable that works with the Runnable pipeline.
-
-    This helper function transforms a function that expects a configuration dictionary
-    and returns a Runnable into a pipeline-compatible function that automatically
-    wraps string inputs into the expected dictionary format.
-
-    Args:
-        key (str): The dictionary key to use for the input value
-        function (Callable): The original function that creates a Runnable
-
-    Returns:
-        Callable[[Any], Runnable]: A wrapped function that creates a properly configured Runnable
-    """
-    return lambda conf: RunnableLambda(lambda x: {key: x}) | function(conf)
-
-
-def load_modules_with_chains() -> None:
-    """Dynamically load chain modules specified in the configuration.
-
-    This function reads the configuration to find and import modules containing
-    chain definitions. It uses the 'chains.path' and 'chains.modules' configuration
-    values to determine which modules to load.
-
-    Raises:
-        AssertionError: If the specified path doesn't exist
-        Exception: If module loading fails (logged as warning)
-    """
-
-    modules = global_config().get_list("chains.modules")
-
-    for module in modules:
-        try:
-            importlib.import_module(module)
-        except Exception as ex:
-            logger.warning(f"Cannot load module {module}: {ex}")
+    """Register a new RunnableItem in the global registry."""
+    registry = ChainRegistry.instance()
+    registry.register(r)

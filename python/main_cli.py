@@ -30,11 +30,7 @@ from langchain_core.runnables import Runnable
 from typer import Option
 
 from python.ai_core.cache import LlmCache
-from python.ai_core.chain_registry import (
-    find_runnable,
-    get_runnable_registry,
-    load_modules_with_chains,
-)
+from python.ai_core.chain_registry import ChainRegistry
 from python.ai_core.embeddings import EmbeddingsFactory
 from python.ai_core.llm import LlmFactory
 from python.ai_core.vector_store import VectorStoreFactory
@@ -42,9 +38,6 @@ from python.ai_extra.fabric_chain import get_fabric_chain
 from python.config import global_config
 
 load_dotenv(verbose=True)
-
-
-load_modules_with_chains()
 
 
 PRETTY_EXCEPTION = (
@@ -143,17 +136,17 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
                 return
             global_config().set("llm.default_model", llm_id)
 
-        load_modules_with_chains()
-
         if not input:
             input = sys.stdin.read()
             if input and len(input) < 3:
                 input = None
 
+        chain_registry = ChainRegistry.instance()
+        ChainRegistry.load_modules()
         # If runnable_name is provided, proceed with existing logic
-        runnables_list = sorted([f"'{o.name}'" for o in get_runnable_registry()])
+        runnables_list = sorted([f"'{o.name}'" for o in chain_registry.get_runnable_list()])
         runnables_list_str = ", ".join(runnables_list)
-        runnable_item = find_runnable(runnable_name)
+        runnable_item = chain_registry.find(runnable_name)
         if runnable_item:
             first_example = runnable_item.examples[0]
             llm_args = {"temperature": temperature}
@@ -181,11 +174,11 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
             pprint(result)
 
     @cli_app.command()
-    def chain_info(name: str)-> None:
+    def chain_info(name: str) -> None:
         """
         Return information on a given chain, including input and output schema.
         """
-        runnable_desc = find_runnable(name)
+        runnable_desc = ChainRegistry.instance().find(name)
         if runnable_desc:
             r = runnable_desc.runnable
             if isinstance(r, Runnable):
@@ -207,7 +200,7 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
                 pass
 
     @cli_app.command()
-    def list_models()-> None:
+    def list_models() -> None:
         """
         List the known LLMs, embeddings models, and vector stores.
         """
@@ -224,7 +217,7 @@ def define_llm_related_commands(cli_app: typer.Typer) -> None:
             print(f"{tab}{tab}- {vc}")
 
     @cli_app.command()
-    def llm_info_dump(file_name: Path)-> None:
+    def llm_info_dump(file_name: Path) -> None:
         """
         Write a list of LLMs in YAML format to the specified file.
         """

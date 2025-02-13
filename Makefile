@@ -6,6 +6,15 @@
 #
 # Usage: make [target]
 
+APP=genai-blueprint
+STREAMLIT_ENTRY_POINT="python/GenAI_Lab.py"
+FASTAPI_ENTRY_POINT="python.fastapi_app:app"
+
+IMAGE_VERSION=0.2a
+REGISTRY_AZ=XXXX.azurecr.io
+REGISTRY_NAME=XXX
+LOCATION=europe-west4
+PROJECT_ID_GCP=XXX
 
 all: help 
 

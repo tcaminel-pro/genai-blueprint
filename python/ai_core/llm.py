@@ -311,6 +311,7 @@ class LlmFactory(BaseModel):
 
             provider, _, model = self.info.model.partition("/")
             _ = llm_params.pop("seed")
+            _ = llm_params.pop("max_retries")
 
             llm = ChatEdenAI(
                 provider=provider,
@@ -383,7 +384,7 @@ class LlmFactory(BaseModel):
 
         return llm  # type: ignore
 
-    def get_configurable(self, with_fallback=False) -> BaseChatModel:
+    def get_configurable(self, with_fallback: bool = False) -> BaseChatModel:
         # Make the LLM configurable at run time
         # see https://python.langchain.com/docs/how_to/configure/#configurable-alternatives
 
@@ -480,7 +481,7 @@ def get_llm(
 
 
 def get_configurable_llm(
-    json_mode: bool = False, with_fallback=False, streaming: bool = False, cache: str | None = None, **kwargs
+    json_mode: bool = False, with_fallback: bool = False, streaming: bool = False, cache: str | None = None, **kwargs
 ) -> BaseChatModel:
     """Create a configurable LangChain BaseLanguageModel instance.
 
@@ -574,7 +575,7 @@ def get_print_chain(string: str = "") -> RunnableLambda:
     ```
     """
 
-    def fn(input: Any, config: RunnableConfig):
+    def fn(input: Any, config: RunnableConfig) -> Any:
         debug(string, input, config)
         return input
 
