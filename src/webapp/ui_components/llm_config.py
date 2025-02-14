@@ -2,19 +2,20 @@ import os
 
 import streamlit as st
 from langchain.globals import set_debug, set_verbose
+from streamlit.delta_generator import DeltaGenerator
 
 from src.ai_core.cache import LlmCache
 from src.ai_core.llm import LlmFactory
 from src.utils.config_mngr import global_config
 
 
-def llm_config(expanded: bool = True) -> None:
-    with st.expander("LLM Configuration", expanded=expanded):
+def llm_config_widget(parent_container: DeltaGenerator, expanded: bool = True) -> None:
+    with parent_container.expander("LLM Configuration", expanded=expanded):
         current_llm = global_config().get_str("llm.default_model")
         index = LlmFactory().known_items().index(current_llm)
         llm = st.selectbox("default", LlmFactory().known_items(), index=index, key="select_llm")
         global_config().set("llm.default_model", str(llm))
-        debug(llm)
+        # debug(llm)
         set_debug(
             st.checkbox(
                 label="Debug",

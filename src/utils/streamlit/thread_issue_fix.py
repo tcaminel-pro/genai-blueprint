@@ -13,7 +13,7 @@ from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ct
 T = TypeVar("T")
 
 
-def get_streamlit_cb(parent_container: DeltaGenerator):
+def get_streamlit_cb(parent_container: DeltaGenerator):  # noqa: ANN201
     def decor(fn: Callable[..., T]) -> Callable[..., T]:
         ctx = get_script_run_ctx()
 

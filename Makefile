@@ -201,6 +201,10 @@ backup: ## rsync project and shared files to ln_to_onedrive, a symbolic link fro
 	~/prj ~/ln_to_onedrive/backup/wsl/tcl
 
 
+ROOT1=/home/tcl/prj/genai-blueprint/
+ROOT2=/home/tcl/prj/ecod-engine-v3
+SYNC_DIRS='src/ai_core src/ai_extra src/ai_utils src/webapp/ui_components'   
+
 sync_dirs: ## Sync subdirectories between two root directories (set ROOT1, ROOT2, SYNC_DIRS)
 	@if [ -z "$(ROOT1)" ] || [ -z "$(ROOT2)" ] || [ -z "$(SYNC_DIRS)" ]; then \
 		echo "Error: Missing required variables. Usage: make sync_dirs ROOT1=path1 ROOT2=path2 SYNC_DIRS='dir1 dir2 dir3'"; \

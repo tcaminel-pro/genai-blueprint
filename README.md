@@ -30,9 +30,10 @@ Extra components uses:
   - ...
 
 ## Install
-We use make and uv. This command install uv if not present, then load the project dependencies.
+We use `make` and `uv`. This command install `uv` if not present, then load the project dependencies.
 * `make install` 
 
+The project requires `Python 12` (that can be easily installed by `uv`)
 
 Configuration:
 * Application settings are in file : `app_conf.yaml` ; Should likely be edited (and improved...)
@@ -67,7 +68,7 @@ Quick test:
   - `cache.py`: LLM caching implementation
   - `vision.py`: Facilitate use of multimodal LLM
   - `prompts.py`: Prompt templates and utilities
-  - `structured_output.py`: Structured output generation
+  - `structured_output.py`: Structured output generation helper
   - `instrumentation.py`: Telemetry and monitoring
 
 #### Reusable AI Components

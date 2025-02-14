@@ -9,7 +9,7 @@ from smolagents import (
 )
 
 from src.ai_core.llm import LlmFactory
-from src.webapp.ui_components.llm_config import llm_config
+from src.webapp.ui_components.llm_config import llm_config_widget
 from src.webapp.ui_components.smoloagents_streamlit import stream_to_streamlit
 
 # MODEL_ID = "gpt_4o_azure"
@@ -28,7 +28,7 @@ SAMPLE_PROMPTS = {
 st.title("SmolAgents Chat")
 st.logo(str(Path.cwd() / "src/webapp/static/eviden-logo-white.png"), size="large")
 with st.sidebar:
-    llm_config()
+    llm_config_widget()
 
 
 model_name = LlmFactory(llm_id=MODEL_ID).get_litellm_model_name()

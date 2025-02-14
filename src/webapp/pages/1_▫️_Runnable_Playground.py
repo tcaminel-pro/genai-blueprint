@@ -21,7 +21,7 @@ from pydantic import BaseModel
 
 from src.ai_core.chain_registry import ChainRegistry
 from src.utils.config_mngr import global_config
-from src.webapp.Playgrounds_and_Demos import config_sidebar
+from src.webapp.ui_components.llm_config import llm_config_widget
 
 st.title("💬 Runnable Playground")
 
@@ -49,8 +49,7 @@ if not runnable_desc:
     st.stop()
 
 # Configure and display the sidebar with settings and options
-# This includes model selection, configuration parameters, and other controls
-config_sidebar()
+llm_config_widget(st.sidebar, False)
 
 # Get the first example from the runnable description to use as default values
 first_example = runnable_desc.examples[0]
