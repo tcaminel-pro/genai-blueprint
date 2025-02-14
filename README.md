@@ -42,26 +42,27 @@ Quick test:
 - `models_providers.yaml`: Contains model definitions and provider configurations
 
 #### Core AI Components facilitating LangChain programming
-- `python/ai_core/`: Core AI infrastructure
+- `src/ai_core/`: Core AI infrastructure
   - `llm.py`: LLM factory and configuration
   - `embeddings.py`: Embeddings factory and management
   - `vector_store.py`: Vector store factory and operations
   - `chain_registry.py`: Runnable component registry
   - `cache.py`: LLM caching implementation
-  - `vision.py`: Faclitate use of multimodal LLM
-
+  - `vision.py`: Facilitate use of multimodal LLM
+  - `prompts.py`: Prompt templates and utilities
+  - `structured_output.py`: Structured output generation
+  - `instrumentation.py`: Telemetry and monitoring
 
 #### Reusable AI Components
-- `python/ai_extra/`: Generic and reusable AI components, integrated with LangChain
-  - `react_agent_structured_output.py` : A ReAct agent generating Pydantic output
-  - `gpt_researcher_chain.py` : a LCEL encapsulation of GPT Researcher (A researcher agent)
-  - `smolagants_streamlit.py` : Display SmolAgents execution trace in Streamlit UI
-  - `mcp_tools.py` : Facilitate use of the Model Context Protocol.
+- `src/ai_extra/`: Generic and reusable AI components, integrated with LangChain
+  - `gpt_researcher_chain.py`: LCEL encapsulation of GPT Researcher
+  - `smolagents_chain.py`: SmolAgents implementation
+  - `mcp_tools.py`: Model Context Protocol utilities
 
 
 #### Demos with UI
-- `python/GenAI_Lab.py`: Main Streamlit web application
-- `python/pages/`: Streamlit page implementations
+- `src/webapp/`: Streamlit web application and pages
+  - `pages/`: Streamlit page implementations
   - `1_▫️_Runnable Playground.py`: Page to test registered LangChain runnables
   - `2_▫️_MaintenanceAgent.py`: a ReAct agent to help maintenance planning
   - `3_▫️_Stock_Price.py`: a tool calling agent to ger and compare stock prices
@@ -76,12 +77,13 @@ Quick test:
 - `python/Notebooks`
 
 #### Reusable UI Components
-- `python/ui/`: Generic and reusable User Interface components for Strealit
-  - `smolagants_streamlit.py` : Display SmolAgents execution trace in Streamlit UI
-  - `llm_config.py` : Form to select LLM and common configuration parameters (cache, monitoring, ...)
+- `src/webapp/ui_components/`: Generic and reusable User Interface components for Streamlit
+  - `llm_config.py`: Form to select LLM and common configuration parameters
+  - `capturing_callback_handler.py`: Callback handler for Streamlit
+  - `clear_result.py`: State management utilities
 
-#### Examples (more for training purpose) 
-- `python/ai_chains/`: Example chains and RAG implementations. Examples: 
+#### Examples (more for training purpose)
+- `src/ai_chains/`: Example chains and RAG implementations. Examples:
   - `B_1_naive_rag_example.py`: Basic RAG implementation
   - `B_2_self_query.py`: Self-querying retriever example
   - `C_1_tools_example.py`: Tool usage demonstration
@@ -90,13 +92,21 @@ Quick test:
   - ...
 
 #### Utilities
-- `python/utils/`: Utility functions and helpers
-  - `streamlit/`: Streamlit-specific utilities
+- `src/utils/`: Utility functions and helpers
+  - `config_mngr.py`: Configuration management
   - `pydantic/`: Pydantic model extensions
+    - `field_adder.py`: Dynamic field addition
+    - `kv_store.py`: Key-value storage
+  - `streamlit/`: Streamlit-specific utilities
   - `singleton.py`: Singleton pattern implementation
+  - `units.py`: Unit conversion utilities
 
 #### Testing and Development
 - `tests/`: Unit and integration tests
+- `src/demos/`: Various demonstration implementations
+  - `maintenance_agent/`: Maintenance planning demo
+  - `mon_master_search/`: Search demo
+  - `todo/`: Task management demos
 - `Makefile`: Common development tasks
 - `pyproject.toml`: Poetry project configuration
 - `Dockerfile`: optimized dockerfile (for Azure)
