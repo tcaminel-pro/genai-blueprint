@@ -9,9 +9,9 @@ This module contains tests that verify:
 import pytest
 from langchain_core.messages.ai import AIMessage
 
-from python.ai_core.llm import get_configurable_llm, get_llm, llm_config
-from python.ai_core.prompts import def_prompt
-from python.config import global_config
+from src.ai_core.llm import get_configurable_llm, get_llm, llm_config
+from src.ai_core.prompts import def_prompt
+from src.utils.config_mngr import global_config
 
 global_config().select_config("pytest")
 

@@ -2,8 +2,8 @@
 
 from fastapi.testclient import TestClient
 
-from python.config import global_config
-from python.fastapi_app import app
+from src.fastapi_app import app
+from src.utils.config_mngr import global_config
 
 # Define your FastAPI routes and functions here
 

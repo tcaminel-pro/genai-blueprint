@@ -10,7 +10,7 @@ These tests verify:
 
 import pytest
 
-from python.config import OmegaConfig
+from src.utils.config_mngr import OmegaConfig
 
 
 def test_singleton() -> None:

@@ -134,12 +134,44 @@ llm:
   - id: zephyr_7b_huggingface 
     model: "HuggingFaceH4/zephyr-7b-beta"
 
-- provider: anthropic
+- provider: openrouter
   models:
+    - id: gpt_4omini_openrouter
+      model: openai/o1-mini-2024-09-12
     - id: claude_sonnet35_openrouter
       model: anthropic/claude-3.5-sonnet
     - id: claude_haiku35_openrouter
       model: anthropic/claude-3-5-haiku
+    - id: qwen25_72_openrouter
+      model: qwen/qwen-2.5-72b-instruct
+    - id: qwen25_coder32_openrouter
+      model: qwen/qwen-2.5-coder-32b-instruct
+    - id: liquid_lfm40_openrouter
+      model: liquid/lfm-40b
+    - id: nvidia_nemotrom70_openrouter
+      model: nvidia/llama-3.1-nemotron-70b-instruct
+    - id: google_gemini15flash_openrouter
+      model: google/gemini-flash-1.5
+    - id: google_gemini15pro_openrouter
+      model: google/gemini-pro-1.5
+    - id: mistral_nemo_openrouter
+      model: mistralai/mistral-nemo
+    - id: mistral_large2_openrouter
+      model: mistralai/mistral-large-2411      
+    - id: llama33_70_openrouter
+      model: meta-llama/llama-3.3-70b-instruct   
+    - id: nova_pro10_openrouter
+      model: amazon/nova-pro-v1
+    - id: nova_lite10_openrouter
+      model: amazon/nova-lite-v1
+    - id: llama32_90V_openrouter
+      model: meta-llama/llama-3.2-90b-vision-instruct
+    - id: qwen2_vl72_openrouter
+      model: qwen/qwen-2-vl-72b-instruct
+    - id: deepseek_chatv3_openrouter
+      model: deepseek/deepseek-chat
+    - id: sonar_reasoning_openrouter
+      model: perplexity/sonar-reasoning
 
 ########################
 # Embeddings models 
@@ -191,11 +223,6 @@ embeddings:
       model: llmrails/ember-v1
       key: 
 
-- provider: huggingface  # Not implemented yet
-  models:
-    - id: bge15_large
-      model: BAAI/bge-large-en-v1.5
-      key: 
 
 - provider: edenai
   models:

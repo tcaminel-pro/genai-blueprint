@@ -4,7 +4,7 @@ Tests for the singleton.py module.
 
 from pydantic import BaseModel, ConfigDict
 
-from python.utils.singleton import once
+from src.utils.singleton import once
 
 
 class SingletonExample(BaseModel):

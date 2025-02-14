@@ -171,3 +171,6 @@ pythonVersion = "3.12"
 pythonPlatform = "Linux"
 reportTypedDictNotRequiredAccess = false  # Avoid warnings in LangGraph
 
+
+[project.scripts]
+cli = "src.main.cli:main"

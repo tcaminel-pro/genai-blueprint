@@ -41,8 +41,12 @@ baseline:
   kv_store:
     path: ${paths.data_root}/kv_store
 
+  commands:
+    modules:
+      - src.ai_core.cli_commands
+
   chains:
-    root: python.ai_chains
+    root: src.ai_chains
     modules:
       - ${..root}.A_1_joke 
       # - ${..root}.B_1_naive_rag_example

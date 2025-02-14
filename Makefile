@@ -7,8 +7,10 @@
 # Usage: make [target]
 
 APP=genai-blueprint
-STREAMLIT_ENTRY_POINT="python/GenAI_Lab.py"
-FASTAPI_ENTRY_POINT="python.fastapi_app:app"
+
+STREAMLIT_ENTRY_POINT="src/webapp/Playgrounds_and_Demos.py"
+FASTAPI_ENTRY_POINT="src.main.fastapi_app:app"
+
 
 IMAGE_VERSION=0.2a
 REGISTRY_AZ=XXXX.azurecr.io

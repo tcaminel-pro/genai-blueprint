@@ -1,9 +1,9 @@
 import pytest
 from langchain.schema import Document
 
-from python.ai_core.embeddings import EmbeddingsFactory
-from python.ai_core.vector_store import VectorStoreFactory
-from python.config import global_config
+from src.ai_core.embeddings import EmbeddingsFactory
+from src.ai_core.vector_store import VectorStoreFactory
+from src.utils.config_mngr import global_config
 
 global_config().select_config("pytest")
 
