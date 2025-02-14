@@ -201,6 +201,21 @@ backup: ## rsync project and shared files to ln_to_onedrive, a symbolic link fro
 	~/prj ~/ln_to_onedrive/backup/wsl/tcl
 
 
+sync_dirs: ## Sync subdirectories between two root directories (set ROOT1, ROOT2, SYNC_DIRS)
+	@if [ -z "$(ROOT1)" ] || [ -z "$(ROOT2)" ] || [ -z "$(SYNC_DIRS)" ]; then \
+		echo "Error: Missing required variables. Usage: make sync_dirs ROOT1=path1 ROOT2=path2 SYNC_DIRS='dir1 dir2 dir3'"; \
+		exit 1; \
+	fi; \
+	for dir in $(SYNC_DIRS); do \
+		if [ -d "$(ROOT1)/$$dir" ] && [ -d "$(ROOT2)/$$dir" ]; then \
+			echo "Synchronizing $$dir between $(ROOT1) and $(ROOT2)..."; \
+			rsync -av --update "$(ROOT1)/$$dir/" "$(ROOT2)/$$dir/"; \
+			rsync -av --update "$(ROOT2)/$$dir/" "$(ROOT1)/$$dir/"; \
+		else \
+			echo "Directory $$dir not found in both roots, skipping..."; \
+		fi; \
+	done
+
 clean_history:  ## Remove duplicate entries and common commands from .bash_history while preserving order
 	@if [ -f ~/.bash_history ]; then \
 		awk '!/^(ls|cat|hgrep|h|cd|p|m|ll|pwd|code|mkdir|export|poetry run ruff|rmdir)( |$$)/ && !seen[$$0]++' ~/.bash_history > ~/.bash_history_unique && \
