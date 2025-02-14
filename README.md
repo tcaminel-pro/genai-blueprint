@@ -2,6 +2,7 @@
 
 This project has several goals:
 - Support GenAI training, to illustrate key concepts, programming patterns and techniques
+- Implement the `Factory pattern` for LLM, Embeddings models, Vector Store, Runnables
 - Act as a repository of well integrated reusable components 
 - Act as a template for cloud-deployable, highly configurable AI Agents 
 - Propose ready to use agentic GenAI demos, demonstrating notably:
@@ -9,10 +10,24 @@ This project has several goals:
   - Tool calling agent calling an API
   - Semantic and Hybrid search
   - Researcher agents
-  - SmolAgents
+  - MCP
   - CrewAI
 
 It's based mainly on the LangChain ecosystem, and integrate many other nice solutions.
+
+The core stack includes:
+  - `LangChain`, `LangGraph`, `LangServe`, ...
+  - `OmegaConf`: configuration management
+  - `Streamlit`: User Interface (web)
+  - `Typer`: Command Line Interface
+  - `FastAPI`: REST APIs
+  - `Pydantic` for ..  a lot
+
+Extra components uses:
+  - `SmallAgents` : Agent Framework
+  - `GPR Researcher` : Deep Internet Search
+  - `MCP Adapt` : Model Contect Protocol client
+  - ...
 
 ## Install
 We use make and uv. This command install uv if not present, then load the project dependencies.
@@ -24,7 +39,7 @@ Configuration:
 * API keys are taken from  a `.env` file, in the project directory or its parents 
 
 Quick test:
-* Run `echo "computers" | uv run python/main_cli.py run joke  -m fake_parrot_local` 
+* Run `echo "computers" | uv run src/main_cli.py run joke  -m fake_parrot_local` 
   * It should display 'Tell me a joke on computers' 
   * Don't care about the warnings
   * add `--help` to see the different options
@@ -38,8 +53,10 @@ Quick test:
 ### Key Files and Directories
 
 #### Configuration
-- `app_conf.yaml`: Main configuration file for LLMs, embeddings, vector stores and chains
+- `app_conf.yaml`: Main configuration file for LLMs, embeddings, vector stores and chains.  
 - `models_providers.yaml`: Contains model definitions and provider configurations
+- `pyproject.toml`: Poetry project configuration
+
 
 #### Core AI Components facilitating LangChain programming
 - `src/ai_core/`: Core AI infrastructure
@@ -73,6 +90,15 @@ Quick test:
   - `12_▫️_Crew_AI.py`: CrewAI demonstration
   - ...
 
+#### Utilities
+- `src/utils/`: Utility functions and helpers
+  - `config_mngr.py`: Configuration management
+  - `pydantic/`: Pydantic model extensions
+  - `streamlit/`: Streamlit-specific utilities
+  - `singleton.py`: Singleton pattern implementation
+  - `units.py`: Unit conversion utilities
+
+
 #### Notebooks for GenAI training 
 - `python/Notebooks`
 
@@ -91,15 +117,6 @@ Quick test:
   - `C_3_essay_writer_agent.py`: Essay writing agent
   - ...
 
-#### Utilities
-- `src/utils/`: Utility functions and helpers
-  - `config_mngr.py`: Configuration management
-  - `pydantic/`: Pydantic model extensions
-    - `field_adder.py`: Dynamic field addition
-    - `kv_store.py`: Key-value storage
-  - `streamlit/`: Streamlit-specific utilities
-  - `singleton.py`: Singleton pattern implementation
-  - `units.py`: Unit conversion utilities
 
 #### Testing and Development
 - `tests/`: Unit and integration tests
@@ -108,8 +125,7 @@ Quick test:
   - `mon_master_search/`: Search demo
   - `todo/`: Task management demos
 - `Makefile`: Common development tasks
-- `pyproject.toml`: Poetry project configuration
-- `Dockerfile`: optimized dockerfile (for Azure)
+- `Dockerfile`: optimized dockerfile 
 - `CONVENTION.md`: Coding convention used by Aider-chat (a coding assistant)
 
 
