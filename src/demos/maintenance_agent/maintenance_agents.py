@@ -17,16 +17,11 @@ from langchain.agents import (
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.tools import BaseTool, tool
-from langchain.tools.retriever import create_retriever_tool
 from langchain.vectorstores.base import VectorStore
-from langchain_community.agent_toolkits.sql.base import create_sql_agent
-from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from langchain_community.document_loaders import TextLoader
 from langchain_community.utilities.sql_database import SQLDatabase
-from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable
 from loguru import logger
@@ -70,54 +65,17 @@ def maintenance_procedure_vectors(text: str) -> VectorStore:
 def create_sql_agent_tool(embeddings_factory: EmbeddingsFactory) -> AgentExecutor:
     """Create an agent for Text-2-SQL."""
     # fmt: off
-    few_shots = {
-        "Tasks assigned to employee 'employee_name' between '2023-10-22' and '2023-10-28'.":
-            """SELECT task FROM "tasks" WHERE employee = 'employee_name' AND start_date > '2023-10-22' and end_date  < '2023-10-28';""",
-        "List of procedures that employee 'employee_name'' knows. ":
-            """SELECT  DISTINCT employee, procedure FROM tasks WHERE employee = 'employee_name';"""
-    }
-    # fmt: on
-
-    few_shot_docs = [
-        Document(page_content=question, metadata={"sql_query": few_shots[question]}) for question in few_shots.keys()
+    examples = [ 
+        {
+        "input": "Tasks assigned to employee 'employee_name' between '2023-10-22' and '2023-10-28'.",
+        "query": """SELECT task FROM "tasks" WHERE employee = 'employee_name' AND start_date > '2023-10-22' and end_date  < '2023-10-28';"""
+        },
+        {
+        "input":"List of procedures that employee 'employee_name' knows. ",
+        "query": "SELECT  DISTINCT employee, procedure FROM tasks WHERE employee = 'employee_name';"
+        }
     ]
-
-    vector_db = VectorStoreFactory(
-        id=VECTOR_STORE_ID,
-        collection_name="test_maintenance",
-        embeddings_factory=embeddings_factory,
-    ).vector_store
-    vector_db.add_documents(few_shot_docs)
-
-    tool_description = """
-        This tool will help you understand similar examples to adapt them to the user question.
-        Input to this tool should be the user question.
-        """
-    retriever_tool = create_retriever_tool(
-        vector_db.as_retriever(search_kwargs={"k": 1}),
-        name="sql_get_similar_examples",
-        description=dedent_ws(tool_description),
-    )
-
-    db = SQLDatabase.from_uri(dummy_database())
-
-    from langchain_community.agent_toolkits.sql.prompt import SQL_PREFIX
-
-    prefix = (
-        SQL_PREFIX
-        + f"\nCurrent date is: {datetime.now().isoformat()}. DO NOT use any SQL date functions like NOW(), DATE(), DATETIME()"
-    )
-
-    llm = get_llm()
-    return create_sql_agent(
-        llm=llm,
-        toolkit=SQLDatabaseToolkit(db=db, llm=llm),
-        agent_type="tool-calling",
-        prefix=prefix,
-        verbose=False,
-        extra_tools=[retriever_tool],
-        max_iterations=5,
-    )
+    # fmt: on
 
 
 @cache
@@ -128,7 +86,7 @@ def create_maintenance_tools() -> list[BaseTool]:
     @tool
     def get_planning_info(query: str):
         """Useful for when you need to answer questions about tasks assigned to employees."""
-        return create_sql_agent_tool(EmbeddingsFactory()).run(query)
+        return create_sql_agent_tool(EmbeddingsFactory()).invoke(query)
 
     @tool
     def get_current_time() -> str:
@@ -241,7 +199,8 @@ def create_maintenance_agent(
         callbacks=callbacks,
     )
 
-    return agent_executor | StrOutputParser()
+    # return agent_executor | StrOutputParser()
+    return agent_executor
 
 
 # def get_maintenance_agent_chain(

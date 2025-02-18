@@ -106,7 +106,7 @@ dev = [
 ]
 
 [tool.uv]
-package = false
+package = true
 default-groups = [
     "instrumentation",
     "ui",
@@ -176,3 +176,4 @@ reportTypedDictNotRequiredAccess = false  # Avoid warnings in LangGraph
 
 [project.scripts]
 cli = "src.main.cli:main"
+webapp =  "src.webapp.Playgrounds_and_Demos:main"

@@ -12,7 +12,7 @@ from langchain_core.tools import tool
 from loguru import logger
 
 from src.ai_core.llm import get_llm
-from src.config import global_config
+from src.utils.config_mngr import global_config
 
 st.set_page_config(layout="wide")
 

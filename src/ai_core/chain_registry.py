@@ -116,7 +116,7 @@ class ChainRegistry(BaseModel):
 
         return ChainRegistry(registry=[])
 
-    @staticmethod
+    @once()
     def load_modules() -> None:
         """Create Registry instance and dynamically load chain modules specified in the configuration.
 

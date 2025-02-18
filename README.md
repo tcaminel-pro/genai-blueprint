@@ -15,7 +15,7 @@ This project has several goals:
 
 It's based mainly on the LangChain ecosystem, and integrate many other nice solutions.
 
-The core stack includes:
+Core dependencies:
   - `LangChain`, `LangGraph`, `LangServe`, ...
   - `OmegaConf`: configuration management
   - `Streamlit`: User Interface (web)
@@ -23,10 +23,11 @@ The core stack includes:
   - `FastAPI`: REST APIs
   - `Pydantic` for ..  a lot
 
-Extra components uses:
+Extra components used:
   - `SmallAgents` : Agent Framework
   - `GPR Researcher` : Deep Internet Search
-  - `MCP Adapt` : Model Contect Protocol client
+  - `MCP Adapt` : Model Contect Protocol 
+  - `tavily-python`: Tavily API client for web research
   - ...
 
 ## Install

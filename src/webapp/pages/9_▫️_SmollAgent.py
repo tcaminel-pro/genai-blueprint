@@ -27,8 +27,7 @@ SAMPLE_PROMPTS = {
 
 st.title("SmolAgents Chat")
 st.logo(str(Path.cwd() / "src/webapp/static/eviden-logo-white.png"), size="large")
-with st.sidebar:
-    llm_config_widget()
+llm_config_widget(st.sidebar)
 
 
 model_name = LlmFactory(llm_id=MODEL_ID).get_litellm_model_name()

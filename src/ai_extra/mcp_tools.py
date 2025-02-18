@@ -10,6 +10,7 @@ from contextlib import AsyncExitStack
 from itertools import chain
 from pathlib import Path
 
+from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.memory import MemorySaver
@@ -30,7 +31,9 @@ class MCPServerConfig(BaseModel):
     doc: str | None = None
 
 
-async def mcp_agent_runner(model, servers: list[StdioServerParameters], prompt, config: RunnableConfig = None):
+async def mcp_agent_runner(
+    model: BaseChatModel, servers: list[StdioServerParameters], prompt, config: RunnableConfig = None
+) -> str:
     # mode = config["configurable"].get("mode") or "async"
     # assert mode in ["async", "stream"], "'mode' should be either 'async' or 'stream"
 

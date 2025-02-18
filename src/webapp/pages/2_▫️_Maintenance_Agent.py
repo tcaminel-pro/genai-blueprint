@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+from langchain.callbacks import tracing_v2_enabled
 from langsmith import Client
 from loguru import logger  # noqa: F401
 
@@ -17,9 +18,10 @@ from src.demos.maintenance_agent.maintenance_agents import (
     create_maintenance_tools,
 )
 from src.demos.maintenance_agent.maintenance_data import dummy_database
+from src.utils.config_mngr import global_config
 from src.utils.streamlit.clear_result import with_clear_container
 from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
-from src.webapp.Playgrounds_and_Demos import config_sidebar
+from src.webapp.ui_components.llm_config import llm_config_widget
 
 # fmt:off
 SAMPLE_PROMPTS = {
@@ -51,7 +53,7 @@ LLM_ID = None
 #     st.write("not authenticated")
 #     st.stop()
 
-config_sidebar()
+llm_config_widget(st.sidebar)
 
 ################################
 #  UI
@@ -144,19 +146,20 @@ if with_clear_container(submit_clicked):
         chain = create_maintenance_agent(
             metadata={"st_container": ("answer_container", answer_container)}, callbacks=[streamlit_callback]
         )
-        answer = chain.invoke({"input": query})
+
         # answer = chain.invoke(query)
 
-        # if global_config().get_str("monitoring.default") == "langsmith":
-        #     with tracing_v2_enabled() as cb:
-        #         chain = create_maintenance_agent(
-        #             metadata={"st_container": ("answer_container", answer_container) },
-        #             callbacks=[streamlit_callback])
-        #         answer = chain.invoke (query)
-        #         url = cb.get_run_url()
-        #         answer_container.write("[trace](%s)" % url)
-        # else:
-        # raise NotImplementedError()
-        answer_container.write(answer)
+        if global_config().get_str("monitoring.default") == "langsmith":
+            with tracing_v2_enabled() as cb:
+                answer = chain.invoke({"input": query})
+                url = cb.get_run_url()
+                answer_container.write("[trace](%s)" % url)
+            if output := answer.get("output"):
+                answer_container.write(output)
+            else:
+                answer_container.write(answer)
+        else:
+            NotImplementedError()
+
     except Exception as ex:
         logger.exception(ex)

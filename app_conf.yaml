@@ -51,7 +51,7 @@ baseline:
       - ${..root}.A_1_joke 
       # - ${..root}.B_1_naive_rag_example
       # - ${..root}.B_2_self_query
-      # - ${..root}.C_1_tools_example
+      - ${..root}.C_1_tools_example
       # - ${..root}.C_2_advanced_rag_langgraph
       # - ${..root}.C_3_essay_writer_agent
       
@@ -78,4 +78,10 @@ training_azure:
   embeddings:
     default_model: ada_002_azure
 
-default_config: training_edenai   # can be overidden by 'BLUEPRINT_CONFIG' environment variable
+training_openai:
+  llm:
+    default_model: gpt_4omini_openai
+  embeddings:
+    default_model: ada_002_openai
+
+default_config: training_openai   # can be overidden by 'BLUEPRINT_CONFIG' environment variable

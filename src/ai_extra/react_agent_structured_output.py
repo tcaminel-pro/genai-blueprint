@@ -53,16 +53,18 @@ def create_react_structured_output_graph(
         final_response: out_model_class
 
     tools_and_result = tools + [out_model_class]
+
+    # TODO : pass llm_id on Config ?
     llm_with_response_tool = llm.bind_tools(tools_and_result, tool_choice="any")  # Force the model to use tools
 
     # Define the function that calls the model
-    def call_model(state: AgentState):
+    def call_model(state: AgentState) -> dict:
         response = llm_with_response_tool.invoke(state["messages"])
         # We return a list, because this will get added to the existing list
         return {"messages": [response]}
 
     # Define the function that responds to the user
-    def respond(state: AgentState):
+    def respond(state: AgentState) -> dict:
         # Construct the final answer from the arguments of the last tool call
         response = out_model_class(**state["messages"][-1].tool_calls[0]["args"])  # type: ignore
         return {"final_response": response}

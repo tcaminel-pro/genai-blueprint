@@ -1,6 +1,4 @@
 import os
-import runpy
-import sys
 from pathlib import Path
 
 import streamlit as st
@@ -44,9 +42,25 @@ title_col1.markdown(
 )
 
 
-def run_app() -> None:
+def main() -> None:
     # taken from https://blog.yericchen.com/python/installable-streamlit-app.html
     # Does not work as expected
-    script_path = os.path.abspath(__file__)
-    sys.argv = ["streamlit", "run", script_path] + sys.argv[1:]
-    runpy.run_module("streamlit", run_name="__main__")
+    script_path = __file__
+    # sys.argv = ["streamlit", "run", script_path] + sys.argv[1:]
+    # runpy.run_module("streamlit", run_name="__main__")
+
+    # corrct 'app' so its hold the name of the file AI!
+
+    # debug(app)
+    # cli.main_run([script_path])
+
+    import subprocess
+
+    # from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
+
+    # ctx = get_script_run_ctx()
+    # #Some code##
+    # process = Popen(["python", script_path])
+    # add_script_run_ctx(process, ctx)
+
+    subprocess.run(["streamlit", "run", script_path])
