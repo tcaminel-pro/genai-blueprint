@@ -1,6 +1,10 @@
-# Taken from https://python.langchain.com/docs/tutorials/sql_qa/
+"""SQL Agent for Querying Databases Using Language Models.
 
-# Add doc module and doc string AI!N
+Provides functionality to generate and execute SQL queries using 
+language models with a graph-based workflow.
+"""
+
+# Taken from https://python.langchain.com/docs/tutorials/sql_qa/
 
 from datetime import datetime
 from pathlib import Path
@@ -21,6 +25,18 @@ from src.ai_core.prompts import dedent_ws, def_prompt
 def create_sql_querying_graph(
     llm: BaseChatModel, db: SQLDatabase, examples: list[dict[str, str]] = [], top_k: int = 10
 ) -> CompiledGraph:
+    """Create a graph for generating and executing SQL queries.
+
+    Args:
+        llm: Language model for query generation and answering
+        db: SQL database to query
+        examples: Optional example queries to guide the model
+        top_k: Maximum number of results to return in queries
+
+    Returns:
+        A compiled graph for SQL query workflow
+    """
+
     class State(TypedDict, total=False):
         question: str
         query: str
@@ -33,7 +49,7 @@ def create_sql_querying_graph(
         query: Annotated[str, ..., "Syntactically valid SQL query."]
 
     def write_query(state: State) -> State:
-        """Generate SQL query to fetch innformation."""
+        """Generate SQL query to fetch information."""
 
         system_prompt = dedent_ws(
             """
@@ -92,20 +108,6 @@ def create_sql_querying_graph(
     graph_builder.add_edge(START, "write_query")
     graph = graph_builder.compile()
     return graph
-
-
-# def sql_querying_chain(query: str, config: RunnableConfig) -> str:
-#     llm_id = config["configurable"].get("llm_id")
-#     db = config["configurable"].get("db")
-#     examples = config["configurable"].get("examples") or []
-
-#     graph = create_sql_querying_graph(llm=get_llm(llm_id), db=db, examples=examples)
-#     graph_input = {"messages": [("human", query)]}
-#     result = graph.invoke(graph_input)
-#     return result["final_response"]
-
-
-# get_weather_chain = RunnableLambda(get_weather_fn).with_config(llm_config(MODEL) | {"recursion_limit": 6})
 
 
 if __name__ == "__main__":
