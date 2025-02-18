@@ -45,13 +45,12 @@ rebase: ## Sync local repo with remote one (changes are stashed before!)
 	git rebase origin/main
 
 AIDER_OPTS=--watch-files --no-auto-lint --read CONVENTIONS.md --editor "code --wait"
+# not sure --cache-prompts works
+
 aider:  ## Call aider-chat (a coding assistant)
 	aider $(AIDER_OPTS) --model deepseek/deepseek-chat; 
-	#aider $(AIDER_OPTS) --model deepseek/deepseek-reasoner 
-
-# not sure --cache-prompts works
 aider-haiku: 
-	aider $(AIDER_OPTS) / --cache-prompts --model openrouter/anthropic/claude-3-5-haiku;   
+	aider $(AIDER_OPTS) --cache-prompts --model openrouter/anthropic/claude-3-5-haiku;   
 aider-r1:
 	aider $(AIDER_OPTS) --model deepseek/deepseek-reasoner; 
 aider-o3:
@@ -203,7 +202,7 @@ backup: ## rsync project and shared files to ln_to_onedrive, a symbolic link fro
 
 ROOT1=/home/tcl/prj/genai-blueprint/
 ROOT2=/home/tcl/prj/ecod-engine-v3
-SYNC_DIRS='src/ai_core src/ai_extra src/ai_utils src/webapp/ui_components'   
+SYNC_DIRS=src/ai_core src/ai_extra src/ai_utils src/webapp/ui_components   
 
 sync_dirs: ## Sync subdirectories between two root directories (set ROOT1, ROOT2, SYNC_DIRS)
 	@if [ -z "$(ROOT1)" ] || [ -z "$(ROOT2)" ] || [ -z "$(SYNC_DIRS)" ]; then \
@@ -212,11 +211,11 @@ sync_dirs: ## Sync subdirectories between two root directories (set ROOT1, ROOT2
 	fi; \
 	for dir in $(SYNC_DIRS); do \
 		if [ -d "$(ROOT1)/$$dir" ] && [ -d "$(ROOT2)/$$dir" ]; then \
-			echo "Synchronizing $$dir between $(ROOT1) and $(ROOT2)..."; \
-			rsync -av --update "$(ROOT1)/$$dir/" "$(ROOT2)/$$dir/"; \
-			rsync -av --update "$(ROOT2)/$$dir/" "$(ROOT1)/$$dir/"; \
+			echo "Synchronizing '$$dir' between '$(ROOT1)' and '$(ROOT2)''..."; \
+			rsync -av --include='*/' --include='*.py' --update "$(ROOT1)/$$dir/" "$(ROOT2)/$$dir/"; \
+			rsync -av --include='*/' --include='*.py' --update "$(ROOT2)/$$dir/" "$(ROOT1)/$$dir/"; \
 		else \
-			echo "Directory $$dir not found in both roots, skipping..."; \
+			echo "Directory '$$dir' not found in both roots, skipping..."; \
 		fi; \
 	done
 

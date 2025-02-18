@@ -243,3 +243,5 @@ embeddings:
   models:
     - id: artic_22_ollama
       model: snowflake-arctic-embed:22m
+    - id: mxbai_large_ollama
+      model: mxbai-embed-large
