@@ -1,3 +1,7 @@
+# Taken from https://python.langchain.com/docs/tutorials/sql_qa/
+
+# Add doc module and doc string AI!N
+
 from datetime import datetime
 from pathlib import Path
 from typing import TypedDict
@@ -15,7 +19,7 @@ from src.ai_core.prompts import dedent_ws, def_prompt
 
 
 def create_sql_querying_graph(
-    llm: BaseChatModel, db: SQLDatabase, examples: list[dict[str, str]] = []
+    llm: BaseChatModel, db: SQLDatabase, examples: list[dict[str, str]] = [], top_k: int = 10
 ) -> CompiledGraph:
     class State(TypedDict, total=False):
         question: str
@@ -53,18 +57,15 @@ def create_sql_querying_graph(
             )
 
         user_prompt = "\nCurrent date: {date}.\nQuestion: {input}"
-        prompt_template = def_prompt(system_prompt, user_prompt)
-
-        prompt = prompt_template.invoke(
+        prompt = def_prompt(system_prompt, user_prompt).invoke(
             {
                 "dialect": db.dialect,
-                "top_k": 10,
+                "top_k": top_k,
                 "table_info": db.get_table_info(),
                 "input": state["question"],
                 "date": datetime.today().strftime("%Y-%B-%d"),
             }
         )
-        debug(prompt)
         structured_llm = llm.with_structured_output(QueryOutput)
         result = structured_llm.invoke(prompt)
         assert isinstance(result, dict)
@@ -85,7 +86,7 @@ def create_sql_querying_graph(
             f"SQL Result: {state['result']}"
         )
         response = llm.invoke(prompt)
-        return {"answer": response.content}
+        return {"answer": response.content}  # type: ignore
 
     graph_builder = StateGraph(State).add_sequence([write_query, execute_query, generate_answer])
     graph_builder.add_edge(START, "write_query")
