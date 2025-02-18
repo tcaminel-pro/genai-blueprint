@@ -1,8 +1,8 @@
 """LLM Augmented Autonomous Agent for Maintenance.
 
-Copyright (C) 2023 Eviden. All rights reserved
 """
-
+#  
+# Complete doc and docstring AI!
 from datetime import datetime
 from functools import cache
 from pathlib import Path
@@ -30,6 +30,7 @@ from src.ai_core.embeddings import EmbeddingsFactory
 from src.ai_core.llm import get_llm
 from src.ai_core.prompts import dedent_ws, def_prompt
 from src.ai_core.vector_store import VectorStoreFactory
+from src.ai_extra.sql_agent import create_sql_querying_graph
 from src.demos.maintenance_agent.maintenance_data import dummy_database
 from src.utils.config_mngr import global_config
 
@@ -62,20 +63,16 @@ def maintenance_procedure_vectors(text: str) -> VectorStore:
     return vs_factory.vector_store
 
 
-def create_sql_agent_tool(embeddings_factory: EmbeddingsFactory) -> AgentExecutor:
-    """Create an agent for Text-2-SQL."""
-    # fmt: off
-    examples = [ 
-        {
+examples = [
+    {
         "input": "Tasks assigned to employee 'employee_name' between '2023-10-22' and '2023-10-28'.",
-        "query": """SELECT task FROM "tasks" WHERE employee = 'employee_name' AND start_date > '2023-10-22' and end_date  < '2023-10-28';"""
-        },
-        {
-        "input":"List of procedures that employee 'employee_name' knows. ",
-        "query": "SELECT  DISTINCT employee, procedure FROM tasks WHERE employee = 'employee_name';"
-        }
-    ]
-    # fmt: on
+        "query": """SELECT task FROM "tasks" WHERE employee = 'employee_name' AND start_date > '2023-10-22' and end_date  < '2023-10-28';""",
+    },
+    {
+        "input": "List of procedures that employee 'employee_name' knows. ",
+        "query": "SELECT  DISTINCT employee, procedure FROM tasks WHERE employee = 'employee_name';",
+    },
+]
 
 
 @cache
@@ -84,9 +81,13 @@ def create_maintenance_tools() -> list[BaseTool]:
     logger.info("create tools")
 
     @tool
-    def get_planning_info(query: str):
+    def get_planning_info(query: str) -> str:
         """Useful for when you need to answer questions about tasks assigned to employees."""
-        return create_sql_agent_tool(EmbeddingsFactory()).invoke(query)
+
+        db = SQLDatabase.from_uri(dummy_database())
+        graph = create_sql_querying_graph(get_llm(), db, examples=examples[:5])
+        result = graph.invoke({"question": query})
+        return result["answer"]
 
     @tool
     def get_current_time() -> str:
@@ -169,7 +170,6 @@ def create_maintenance_agent(
     # Get the LLM info
     # Create tools
     tools = create_maintenance_tools()
-
     system = dedent_ws(
         """
         You are a helpful assistant to help a maintenance engineer.
@@ -186,10 +186,7 @@ def create_maintenance_agent(
             ("placeholder", "{agent_scratchpad}"),
         ]
     )
-    llm = get_llm()
-
-    agent = create_tool_calling_agent(llm, tools, prompt)
-
+    agent = create_tool_calling_agent(get_llm(), tools, prompt)
     agent_executor = AgentExecutor(
         agent=agent,
         tools=tools,
@@ -198,31 +195,5 @@ def create_maintenance_agent(
         metadata={"agentName": "MaintenanceAgent1"} | (metadata or {}),
         callbacks=callbacks,
     )
-
     # return agent_executor | StrOutputParser()
     return agent_executor
-
-
-# def get_maintenance_agent_chain(
-#     query: str,
-#     llm_factory: LlmFactory,
-#     verbose: bool = False,
-#     extra_callbacks: list[BaseCallbackHandler] | None = None,
-#     extra_metadata: dict | None = None,
-# ) -> Runnable:
-#     """Run the maintenance agent and return the output."""
-#     agent_executor = create_maintenance_agent(
-#         llm_factory,
-#         verbose,
-#         extra_callbacks,
-#         extra_metadata
-#     )
-
-# extra_callbacks = extra_callbacks or []
-# cfg = RunnableConfig()
-# cfg["callbacks"] = extra_callbacks
-# cfg["metadata"] = agent_executor.metadata
-
-
-# result = agent_executor.invoke({"input": query}, cfg)
-# return result["output"]
