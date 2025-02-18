@@ -9,7 +9,7 @@ from st_cytoscape import cytoscape
 from src.ai_core.llm import get_llm
 from src.webapp.ui_components.cypher_graph_display import get_cytoscape_json, get_cytoscape_style
 
-llm = get_llm(llm_id="gpt_4o_azure")
+llm = get_llm(llm_id=None)
 
 st.set_page_config(page_title="Graph RAG with Kuzu", layout="wide")
 st.title("Graph RAG with Kuzu")
@@ -71,7 +71,7 @@ with st.form("graph_query_form"):
     st.subheader("Query the Knowledge Graph")
     input = st.text_area(
         "Enter query:",
-        value="Tim Cook is the CEO of Apple. Apple has its headquarters in California.",
+        value="Who is CEO of Apple ? ",
         height=100,
     )
     submitted = st.form_submit_button("Ask KG!")

@@ -1,12 +1,12 @@
 """Adapted from https://blog.langchain.dev/tool-calling-with-langchain/."""
 
-from langchain import hub
-from langchain.agents import AgentExecutor
+from operator import itemgetter
+
+from langchain.agents import AgentExecutor, create_tool_calling_agent, tool
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable
 from langchain_core.tools import tool
 
-from src.ai_core.agents_builder import get_agent_builder
 from src.ai_core.chain_registry import (
     Example,
     RunnableItem,
@@ -63,12 +63,6 @@ def create_executor(config: dict) -> Runnable:
     llm = get_llm(llm_id)
     # info = get_llm_info(llm_id)
 
-    agent_builder = get_agent_builder("tool_calling")
-
-    prompt = hub.pull(agent_builder.hub_prompt)
-
-    #    debug(prompt)
-
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", "You are a helpful Search Assistant"),
@@ -77,12 +71,9 @@ def create_executor(config: dict) -> Runnable:
         ]
     )
 
-    agent_creator = agent_builder.create_function
-    debug(agent_creator)
-
-    agent = agent_creator(llm, tools, prompt)  # type: ignore
-    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)  # type: ignore
-    return agent_executor
+    agent = create_tool_calling_agent(llm, tools, prompt)
+    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+    return agent_executor | itemgetter("output")
 
 
 register_runnable(

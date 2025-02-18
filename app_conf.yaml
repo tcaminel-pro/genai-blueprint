@@ -4,6 +4,7 @@
 
 # cSpell:disable
 
+# Configuration leverage OmegaConf solvers. See :
 # https://omegaconf.readthedocs.io/en/2.3_branch/usage.html#variable-interpolation
 
 
