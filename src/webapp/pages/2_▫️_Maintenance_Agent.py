@@ -1,6 +1,17 @@
-"""Demo of an LLM Augmented Autonomous Agent for Maintenance."""
+"""Demo of an LLM Augmented Autonomous Agent for Maintenance.
 
-from datetime import datetime
+This module implements a Streamlit-based web application that demonstrates an LLM-augmented
+autonomous agent for maintenance operations. The agent can:
+- Access maintenance procedures and documentation
+- Query planning databases
+- Check tool availability and locations
+- Provide task-specific information and requirements
+
+The application provides sample prompts and allows users to ask their own questions
+about maintenance operations, with the agent retrieving and synthesizing information
+from multiple data sources.
+"""
+
 from pathlib import Path
 
 import pandas as pd
@@ -101,7 +112,8 @@ if b_column[2].button("See Procedure", key="procedure"):
             st.write(file.read())
 
 
-def extract_right_part(string: str, separator) -> str:
+def extract_right_part(string: str, separator: str) -> str:
+    """Extract the right part of a string after a separator."""
     return string.split(separator)[1].strip() if separator in string else string.strip()
 
 
@@ -134,10 +146,7 @@ if with_clear_container(submit_clicked):
     output_container.chat_message("user").write(user_input)
     answer_container = output_container.chat_message("assistant", avatar="🛠️")
 
-    context = f"Current date is: {datetime.now().isoformat()}. Use it for SQL the queries."
-    query = context + "\n" + user_input
     client = Client()
-
     streamlit_callback = get_streamlit_cb(answer_container)
 
     llm = get_llm()
@@ -146,12 +155,9 @@ if with_clear_container(submit_clicked):
         chain = create_maintenance_agent(
             metadata={"st_container": ("answer_container", answer_container)}, callbacks=[streamlit_callback]
         )
-
-        # answer = chain.invoke(query)
-
         if global_config().get_str("monitoring.default") == "langsmith":
             with tracing_v2_enabled() as cb:
-                answer = chain.invoke({"input": query})
+                answer = chain.invoke({"input": user_input})
                 url = cb.get_run_url()
                 answer_container.write("[trace](%s)" % url)
             if output := answer.get("output"):

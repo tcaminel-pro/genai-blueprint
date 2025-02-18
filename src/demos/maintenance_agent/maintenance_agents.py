@@ -1,7 +1,17 @@
 """LLM Augmented Autonomous Agent for Maintenance.
 
+This module provides tools and agents for assisting maintenance engineers with various tasks
+including procedure retrieval, planning information, sensor data, and ERP system queries.
+
+The main components are:
+- Maintenance procedure vector stores for similarity search
+- SQL query tools for maintenance planning data
+- Sensor data retrieval tools
+- ERP system query tools
+- A maintenance agent that orchestrates these tools
 """
-#  
+
+#
 # Complete doc and docstring AI!
 from datetime import datetime
 from functools import cache
@@ -48,7 +58,14 @@ VECTOR_STORE_ID = "InMemory"
 
 @st.cache_resource(show_spinner=True)
 def maintenance_procedure_vectors(text: str) -> VectorStore:
-    """Index and store a document for similarity matching (through embeddings)."""
+    """Index and store a document for similarity matching using embeddings.
+
+    Args:
+        text: Name of the text file containing maintenance procedures
+
+    Returns:
+        VectorStore: Configured vector store with indexed documents
+    """
     vs_factory = VectorStoreFactory(
         id=VECTOR_STORE_ID,
         collection_name="maintenance_procedure",
@@ -77,7 +94,18 @@ examples = [
 
 @cache
 def create_maintenance_tools() -> list[BaseTool]:
-    """Create the tools for the Maintenance Agent."""
+    """Create and configure the tools for the Maintenance Agent.
+
+    Returns:
+        list[BaseTool]: List of configured tools including:
+            - Planning info retrieval
+            - Current time
+            - Maintenance times
+            - Maintenance issues
+            - Procedure retrieval
+            - ERP system queries
+            - Sensor data
+    """
     logger.info("create tools")
 
     @tool
@@ -166,7 +194,16 @@ def create_maintenance_agent(
     callbacks: list[BaseCallbackHandler] | None = None,
     metadata: dict | None = None,
 ) -> Runnable:
-    """Create a maintenance agent that returns a runnable AgentExecutor."""
+    """Create a maintenance agent that returns a runnable AgentExecutor.
+
+    Args:
+        verbose: Whether to enable verbose logging
+        callbacks: Optional list of callback handlers
+        metadata: Additional metadata for the agent
+
+    Returns:
+        Runnable: Configured agent executor ready to handle maintenance queries
+    """
     # Get the LLM info
     # Create tools
     tools = create_maintenance_tools()

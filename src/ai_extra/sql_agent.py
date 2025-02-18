@@ -1,10 +1,11 @@
 """SQL Agent for Querying Databases Using Language Models.
 
-Provides functionality to generate and execute SQL queries using 
+Provides functionality to generate and execute SQL queries using
 language models with a graph-based workflow.
 """
 
 # Taken from https://python.langchain.com/docs/tutorials/sql_qa/
+# TODO : Complete with ReAct agent variant ?  2/ Add sample selection with similarity search
 
 from datetime import datetime
 from pathlib import Path
@@ -34,7 +35,13 @@ def create_sql_querying_graph(
         top_k: Maximum number of results to return in queries
 
     Returns:
-        A compiled graph for SQL query workflow
+        A compiled graph for SQL query
+
+    Example:
+    ```
+        db = SQLDatabase.from_uri(dummy_database())
+        graph = create_sql_querying_graph(get_llm(), db, examples=examples[:5])
+        result = graph.invoke({"question": query})["answer"]
     """
 
     class State(TypedDict, total=False):
@@ -110,6 +117,7 @@ def create_sql_querying_graph(
     return graph
 
 
+# Test taken from LangChain doc
 if __name__ == "__main__":
     DB_FILE = "use_case_data/other/Chinook.db"
     assert (Path(DB_FILE)).exists()
