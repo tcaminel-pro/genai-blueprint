@@ -47,7 +47,7 @@ SAMPLE_PROMPTS = {
             "print the tasks assigned to employee 'John Smith' next 2 days",
     "Print assigned tasks to an employee, spares needed, required tools, their availability and localization": """
         Follow these steps:
-        -  print the tasks assigned to employee John Smith next 2 days.
+        -  print the tasks assigned to employee John Smith next 5 days.
         -  print the tools required for these tasks
         -  print the spare parts required for these tasks.
         -  for each of these spare parts, print their availability and localization.
