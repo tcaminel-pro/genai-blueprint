@@ -31,7 +31,7 @@ from src.demos.maintenance_agent.maintenance_agents import (
 from src.demos.maintenance_agent.maintenance_data import dummy_database
 from src.utils.config_mngr import global_config
 from src.utils.streamlit.clear_result import with_clear_container
-from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
+from src.utils.streamlit.thread_issue_fix import get_streamlit_cb_v2
 from src.webapp.ui_components.llm_config import llm_config_widget
 
 # fmt:off
@@ -147,7 +147,9 @@ if with_clear_container(submit_clicked):
     answer_container = output_container.chat_message("assistant", avatar="🛠️")
 
     client = Client()
-    streamlit_callback = get_streamlit_cb(answer_container)
+    # streamlit_callback = get_streamlit_cb(answer_container)
+    streamlit_callback = get_streamlit_cb_v2(answer_container)
+    # streamlit_callback = StreamlitCallbackHandler(answer_container)
 
     llm = get_llm()
 
