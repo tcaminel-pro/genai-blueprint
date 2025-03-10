@@ -242,6 +242,11 @@ class EmbeddingsFactory(BaseModel):
             from langchain_ollama import OllamaEmbeddings
 
             emb = OllamaEmbeddings(model=self.info.model)
+        elif self.info.provider == "deepinfra":
+            from langchain_community.embeddings import DeepInfraEmbeddings
+
+            emb = DeepInfraEmbeddings(model_id=self.info.model)
+
         else:
             raise ValueError(f"unsupported Embeddings class {self.info.provider}")
         return emb

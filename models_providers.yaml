@@ -26,6 +26,7 @@
 
 # for Embeddings:
 # Ollama: https://ollama.com/search?q=embeddings&c=embedding 
+# DeepInfra : https://deepinfra.com/models/embeddings/ 
 # ...
 
 #cSpell: disable
@@ -245,3 +246,9 @@ embeddings:
       model: snowflake-arctic-embed:22m
     - id: mxbai_large_ollama
       model: mxbai-embed-large
+
+- provider: deepinfra
+  models:
+    - id: bge_m3_deepinfra
+      model: BAAI/bge-m3
+
