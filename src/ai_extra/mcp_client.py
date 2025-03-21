@@ -1,6 +1,7 @@
 # graph.py
 
 import asyncio
+from collections import ChainMap
 from pathlib import Path
 
 from langchain_mcp_adapters.client import MultiServerMCPClient, StdioServerParameters
@@ -26,13 +27,23 @@ assert MATH_SERVER_PATH.exists()
 #         description="Provides access to local filesystem operations",
 #     ),
 
+test_servers = {
+    "math": {
+        "command": "uv",
+        "args": ["run", str(MATH_SERVER_PATH)],
+        "transport": "stdio",
+    }
+}
+
 
 def get_mcp_servers_from_config() -> dict:
     servers = global_config().get_list("mcp_servers")
     result = {}
     for server in servers:
         key = next(iter(server))
-        value = {k: v for d in server[key] for k, v in d.items()}
+        value = dict(ChainMap(*server[key]))  # merge a list of dict into a dict
+        if env := value.get("env"):
+            value["env"] = dict(ChainMap(*env))
         result[key] = value
         _ = StdioServerParameters(**value)
     return result
@@ -40,6 +51,7 @@ def get_mcp_servers_from_config() -> dict:
 
 async def test():
     async with MultiServerMCPClient(get_mcp_servers_from_config()) as client:
+    # async with MultiServerMCPClient(test_servers) as client:
         tools = client.get_tools()
         logger.info("Create agent")
         agent = create_react_agent(model, tools)

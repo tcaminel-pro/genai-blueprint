@@ -1,6 +1,6 @@
 # Taken from https://github.com/langchain-ai/langchain-mcp-adapters
 
-from loguru import logger
+# from loguru import logger
 from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("Math")
@@ -31,7 +31,7 @@ def get_greeting(name: str) -> str:
 
 
 def main() -> None:
-    logger.info("Start 'Math MCP Server")
+    print("Start 'Math MCP Server")
     mcp.run(transport="stdio")
 
     # mcp.run_stdio_async

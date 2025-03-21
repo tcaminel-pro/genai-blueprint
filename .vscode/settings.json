@@ -1,10 +1,24 @@
 {
+ 
+    "files.exclude": {
+        ".venv/": true, 
+        "**/__pycache__": true,
+        ".aider.*":true,
+        ".*cache/":true,
+        "**/*.pyc": {"when": "$(basename).py"}, 
+    },
+
+    "search.exclude": {
+        "**/.aider.chat.history.md": true,
+        "**/.aider.chat.*/**": true,
+        "**/.git/logs/**" : true,
+        "**/class_diagram.md": true
+      },
+
     "terminal.integrated.env.linux": {
-        "PYTHONPATH": "${env:PYTHONPATH}:${workspaceFolder}/python:${env:PYTHONPATH}:${workspaceFolder}/notebooks:${workspaceFolder}/tests",
+        "PYTHONPATH": "${env:PYTHONPATH}:${workspaceFolder}/src:${env:PYTHONPATH}:${workspaceFolder}/notebooks:${workspaceFolder}/test",
       },
     
-    "jupyter.notebookFileRoot": "${workspaceFolder}", 
-
     "cSpell.ignorePaths": [
         "*.ipynb",
         "*.json", 
