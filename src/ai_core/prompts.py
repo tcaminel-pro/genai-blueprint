@@ -48,13 +48,13 @@ def dedent_ws(text: str) -> str:
     return result
 
 
-def def_prompt(system: str | None = None, user: str = "", other_msg: dict = None) -> BasePromptTemplate:
+def def_prompt(system: str | None = None, user: str = "", other_msg: dict | None = None) -> BasePromptTemplate:
     """Small wrapper around 'ChatPromptTemplate.from_messages" with just a user  and optional system prompt and other messages.
     Common leading whitespace and tags are removed from the system and user strings.
 
     Example:
     .. code-block:: python
-        prompt = def_prompt(system="You are an helpful agent", other_msg={"placeholder": "{agent_scratchpad}"})
+        prompt = def_prompt(system="You are an helpful agent", user = "bla bla", other_msg={"placeholder": "{agent_scratchpad}"})
 
     """
     if other_msg is None:
@@ -66,3 +66,23 @@ def def_prompt(system: str | None = None, user: str = "", other_msg: dict = None
     other = list(other_msg.items())
     messages.extend(other)
     return ChatPromptTemplate.from_messages(messages)
+
+
+def dict_input_message(user: str, system: str | None = None) -> dict[str, list[tuple]]:
+    """
+    Return an input message as dict, in the form : {"messages": [("user", query)]},  typically for use as input of a CompiledGraph.
+    """
+    msg = [("user", dedent_ws(user))]
+    if system:
+        msg += [("system", dedent_ws(system))]
+    return {"messages": msg}
+
+
+def list_input_message(user: str, system: str | None = None) -> list[dict[str, str]]:
+    """
+    Return an input message in the form: [{"role": "user", "content": query}]
+    """
+    msg = [{"role": "user", "content": dedent_ws(user)}]
+    if system:
+        msg += [{"role": "system", "content": dedent_ws(system)}]
+    return msg

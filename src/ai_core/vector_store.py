@@ -225,16 +225,22 @@ class VectorStoreFactory(BaseModel):
 
         return vector_store
 
-    def set_number_of_doc_to_fetch(self, k: int = 4) -> VectorStoreRetriever:
+    def as_retriever_configurable(self, top_k: int = 4, filter: dict | None = None) -> VectorStoreRetriever:
         """Configure a retriever with a specific number of most relevant documents.
 
         Args:
-            k: Number of documents to retrieve (default 4)
+            top_k: Number of documents to retrieve (default 4)
 
         Returns:
             Configurable vector store retriever
         """
-        retriever = self.vector_store.as_retriever(search_kwargs={"k": k}).configurable_fields(
+        search_kwargs = {"k": top_k}
+        if filter:
+            search_kwargs |= {"filter": filter}
+
+        retriever = self.vector_store.as_retriever(
+            search_kwargs=search_kwargs,
+        ).configurable_fields(
             search_kwargs=ConfigurableField(
                 id="search_kwargs",
             )

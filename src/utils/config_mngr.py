@@ -67,7 +67,7 @@ class OmegaConfig(BaseModel):
     def baseline(self) -> DictConfig:
         return self.root.get("baseline")
 
-    @once()
+    @once
     def singleton() -> "OmegaConfig":
         """Returns the singleton instance of Config."""
         # Find config file
@@ -83,7 +83,7 @@ class OmegaConfig(BaseModel):
         config_name_from_env = os.environ.get("BLUEPRINT_CONFIG")
         config_name_from_yaml = config.get("default_config")
         if config_name_from_env and config_name_from_env not in config:
-            logger.info(
+            logger.warning(
                 f"Configuration selected by environment variable 'BLUEPRINT_CONFIG' not found: {config_name_from_env}"
             )
             config_name_from_env = None
@@ -91,7 +91,7 @@ class OmegaConfig(BaseModel):
             logger.warning(f"Configuration selected by key 'default_config' not found: {config_name_from_yaml}")
             config_name_from_yaml = None
         selected_config = config_name_from_env or config_name_from_yaml or "baseline"
-        logger.info(f"Selected config: '{selected_config}'")
+        logger.info(f"selected_config={selected_config}")
         return OmegaConfig(root=config, selected_config=selected_config)
 
     def select_config(self, config_name: str) -> None:
@@ -137,15 +137,36 @@ class OmegaConfig(BaseModel):
         """Get a string configuration value."""
         value = self.get(key, default)
         if not isinstance(value, str):
-            raise ValueError(f"Configuration value for '{key}' is not a string")
+            raise ValueError(f"Configuration value for '{key}' is not a string (its a {type(value)})")
         return value
 
     def get_list(self, key: str, default: Optional[list] = None) -> list:
         """Get a list configuration value."""
         value = self.get(key, default)
         if not isinstance(value, ListConfig):
-            raise ValueError(f"Configuration value for '{key}' is not a list")
+            raise ValueError(f"Configuration value for '{key}' is not a list (its a {type(value)})")
         return list(value)
+
+    def get_dict(self, key: str, expected_keys: list | None = None) -> dict:
+        """Get a dictionary configuration value.
+
+        Args:
+            key: Configuration key in dot notation
+            expected_keys: Optional list of required keys to validate against
+        Returns:
+            The dictionary configuration value
+        Raises:
+            ValueError: If value is not a dict or if expected keys validation fails
+        """
+        value = self.get(key)
+        if not isinstance(value, DictConfig):
+            raise ValueError(f"Configuration value for '{key}' is not a dict (its a {type(value)})")
+        result = dict(value)
+        if expected_keys is not None:
+            missing_keys = [k for k in expected_keys if k not in result]
+            if missing_keys:
+                raise ValueError(f"Missing required keys '{key}': {', '.join(missing_keys)}")
+        return result
 
     def get_path(self, key: str, create_if_not_exists: bool = False) -> Path:
         """Get a file or dir path."""

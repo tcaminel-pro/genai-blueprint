@@ -110,13 +110,13 @@ class RunnableItem(BaseModel):
 class ChainRegistry(BaseModel):
     registry: list[RunnableItem] = []
 
-    @once()
+    @once
     def instance() -> "ChainRegistry":
         """Create Registry instance"""
 
         return ChainRegistry(registry=[])
 
-    @once()
+    @once
     def load_modules() -> None:
         """Create Registry instance and dynamically load chain modules specified in the configuration.
 

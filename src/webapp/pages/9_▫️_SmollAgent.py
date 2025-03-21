@@ -18,11 +18,13 @@ MODEL_ID = None
 
 # SmolagentsInstrumentor().instrument(tracer_provider=get_telemetry_trace_provider())
 
-SAMPLE_PROMPTS = {
+SAMPLE_PROMPTS = [
     "How many seconds would it take for a leopard at full speed to run through Pont des Arts?",
     "If the US keeps its 2024 growth rate, how many years will it take for the GDP to double?",
     "Which Dutch player scored an open-play goal in the 2022 Netherlands vs Argentina game in the men’s FIFA World Cup?",
-}
+]
+
+SAMPLE_PROMPTS = ["What is the weather in San Francisco ? ", "What's it known for?"]
 
 
 st.title("SmolAgents Chat")
@@ -36,8 +38,7 @@ debug(model_name)
 
 
 with st.expander(label="Prompt examples", expanded=True):
-    text = "".join([f"\n- {s}" for s in SAMPLE_PROMPTS])
-    st.markdown(text)
+    st.write(SAMPLE_PROMPTS)
 
 
 # Input for new messages

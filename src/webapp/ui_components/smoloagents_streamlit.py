@@ -26,7 +26,7 @@ from smolagents.memory import MemoryStep
 from smolagents.utils import _is_package_available
 
 
-def display_step(step_log: MemoryStep):
+def display_step(step_log: MemoryStep) -> None:
     """Display agent steps in Streamlit with proper formatting"""
     if isinstance(step_log, ActionStep):
         # Output the step number

@@ -8,7 +8,8 @@ output according to a specified Pydantic model using different approaches
 
 """
 
-from typing import Literal, TypeVar
+from enum import Enum
+from typing import TypeVar
 
 from langchain.output_parsers import PydanticOutputParser
 from langchain_core.runnables import Runnable
@@ -20,11 +21,21 @@ from src.ai_core.prompts import def_prompt
 T = TypeVar("T", bound=BaseModel)
 
 
-METHODS = Literal["output_parser", "function_calling", "json_schema"]
+class StructOutMethod(Enum):
+    """Enumeration of supported structured output methods."""
+
+    OUTPUT_PARSER = "output_parser"
+    FUNCTION_CALLING = "function_calling"
+    JSON_SCHEMA = "json_schema"
+    AUTO = "auto"
 
 
 def structured_output_chain(
-    system: str, user: str, llm_id: str | None, output_class: type[T], method: METHODS
+    system: str,
+    user: str,
+    llm_id: str | None,
+    output_class: type[T],
+    method: StructOutMethod = StructOutMethod.FUNCTION_CALLING,
 ) -> Runnable[dict, T]:
     """Create a chain that generates structured output according to a Pydantic model.
 
@@ -56,7 +67,10 @@ def structured_output_chain(
         result = chain.invoke({})
         ```
     """
-    if method == "output_parser":
+    if method == StructOutMethod.AUTO:
+        raise NotImplementedError("Default selection of structured output not implemented yet")
+
+    if method == StructOutMethod.OUTPUT_PARSER:
         parser = PydanticOutputParser(pydantic_object=output_class)
         chain = (
             def_prompt(system, user + "\n{format_instructions}").partial(
@@ -65,8 +79,8 @@ def structured_output_chain(
             | get_llm(llm_id=llm_id, json_mode=True)
             | parser
         )
-    elif method in ["function_calling", "json_schema"]:
-        llm = get_llm(llm_id=llm_id).with_structured_output(output_class, method=method)
+    elif method in [StructOutMethod.FUNCTION_CALLING, StructOutMethod.JSON_SCHEMA]:
+        llm = get_llm(llm_id=llm_id).with_structured_output(output_class, method=method.value)
         chain = def_prompt(system=system, user=user) | llm
     else:
         raise ValueError(f"Incorrect structured output method : {method}")
@@ -93,7 +107,7 @@ if __name__ == "__main__":
         user="Tell me a joke about {topic}",
         llm_id=MODEL,
         output_class=Joke,
-        method="output_parser",
+        method=StructOutMethod.OUTPUT_PARSER,
     )
     debug(a.invoke({"topic": "cat"}))
 
@@ -102,6 +116,6 @@ if __name__ == "__main__":
         user="Tell me a joke about {topic}",
         llm_id=MODEL,
         output_class=Joke,
-        method="function_calling",
+        method=StructOutMethod.FUNCTION_CALLING,
     )
     debug(b.invoke({"topic": "cat"}))

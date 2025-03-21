@@ -15,7 +15,6 @@ def llm_config_widget(parent_container: DeltaGenerator, expanded: bool = True) -
         index = LlmFactory().known_items().index(current_llm)
         llm = st.selectbox("default", LlmFactory().known_items(), index=index, key="select_llm")
         global_config().set("llm.default_model", str(llm))
-        # debug(llm)
         set_debug(
             st.checkbox(
                 label="Debug",

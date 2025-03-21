@@ -15,10 +15,10 @@ from functools import wraps
 from threading import Lock
 from typing import Any, Callable, TypeVar
 
-F = TypeVar("F", bound=Callable[..., Any])
+R = TypeVar("R")
 
 
-def once() -> Callable[[F], F]:
+def once(func: Callable[..., R]) -> Callable[..., R]:
     """
     A decorator that ensures the wrapped function is called once and return same result.\n
     It's typically used for thread-safe singleton instance creation.
@@ -28,7 +28,7 @@ def once() -> Callable[[F], F]:
         class MyClass (BaseModel):
             model_config = ConfigDict(frozen=True)
 
-            @once()
+            @once
             def singleton() -> "MyClass":
                 "Returns a singleton instance of the class"
                 return MyClass()
@@ -36,18 +36,42 @@ def once() -> Callable[[F], F]:
         my_class_singleton = MyClass.singleton()
 
     # work for functions, too:
-        @once()
+        @once
         def get_my_class_singleton():
             return MyClass()
             ...
+    ```
     """
+    # Preserve the original function's docstring and attributes
+    original_doc = func.__doc__
+    original_annotations = func.__annotations__
+    if isinstance(func, staticmethod):
+        # If already a staticmethod, apply once_fn() to the underlying function
+        inner_func = func.__func__
+        wrapped = staticmethod(once_fn()(inner_func))
+    else:
+        # Otherwise create a new staticmethod with once_fn() applied
+        inner_func = func
+        wrapped = staticmethod(once_fn()(func))
+
+    # Preserve the original function's documentation and attributes  (DOES NOT SEEMS TO WORK...)
+    wrapped.__doc__ = original_doc
+    wrapped.__annotations__ = original_annotations
+    wrapped.__name__ = inner_func.__name__
+    wrapped.__module__ = inner_func.__module__
+
+    return wrapped
+
+
+def once_fn() -> Callable[[Callable[..., R]], Callable[..., R]]:
+    """ """
 
     def decorator(func):
         decorator._cached_results = {}  # type: ignore # Store instance and lock as decorator attributes
         decorator._lock = Lock()  # type: ignore
 
         @wraps(func)
-        def wrapper(*args, **kwargs) -> Any:
+        def wrapper(*args, **kwargs) -> R:
             # Create a stable cache key that handles:
             # - Multiple arguments
             # - Mutable types (lists, dicts)
@@ -91,24 +115,29 @@ def once() -> Callable[[F], F]:
 if __name__ == "__main__":
     from pydantic import BaseModel, ConfigDict
 
-    class SingletonTestModel(BaseModel):
+    class TestClass1(BaseModel):
         model_config = ConfigDict(frozen=True)
         a: int
         b: int = 1
 
-        @once()
-        def singleton() -> "SingletonTestModel":
+        @once
+        def singleton() -> "TestClass1":
             """Returns a singleton instance of the class"""
-            return SingletonTestModel(a=1)
+            return TestClass1(a=1)
+
+        @once
+        def singleton2(a: int, b: int) -> "TestClass1":
+            """Returns a singleton instance of the class"""
+            return TestClass1(a=a, b=b)
 
     # Usage example:
-    obj1 = SingletonTestModel.singleton()
-    obj2 = SingletonTestModel.singleton()
+    obj1 = TestClass1.singleton()
+    obj2 = TestClass1.singleton()
     assert obj1 is obj2  # True - same instance
 
-    @once()
-    def get_my_class_singleton() -> SingletonTestModel:
-        return SingletonTestModel(a=4)
+    @once
+    def get_my_class_singleton() -> TestClass1:
+        return TestClass1(a=4)
 
     obj3 = get_my_class_singleton()
     obj4 = get_my_class_singleton()
@@ -116,28 +145,34 @@ if __name__ == "__main__":
 
     assert obj1 is not obj3
 
-    @once()
-    def do_something_complicated(x: int) -> SingletonTestModel:
-        return SingletonTestModel(a=x)
+    @once
+    def do_something(x: int) -> TestClass1:
+        return TestClass1(a=x)
 
-    obj5 = do_something_complicated(1)
-    obj6 = do_something_complicated(1)
-    obj7 = do_something_complicated(2)
+    obj5 = do_something(1)
+    obj6 = do_something(1)
+    obj7 = do_something(2)
 
     assert obj5 is obj6
     assert obj5 is not obj7
     assert obj7.a == 2
 
-    @once()
-    def do_something_complicated_2(x: int, y: int) -> SingletonTestModel:
-        return SingletonTestModel(a=x + y)
+    @once
+    def do_something_2(x: int, y: int) -> TestClass1:
+        return TestClass1(a=x + y)
 
     # Test multiple arguments
-    obj8 = do_something_complicated_2(1, 2)
-    obj9 = do_something_complicated_2(1, 2)
-    obj10 = do_something_complicated_2(2, 1)
+    obj8 = do_something_2(1, 2)
+    obj9 = do_something_2(1, 2)
+    obj10 = do_something_2(2, 1)
 
     assert obj8 is obj9  # Same args - same instance
     assert obj8 is not obj10  # Different args - different instance
     assert obj8.a == 3
     assert obj10.a == 3  # Same sum but different args
+
+    obj11 = TestClass1.singleton2(a=1, b=2)
+    obj12 = TestClass1.singleton2(a=1, b=2)
+    obj13 = TestClass1.singleton2(a=3, b=4)
+    assert obj11 is obj12
+    assert obj13 is not obj11

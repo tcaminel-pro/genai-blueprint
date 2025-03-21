@@ -56,6 +56,20 @@ baseline:
       # - ${..root}.C_2_advanced_rag_langgraph
       # - ${..root}.C_3_essay_writer_agent
       
+  mcp_servers:
+    - math:
+      - command: python
+      - args: 
+        - ${paths.project}/src/mcp_server/math_server.py
+      - transport: stdio
+    - filesystem:
+      - command: npx
+      - args:
+        - "-y"
+        - "@modelcontextprotocol/server-filesystem"
+        - ${paths.project}
+      - transport: stdio
+ 
 # Overridden configurations
 # Set by environment variable "BLUEPRINT_CONFIG", or by the 'default' key, or in code
 

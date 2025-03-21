@@ -4,7 +4,6 @@ import streamlit as st
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage
 
-from src.ecod_core.agents.chat_graph import invoke_our_graph
 from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
 
 load_dotenv()
