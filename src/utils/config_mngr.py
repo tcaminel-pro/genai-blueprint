@@ -173,13 +173,12 @@ class OmegaConfig(BaseModel):
                 raise ValueError(f"Missing required keys '{key}': {', '.join(missing_keys)}")
         return result
 
-    # if 'key' is a path to a file (with extension), create the directory if it does not exists
-    def get_path(self, key: str, create_dir_if_not_exists: bool = False) -> Path:
+  def get_path(self, key: str, create_dir_if_not_exists: bool = True) -> Path:
         """Get a file or dir path.
 
         Args:
             key: Configuration key containing the path
-            create_dir_if_not_exists: If True, create directory when missing
+            create_dir_if_not_exists: If True, create parent directory when missing for files
         Returns:
             The Path object
         Raises:
@@ -188,12 +187,17 @@ class OmegaConfig(BaseModel):
         path = Path(self.get_str(key))
         if not path.exists():
             if create_dir_if_not_exists:
-                logger.warning(f"Creating missing directory: {path}")
-                path.mkdir(parents=True, exist_ok=True)
+                if path.suffix:  # This is a file path
+                    parent = path.parent
+                    if not parent.exists():
+                        logger.warning(f"Creating missing parent directory: {parent}")
+                        parent.mkdir(parents=True, exist_ok=True)
+                else:  # This is a directory path
+                    logger.warning(f"Creating missing directory: {path}")
+                    path.mkdir(parents=True, exist_ok=True)
             else:
                 raise ValueError(f"Path value for '{key}' does not exist: '{path}'")
         return path
-
 
 def global_config() -> OmegaConfig:
     """Get the global config singleton."""
