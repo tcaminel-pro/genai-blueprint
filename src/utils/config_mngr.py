@@ -173,7 +173,7 @@ class OmegaConfig(BaseModel):
                 raise ValueError(f"Missing required keys '{key}': {', '.join(missing_keys)}")
         return result
 
-  def get_path(self, key: str, create_dir_if_not_exists: bool = True) -> Path:
+    def get_path(self, key: str, create_dir_if_not_exists: bool = True) -> Path:
         """Get a file or dir path.
 
         Args:
@@ -199,6 +199,7 @@ class OmegaConfig(BaseModel):
                 raise ValueError(f"Path value for '{key}' does not exist: '{path}'")
         return path
 
+
 def global_config() -> OmegaConfig:
     """Get the global config singleton."""
     return OmegaConfig.singleton()
@@ -210,7 +211,7 @@ def config_loguru() -> None:
     # Workaround "LOGURU_FORMAT" does not seems to be taken into account
     format_str = (
         os.environ.get("LOGURU_FORMAT")
-        or "<green>{time:HH:mm:ss}</green> | <level>{level: <7}</level> | <magenta>{file.name}</magenta>:<cyan>{line}</cyan> <yellow>{function}</yellow>- <level>{message}</level>"
+        or "<cyan>{time:HH:mm:ss}</cyan> | <level>{level: <6}</level> | <magenta>{file.name}</magenta>:<green>{line} <italic>{function}</italic></green>- <level>{message}</level>"
     )
 
     logger.remove()
