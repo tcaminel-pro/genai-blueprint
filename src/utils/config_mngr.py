@@ -176,7 +176,7 @@ class OmegaConfig(BaseModel):
         
         Args:
             key: Configuration key containing the path
-            create_dir_if_not_exists: If True, create directory when missing
+            create_dir_if_not_exists: If True, create parent directory when missing for files
         Returns:
             The Path object
         Raises:
@@ -185,8 +185,14 @@ class OmegaConfig(BaseModel):
         path = Path(self.get_str(key))
         if not path.exists():
             if create_dir_if_not_exists:
-                logger.warning(f"Creating missing directory: {path}")
-                path.mkdir(parents=True, exist_ok=True)
+                if path.suffix:  # This is a file path
+                    parent = path.parent
+                    if not parent.exists():
+                        logger.warning(f"Creating missing parent directory: {parent}")
+                        parent.mkdir(parents=True, exist_ok=True)
+                else:  # This is a directory path
+                    logger.warning(f"Creating missing directory: {path}")
+                    path.mkdir(parents=True, exist_ok=True)
             else:
                 raise ValueError(f"Path value for '{key}' does not exist: '{path}'")
         return path
