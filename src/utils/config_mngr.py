@@ -70,6 +70,8 @@ class OmegaConfig(BaseModel):
     @once
     def singleton() -> "OmegaConfig":
         """Returns the singleton instance of Config."""
+
+        # config_loguru()
         # Find config file
         yml_file = Path.cwd() / CONFIG_FILE
         if not yml_file.exists():
@@ -168,11 +170,12 @@ class OmegaConfig(BaseModel):
                 raise ValueError(f"Missing required keys '{key}': {', '.join(missing_keys)}")
         return result
 
-    def get_path(self, key: str, create_if_not_exists: bool = False) -> Path:
+    # Improve : if the key (ie file or dir) does not exists, create the directory and log a warning AI!
+    def get_path(self, key: str, create_dir_if_not_exists: bool = False) -> Path:
         """Get a file or dir path."""
         path = Path(self.get_str(key))
         if not path.exists():
-            if create_if_not_exists:
+            if create_dir_if_not_exists:
                 path.mkdir()
             else:
                 raise ValueError(f"Path value for '{key}' does not exists: '{path}'")
@@ -186,6 +189,7 @@ def global_config() -> OmegaConfig:
 
 def config_loguru() -> None:
     """Configure the logger."""
+
     format_str = global_config().root.get(
         "log_format",
         "<green>{time:HH:mm:ss}</green> | <level>{level: <7}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
