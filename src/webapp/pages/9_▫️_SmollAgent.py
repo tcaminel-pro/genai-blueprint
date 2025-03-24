@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import streamlit as st
-from rich import print as rprint
 from smolagents import (
     CodeAgent,
     DuckDuckGoSearchTool,

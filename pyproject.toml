@@ -13,7 +13,6 @@ dependencies = [
     "tabulate>=0.9.0",
     "omegaconf>=2.3.0",
     "fastapi>=0.115.6",
-    "mcp[cli]>=1.4.1",
     "rich[jupyter]>=13.9.4",
 ]
 
@@ -57,7 +56,7 @@ ai_extra = [
     "smolagents>=1.4.1",
     "tavily-python>=0.3.3",
     "duckduckgo-search>=6.1.6",
-    "mcpadapt>=0.0.9",
+    "mcp[cli]>=1.4.1",
 ]
 demos = [
     "bs4>=0.0.2",
@@ -88,12 +87,12 @@ transformers = [
     "sentence-transformers>=3.4.1",
 ]
 dev = [
-    "ruff>=0.9.1,<0.10",
-    "pytest>=8.1.1,<9",
-    "ipykernel>=6.29.4,<7",
-    "ipywidgets>=8.1.2,<9",
-    "grandalf>=0.8,<0.9",
-    "defusedxml>=0.7.1,<0.8",
+    "ruff>=0.9.1",
+    "pytest>=8.1.1",
+    "ipykernel>=6.29.4",
+    "ipywidgets>=8.1.2",
+    "grandalf>=0.8",
+    "defusedxml>=0.7.1",
 ]
 
 [tool.uv]

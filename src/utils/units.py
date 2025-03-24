@@ -4,7 +4,6 @@ This module
 - define units related to Emission Factors
 - provide a convenient singleton for UNIT_REGISTRY
 
-Copyright (C) 2024 Eviden. All rights reserved
 """
 
 # NOT TESTED

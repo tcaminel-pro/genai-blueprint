@@ -1,7 +1,6 @@
 """
 Entry point for the REST API
 
-Copyright (C) 2024 Eviden. All rights reserved
 """
 
 import sys

@@ -63,7 +63,7 @@ lint: ## Run Ruff an all Python files to format fix imports
 
 
 quality: ## Run Ruff an all Python files to check quality
-	find . -path "./python/wip" -prune -o -path "./.venv" -prune -o -type f -name '*.py' | xargs ruff check --fix 
+	find . -path "./src/wip" -prune -o -path "./.venv" -prune -o -type f -name '*.py' | xargs ruff check --fix 
 
 clean_notebooks:  ## Clean Jupyter notebook outputs. 
 	@find . -name "*.ipynb" | while read -r notebook; do \
@@ -234,6 +234,9 @@ help:
 	@echo "Available targets:"                                                                                                                  
 	@awk 'BEGIN {FS = ":.*##"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST) | sort 
 
+
+test_install:
+	echo girls | uv run cli run  joke  -m  fake_parrot_local
 
 ##############################
 ##  Project specific commands
