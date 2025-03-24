@@ -17,7 +17,6 @@ Example:
 
 from enum import Enum
 
-from devtools import debug
 from langchain.globals import get_llm_cache, set_llm_cache
 from langchain_community.cache import InMemoryCache, SQLiteCache
 from langchain_core.caches import BaseCache
@@ -62,7 +61,7 @@ class LlmCache:
         elif method == "no_cache":
             return None
         else:
-            debug(value, method)
+            rprint(value, method)
             raise ValueError()
 
     @classmethod

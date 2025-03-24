@@ -1,9 +1,9 @@
 # graph.py
 
 import asyncio
-from collections import ChainMap
 from pathlib import Path
 
+import rich
 from langchain_mcp_adapters.client import MultiServerMCPClient, StdioServerParameters
 from langgraph.prebuilt import create_react_agent
 from loguru import logger
@@ -37,29 +37,30 @@ test_servers = {
 
 
 def get_mcp_servers_from_config() -> dict:
-    servers = global_config().get_list("mcp_servers")
     result = {}
-    for server in servers:
-        key = next(iter(server))
-        value = dict(ChainMap(*server[key]))  # merge a list of dict into a dict
-        if env := value.get("env"):
-            value["env"] = dict(ChainMap(*env))
-        result[key] = value
-        _ = StdioServerParameters(**value)
+    servers = global_config().get("mcp_servers")
+
+    for name, desc in servers.items():
+        rich.print(name, desc)
+        desc.pop("description", "")
+        desc.pop("example", None)
+        # key = next(iter(server))
+        _ = StdioServerParameters(**desc)  # quick test of validity
+        result[name] = dict(**desc)
     return result
 
 
-async def test():
+async def test() -> None:
     async with MultiServerMCPClient(get_mcp_servers_from_config()) as client:
-    # async with MultiServerMCPClient(test_servers) as client:
+        # async with MultiServerMCPClient(test_servers) as client:
         tools = client.get_tools()
         logger.info("Create agent")
         agent = create_react_agent(model, tools)
         logger.info("invoke MCP agent")
         # math_response = await agent.ainvoke({"messages": "what's (3 + 5) x 12?"})
-        # debug(math_response)
+        # rich.print(math_response)
         dir_response = await agent.ainvoke({"messages": "list files in current directory"})
-        debug(dir_response)
+        rich.print(dir_response)
 
 
 if __name__ == "__main__":

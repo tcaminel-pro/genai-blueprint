@@ -89,7 +89,7 @@ def print_step(step: Any, details: bool = True) -> None:
                     print(type(updates))
 
     elif isinstance(step, tuple):
-        #        debug(step)
+        #        rprint(step)
         step_type, content = step
         print(f"step type: {step_type}")
         for node, updates in content.items():

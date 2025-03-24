@@ -103,7 +103,7 @@ class RunnableItem(BaseModel):
             runnable = func_runnable(conf)
         else:
             raise Exception("unknown or ill-formatted Runnable")
-        # debug(self.runnable, runnable)
+        # rprint(self.runnable, runnable)
         return runnable
 
 

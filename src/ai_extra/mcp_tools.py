@@ -123,7 +123,7 @@ if __name__ == "__main__":
         # async for event in mcp_agent_runner(
         #     llm, [pubmed_mcp_params], "Find relevant studies on alcohol hangover and treatment.", {}
         # ):
-        #     debug(event)
+        #     rprint(event)
 
         # async for event in mcp_agent_runner(
         #     llm, [memory_mcp_params, filesystem_mcp_params], "List content of the current directory.", {}
@@ -135,6 +135,6 @@ if __name__ == "__main__":
             "List content of the current directory.",
             {},
         )
-        debug(result)
+        rprint(result)
 
     asyncio.run(main())

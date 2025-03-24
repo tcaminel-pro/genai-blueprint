@@ -84,7 +84,7 @@ def process_json(source: str, formation: ParcoursFormations) -> Iterator[Documen
 
         desc.inm = dmn.for_inm
         info_pedago = dmn.informations_pedagogiques
-        # debug(dmn.for_intitule, dmn.dom_libelle)
+        # rprint(dmn.for_intitule, dmn.dom_libelle)
         if info_pedago:
             desc.libeles.update(dmn.dom_libelle)
             desc.disciplines.update(info_pedago.mot_cle_disciplinaire or [])
@@ -199,7 +199,7 @@ def create_bm25_index(k: int = 20):
 def bm25_index_search(query: str, k: int = 20) -> None:
     retriever = create_bm25_index(k)
     r = retriever.invoke(query)
-    debug(r)
+    rprint(r)
 
 
 @app.command()
@@ -240,7 +240,7 @@ def find_acronyms():
     docs = load_objects_from_jsonl(FILES)
     for doc in docs:
         candidates.update(re.findall(REGEXP_ACRONYMS, doc.page_content))
-        # debug(candidates)
+        # rprint(candidates)
     for word in candidates:
         if not french_dict.check(word) and not english_dict.check(word):
             suggested = [unidecode(w).lower() for w in french_dict.suggest(word)]

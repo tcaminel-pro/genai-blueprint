@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import streamlit as st
+from rich import print as rprint
 from smolagents import (
     CodeAgent,
     DuckDuckGoSearchTool,
@@ -34,7 +35,7 @@ llm_config_widget(st.sidebar)
 
 model_name = LlmFactory(llm_id=MODEL_ID).get_litellm_model_name()
 llm = LiteLLMModel(model_id=model_name)
-debug(model_name)
+print(model_name)
 
 
 with st.expander(label="Prompt examples", expanded=True):

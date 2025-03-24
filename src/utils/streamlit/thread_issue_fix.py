@@ -9,7 +9,7 @@ from streamlit.delta_generator import DeltaGenerator
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 
 # Taken from https://github.com/streamlit/streamlit/issues/1326
-# and https://stackoverflow.com/a/78976474 
+# and https://stackoverflow.com/a/78976474
 # Seems to work
 
 T = TypeVar("T")

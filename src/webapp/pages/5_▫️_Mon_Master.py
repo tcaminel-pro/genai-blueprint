@@ -111,7 +111,7 @@ if submit_clicked:
 
     start_time = timeit.default_timer()
     result = retriever.invoke(user_input, config=config)  # type: ignore
-    #    debug(user_input, result)
+    #    rprint(user_input, result)
     delta_t = timeit.default_timer() - start_time
     for doc in result:
         # obj = json.loads(doc.page_content)

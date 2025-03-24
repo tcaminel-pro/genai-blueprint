@@ -7,10 +7,10 @@ Copyright (C) 2024 Eviden. All rights reserved
 import sys
 from pathlib import Path
 
-from devtools import debug  # type: ignore  # noqa: F401
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from loguru import logger  # type: ignore
+from rich import print as rprint  # type: ignore  # noqa: F401
 
 # fmt: off
 [sys.path.append(str(path)) for path in [Path.cwd(), Path.cwd().parent, Path.cwd().parent/"python"] if str(path) not in sys.path]  # type: ignore # fmt: on

@@ -241,4 +241,4 @@ if __name__ == "__main__":
         return await chain.ainvoke(query)
 
     result = asyncio.run(main())
-    debug(result)
+    rprint(result)

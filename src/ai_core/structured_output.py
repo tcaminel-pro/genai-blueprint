@@ -109,7 +109,7 @@ if __name__ == "__main__":
         output_class=Joke,
         method=StructOutMethod.OUTPUT_PARSER,
     )
-    debug(a.invoke({"topic": "cat"}))
+    rprint(a.invoke({"topic": "cat"}))
 
     b = structured_output_chain(
         system="",
@@ -118,4 +118,4 @@ if __name__ == "__main__":
         output_class=Joke,
         method=StructOutMethod.FUNCTION_CALLING,
     )
-    debug(b.invoke({"topic": "cat"}))
+    rprint(b.invoke({"topic": "cat"}))

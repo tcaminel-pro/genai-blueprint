@@ -576,7 +576,7 @@ def get_print_chain(string: str = "") -> RunnableLambda:
     """
 
     def fn(input: Any, config: RunnableConfig) -> Any:
-        debug(string, input, config)
+        rprint(string, input, config)
         return input
 
     return RunnableLambda(fn)

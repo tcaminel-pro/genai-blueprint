@@ -105,7 +105,7 @@ def stream_to_streamlit(agent, task: str, reset_agent_memory: bool = False, addi
                     step_log.input_token_count = agent.model.last_input_token_count
                     step_log.output_token_count = agent.model.last_output_token_count
             except Exception as ex:
-                debug(ex)
+                rprint(ex)
 
         display_step(step_log)
 

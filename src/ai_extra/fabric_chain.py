@@ -9,13 +9,13 @@
 import re
 
 import requests
-from devtools import debug  # noqa: F401
 from dotenv import load_dotenv
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import (
     RunnablePassthrough,
     chain,
 )
+from rich import print as rprint  # noqa: F401
 
 from src.ai_core.chain_registry import Example, RunnableItem, register_runnable
 from src.ai_core.llm import get_llm
@@ -77,4 +77,4 @@ if __name__ == "__main__":
     # set_debug(True)
     load_dotenv(verbose=True)
     r = get_fabric_chain(config={"llm": None}).invoke({"pattern": "ai", "input_data": "tell me more about stoicism"})
-    debug(r)
+    rprint(r)

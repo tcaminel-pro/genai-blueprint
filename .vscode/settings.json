@@ -1,5 +1,10 @@
-{
- 
+{  
+    "terminal.integrated.env.linux": {
+        "PYTHONPATH": "${env:PYTHONPATH}:${workspaceFolder}/src:${env:PYTHONPATH}:${workspaceFolder}/notebooks:${workspaceFolder}/test",
+      },
+
+    "jupyter.notebookFileRoot": "${workspaceFolder}",
+    
     "files.exclude": {
         ".venv/": true, 
         "**/__pycache__": true,
@@ -15,10 +20,6 @@
         "**/class_diagram.md": true
       },
 
-    "terminal.integrated.env.linux": {
-        "PYTHONPATH": "${env:PYTHONPATH}:${workspaceFolder}/src:${env:PYTHONPATH}:${workspaceFolder}/notebooks:${workspaceFolder}/test",
-      },
-    
     "cSpell.ignorePaths": [
         "*.ipynb",
         "*.json", 
@@ -86,6 +87,7 @@
         "pygraphviz",
         "Pylance",
         "pytest",
+        "rprint",
         "selectbox",
         "Smol",
         "smolagents",

@@ -52,4 +52,4 @@ MODEL = "google_gemini15pro_openrouter"  # Work
 get_weather_chain = RunnableLambda(get_weather_fn).with_config(llm_config(MODEL) | {"recursion_limit": 6})
 answer = get_weather_chain.invoke("what's the weather in New York?")
 
-debug(answer)
+rprint(answer)

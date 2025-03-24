@@ -100,7 +100,7 @@ with st.expander("Runnable Graph", expanded=False):
 with st.form("my_form"):
     input = st.text_area("Enter input:", first_example.query[0], placeholder="")
     submitted = st.form_submit_button("Submit")
-    # debug(config)
+    # rprint(config)
     if submitted:
         chain = runnable_desc.get().with_config(configurable=config)
         if global_config().get_str("monitoring.default") == "langsmith":
