@@ -77,7 +77,7 @@ def get_vector_vector_store_path() -> str:
         return modal_volume
     else:
         # Local development
-        dir = global_config().get_path("vector_store.path", create_if_not_exists=True)
+        dir = global_config().get_path("vector_store.path", create_dir_if_not_exists=True)
         return str(dir)
 
 

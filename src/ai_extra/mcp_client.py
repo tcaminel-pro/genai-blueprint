@@ -1,56 +1,46 @@
-# graph.py
+# Utilities to ease use of MCP
 
 import asyncio
-from pathlib import Path
 
-import rich
 from langchain_mcp_adapters.client import MultiServerMCPClient, StdioServerParameters
-from langgraph.prebuilt import create_react_agent
-from loguru import logger
 
-from src.ai_core.llm import get_llm
 from src.utils.config_mngr import global_config
-
-model = get_llm()
-
-
-MATH_SERVER_PATH = Path("/home/tcl/prj/mcp_server/math_server.py")
-MATH_SERVER_PATH = Path("/home/tcl/prj/genai-blueprint/src/mcp_server/math_server.py")
-assert MATH_SERVER_PATH.exists()
-
-
-#    "filesystem": MCPServerConfig(
-#         params=StdioServerParameters(
-#             command="npx",
-#             args=["-y", "@modelcontextprotocol/server-filesystem", str(Path.cwd().parent)],
-#         ),
-#         description="Provides access to local filesystem operations",
-#     ),
-
-test_servers = {
-    "math": {
-        "command": "uv",
-        "args": ["run", str(MATH_SERVER_PATH)],
-        "transport": "stdio",
-    }
-}
 
 
 def get_mcp_servers_from_config() -> dict:
+    """
+    Read the list of MCP servers and their parameters from the global config file.
+
+    Example configuration:
+    ```yaml
+        mcp_servers:
+            pubmed:
+                command: uv
+                args: ["tool", "run", "--quiet", "pubmedmcp@0.1.3"]
+                transport: stdio
+                description: Provides access to PubMed medical research database
+     ```
+    """
     result = {}
-    servers = global_config().get("mcp_servers")
+    servers = global_config().get_dict("mcp_servers")
 
     for name, desc in servers.items():
-        rich.print(name, desc)
         desc.pop("description", "")
         desc.pop("example", None)
-        # key = next(iter(server))
         _ = StdioServerParameters(**desc)  # quick test of validity
         result[name] = dict(**desc)
     return result
 
 
+## quick test ##
 async def test() -> None:
+    import rich
+    from langgraph.prebuilt import create_react_agent
+    from loguru import logger
+
+    from src.ai_core.llm import get_llm
+
+    model = get_llm()
     async with MultiServerMCPClient(get_mcp_servers_from_config()) as client:
         # async with MultiServerMCPClient(test_servers) as client:
         tools = client.get_tools()

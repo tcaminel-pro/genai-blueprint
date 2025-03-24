@@ -45,7 +45,6 @@ rebase: ## Sync local repo with remote one (changes are stashed before!)
 	git rebase origin/main
 
 AIDER_OPTS=--watch-files --no-auto-lint --read CONVENTIONS.md --editor "code --wait"
-# not sure --cache-prompts works
 
 aider:  ## Call aider-chat (a coding assistant)
 	aider $(AIDER_OPTS) --model deepseek/deepseek-chat; 
@@ -100,6 +99,7 @@ check_uv:  ## Check if uv is installed, install if missing
 		echo "uv is not installed. Installing now..."; \
 		curl -LsSf https://astral.sh/uv/install.sh | sh; \
 		echo "uv installed successfully"; \
+		source $HOME/.local/bin/env
 	fi
 
 install: check_uv   ## Install SW
@@ -235,8 +235,8 @@ help:
 	@awk 'BEGIN {FS = ":.*##"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST) | sort 
 
 
-test_install:
-	echo girls | uv run cli run  joke  -m  fake_parrot_local
+test_install:  ## Launch cli.py and run LangChain with fake LLM
+	echo bears | uv run cli run  joke  -m  fake_parrot_local	
 
 ##############################
 ##  Project specific commands

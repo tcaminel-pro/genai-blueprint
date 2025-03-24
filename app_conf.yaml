@@ -12,15 +12,19 @@ paths:
   project : ${oc.env:PWD}
   data_root : ${oc.env:HOME}
 
-# Default configuration
+#####
+# Default configuration (baseline)
+####
 baseline:
   llm:
     list: ${paths.project}/models_providers.yaml
     default_model: gpt_4omini_openai # gpt_35_azure # mistral_large_edenai 
     cache : sqlite
-    cache_path: ${paths.data_root}/llm_cache/langchain_ecod.db
+    cache_path: ${paths.data_root}/llm_cache/langchain.db
 
-    # optional model definitions (you can add your own type): 
+    ### 
+    # Optional model definitions (you can add your own type): 
+    ###
     coder_model : qwen25_coder32_openrouter
     powerful_model : gpt_4_openai
     fast_model : llama31_8_groq
@@ -50,12 +54,15 @@ baseline:
     root: src.ai_chains
     modules:
       - ${..root}.A_1_joke 
-      # - ${..root}.B_1_naive_rag_example
-      # - ${..root}.B_2_self_query
+      - ${..root}.B_1_naive_rag_example
+      - ${..root}.B_2_self_query
       - ${..root}.C_1_tools_example
       # - ${..root}.C_2_advanced_rag_langgraph
       # - ${..root}.C_3_essay_writer_agent
       
+  #### 
+  # MCP Servers Configuration
+  ####    
   mcp_servers:
     math:
         command: uv
@@ -70,25 +77,19 @@ baseline:
           - "@modelcontextprotocol/server-filesystem"
           - ${paths.project}
         transport: stdio
-    # - timeserver: 
-    #   - command: npx
-    #   - args:
-    #     - "-y"
-    #     - "@modelcontextprotocol/mcp-server-time"
-    #   #- description: Provides current time and timezone conversions
-    #   - transport: stdio
     pubmed:
         command: uv
         args: ["tool", "run", "--quiet", "pubmedmcp@0.1.3"]
         transport: stdio
-      #- description: Provides access to PubMed medical research database
+        description: Provides access to PubMed medical research database
         example : "Find relevant studies on alcohol hangover and treatment."
 
 
- 
+
+#### 
 # Overridden configurations
 # Set by environment variable "BLUEPRINT_CONFIG", or by the 'default' key, or in code
-
+####   
 
 training_local:
   llm:

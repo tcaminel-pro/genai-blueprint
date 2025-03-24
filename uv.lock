@@ -1005,6 +1005,7 @@ dependencies = [
     { name = "omegaconf" },
     { name = "pydantic" },
     { name = "rich", extra = ["jupyter"] },
+    { name = "richuru" },
     { name = "tabulate" },
     { name = "typer" },
 ]
@@ -1019,7 +1020,6 @@ ai = [
     { name = "langchain-deepseek" },
     { name = "langchain-experimental" },
     { name = "langchain-groq" },
-    { name = "langchain-huggingface" },
     { name = "langchain-mcp-adapters" },
     { name = "langchain-ollama" },
     { name = "langchain-openai" },
@@ -1088,6 +1088,7 @@ requires-dist = [
     { name = "omegaconf", specifier = ">=2.3.0" },
     { name = "pydantic", specifier = ">=2.7.0,<3" },
     { name = "rich", extras = ["jupyter"], specifier = ">=13.9.4" },
+    { name = "richuru", specifier = ">=0.1.1" },
     { name = "tabulate", specifier = ">=0.9.0" },
     { name = "typer", specifier = ">=0.13.0" },
 ]
@@ -1102,7 +1103,6 @@ ai = [
     { name = "langchain-deepseek", specifier = ">=0.1.2" },
     { name = "langchain-experimental", specifier = ">=0.3,<0.4" },
     { name = "langchain-groq", specifier = ">=0.2" },
-    { name = "langchain-huggingface", specifier = ">=0.1" },
     { name = "langchain-mcp-adapters", specifier = ">=0.0.5" },
     { name = "langchain-ollama", specifier = ">=0.2" },
     { name = "langchain-openai", specifier = ">=0.3" },
@@ -3840,6 +3840,19 @@ wheels = [
 [package.optional-dependencies]
 jupyter = [
     { name = "ipywidgets" },
+]
+
+[[package]]
+name = "richuru"
+version = "0.1.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "loguru" },
+    { name = "rich" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ce/7c/c9d4c0b541c9c6ba7d1898fb1886aad5a0d5dea43237a3154a9143d511b9/richuru-0.1.1.tar.gz", hash = "sha256:815816f3a0142b67c53bd424fcced0821aa1104b5386301cff47fc7bbb6d90ea", size = 4199 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/97/75/2c59747e6a68e7e1f3df65b1133c03b27fd889c6e975a8539570bf5a9b68/richuru-0.1.1-py3-none-any.whl", hash = "sha256:e73d43913a372d741ff61106001b5e6adfa24c6d0665dd390328a33e34cd210d", size = 4445 },
 ]
 
 [[package]]

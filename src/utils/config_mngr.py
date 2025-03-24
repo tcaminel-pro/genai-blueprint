@@ -40,11 +40,14 @@ import sys
 from pathlib import Path
 from typing import Any, Optional
 
+from dotenv import load_dotenv
 from loguru import logger
 from omegaconf import DictConfig, ListConfig, OmegaConf
 from pydantic import BaseModel, ConfigDict
 
 from src.utils.singleton import once
+
+load_dotenv()
 
 CONFIG_FILE = "app_conf.yaml"
 # Ensure PWD is set correctly
@@ -170,12 +173,13 @@ class OmegaConfig(BaseModel):
                 raise ValueError(f"Missing required keys '{key}': {', '.join(missing_keys)}")
         return result
 
+    # if 'key' is a path to a file (with extension), create the directory if it does not exists
     def get_path(self, key: str, create_dir_if_not_exists: bool = False) -> Path:
         """Get a file or dir path.
 
         Args:
             key: Configuration key containing the path
-            create_dir_if_not_exists: If True, create parent directory when missing for files
+            create_dir_if_not_exists: If True, create directory when missing
         Returns:
             The Path object
         Raises:
@@ -184,14 +188,8 @@ class OmegaConfig(BaseModel):
         path = Path(self.get_str(key))
         if not path.exists():
             if create_dir_if_not_exists:
-                if path.suffix:  # This is a file path
-                    parent = path.parent
-                    if not parent.exists():
-                        logger.warning(f"Creating missing parent directory: {parent}")
-                        parent.mkdir(parents=True, exist_ok=True)
-                else:  # This is a directory path
-                    logger.warning(f"Creating missing directory: {path}")
-                    path.mkdir(parents=True, exist_ok=True)
+                logger.warning(f"Creating missing directory: {path}")
+                path.mkdir(parents=True, exist_ok=True)
             else:
                 raise ValueError(f"Path value for '{key}' does not exist: '{path}'")
         return path
@@ -205,9 +203,10 @@ def global_config() -> OmegaConfig:
 def config_loguru() -> None:
     """Configure the logger."""
 
-    format_str = global_config().root.get(
-        "log_format",
-        "<green>{time:HH:mm:ss}</green> | <level>{level: <7}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+    # Workaround "LOGURU_FORMAT" does not seems to be taken into account
+    format_str = (
+        os.environ.get("LOGURU_FORMAT")
+        or "<green>{time:HH:mm:ss}</green> | <level>{level: <7}</level> | <magenta>{file.name}</magenta>:<cyan>{line}</cyan> <yellow>{function}</yellow>- <level>{message}</level>"
     )
 
     logger.remove()

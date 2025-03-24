@@ -14,6 +14,7 @@ dependencies = [
     "omegaconf>=2.3.0",
     "fastapi>=0.115.6",
     "rich[jupyter]>=13.9.4",
+    "richuru>=0.1.1",
 ]
 
 [project.urls]
@@ -31,17 +32,17 @@ ai = [
     "langchain-community>=0.3,<0.4",
     "langchain-experimental>=0.3,<0.4",
     "langchain-openai>=0.3",
-    "langchain-huggingface>=0.1",
     "langchain-ollama>=0.2",
     "langchain-deepseek>=0.1.2",
+    "langchain-mcp-adapters>=0.0.5",
+    "langchain-groq>=0.2",
+    "langchain-chroma>=0.2",
     "langgraph>=0.2",
     "langserve>=0.3",
     "langchainhub>=0.1",
-    "langchain-groq>=0.2",
-    "langchain-chroma>=0.2",
     "litellm>=1",
     "chromadb>=0.6",
-    "langchain-mcp-adapters>=0.0.5",
+
 ]
 ui = [
     "uvicorn>=0.34.0",
@@ -103,7 +104,7 @@ default-groups = [
     "ai_extra",
     "demos",
     "autogen",
-    "transformers",
+  #  "transformers",
     "dev",
 ]
 

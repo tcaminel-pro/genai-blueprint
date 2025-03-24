@@ -29,7 +29,7 @@ from typer import Option
 
 from src.ai_core.llm import LlmFactory
 from src.ai_extra.fabric_chain import get_fabric_chain
-from src.utils.config_mngr import global_config
+from src.utils.config_mngr import config_loguru, global_config
 
 load_dotenv(verbose=True)
 
@@ -100,6 +100,7 @@ def define_other_commands(cli_app: typer.Typer) -> None:
 def main():
     # modify following  code: accept that 'module' has the form module_path:function  (like src.module1:function).
     # In that case, the function is called
+    config_loguru()
     modules = global_config().get_list("commands.modules")
     # Import and register commands from each module
     for module in modules:
