@@ -172,13 +172,23 @@ class OmegaConfig(BaseModel):
 
     # Improve : if the key (ie file or dir) does not exists, create the directory and log a warning AI!
     def get_path(self, key: str, create_dir_if_not_exists: bool = False) -> Path:
-        """Get a file or dir path."""
+        """Get a file or dir path.
+        
+        Args:
+            key: Configuration key containing the path
+            create_dir_if_not_exists: If True, create directory when missing
+        Returns:
+            The Path object
+        Raises:
+            ValueError: If path doesn't exist and create_dir_if_not_exists=False
+        """
         path = Path(self.get_str(key))
         if not path.exists():
             if create_dir_if_not_exists:
-                path.mkdir()
+                logger.warning(f"Creating missing directory: {path}")
+                path.mkdir(parents=True, exist_ok=True)
             else:
-                raise ValueError(f"Path value for '{key}' does not exists: '{path}'")
+                raise ValueError(f"Path value for '{key}' does not exist: '{path}'")
         return path
 
 
