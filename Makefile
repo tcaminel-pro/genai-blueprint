@@ -46,8 +46,9 @@ rebase: ## Sync local repo with remote one (changes are stashed before!)
 
 AIDER_OPTS=--watch-files --no-auto-lint --read CONVENTIONS.md --editor "code --wait"
 
+#deepseek/deepseek-chat; 
 aider:  ## Call aider-chat (a coding assistant)
-	aider $(AIDER_OPTS) --model deepseek/deepseek-chat; 
+	aider $(AIDER_OPTS) --model openrouter/deepseek/deepseek-chat
 aider-haiku: 
 	aider $(AIDER_OPTS) --cache-prompts --model openrouter/anthropic/claude-3-5-haiku;   
 aider-r1:

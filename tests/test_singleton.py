@@ -11,13 +11,13 @@ class SingletonExample(BaseModel):
     model_config = ConfigDict(frozen=True)
     value: int
 
-    @once()
+    @once
     def singleton() -> "SingletonExample":
         """Returns a singleton instance of the class."""
         return SingletonExample(value=42)
 
 
-@once()
+@once
 def singleton_func() -> int:
     """Test singleton function."""
     return 100
@@ -44,7 +44,7 @@ def test_function_singleton() -> None:
 
 
 def test_singleton_with_args() -> None:
-    @once()
+    @once
     def do_something_complicated(x: int, y: int):
         return SingletonExample(value=x + y)
 
@@ -58,7 +58,7 @@ def test_singleton_with_args() -> None:
 
     """Test that functions with args work with caching"""
 
-    @once()
+    @once
     def cached_func(x: int, y: int = 0):
         return SingletonExample(value=x + y)
 
@@ -83,7 +83,7 @@ def test_singleton_with_args() -> None:
     assert instance5 is instance1
 
     # Test mutable args are handled correctly
-    @once()
+    @once
     def cached_list_func(items: list):
         return SingletonExample(value=sum(items))
 
@@ -99,7 +99,7 @@ def test_singleton_with_args() -> None:
     assert instance8.value == 10
 
     # Test multiple args with mutable types
-    @once()
+    @once
     def multi_arg_func(a: int, b: list, c: dict):
         return SingletonExample(value=a + sum(b) + sum(c.values()))
 
@@ -117,7 +117,7 @@ def test_singleton_with_args() -> None:
     assert instance11.value == 10
 
     # Test with None values
-    @once()
+    @once
     def none_arg_func(a: int | None, b: str | None = None):
         return SingletonExample(value=a if a else 0)
 
@@ -146,7 +146,7 @@ def test_thread_safety() -> None:
     results = []
     lock = threading.Lock()
 
-    @once()
+    @once
     def thread_test_func():
         return SingletonExample(value=42)
 

@@ -62,27 +62,64 @@ baseline:
       
   #### 
   # MCP Servers Configuration
+  # Similar to "C:\Users\a184094\AppData\Roaming\Claude\claude_desktop_config.json"
   ####    
-  mcp_servers:
+  mcpServers:
+    filesystem:
+        command: npx
+        args:
+        - "-y"
+        - "@modelcontextprotocol/server-filesystem"
+        - ${paths.project}
+
+    pubmed:
+        command: uvx
+        args: ["--quiet", "pubmedmcp@0.1.3"]
+        description: Provides access to PubMed medical research database
+        example : "Find relevant studies on alcohol hangover and treatment."
+
+    playwright:
+      command: npx
+      args:
+      - "@playwright/mcp@latest"
+      - "--headless"
+    
+    github:
+      command: npx
+      args:
+      - "-y"
+      - "@modelcontextprotocol/server-github"
+      env:
+        GITHUB_PERSONAL_ACCESS_TOKEN: ${oc.env:GITHUB_TOKEN}
+      disabled: true
+
+    tavily-mcp: 
+      command: npx
+      args: [ "-y" ,"tavily-mcp"]
+      env: 
+        TAVILY_API_KEY : ${oc.env:TAVILY_API_KEY}
+      transport: "stdio"
+    #  disabled: true
+      
+    sequential-thinking: 
+      command: npx
+      args: 
+        - "-y"
+        - "@modelcontextprotocol/server-sequential-thinking"
+      
+
+
+  #### 
+  # Disabled or not working MCP Servers 
+  ####  
+  disabled_servers:
+       
     math:
         command: uv
         args:
           - run 
           - ${paths.project}/src/mcp_server/math_server.py
         transport: stdio
-    filesystem:
-        command: npx
-        args:
-          - "-y"
-          - "@modelcontextprotocol/server-filesystem"
-          - ${paths.project}
-        transport: stdio
-    pubmed:
-        command: uv
-        args: ["tool", "run", "--quiet", "pubmedmcp@0.1.3"]
-        transport: stdio
-        description: Provides access to PubMed medical research database
-        example : "Find relevant studies on alcohol hangover and treatment."
 
 
 

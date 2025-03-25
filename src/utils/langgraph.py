@@ -4,8 +4,8 @@ Common code for Langgraph
 
 from typing import Any, AsyncIterator, Iterator
 
-from devtools import pprint
 from langchain_core.messages import AIMessage
+from rich import print as rprint
 
 
 def stream_node_response_content(stream: Iterator, node: str = "agent") -> Iterator:
@@ -32,7 +32,7 @@ def stream_node_response_content(stream: Iterator, node: str = "agent") -> Itera
                         yield (str(updates))
 
 
-async def astream_node_response_content(stream: AsyncIterator, node: str = "agent"):
+async def astream_node_response_content(stream: AsyncIterator, node: str = "agent") -> AsyncIterator:
     """Stream response content from a specific node in the graph.
 
     Args:
@@ -59,13 +59,13 @@ async def astream_node_response_content(stream: AsyncIterator, node: str = "agen
                         yield (str(updates))
 
 
-def print_stream(stream: Iterator, content: bool = True):
+def print_stream(stream: Iterator, content: bool = True) -> None:
     """Print streamed responses in a readable format."""
     for step in stream:
         print_step(step, content)
 
 
-async def print_astream(stream: AsyncIterator, content: bool = True):
+async def print_astream(stream: AsyncIterator, content: bool = True) -> None:
     """Print async streamed responses in a readable format."""
     async for step in stream:
         print_step(step, content)
@@ -74,34 +74,34 @@ async def print_astream(stream: AsyncIterator, content: bool = True):
 def print_step(step: Any, details: bool = True) -> None:
     if isinstance(step, AIMessage):
         if details:
-            print(step.content)
+            rprint(step.content)
         else:
-            print("AI Message")
+            rprint("AI Message")
     elif isinstance(step, dict):
         for node, updates in step.items():
-            print(f"Update from: '{node}'")
+            rprint(f"Update from: '{node}'")
             if "messages" in updates:
                 updates["messages"][-1].pretty_print()
             else:
                 if details:
-                    pprint(updates)
+                    rprint(updates)
                 else:
-                    print(type(updates))
+                    rprint(type(updates))
 
     elif isinstance(step, tuple):
         #        rprint(step)
         step_type, content = step
-        print(f"step type: {step_type}")
+        rprint(f"step type: {step_type}")
         for node, updates in content.items():
-            print(f"Update from: {node}")
+            rprint(f"Update from: {node}")
             if "messages" in updates:
                 updates["messages"][-1].pretty_print()
             else:
                 if details:
-                    pprint(updates)
+                    rprint(updates)
                     # print(content)
                 else:
-                    print(type(updates).__name__)
+                    rprint(type(updates).__name__)
     else:
         print(str(step))
     print("\n")

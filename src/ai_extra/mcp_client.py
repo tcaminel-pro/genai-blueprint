@@ -1,10 +1,15 @@
 # Utilities to ease use of MCP
 
 import asyncio
+import os
 
+from dotenv import load_dotenv
 from langchain_mcp_adapters.client import MultiServerMCPClient, StdioServerParameters
 
 from src.utils.config_mngr import global_config
+from src.utils.langgraph import print_astream
+
+load_dotenv()
 
 
 def get_mcp_servers_from_config() -> dict:
@@ -22,19 +27,27 @@ def get_mcp_servers_from_config() -> dict:
      ```
     """
     result = {}
-    servers = global_config().get_dict("mcp_servers")
-
+    servers = global_config().get_dict("mcpServers")
     for name, desc in servers.items():
         desc.pop("description", "")
         desc.pop("example", None)
-        _ = StdioServerParameters(**desc)  # quick test of validity
-        result[name] = dict(**desc)
+
+        if desc["command"] == "uvx":  # uvx is an alias to 'uv tool run', not always in tha pat
+            desc["command"] = "uv"
+            desc["args"] = ["tool", "run"] + desc["args"]
+        if "transport" not in desc:
+            desc["transport"] = "stdio"
+        env = desc.get("env", {})
+        desc["env"] = {"PATH": os.environ.get("PATH", "")} | dict(env)
+        disabled = desc.get("disabled")
+        if not disabled:
+            result[name] = dict(**desc)
+        _ = StdioServerParameters(**desc)  # just to test argument types
     return result
 
 
 ## quick test ##
-async def test() -> None:
-    import rich
+async def call_react_agent(query: str) -> None:
     from langgraph.prebuilt import create_react_agent
     from loguru import logger
 
@@ -44,14 +57,12 @@ async def test() -> None:
     async with MultiServerMCPClient(get_mcp_servers_from_config()) as client:
         # async with MultiServerMCPClient(test_servers) as client:
         tools = client.get_tools()
-        logger.info("Create agent")
         agent = create_react_agent(model, tools)
-        logger.info("invoke MCP agent")
-        # math_response = await agent.ainvoke({"messages": "what's (3 + 5) x 12?"})
-        # rich.print(math_response)
-        dir_response = await agent.ainvoke({"messages": "list files in current directory"})
-        rich.print(dir_response)
+        logger.info("invoke MCP agent...")
+        resp = agent.astream({"messages": query})
+        await print_astream(resp)
 
 
 if __name__ == "__main__":
-    asyncio.run(test())
+    examples = ["what's (3 + 5) x 12?", "list files in current directory", "connect to atos.net and get recent news"]
+    asyncio.run(call_react_agent(examples[-1]))
