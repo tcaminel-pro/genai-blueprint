@@ -1,5 +1,14 @@
-# complete doc and docstrings AI!
-# Utilities to ease use of MCP
+"""Utilities for interacting with MCP (Multi-Component Platform) servers.
+
+This module provides functionality to:
+- Retrieve and configure MCP servers from application configuration
+- Create and manage MCP client connections
+- Execute queries using MCP tools with LangChain agents
+
+The main components are:
+- get_mcp_servers_from_config: Reads MCP server configurations
+- call_react_agent: Executes queries using MCP tools with a ReAct agent
+"""
 
 import asyncio
 import os
@@ -14,18 +23,19 @@ load_dotenv()
 
 
 def get_mcp_servers_from_config() -> dict:
-    """
-    Read the list of MCP servers and their parameters from the global config file.
+    """Retrieve configured MCP servers from application configuration.
 
-    Example configuration:
-    ```yaml
-        mcp_servers:
-            pubmed:
-                command: uv
-                args: ["tool", "run", "--quiet", "pubmedmcp@0.1.3"]
-                transport: stdio
-                description: Provides access to PubMed medical research database
-     ```
+    Processes the MCP server configurations from the global config file, handling
+    command aliases and environment variables. Validates server parameters.
+
+    Returns:
+        Dictionary of server names to their configuration parameters
+
+    Example:
+    ```python
+    servers = get_mcp_servers_from_config()
+    # {'pubmed': {'command': 'uv', 'args': ['tool', 'run', 'pubmedmcp@0.1.3'], ...}}
+    ```
     """
     result = {}
     servers = global_config().get_dict("mcpServers", expected_keys=["args"])
@@ -49,6 +59,13 @@ def get_mcp_servers_from_config() -> dict:
 
 ## quick test ##
 async def call_react_agent(query: str) -> None:
+    """Execute a query using MCP tools with a ReAct agent.
+
+    Creates a ReAct agent with MCP tools and streams the response to the query.
+
+    Args:
+        query: The input query to process
+    """
     from langgraph.prebuilt import create_react_agent
     from loguru import logger
 
