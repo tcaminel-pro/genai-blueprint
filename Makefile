@@ -103,7 +103,7 @@ check_uv:  ## Check if uv is installed, install if missing
 		echo "uv is not installed. Installing now..."; \
 		curl -LsSf https://astral.sh/uv/install.sh | sh; \
 		echo "uv installed successfully"; \
-		source $HOME/.local/bin/env \
+		. $HOME/.local/bin/env; \
 	fi
 
 install: check_uv   ## Install SW
