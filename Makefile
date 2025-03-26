@@ -93,6 +93,9 @@ telemetry:  ## Run Phoenix telemetry server in background
 
 .PHONY: check_uv install
 
+# fix error : /bin/sh: 8: Syntax error: end of file unexpected (expecting "fi")
+#  make: *** [Makefile:97: check_uv] Error 2 
+# AI!
 check_uv:  ## Check if uv is installed, install if missing
 	@if command -v uv >/dev/null 2>&1; then \
 		echo "uv is already installed"; \
@@ -100,7 +103,7 @@ check_uv:  ## Check if uv is installed, install if missing
 		echo "uv is not installed. Installing now..."; \
 		curl -LsSf https://astral.sh/uv/install.sh | sh; \
 		echo "uv installed successfully"; \
-		source $HOME/.local/bin/env
+		source $HOME/.local/bin/env \
 	fi
 
 install: check_uv   ## Install SW
