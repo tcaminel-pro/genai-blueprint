@@ -49,6 +49,7 @@ baseline:
   commands:
     modules:
       - src.ai_core.cli_commands
+      - src.ai_extra.cli_commands
 
   chains:
     root: src.ai_chains
@@ -103,19 +104,24 @@ baseline:
       command: npx
       args: ["-y", "@modelcontextprotocol/server-sequential-thinking"]
       
+    ppt: 
+      command: uvx
+      args: ["--from", "office-powerpoint-mcp-server", "ppt_mcp_server"]
+
+
     math:
         command: uv
         args: 
           - run 
           - ${paths.project}/src/mcp_server/math_server.py
         disabled: true
-
-  #### 
-  # Disabled or not working MCP Servers 
-  ####  
-  disabled_servers:
-       
-
+      
+    weather:
+        command: uv
+        args: 
+          - run 
+          - ${paths.project}/src/mcp_server/weather_server.py
+        disabled: false
 
 
 
