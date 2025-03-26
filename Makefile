@@ -93,9 +93,7 @@ telemetry:  ## Run Phoenix telemetry server in background
 
 .PHONY: check_uv install
 
-# fix error : /bin/sh: 8: Syntax error: end of file unexpected (expecting "fi")
-#  make: *** [Makefile:97: check_uv] Error 2 
-# AI!
+
 check_uv:  ## Check if uv is installed, install if missing
 	@if command -v uv >/dev/null 2>&1; then \
 		echo "uv is already installed"; \

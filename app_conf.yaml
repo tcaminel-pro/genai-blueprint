@@ -67,7 +67,7 @@ baseline:
   mcpServers:
     filesystem:
         command: npx
-        args:
+        args: 
         - "-y"
         - "@modelcontextprotocol/server-filesystem"
         - ${paths.project}
@@ -77,18 +77,17 @@ baseline:
         args: ["--quiet", "pubmedmcp@0.1.3"]
         description: Provides access to PubMed medical research database
         example : "Find relevant studies on alcohol hangover and treatment."
+        disabled: true
 
     playwright:
       command: npx
-      args:
+      args: 
       - "@playwright/mcp@latest"
       - "--headless"
     
     github:
       command: npx
-      args:
-      - "-y"
-      - "@modelcontextprotocol/server-github"
+      args:  ["-y", "@modelcontextprotocol/server-github"]
       env:
         GITHUB_PERSONAL_ACCESS_TOKEN: ${oc.env:GITHUB_TOKEN}
       disabled: true
@@ -98,28 +97,25 @@ baseline:
       args: [ "-y" ,"tavily-mcp"]
       env: 
         TAVILY_API_KEY : ${oc.env:TAVILY_API_KEY}
-      transport: "stdio"
     #  disabled: true
       
     sequential-thinking: 
       command: npx
-      args: 
-        - "-y"
-        - "@modelcontextprotocol/server-sequential-thinking"
+      args: ["-y", "@modelcontextprotocol/server-sequential-thinking"]
       
-
+    math:
+        command: uv
+        args: 
+          - run 
+          - ${paths.project}/src/mcp_server/math_server.py
+        disabled: true
 
   #### 
   # Disabled or not working MCP Servers 
   ####  
   disabled_servers:
        
-    math:
-        command: uv
-        args:
-          - run 
-          - ${paths.project}/src/mcp_server/math_server.py
-        transport: stdio
+
 
 
 
