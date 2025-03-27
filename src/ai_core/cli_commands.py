@@ -104,6 +104,7 @@ def register_commands(cli_app: typer.Typer) -> None:
                 return
             global_config().set("llm.default_model", llm_id)
 
+        # this version block is there's no stdio pipe input.  Fix it AI!
         if not input:
             input = sys.stdin.read()
             if input and len(input) < 3:
