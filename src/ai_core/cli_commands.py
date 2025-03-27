@@ -104,10 +104,10 @@ def register_commands(cli_app: typer.Typer) -> None:
                 return
             global_config().set("llm.default_model", llm_id)
 
-        # this version block is there's no stdio pipe input.  Fix it AI!
-        if not input:
+        # Handle input from stdin if no input parameter provided
+        if not input and not sys.stdin.isatty():  # Check if stdin has data (pipe/redirect)
             input = sys.stdin.read()
-            if input and len(input) < 3:
+            if len(input.strip()) < 3:  # Ignore very short inputs
                 input = None
 
         chain_registry = ChainRegistry.instance()
