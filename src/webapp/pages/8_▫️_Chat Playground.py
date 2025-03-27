@@ -44,12 +44,17 @@ def get_weather(city: Literal["nyc", "sf"]) -> str:
 
 mcp_enabled = st.toggle("MCP", True)
 # tools = [ref_product_search_tool, get_weather, get_material_breakdown]
-local_tools = [get_weather]
+local_tools = []
 
 examples = ["What is the weather in San Francisco ? ", "What's it known for?"]
-examples += ["List of reference products matching PMMA"]
 
-examples += ["connect to atos.net, find the page with blogs, and get list of recent blog articles"]
+
+examples += [
+    "What is the content of current directory ? "
+    "Connect to atos.net with a browser, find the page with blogs, and get list of recent blog articles",
+    "Get weather in Toulouse today. Create a Powerpoint file in that directty about it and usual climate in Toulouse",
+]
+
 
 SYSTEM_PROMPT = dedent_ws(
     """

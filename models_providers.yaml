@@ -109,10 +109,14 @@ llm:
       model: openai/gpt-4
     - id: gpt_4omini_edenai
       model: openai/gpt-4o-mini
-    - id: mistral_large_edenai   # Expensive !
-      model: mistral/large-latest
+    - id: mistral_large_edenai   
+      model: mistral/mistral-large-latest
+    - id: mistral_small_edenai   
+      model: mistral/mistral-small-latest
     - id: google_gemini15flash_edenai
       model: google/gemini-1.5-flash
+    - id: claude_haiku35_edenai
+      model: anthropic/claude-3-5-haiku-latest
 
 - provider: azure_openai
   models:
@@ -252,3 +256,6 @@ embeddings:
     - id: bge_m3_deepinfra
       model: BAAI/bge-m3
 
+
+# 0.000008 
+# 0.000001

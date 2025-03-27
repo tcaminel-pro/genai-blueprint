@@ -50,10 +50,10 @@ def register_commands(cli_app: typer.Typer) -> None:
             global_config().set("llm.default_model", llm_id)
 
         # Check if executed as part ot a pipe
-        if not input:
+        if not input and not sys.stdin.isatty():
             input = sys.stdin.read()
         if not input or len(input) < 5:
-            print("Error: Input parameter or something in stdin is required when no runnable is specified.")
+            print("Error: Input parameter or something in stdin is required")
             return
 
         llm = LlmFactory(

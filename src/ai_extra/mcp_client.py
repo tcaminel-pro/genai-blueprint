@@ -80,7 +80,7 @@ async def mcp_agent_runner(
     Function using MCPAdapt.  Use to work, but NOT MAINTAINED !!
     """
     # TODO: adapt it for SmolAgent
-    # see https://hungvtm.medium.com/building-mcp-servers-and-client-with-smolagents-bd9db2d640e6 
+    # see https://hungvtm.medium.com/building-mcp-servers-and-client-with-smolagents-bd9db2d640e6
 
     if config is None:
         config = {}
@@ -104,7 +104,7 @@ async def mcp_agent_runner(
 
 
 ## quick test ##
-async def call_react_agent(query: str) -> None:
+async def call_react_agent(query: str, llm_id: str | None = None) -> None:
     """Execute a query using MCP tools with a ReAct agent.
 
     Creates a ReAct agent with MCP tools and streams the response to the query.
@@ -115,7 +115,7 @@ async def call_react_agent(query: str) -> None:
     from langgraph.prebuilt import create_react_agent
     from loguru import logger
 
-    model = get_llm()
+    model = get_llm(llm_id=llm_id)
     async with MultiServerMCPClient(get_mcp_servers_from_config()) as client:
         # async with MultiServerMCPClient(test_servers) as client:
         tools = client.get_tools()

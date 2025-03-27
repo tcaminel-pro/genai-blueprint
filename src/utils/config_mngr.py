@@ -80,7 +80,7 @@ class OmegaConfig(BaseModel):
         if not yml_file.exists():
             yml_file = Path.cwd().parent / CONFIG_FILE
         assert yml_file.exists(), f"cannot find config file: '{yml_file}'"
-        logger.info(f"load {yml_file}")
+        # logger.info(f"load {yml_file}")
         config = OmegaConf.load(yml_file)
         assert isinstance(config, DictConfig)
 
@@ -96,7 +96,7 @@ class OmegaConfig(BaseModel):
             logger.warning(f"Configuration selected by key 'default_config' not found: {config_name_from_yaml}")
             config_name_from_yaml = None
         selected_config = config_name_from_env or config_name_from_yaml or "baseline"
-        logger.info(f"selected_config={selected_config}")
+        logger.info(f"selected config={selected_config}")
         return OmegaConfig(root=config, selected_config=selected_config)
 
     def select_config(self, config_name: str) -> None:
