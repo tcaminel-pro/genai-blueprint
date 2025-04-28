@@ -20,6 +20,12 @@ Streamlit UI components for smolagents integration.
 Provides functions to display agent steps and stream agent outputs in Streamlit apps.
 """
 
+
+# 1 - Add a parameter 'diaplay_details' to stream_to_streamlic. 
+# If False, then do not display the code and the footnote
+# 2 - Add 'st' (the streamlit container) as a parameter of the function
+# AI!
+
 import re
 from typing import Dict, List, Optional
 
