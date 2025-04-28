@@ -48,18 +48,24 @@ def _get_step_footnote(step_log: MemoryStep, step_name: str) -> str:
     return step_footnote
 
 
-def _display_step_content(step_log: MemoryStep) -> None:
-    """Display content from agent steps in Streamlit"""
+def _display_step_content(step_log: MemoryStep, container: st.delta_generator.DeltaGenerator, display_details: bool = True) -> None:
+    """Display content from agent steps in Streamlit
+    
+    Args:
+        step_log: The memory step to display
+        container: Streamlit container to use for display
+        display_details: Whether to show detailed information like code and footnotes
+    """
     if isinstance(step_log, ActionStep):
         step_number = f"Step {step_log.step_number}" if step_log.step_number is not None else "Step"
-        st.markdown(f"**{step_number}**")
+        container.markdown(f"**{step_number}**")
 
         if hasattr(step_log, "model_output") and step_log.model_output is not None:
             model_output = step_log.model_output.strip()
             model_output = re.sub(r"```\s*<end_code>", "```", model_output)
             model_output = re.sub(r"<end_code>\s*```", "```", model_output)
             model_output = re.sub(r"```\s*\n\s*<end_code>", "```", model_output)
-            st.markdown(model_output)
+            container.markdown(model_output)
 
         if hasattr(step_log, "tool_calls") and step_log.tool_calls is not None:
             first_tool_call = step_log.tool_calls[0]
@@ -72,41 +78,45 @@ def _display_step_content(step_log: MemoryStep) -> None:
                 content = content.strip()
                 if not content.startswith("```python"):
                     content = f"```python\n{content}\n```"
-                with st.expander(f"🛠️ Used tool {first_tool_call.name}"):
-                    st.code(content)
+                if display_details:
+                    with container.expander(f"🛠️ Used tool {first_tool_call.name}"):
+                        container.code(content)
 
         if hasattr(step_log, "observations") and step_log.observations is not None and step_log.observations.strip():
             log_content = step_log.observations.strip()
             log_content = re.sub(r"^Execution logs:\s*", "", log_content)
-            with st.expander("📝 Execution Logs"):
-                st.code(log_content, language="bash")
+            if display_details:
+                with container.expander("📝 Execution Logs"):
+                    container.code(log_content, language="bash")
 
         if hasattr(step_log, "error") and step_log.error is not None:
-            st.error(str(step_log.error))
+            container.error(str(step_log.error))
 
         if getattr(step_log, "observations_images", []):
             for image in step_log.observations_images:
-                st.image(AgentImage(image).to_raw())
+                container.image(AgentImage(image).to_raw())
 
-        st.caption(_get_step_footnote(step_log, step_number))
-        st.divider()
+        if display_details:
+            container.caption(_get_step_footnote(step_log, step_number))
+        container.divider()
 
     elif isinstance(step_log, PlanningStep):
-        st.markdown("**Planning step**")
-        st.markdown(step_log.plan)
-        st.caption(_get_step_footnote(step_log, "Planning step"))
-        st.divider()
+        container.markdown("**Planning step**")
+        container.markdown(step_log.plan)
+        if display_details:
+            container.caption(_get_step_footnote(step_log, "Planning step"))
+        container.divider()
 
     elif isinstance(step_log, FinalAnswerStep):
         final_answer = step_log.final_answer
         if isinstance(final_answer, AgentText):
-            st.markdown(f"**Final answer:**\n{final_answer.to_string()}\n")
+            container.markdown(f"**Final answer:**\n{final_answer.to_string()}\n")
         elif isinstance(final_answer, AgentImage):
-            st.image(final_answer.to_raw())
+            container.image(final_answer.to_raw())
         elif isinstance(final_answer, AgentAudio):
-            st.audio(final_answer.to_raw())
+            container.audio(final_answer.to_raw())
         else:
-            st.markdown(f"**Final answer:** {str(final_answer)}")
+            container.markdown(f"**Final answer:** {str(final_answer)}")
 
 
 def stream_to_streamlit(
@@ -115,6 +125,8 @@ def stream_to_streamlit(
     task_images: Optional[List[Image.Image]] = None,
     reset_agent_memory: bool = False,
     additional_args: Optional[Dict] = None,
+    container: st.delta_generator.DeltaGenerator = st,
+    display_details: bool = True,
 ) -> None:
     """Runs an agent with the given task and streams the messages to Streamlit components.
 
@@ -138,4 +150,4 @@ def stream_to_streamlit(
                 step_log.input_token_count = agent.model.last_input_token_count
                 step_log.output_token_count = agent.model.last_output_token_count
 
-        _display_step_content(step_log)
+        _display_step_content(step_log, container, display_details)
