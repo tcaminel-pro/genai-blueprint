@@ -172,12 +172,22 @@ if raw_data_file:
         df = get_cache_dataframe(raw_data_file, **args)
 
 
-import smolagents.default_tools
-
-
-# Overide smolagents.default_tools.FinalAnswerTool with the following, AI!
 class MyFinalAnswerTool(smolagents.default_tools.FinalAnswerTool):
+    """Extended FinalAnswerTool that stores answers in Streamlit session state.
+    
+    Inherits from smolagents.default_tools.FinalAnswerTool and adds session state
+    tracking for displaying answers in the Streamlit UI.
+    """
+    
     def forward(self, answer: Any) -> Any:
+        """Store answer in session state and return it.
+        
+        Args:
+            answer: The final answer to store and return
+            
+        Returns:
+            The same answer that was passed in
+        """
         st.session_state.agent_output.append(answer)
         return answer
 
