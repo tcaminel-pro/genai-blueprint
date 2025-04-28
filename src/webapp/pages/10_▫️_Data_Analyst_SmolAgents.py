@@ -56,7 +56,7 @@ class DataFrameTool(Tool):
         except ImportError as e:
             raise ImportError("You must install package `pandas` to run this tool`.") from e
 
-    def forward(self, dataset: str) -> pd.DataFrame:
+    def forward(self, dataset: str) -> pd.DataFrame:  # type: ignore
         df = get_cache_dataframe(self.source_path)
         return df
 
@@ -97,6 +97,7 @@ DEMOS = [
             "Did the passenger class have an impact on survival rates?",
             "What were the ticket fares and cabin locations for the passengers?"
             "What are the demographics (age, gender, etc.) of the passengers on the Titanic?",
+            "What feature would you engineered to predict survival rate ? Build a predictive model, and report the F1 score on a test set",
         ],
     ),
     # Demo(
@@ -171,15 +172,26 @@ if raw_data_file:
         df = get_cache_dataframe(raw_data_file, **args)
 
 
-class DisplayAnswerTool(Tool):
-    name = "print_answer"
-    description = "Display a final answer to the given query."
+# Overide smolagents.default_tools.FinalAnswerTool with the following, AI! 
+class FinalAnswerTool(Tool):
+    name = "final_answer"
+    description = "Provides a final answer to the given problem."
     inputs = {"answer": {"type": "any", "description": "The final answer to the problem"}}
     output_type = "any"
 
     def forward(self, answer: Any) -> Any:
         st.session_state.agent_output.append(answer)
-        return "answer displayed: {answer}"
+        return answer
+
+# class DisplayAnswerTool(Tool):
+#     name = "print_result"
+#     description = "Display a an important step in the reasonning (1 sentence) or the final answer to the given query."
+#     inputs = {"answer": {"type": "any", "description": "The final answer to the problem"}}
+#     output_type = "any"
+
+#     def forward(self, answer: Any) -> Any:
+#         st.session_state.agent_output.append(answer)
+#         return "answer displayed: {answer}"
 
 
 def update_display() -> None:
@@ -214,8 +226,8 @@ AUTHORIZED_IMPORTS = [
     "streamlit",
     "base64",
     "tempfile",
-    "sklearn",
-    "folium",
+    "sklearn.*",
+    "folium.*",
 ]
 
 FOLIUM_INSTRUCTION = dedent_ws(
@@ -240,7 +252,7 @@ PRE_PROMPT = dedent_ws(
     Instructions:
     - Don't generate "if __name__ == "__main__"
     - Don't use st.sidebar
-    - Use function 'print_answer' to generate outcome. It can be markdown, or a pathlib.Path to a generated image, or whenever possible  Python objects of Pandas Dataframe, or Follium Map.
+    - Call the function 'final_answer' to display the final outcome. It accepts markdown, str, number, or a pathlib.Path to a generated image, or whenever possible  Python objects of Pandas Dataframe, or Follium Map.
     - Print also the outcome on stdio, or the title if it's a diagram.
     - {FOLIUM_INSTRUCTION}
     - {IMAGE_INSTRUCTION}
@@ -254,7 +266,7 @@ col1, col2 = st.columns(2)
 with col1:
     if prompt := st.chat_input("What would you like to ask ?"):
         # st.session_state.agent_output = []
-        tools += [DisplayAnswerTool()]
+      #  tools += [DisplayAnswerTool()]
         agent = CodeAgent(
             tools=tools,
             model=llm,
@@ -263,7 +275,7 @@ with col1:
         )
 
         with st.container(height=600):
-            stream_to_streamlit(agent, PRE_PROMPT + prompt, additional_args={"st": col2})
+            stream_to_streamlit(agent, PRE_PROMPT + prompt, additional_args={"st": col2}, display_details=False)
 
     debug(st.session_state.agent_output)
     with col2:
