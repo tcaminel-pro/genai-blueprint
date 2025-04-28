@@ -172,16 +172,17 @@ if raw_data_file:
         df = get_cache_dataframe(raw_data_file, **args)
 
 
-# Overide smolagents.default_tools.FinalAnswerTool with the following, AI! 
-class FinalAnswerTool(Tool):
-    name = "final_answer"
-    description = "Provides a final answer to the given problem."
-    inputs = {"answer": {"type": "any", "description": "The final answer to the problem"}}
-    output_type = "any"
+import smolagents.default_tools
 
+
+# Overide smolagents.default_tools.FinalAnswerTool with the following, AI!
+class MyFinalAnswerTool(smolagents.default_tools.FinalAnswerTool):
     def forward(self, answer: Any) -> Any:
         st.session_state.agent_output.append(answer)
         return answer
+
+
+smolagents.default_tools.FinalAnswerTool = MyFinalAnswerTool
 
 # class DisplayAnswerTool(Tool):
 #     name = "print_result"
@@ -266,7 +267,7 @@ col1, col2 = st.columns(2)
 with col1:
     if prompt := st.chat_input("What would you like to ask ?"):
         # st.session_state.agent_output = []
-      #  tools += [DisplayAnswerTool()]
+        #  tools += [DisplayAnswerTool()]
         agent = CodeAgent(
             tools=tools,
             model=llm,
