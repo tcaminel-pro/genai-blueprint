@@ -21,9 +21,9 @@ Provides functions to display agent steps and stream agent outputs in Streamlit 
 """
 
 
-# 1 - Add a parameter 'diaplay_details' to stream_to_streamlic. 
-# If False, then do not display the code and the footnote
-# 2 - Add 'st' (the streamlit container) as a parameter of the function
+# 1 - Add a parameter 'diaplay_details' and 'st' to stream_to_streamlic and _display_step_content. 
+# If diaplay_details is False, then do not display the code and the footnote
+# 2 - 'st' is used as the streamlit container
 # AI!
 
 import re
