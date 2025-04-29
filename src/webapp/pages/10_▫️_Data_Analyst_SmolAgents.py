@@ -223,7 +223,7 @@ class MyFinalAnswerTool(smolagents.default_tools.FinalAnswerTool):
         st.session_state.agent_output.append(answer)
         super().forward(answer)
 
-# DOES NOT WORK
+# Replace the default FinalAnswerTool with our custom version
 smolagents.default_tools.FinalAnswerTool = MyFinalAnswerTool
 
 
@@ -314,7 +314,8 @@ col1, col2 = st.columns(2)
 with col1:
     if prompt := st.chat_input("What would you like to ask ?"):
         # st.session_state.agent_output = []
-        tools += [DisplayAnswerTool()]
+        # Use our custom tools
+        tools += [MyFinalAnswerTool(), DisplayAnswerTool()]
         agent = CodeAgent(
             tools=tools,
             model=llm,
