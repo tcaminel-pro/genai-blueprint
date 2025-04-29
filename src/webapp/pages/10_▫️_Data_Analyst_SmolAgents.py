@@ -1,13 +1,17 @@
 """AI Chat interface for analyzing data" """
 
+from datetime import date
 from pathlib import Path
 from typing import Any
 
 import folium
 import pandas as pd
+import smolagents.default_tools
 import streamlit as st
+import yfinance as yf
 from devtools import debug
 from groq import BaseModel
+from loguru import logger
 from pydantic import ConfigDict
 from smolagents import (
     CodeAgent,
@@ -70,6 +74,43 @@ class Demo(BaseModel):
 
 SEARCH_TOOLS = [DuckDuckGoSearchTool(), VisitWebpageTool()]
 
+
+# cSpell: disable
+@tool
+def get_stock_info(symbol: str, key: str) -> dict:
+    """Return the correct stock info value given the appropriate symbol and key.
+    If asked generically for 'stock price', use currentPrice.
+
+    Args:
+        symbol : Stock ticker symbol.
+        key : must be one of the following: address1, city, state, zip, country, phone, website, industry, industryKey, industryDisp, sector, sectorKey, sectorDisp, longBusinessSummary, fullTimeEmployees, companyOfficers, auditRisk, boardRisk, compensationRisk, shareHolderRightsRisk, overallRisk, governanceEpochDate, compensationAsOfEpochDate, maxAge, priceHint, previousClose, open, dayLow, dayHigh, regularMarketPreviousClose, regularMarketOpen, regularMarketDayLow, regularMarketDayHigh, dividendRate, dividendYield, exDividendDate, beta, trailingPE, forwardPE, volume, regularMarketVolume, averageVolume, averageVolume10days, averageDailyVolume10Day, bid, ask, bidSize, askSize, marketCap, fiftyTwoWeekLow, fiftyTwoWeekHigh, priceToSalesTrailing12Months, fiftyDayAverage, twoHundredDayAverage, currency, enterpriseValue, profitMargins, floatShares, sharesOutstanding, sharesShort, sharesShortPriorMonth, sharesShortPreviousMonthDate, dateShortInterest, sharesPercentSharesOut, heldPercentInsiders, heldPercentInstitutions, shortRatio, shortPercentOfFloat, impliedSharesOutstanding, bookValue, priceToBook, lastFiscalYearEnd, nextFiscalYearEnd, mostRecentQuarter, earningsQuarterlyGrowth, netIncomeToCommon, trailingEps, forwardEps, pegRatio, enterpriseToRevenue, enterpriseToEbitda, 52WeekChange, SandP52WeekChange, lastDividendValue, lastDividendDate, exchange, quoteType, symbol, underlyingSymbol, shortName, longName, firstTradeDateEpochUtc, timeZoneFullName, timeZoneShortName, uuid, messageBoardId, gmtOffSetMilliseconds, currentPrice, targetHighPrice, targetLowPrice, targetMeanPrice, targetMedianPrice, recommendationMean, recommendationKey, numberOfAnalystOpinions, totalCash, totalCashPerShare, ebitda, totalDebt, quickRatio, currentRatio, totalRevenue, debtToEquity, revenuePerShare, returnOnAssets, returnOnEquity, freeCashflow, operatingCashflow, earningsGrowth, revenueGrowth, grossMargins, ebitdaMargins, operatingMargins, financialCurrency, trailingPegRatio.
+
+    """
+    data = yf.Ticker(symbol)
+    stock_info = data.info
+    return stock_info[key]
+
+
+@tool
+def get_historical_price(symbol: str, start_date: date, end_date: date) -> pd.DataFrame:
+    """Fetches historical stock prices for a given symbol from 'start_date' to 'end_date'.
+
+    Args:
+        symbol (str): Stock ticker symbol.
+        end_date (date): Typically today unless a specific end date is provided. End date MUST be greater than start date
+        start_date (date): Set explicitly, or calculated as 'end_date - date interval' (for example, if prompted 'over the past 6 months', date interval = 6 months so start_date would be 6 months earlier than today's date). Default to '1900-01-01' if vaguely asked for historical price. Start date must always be before the current date.
+    """
+    try:
+        data = yf.Ticker(symbol)
+        hist = data.history(start=start_date, end=end_date)
+        hist = hist.reset_index()
+        hist[symbol] = hist["Close"]
+        return hist[["Date", symbol]]
+    except Exception as ex:
+        logger.error(f"failed to call get_historical_price: {ex}")
+        return pd.DataFrame()
+
+
 DEMOS = [
     Demo(
         name="Classic SmolAgents",
@@ -120,6 +161,7 @@ DEMOS = [
     # ),
     Demo(
         name="Stock Price",
+        tools=[get_stock_info, get_historical_price],
         examples=[
             "What is the current price of Meta stock?",
             "Show me the historical prices of Apple vs Microsoft stock over the past 6 months",
@@ -173,36 +215,27 @@ if raw_data_file:
 
 
 class MyFinalAnswerTool(smolagents.default_tools.FinalAnswerTool):
-    """Extended FinalAnswerTool that stores answers in Streamlit session state.
-    
-    Inherits from smolagents.default_tools.FinalAnswerTool and adds session state
-    tracking for displaying answers in the Streamlit UI.
     """
-    
+    adds session state tracking for displaying answers in the Streamlit UI.
+    """
+
     def forward(self, answer: Any) -> Any:
-        """Store answer in session state and return it.
-        
-        Args:
-            answer: The final answer to store and return
-            
-        Returns:
-            The same answer that was passed in
-        """
         st.session_state.agent_output.append(answer)
-        return answer
+        super().forward(answer)
 
-
+# DOES NOT WORK
 smolagents.default_tools.FinalAnswerTool = MyFinalAnswerTool
 
-# class DisplayAnswerTool(Tool):
-#     name = "print_result"
-#     description = "Display a an important step in the reasonning (1 sentence) or the final answer to the given query."
-#     inputs = {"answer": {"type": "any", "description": "The final answer to the problem"}}
-#     output_type = "any"
 
-#     def forward(self, answer: Any) -> Any:
-#         st.session_state.agent_output.append(answer)
-#         return "answer displayed: {answer}"
+class DisplayAnswerTool(Tool):
+    name = "print_result"
+    description = "Display important step in the reasonning (1 sentence) or the final answer to the given query."
+    inputs = {"answer": {"type": "any", "description": "The final answer to the problem"}}
+    output_type = "any"
+
+    def forward(self, answer: Any) -> Any:
+        st.session_state.agent_output.append(answer)
+        return "answer displayed: {answer}"
 
 
 def update_display() -> None:
@@ -219,7 +252,7 @@ def update_display() -> None:
             st.write(msg)
 
 
-st.title("Versatile Analytics AI Agent")
+st.title("Analytics AI Agent")
 llm_config_widget(st.sidebar)
 
 model_name = LlmFactory(llm_id=MODEL_ID).get_litellm_model_name()
@@ -252,18 +285,22 @@ FOLIUM_INSTRUCTION = dedent_ws(
 
 IMAGE_INSTRUCTION = dedent_ws(
     """ 
-    -  When creating a plot or generating an image, save it as png in /temp, and call print_answer with the pathlib.Path  
+    -  When creating a plot or generating an image:
+      -- save it as png in a tempory directory (use tempfile)
+      -- call print_result with the pathlib.Path  
 """
 )
 
 PRE_PROMPT = dedent_ws(
     f"""
     Answer following request. 
-    You can use ONLY the following packages:  {", ".join(AUTHORIZED_IMPORTS)}
+
     Instructions:
+     - You can use ONLY the following packages:  {", ".join(AUTHORIZED_IMPORTS)}.
+    - DO NOT USE other packages (such as os, shutils, etc).
     - Don't generate "if __name__ == "__main__"
     - Don't use st.sidebar
-    - Call the function 'final_answer' to display the final outcome. It accepts markdown, str, number, or a pathlib.Path to a generated image, or whenever possible  Python objects of Pandas Dataframe, or Follium Map.
+    - Call the function 'print_result' to display the final result. It accepts markdown (first choice), str, number, or a pathlib.Path to a generated image, or whenever possible  Python objects of Pandas Dataframe, or Follium Map.
     - Print also the outcome on stdio, or the title if it's a diagram.
     - {FOLIUM_INSTRUCTION}
     - {IMAGE_INSTRUCTION}
@@ -277,7 +314,7 @@ col1, col2 = st.columns(2)
 with col1:
     if prompt := st.chat_input("What would you like to ask ?"):
         # st.session_state.agent_output = []
-        #  tools += [DisplayAnswerTool()]
+        tools += [DisplayAnswerTool()]
         agent = CodeAgent(
             tools=tools,
             model=llm,
@@ -285,7 +322,8 @@ with col1:
             max_steps=5,  # for debug
         )
 
-        with st.container(height=600):
+        # with st.container(height=600):
+        with st.status("Agents thoughts:", expanded=True):
             stream_to_streamlit(agent, PRE_PROMPT + prompt, additional_args={"st": col2}, display_details=False)
 
     debug(st.session_state.agent_output)
