@@ -295,19 +295,8 @@ embeddings:
 # 0.000008 
 # 0.000001
 
-- provider: edenai
-  models:
-    # OpenAI
-    - id: gpt_4o_edenai
-      model: openai/gpt-4o
-
-- provider: openai
-  models:
-    - id: gpt_4o_openai
-      model: gpt-4o
-
-- model: 
-  id: gpt4_o
+- model:
+  id: gpt_4o
   providers:
     - openai: gpt-4o
-    - edenai : openai/gpt-4o
+    - edenai: openai/gpt-4o
