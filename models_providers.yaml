@@ -34,19 +34,25 @@
 
 llm:
 
-- provider: fake
-  models:
-    - id: fake_parrot_local  # usefull for tests
-      model: parrot 
+- model:
+  id: fake_parrot
+  providers:
+    - fake: parrot
 
-- provider: openai
-  models:
-    - id: gpt_35_openai
-      model: gpt-3.5-turbo-0125
-    - id: gpt_4o_openai
-      model: gpt-4o
-    - id: gpt_4omini_openai
-      model: gpt-4o-mini
+- model:
+  id: gpt_35
+  providers:
+    - openai: gpt-3.5-turbo-0125
+
+- model:
+  id: gpt_4o
+  providers:
+    - openai: gpt-4o
+
+- model:
+  id: gpt_4omini
+  providers:
+    - openai: gpt-4o-mini
 
 - provider: deepinfra
   models:
@@ -109,15 +115,20 @@ llm:
     - id: falcon3_3_ollama
       model: falcon3
 
-- provider: edenai
-  models:
-    # OpenAI
-    - id: gpt_4o_edenai
-      model: openai/gpt-4o
-    - id: gpt_4_edenai
-      model: openai/gpt-4
-    - id: gpt_4omini_edenai
-      model: openai/gpt-4o-mini
+- model:
+  id: gpt_4o
+  providers:
+    - edenai: openai/gpt-4o
+
+- model:
+  id: gpt_4
+  providers:
+    - edenai: openai/gpt-4
+
+- model:
+  id: gpt_4omini
+  providers:
+    - edenai: openai/gpt-4o-mini
     # Mistral
     - id: mistral_large_edenai   
       model: mistral/mistral-large-latest
