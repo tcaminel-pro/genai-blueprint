@@ -114,6 +114,15 @@ class LlmInfo(BaseModel):
     def key(self) -> str:
         # return API key name
         return PROVIDER_INFO[self.provider][1]
+    
+    @field_validator("id")
+    @classmethod
+    def validate_id_format(cls, v: str) -> str:
+        # Ensure the ID ends with the provider name
+        parts = v.split("_")
+        if len(parts) < 2:
+            raise ValueError("id must have at least 2 parts separated by underscores")
+        return v
 
 
 def _read_llm_list_file() -> list[LlmInfo]:
@@ -128,6 +137,7 @@ def _read_llm_list_file() -> list[LlmInfo]:
         model_id = model_entry["id"]
         for provider_info in model_entry["providers"]:
             for provider, model_name in provider_info.items():
+                # Ensure model_id is in the correct format: model_id_provider
                 llm_info = {
                     "id": f"{model_id}_{provider}",
                     "provider": provider,
@@ -150,6 +160,7 @@ def _read_embeddings_list_file() -> list[LlmInfo]:
             model_id = model_entry["id"]
             for provider_info in model_entry["providers"]:
                 for provider, model_name in provider_info.items():
+                    # Ensure embedding_id is in the correct format: model_id_provider
                     embedding_info = {
                         "id": f"{model_id}_{provider}",
                         "provider": provider,
@@ -181,6 +192,7 @@ class LlmFactory(BaseModel):
 
     @property
     def provider(self) -> str:
+        """Extract provider from the ID (last part after underscore)."""
         return self.info.id.rsplit("_", maxsplit=1)[1]
 
     @computed_field
@@ -251,7 +263,7 @@ class LlmFactory(BaseModel):
         return self.llm_id
 
     def short_name(self) -> str:
-        """Return the model ID without the provider."""
+        """Return the model ID without the provider (everything before the last underscore)."""
         return self.info.id.rsplit("_", maxsplit=1)[0]
 
     def get_litellm_model_name(self) -> str:
