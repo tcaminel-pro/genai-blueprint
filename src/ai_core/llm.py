@@ -621,3 +621,6 @@ def get_print_chain(string: str = "") -> RunnableLambda:
         return input
 
     return RunnableLambda(fn)
+
+if __name__ == "__main__":
+    get_llm("gpt_4o_azure")
