@@ -202,25 +202,26 @@ clean:  ## Clean Python bytecode and cache files
 	find . -type d -name ".mypy_cache" -delete
 
 
-backup: ## rsync project and shared files to ln_to_onedrive, a symbolic link from WSL to OneDrive 
+backup: ## rsync project and shared files to $(ONEDRIVE)
 # (created as: ln -s '/mnt/c/Users/a184094/OneDrive - Eviden'  ~/to_onedrive )
-	cp ~/.env ~/.bashrc ~/.dev.bash-profile ~/ln_to_onedrive/backup/wsl/tcl/
-	cp ~/install.sh  ~/ln_to_onedrive/backup/wsl/tcl/
+	cp ~/.env ~/.bashrc ~/.bash_aliases $(ONEDRIVE)/backup/wsl/tcl/
+	cp ~/install.sh  $(ONEDRIVE)/backup/wsl/tcl/
 
+backup-sync: 
 	rsync -av \
 	--exclude='.git/' --exclude='.ruf_cache/' --exclude='__pycache__/'  \
 	--include='*/' \
 	--include='*.py' --include='*.ipynb' --include='*.toml' --include='*.yaml' --include='*.json' \
 	--include='Makefile' --include='Dockerfile' \
 	--exclude='*' \
-	~/prj ~/ln_to_onedrive/backup/wsl/tcl
+	~/prj $(ONEDRIVE)/backup/wsl/tcl
 
 
 ROOT1=/home/tcl/prj/genai-blueprint/
 ROOT2=/home/tcl/prj/ecod-engine-v3
 SYNC_DIRS=src/ai_core src/ai_extra src/ai_utils src/webapp/ui_components   
 
-sync_dirs: ## Sync subdirectories between two root directories (set ROOT1, ROOT2, SYNC_DIRS)
+sync_dirs: ## Sync subdirectories between two root directories 
 	@if [ -z "$(ROOT1)" ] || [ -z "$(ROOT2)" ] || [ -z "$(SYNC_DIRS)" ]; then \
 		echo "Error: Missing required variables. Usage: make sync_dirs ROOT1=path1 ROOT2=path2 SYNC_DIRS='dir1 dir2 dir3'"; \
 		exit 1; \
@@ -235,9 +236,9 @@ sync_dirs: ## Sync subdirectories between two root directories (set ROOT1, ROOT2
 		fi; \
 	done
 
-clean_history:  ## Remove duplicate entries and common commands from .bash_history while preserving order
+clean_history:  ## Remove duplicate entries and common commands from .bash_history
 	@if [ -f ~/.bash_history ]; then \
-		awk '!/^(ls|cat|hgrep|h|cd|p|m|ll|pwd|code|mkdir|export|poetry run ruff|rmdir)( |$$)/ && !seen[$$0]++' ~/.bash_history > ~/.bash_history_unique && \
+		awk '!/^(ls|cat|hgrep|h|cd|p|m|ll|pwd|code|mkdir|export|poetry run ruff|rmdir|uv tree|make)( |$$)/ && !seen[$$0]++' ~/.bash_history > ~/.bash_history_unique && \
 		mv ~/.bash_history_unique ~/.bash_history; \
 		echo "Done : duplicates and common commands removed. \nRun 'history -c; history -r' in your shell to reload the cleaned history"; \
 	else \

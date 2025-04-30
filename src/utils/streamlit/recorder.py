@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import time
-from typing import Callable, List, Tuple
+from typing import Callable, Tuple
 
 
 class StreamlitAction:
@@ -21,9 +21,9 @@ class StreamlitRecorder:
 
     def __init__(self, st_module):
         self.st_module = st_module
-        if 'streamlit_recorder_actions' not in st_module.session_state:
+        if "streamlit_recorder_actions" not in st_module.session_state:
             st_module.session_state.streamlit_recorder_actions = []
-        if 'streamlit_recorder_last_timestamp' not in st_module.session_state:
+        if "streamlit_recorder_last_timestamp" not in st_module.session_state:
             st_module.session_state.streamlit_recorder_last_timestamp = None
         self.original_functions = {}
 
@@ -38,7 +38,7 @@ class StreamlitRecorder:
 
     def _wrap_streamlit_functions(self):
         """Wrap Streamlit functions to record their calls."""
-        functions_to_wrap = ["write", "markdown", "text", "header", "subheader", "code"]
+        functions_to_wrap = ["write", "markdown", "text", "header", "subheader", "code", "dataframe", "expander"]
 
         for func_name in functions_to_wrap:
             if hasattr(self.st_module, func_name):
@@ -49,9 +49,15 @@ class StreamlitRecorder:
                     def wrapper(*args, **kwargs):
                         # Record the action
                         now = time.time()
-                        time_delta = now - self.st_module.session_state.streamlit_recorder_last_timestamp if self.st_module.session_state.streamlit_recorder_last_timestamp else 0
+                        time_delta = (
+                            now - self.st_module.session_state.streamlit_recorder_last_timestamp
+                            if self.st_module.session_state.streamlit_recorder_last_timestamp
+                            else 0
+                        )
                         self.st_module.session_state.streamlit_recorder_last_timestamp = now
-                        self.st_module.session_state.streamlit_recorder_actions.append(StreamlitAction(f, args, kwargs, time_delta))
+                        self.st_module.session_state.streamlit_recorder_actions.append(
+                            StreamlitAction(f, args, kwargs, time_delta)
+                        )
                         # Execute the original function
                         return f(*args, **kwargs)
 

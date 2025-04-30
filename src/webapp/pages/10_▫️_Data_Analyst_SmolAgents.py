@@ -223,6 +223,7 @@ class MyFinalAnswerTool(smolagents.default_tools.FinalAnswerTool):
         st.session_state.agent_output.append(answer)
         super().forward(answer)
 
+
 # Replace the default FinalAnswerTool with our custom version
 smolagents.default_tools.FinalAnswerTool = MyFinalAnswerTool
 
@@ -291,6 +292,7 @@ IMAGE_INSTRUCTION = dedent_ws(
 """
 )
 
+FINAL_FUNCTION = "final_answer"
 PRE_PROMPT = dedent_ws(
     f"""
     Answer following request. 
@@ -300,21 +302,22 @@ PRE_PROMPT = dedent_ws(
     - DO NOT USE other packages (such as os, shutils, etc).
     - Don't generate "if __name__ == "__main__"
     - Don't use st.sidebar
-    - Call the function 'print_result' to display the final result. It accepts markdown (first choice), str, number, or a pathlib.Path to a generated image, or whenever possible  Python objects of Pandas Dataframe, or Follium Map.
-    - Print also the outcome on stdio, or the title if it's a diagram.
-    - {FOLIUM_INSTRUCTION}
+   - {FOLIUM_INSTRUCTION}
     - {IMAGE_INSTRUCTION}
 
     \nRequest :
     """
 )
 
+#    - Call the function '{FINAL_FUNCTION}' to display the final result. It accepts markdown (first choice), str, number, or a pathlib.Path to a generated image, or whenever possible  Python objects of Pandas Dataframe, or Follium Map.
+#    - Print also the outcome on stdio, or the title if it's a diagram.
 
 col1, col2 = st.columns(2)
 with col1:
     if prompt := st.chat_input("What would you like to ask ?"):
         # st.session_state.agent_output = []
         # Use our custom tools
+        # tools += [MyFinalAnswerTool(), DisplayAnswerTool()]
         tools += [MyFinalAnswerTool(), DisplayAnswerTool()]
         agent = CodeAgent(
             tools=tools,

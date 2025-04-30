@@ -60,10 +60,6 @@ from smolagents.models import ApiModel
 from src.ai_core.cache import LlmCache
 from src.utils.config_mngr import global_config
 
-# model = init_chat_model("llama3-8b-8192", model_provider="XX")
-# Supported model providers are: bedrock_converse, openai, huggingface, google_anthropic_vertex, fireworks, together, mistralai, bedrock, deepseek, groq, google_vertexai, ollama, cohere, anthropic, google_genai, azure_openai
-
-
 load_dotenv(verbose=True, override=True)
 
 
@@ -83,7 +79,7 @@ PROVIDER_INFO = {
     "groq": ("langchain_groq", "GROQ_API_KEY"),
     "ollama": ("langchain_ollama", ""),
     "edenai": ("langchain_community.chat_models.edenai", "EDENAI_API_KEY"),
-    "azure_openai": ("langchain_openai", "AZURE_OPENAI_API_KEY"),
+    "azure": ("langchain_openai", "AZURE_OPENAI_API_KEY"),
     "together": ("langchain_together", "TOGETHER_API_KEY"),
     "deepseek": ("langchain_deepseek", "DEEPSEEK_API_KEY"),
     "openrouter": ("langchain_openai", "OPENROUTER_API_KEY"),
@@ -91,7 +87,7 @@ PROVIDER_INFO = {
     # NOT TESTED:
     "bedrock": ("langchain_aws", "AWS_ACCESS_KEY_ID"),
     "anthropic": ("langchain_anthropic", "ANTHROPIC_API_KEY"),
-    "google_vertexai": ("langchain_google_vertexai", "GOOGLE_API_KEY"),
+    "google": ("langchain_google_vertexai", "GOOGLE_API_KEY"),
 }
 
 
@@ -114,7 +110,7 @@ class LlmInfo(BaseModel):
     def key(self) -> str:
         # return API key name
         return PROVIDER_INFO[self.provider][1]
-    
+
     @field_validator("id")
     @classmethod
     def validate_id_format(cls, v: str) -> str:
@@ -138,11 +134,7 @@ def _read_llm_list_file() -> list[LlmInfo]:
         for provider_info in model_entry["providers"]:
             for provider, model_name in provider_info.items():
                 # Ensure model_id is in the correct format: model_id_provider
-                llm_info = {
-                    "id": f"{model_id}_{provider}",
-                    "provider": provider,
-                    "model": model_name
-                }
+                llm_info = {"id": f"{model_id}_{provider}", "provider": provider, "model": model_name}
                 llms.append(LlmInfo(**llm_info))
     return llms
 
@@ -161,11 +153,7 @@ def _read_embeddings_list_file() -> list[LlmInfo]:
             for provider_info in model_entry["providers"]:
                 for provider, model_name in provider_info.items():
                     # Ensure embedding_id is in the correct format: model_id_provider
-                    embedding_info = {
-                        "id": f"{model_id}_{provider}",
-                        "provider": provider,
-                        "model": model_name
-                    }
+                    embedding_info = {"id": f"{model_id}_{provider}", "provider": provider, "model": model_name}
                     embeddings.append(LlmInfo(**embedding_info))
     return embeddings
 
@@ -342,7 +330,7 @@ class LlmFactory(BaseModel):
             llm_params |= {"response_format": {"type": "json_object"}}
 
         langchain_factory_supported_profider = set(_SUPPORTED_PROVIDERS)
-        langchain_factory_supported_profider -= {"huggingface", "google_vertexai", "azure_openai"}
+        langchain_factory_supported_profider -= {"huggingface", "google", "azure"}
 
         if self.info.provider in langchain_factory_supported_profider:
             # Some parameters are handled differently between provider. Here some workaround:
@@ -373,7 +361,7 @@ class LlmFactory(BaseModel):
                 **llm_params,
             )
 
-        elif self.info.provider == "google_vertexai":
+        elif self.info.provider == "google":
             from langchain_google_vertexai import ChatVertexAI  # type: ignore  # noqa: I001
 
             llm = ChatVertexAI(
@@ -384,7 +372,7 @@ class LlmFactory(BaseModel):
             )  # type: ignore
             assert not self.json_mode, "json_mode not supported or coded"
 
-        elif self.info.provider == "azure_openai":
+        elif self.info.provider == "azure":
             from langchain_openai import AzureChatOpenAI
 
             name, _, api_version = self.info.model.partition("/")
@@ -634,5 +622,7 @@ def get_print_chain(string: str = "") -> RunnableLambda:
 
     return RunnableLambda(fn)
 
+
+# QUICK TEST
 if __name__ == "__main__":
     get_llm("gpt_4o_azure")

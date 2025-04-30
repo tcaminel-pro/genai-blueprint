@@ -168,7 +168,7 @@ carbon_monitor_local:
   embeddings:
     default_model: ada_002_openai  
   
-  datasets_root: ${oc.env:HOME}/ln_to_onedrive/_ongoing/green_horizon/data
+  datasets_root: ${oc.env:ONEDRIVE}/_ongoing/green_horizon/data
 
   
 default_config: carbon_monitor_local   # can be overidden by 'BLUEPRINT_CONFIG' environment variable

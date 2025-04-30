@@ -64,7 +64,7 @@ class EmbeddingsInfo(BaseModel):
     model: str
     key: str | None = None
     prefix: str = ""
-    
+
     def __hash__(self):
         return hash(self.id)
 
@@ -107,11 +107,7 @@ def _read_embeddings_list_file() -> list[EmbeddingsInfo]:
             model_id = model_entry["id"]
             for provider_info in model_entry["providers"]:
                 for provider, model_name in provider_info.items():
-                    embedding_info = {
-                        "id": f"{model_id}_{provider}",
-                        "provider": provider,
-                        "model": model_name
-                    }
+                    embedding_info = {"id": f"{model_id}_{provider}", "provider": provider, "model": model_name}
                     embeddings.append(EmbeddingsInfo(**embedding_info))
     return embeddings
 
@@ -312,3 +308,8 @@ def get_embeddings(
     )
     logger.info(f"get embedder: '{factory.embeddings_id}'")
     return factory.get()
+
+
+# QUICK TEST
+if __name__ == "__main__":
+    embedder = get_embeddings(embeddings_id="ada_002_openai")

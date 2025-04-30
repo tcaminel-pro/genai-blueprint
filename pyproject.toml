@@ -22,6 +22,7 @@ dependencies = [
     "streamlit-extras>=0.6.0",
     "playwright>=1.51.0",
     "universal-pathlib>=0.2.6",
+    "litellm==1.67.2",
 ]
 
 [project.urls]
