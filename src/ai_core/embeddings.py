@@ -196,7 +196,7 @@ class EmbeddingsFactory(BaseModel):
             ValueError: If API key is required but not found
         """
         if self.info.key and self.info.key not in os.environ:
-            raise ValueError(f"No known API key for : {self.info.id}")
+            raise EnvironmentError(f"No known API key for : {self.info.id}")
         embeddings = self.model_factory()
         if cached:
             embeddings = self.get_cached_embedder()

@@ -50,6 +50,7 @@ ai = [
     "langchainhub>=0.1",
     "litellm>=1",
     "chromadb>=0.6",
+    "mistralai>=1.7.0",
 ]
 ui = [
     "uvicorn>=0.34.0",

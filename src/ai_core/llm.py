@@ -88,6 +88,7 @@ PROVIDER_INFO = {
     "bedrock": ("langchain_aws", "AWS_ACCESS_KEY_ID"),
     "anthropic": ("langchain_anthropic", "ANTHROPIC_API_KEY"),
     "google": ("langchain_google_vertexai", "GOOGLE_API_KEY"),
+    "mistral": ("langchain_mistralai", "MISTRAL_API_KEY")
 }
 
 
@@ -306,7 +307,7 @@ class LlmFactory(BaseModel):
             ```
         """
         if self.info.key not in os.environ and self.info.key != "":
-            raise ValueError(f"No known API key for : {self.llm_id}")
+            raise EnvironmentError (f"No known API key for : {self.llm_id}")
         llm = self.model_factory()
         return llm
 
@@ -419,7 +420,7 @@ class LlmFactory(BaseModel):
 
         else:
             if self.info.provider in LlmFactory.known_items():
-                raise ValueError(f"No API key found for LLM: {self.info.provider}")
+                raise EnvironmentError (f"No API key found for LLM: {self.info.provider}")
             else:
                 raise ValueError(f"unsupported LLM class {self.info.provider}")
 
