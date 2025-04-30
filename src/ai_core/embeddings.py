@@ -53,8 +53,8 @@ class EmbeddingsInfo(BaseModel):
 
     Attributes:
         id: Unique identifier for the embeddings model
-        cls: Name of the embeddings model constructor
-        model: Provider name of the model
+        provider: Name of the provider
+        model: Provider-specific model name
         key: Optional API key for accessing the model
         prefix: Optional prefix required by some models in API calls
     """
@@ -64,6 +64,9 @@ class EmbeddingsInfo(BaseModel):
     model: str
     key: str | None = None
     prefix: str = ""
+    
+    def __hash__(self):
+        return hash(self.id)
 
     def get_key(self):
         """Retrieve the API key from environment variables.
@@ -99,11 +102,17 @@ def _read_embeddings_list_file() -> list[EmbeddingsInfo]:
     with open(yml_file) as f:
         data = yaml.safe_load(f)
     embeddings = []
-    for provider in data["embeddings"]:
-        cls = provider["provider"]
-        for model in provider["models"]:
-            model["provider"] = cls
-            embeddings.append(EmbeddingsInfo(**model))
+    if "embeddings" in data:
+        for model_entry in data["embeddings"]:
+            model_id = model_entry["id"]
+            for provider_info in model_entry["providers"]:
+                for provider, model_name in provider_info.items():
+                    embedding_info = {
+                        "id": f"{model_id}_{provider}",
+                        "provider": provider,
+                        "model": model_name
+                    }
+                    embeddings.append(EmbeddingsInfo(**embedding_info))
     return embeddings
 
 
@@ -227,10 +236,17 @@ class EmbeddingsFactory(BaseModel):
         elif self.info.provider == "edenai":
             from langchain_community.embeddings.edenai import EdenAiEmbeddings
 
-            provider, _, model = self.info.model.partition("/")
-            edenai_api_key = os.environ["EDENAI_API_KEY"]
-            emb = EdenAiEmbeddings(model=model, provider=provider, edenai_api_key=edenai_api_key)
-        elif self.info.provider == "azure_openai":
+            if "__" in self.info.model:
+                # Format: dimensions__model_name
+                dimensions, _, model = self.info.model.partition("__")
+                provider, _, model_name = model.partition("/")
+                edenai_api_key = os.environ["EDENAI_API_KEY"]
+                emb = EdenAiEmbeddings(model=model_name, provider=provider, edenai_api_key=edenai_api_key)
+            else:
+                provider, _, model = self.info.model.partition("/")
+                edenai_api_key = os.environ["EDENAI_API_KEY"]
+                emb = EdenAiEmbeddings(model=model, provider=provider, edenai_api_key=edenai_api_key)
+        elif self.info.provider == "azure":
             from langchain_openai import AzureOpenAIEmbeddings
 
             name, _, api_version = self.info.model.partition("/")
@@ -247,7 +263,6 @@ class EmbeddingsFactory(BaseModel):
             from langchain_community.embeddings import DeepInfraEmbeddings
 
             emb = DeepInfraEmbeddings(model_id=self.info.model)
-
         else:
             raise ValueError(f"unsupported Embeddings class {self.info.provider}")
         return emb
