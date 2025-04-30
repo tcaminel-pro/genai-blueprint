@@ -99,14 +99,14 @@ class LlmInfo(BaseModel):
     """Description of an LLM model and its configuration.
 
     Attributes:
-        id: Unique identifier in format model_version_provider (e.g. gpt_35_openai)
+        id: Unique identifier in format model_id_provider (e.g. gpt_35_openai)
         provider: name of the provider
         model: Model identifier used by the provider
         key: API key environment variable name (computed from cls)
     """
 
-    # an ID for the LLM; should follow Python variables constraints, and have 3 parts: model_version_provider
-    id: str = Field(pattern=r"^[a-zA-Z_][a-zA-Z0-9_]*_[a-zA-Z0-9_]*_[a-zA-Z0-9_]*$")
+    # an ID for the LLM; should follow Python variables constraints
+    id: str
     provider: str
     model: str  # Name of the model for the constructor
 
@@ -114,14 +114,6 @@ class LlmInfo(BaseModel):
     def key(self) -> str:
         # return API key name
         return PROVIDER_INFO[self.provider][1]
-
-    @field_validator("id")
-    @classmethod
-    def validate_id_format(cls, v: str) -> str:
-        parts = v.split("_")
-        if len(parts) != 3:
-            raise ValueError("id must have exactly 3 parts separated by underscores: model_version_provider")
-        return v
 
 
 def _read_llm_list_file() -> list[LlmInfo]:
@@ -132,12 +124,39 @@ def _read_llm_list_file() -> list[LlmInfo]:
         data = yaml.safe_load(f)
 
     llms = []
-    for provider in data["llm"]:
-        name = provider["provider"]
-        for model in provider["models"]:
-            model["provider"] = name
-            llms.append(LlmInfo(**model))
+    for model_entry in data["llm"]:
+        model_id = model_entry["id"]
+        for provider_info in model_entry["providers"]:
+            for provider, model_name in provider_info.items():
+                llm_info = {
+                    "id": f"{model_id}_{provider}",
+                    "provider": provider,
+                    "model": model_name
+                }
+                llms.append(LlmInfo(**llm_info))
     return llms
+
+
+def _read_embeddings_list_file() -> list[LlmInfo]:
+    """Read the embeddings models from the YAML file."""
+    # The name of the file is in the configuration file
+    yml_file = global_config().get_file_path("llm.list")
+    with open(yml_file) as f:
+        data = yaml.safe_load(f)
+
+    embeddings = []
+    if "embeddings" in data:
+        for model_entry in data["embeddings"]:
+            model_id = model_entry["id"]
+            for provider_info in model_entry["providers"]:
+                for provider, model_name in provider_info.items():
+                    embedding_info = {
+                        "id": f"{model_id}_{provider}",
+                        "provider": provider,
+                        "model": model_name
+                    }
+                    embeddings.append(LlmInfo(**embedding_info))
+    return embeddings
 
 
 class LlmFactory(BaseModel):
@@ -162,7 +181,7 @@ class LlmFactory(BaseModel):
 
     @property
     def provider(self) -> str:
-        return self.info.id.rsplit("_")[2]
+        return self.info.id.rsplit("_", maxsplit=1)[1]
 
     @computed_field
     @cached_property
@@ -232,7 +251,7 @@ class LlmFactory(BaseModel):
         return self.llm_id
 
     def short_name(self) -> str:
-        """Return the name and version of the LLMn without the provider."""
+        """Return the model ID without the provider."""
         return self.info.id.rsplit("_", maxsplit=1)[0]
 
     def get_litellm_model_name(self) -> str:
