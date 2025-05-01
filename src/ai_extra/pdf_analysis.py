@@ -77,8 +77,33 @@ async def mistral_ocr(path: UPath, use_cache: bool = True) -> OCRResponse:
 #     ]
 # ),
 
-class MistralOcrLoader(BaseLoader) -> Interator[Document]:
-    """`OCR using Mistral API"""
+class MistralOcrLoader(BaseLoader):
+    """Load PDF documents using Mistral's OCR API.
+    
+    Args:
+        path: Path to the PDF file (local or URL)
+        use_cache: Whether to use cached OCR results
+    """
+    
+    def __init__(self, path: UPath, use_cache: bool = True):
+        self.path = path
+        self.use_cache = use_cache
+
+    def lazy_load(self) -> Iterator[Document]:
+        """Lazy load document content using Mistral OCR."""
+        ocr_response = mistral_ocr(self.path, self.use_cache)
+        yield Document(
+            page_content=ocr_response.text,
+            metadata={
+                "source": str(self.path),
+                "ocr_model": "mistral-ocr-latest",
+                "language": ocr_response.language
+            }
+        )
+
+    def load(self) -> list[Document]:
+        """Load document content using Mistral OCR."""
+        return list(self.lazy_load())
 
 
 
