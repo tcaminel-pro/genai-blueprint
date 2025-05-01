@@ -6,6 +6,10 @@ from loguru import logger
 from mistralai import Mistral
 from mistralai.models import OCRResponse
 from upath import UPath
+from langchain_core.retrievers import BaseRetriever
+from langchain_core.documents import Document
+from langchain_core.retrievers import BaseRetriever
+from langchain_community.document_loaders.base import BaseLoader
 
 from src.utils.pydantic.kv_store import read_pydantic_from_store, save_pydantic_to_store
 
@@ -17,7 +21,7 @@ def encode_to_base64(path: UPath) -> str:
 # taken from https://docs.mistral.ai/capabilities/document/#document-ocr-processor
 
 
-def mistral_ocr(path: UPath, use_cache: bool = True) -> OCRResponse:
+async def mistral_ocr(path: UPath, use_cache: bool = True) -> OCRResponse:
     api_key = os.environ.get("MISTRAL_API_KEY")
     if api_key is None:
         raise EnvironmentError("Environment variable 'MISTRAL_API_KEY' not found")
@@ -52,7 +56,7 @@ def mistral_ocr(path: UPath, use_cache: bool = True) -> OCRResponse:
     # )
 
     logger.info(f"Call Mistral OCR for:'{str(path)}'")
-    ocr_response = client.ocr.process(
+    ocr_response = await client.ocr.process_async(
         model="mistral-ocr-latest",
         document={"type": "document_url", "document_url": document_url},
     )
@@ -72,6 +76,10 @@ def mistral_ocr(path: UPath, use_cache: bool = True) -> OCRResponse:
 #         "What's the first page of the pdf?",
 #     ]
 # ),
+
+class MistralOcrLoader(BaseLoader) -> Interator[Document]:
+    """`OCR using Mistral API"""
+
 
 
 if __name__ == "__main__":
