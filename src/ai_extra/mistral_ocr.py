@@ -219,7 +219,24 @@ async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache
 
                 result = json.loads(result_line)
                 pdf_path = pdf_paths[int(result["custom_id"])]
-                ocr_response = OCRResponse.model_validate(result["response"])
+                
+                # The batch API returns a different structure than the direct API
+                # We need to extract the actual OCR response from the batch result
+                response_data = result["response"]
+                
+                # Check if the response contains the actual OCR data or is wrapped
+                if "body" in response_data and isinstance(response_data["body"], dict):
+                    ocr_data = response_data["body"]
+                    ocr_response = OCRResponse.model_validate(ocr_data)
+                else:
+                    logger.warning(f"Unexpected response format for {pdf_path.name}. Trying to adapt...")
+                    # Try to construct an OCR response from available data
+                    if "pages" in response_data:
+                        ocr_response = OCRResponse.model_validate(response_data)
+                    else:
+                        logger.error(f"Could not parse OCR response for {pdf_path.name}")
+                        progress.advance(results_task)
+                        continue
 
                 # Cache the result
                 if use_cache:
