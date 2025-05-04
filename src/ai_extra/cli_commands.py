@@ -2,6 +2,7 @@ import asyncio
 import sys
 from typing import Annotated, Optional
 
+from loguru import logger
 import typer
 from langchain.globals import set_debug, set_verbose
 from smolagents import (
@@ -11,10 +12,12 @@ from smolagents.default_tools import TOOL_MAPPING
 
 # Import modules where runnables are registered
 from typer import Option
+from upath import UPath
 
 from src.ai_core.cache import LlmCache
 from src.ai_core.llm import LlmFactory
 from src.ai_extra.mcp_client import call_react_agent
+from src.ai_extra.mistral_ocr import process_pdf_batch
 from src.utils.config_mngr import global_config
 
 
@@ -79,3 +82,49 @@ def register_commands(cli_app: typer.Typer) -> None:
         agent = CodeAgent(tools=available_tools, model=model, additional_authorized_imports=imports)
 
         agent.run(prompt)
+
+    # Change output_dir : should be a subdir of the file pattern directory AI!
+    @cli_app.command()
+    def ocr_pdf(
+        file_patterns: list[str] = typer.Argument(..., help="File patterns to match PDF files (glob patterns)"),
+        output_dir: str = typer.Option("./ocr_output", help="Directory to save OCR results"),
+        use_cache: bool = typer.Option(True, help="Use cached OCR results if available"),
+        recursive: bool = typer.Option(False, help="Search for files recursively"),
+    ):
+        """Process PDF files with Mistral OCR and save the results as markdown files.
+
+        Example:
+            python -m src.ai_extra.mistral_ocr ocr_pdf "*.pdf" "data/*.pdf" --output-dir=./ocr_results
+        """
+        # Collect all PDF files matching the patterns
+        all_files = []
+        for pattern in file_patterns:
+            path = UPath(pattern)
+
+            # Handle glob patterns
+            if "*" in pattern:
+                base_dir = path.parent
+                if recursive:
+                    matched_files = list(base_dir.glob(f"**/{path.name}"))
+                else:
+                    matched_files = list(base_dir.glob(path.name))
+                all_files.extend(matched_files)
+            else:
+                # Direct file path
+                if path.exists():
+                    all_files.append(path)
+
+        # Filter for PDF files
+        pdf_files = [f for f in all_files if f.suffix.lower() == ".pdf"]
+
+        if not pdf_files:
+            logger.warning("No PDF files found matching the provided patterns.")
+            return
+
+        logger.info(f"Found {len(pdf_files)} PDF files to process")
+
+        # Process the files
+        output_path = UPath(output_dir)
+        asyncio.run(process_pdf_batch(pdf_files, output_path, use_cache))
+
+        logger.info(f"OCR processing complete. Results saved to {output_dir}")
