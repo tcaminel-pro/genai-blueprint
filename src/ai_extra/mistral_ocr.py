@@ -154,8 +154,6 @@ async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache
             # Remove cached files from processing list
             pdf_paths = [path for path in pdf_paths if path not in cached_files]
 
-            debug(pdf_paths)
-
             if not pdf_paths:
                 logger.info("All files were found in cache. No need for batch processing.")
                 return
@@ -204,7 +202,7 @@ async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache
             await asyncio.sleep(2)
 
         # Download results
-        if retrieved_job.status == "SUCCESS":
+        if retrieved_job.status == "SUCCESS" and retrieved_job.output_file:
             progress.update(monitor_task, description="[green]Downloading results...")
             response = client.files.download(file_id=retrieved_job.output_file)
 
@@ -259,6 +257,11 @@ async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache
                 os.remove(batch_file_path)
 
             logger.info(f"Batch processing complete. Results saved to {output_dir}")
+        elif retrieved_job.status == "SUCCESS" and not retrieved_job.output_file:
+            logger.warning("Batch job completed successfully but no output file was generated.")
+            # This can happen if all files were processed but had errors
+            for pdf_path in pdf_paths:
+                logger.error(f"Failed to process: {pdf_path}")
         else:
             logger.error(f"Batch job failed with status: {retrieved_job.status}")
 
