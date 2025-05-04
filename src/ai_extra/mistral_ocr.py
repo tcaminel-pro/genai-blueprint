@@ -1,3 +1,14 @@
+"""Mistral OCR integration for document processing.
+
+Provides tools for extracting text from PDFs using Mistral's OCR API, with support for:
+- Single file processing
+- Batch processing
+- Caching results
+- Integration with LangChain document loaders
+
+The module handles both local files and remote URLs, and can process documents
+asynchronously in batches for improved performance.
+"""
 import asyncio
 import base64
 import json
@@ -16,6 +27,14 @@ from src.utils.pydantic.kv_store import load_object_from_kvstore, save_object_to
 
 
 def encode_to_base64(path: UPath) -> str:
+    """Encode file content to base64 string.
+    
+    Args:
+        path: Path to the file to encode
+        
+    Returns:
+        Base64 encoded string of file content
+    """
     return base64.b64encode(path.read_bytes()).decode("utf-8")
 
 
@@ -24,6 +43,18 @@ def encode_to_base64(path: UPath) -> str:
 
 
 def mistral_ocr(path: UPath, use_cache: bool = True) -> OCRResponse:
+    """Process a PDF file using Mistral OCR API.
+    
+    Handles both local files and remote URLs. Supports caching of results
+    to avoid repeated processing of the same file.
+    
+    Args:
+        path: Path to PDF file (local or remote)
+        use_cache: Whether to use cached results if available
+        
+    Returns:
+        OCRResponse containing extracted text and metadata
+    """
     api_key = os.environ.get("MISTRAL_API_KEY")
     if api_key is None:
         raise EnvironmentError("Environment variable 'MISTRAL_API_KEY' not found")
@@ -92,6 +123,12 @@ class MistralOcrLoader(BaseLoader):
 
 
 def create_batch_file(document_urls: list[str], output_file: str) -> None:
+    """Create a JSONL batch file for Mistral OCR batch processing.
+    
+    Args:
+        document_urls: List of document URLs to process
+        output_file: Path to save the batch file
+    """
     """Create a batch file for Mistral OCR processing.
 
     Args:
@@ -105,6 +142,16 @@ def create_batch_file(document_urls: list[str], output_file: str) -> None:
 
 
 async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache: bool = True) -> None:
+    """Process multiple PDF files using Mistral's batch OCR API.
+    
+    Handles caching, progress tracking, and result saving. Processes files
+    asynchronously for better performance with large batches.
+    
+    Args:
+        pdf_paths: List of PDF files to process
+        output_dir: Directory to save extracted text files
+        use_cache: Whether to use cached results if available
+    """
     """Process a batch of PDF files using Mistral OCR Batch API.
 
     Args:
