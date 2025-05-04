@@ -205,12 +205,15 @@ async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache
         if retrieved_job.status == "SUCCESS":
             progress.update(monitor_task, description="[green]Downloading results...")
             response = client.files.download(file_id=retrieved_job.output_file)
+            
+            # Read the response content
+            response_content = response.read().decode('utf-8')
 
             # Process the results
             results_task = progress.add_task("[blue]Processing results...", total=len(pdf_paths))
 
             # Parse the JSONL response
-            results = response.text.strip().split("\n")
+            results = response_content.strip().split("\n")
             for i, result_line in enumerate(results):
                 progress.update(results_task, description=f"[blue]Processing result {i + 1}/{len(results)}")
 
