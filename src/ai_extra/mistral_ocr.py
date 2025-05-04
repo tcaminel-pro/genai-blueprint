@@ -94,31 +94,30 @@ class MistralOcrLoader(BaseLoader):
             )
 
 
-def create_batch_file(pdf_paths: list[UPath], output_file: Path) -> None:
+def create_batch_file(document_urls: list[str], output_file: str) -> None:
     """Create a batch file for Mistral OCR processing.
 
     Args:
-        pdf_paths: List of paths to PDF files
+        document_urls: List of document URLs (can be data URLs with base64 encoded content)
         output_file: Path to output JSONL batch file
     """
     with open(output_file, "w") as file:
-        for index, path in enumerate(pdf_paths):
-            if path.protocol in ["http", "https"]:
-                document_url = str(path)
-            else:
-                base64_file = encode_to_base64(path)
-                document_url = f"data:application/pdf;base64,{base64_file}"
-
+        for index, url in enumerate(document_urls):
             entry = {
                 "custom_id": str(index),
-                "body": {"document": {"type": "document_url", "document_url": document_url}},
+                "body": {
+                    "document": {
+                        "type": "document_url",
+                        "document_url": url
+                    }
+                }
             }
             file.write(json.dumps(entry) + "\n")
 
 
 
 async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache: bool = True) -> None:
-    """Process a batch of PDF files using Mistral OCR asynchronously.
+    """Process a batch of PDF files using Mistral OCR Batch API.
 
     Args:
         pdf_paths: List of paths to PDF files
@@ -129,7 +128,8 @@ async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache
     if api_key is None:
         raise EnvironmentError("Environment variable 'MISTRAL_API_KEY' not found")
 
-    client = MistralAsyncClient(api_key=api_key)
+    client = Mistral(api_key=api_key)
+    ocr_model = "mistral-ocr-latest"
 
     # Create output directory if it doesn't exist
     if not output_dir.exists():
@@ -141,13 +141,13 @@ async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache
         TextColumn("[progress.description]{task.description}"),
         transient=False,
     ) as progress:
-        task = progress.add_task("[cyan]Processing PDF files...", total=len(pdf_paths))
-
-        for i, pdf_path in enumerate(pdf_paths):
-            progress.update(task, description=f"[cyan]Processing {pdf_path.name} ({i + 1}/{len(pdf_paths)})")
-
-            # Check cache first if enabled
-            if use_cache:
+        task = progress.add_task("[cyan]Preparing PDF files...", total=len(pdf_paths))
+        
+        # First check cache for all files if enabled
+        if use_cache:
+            cached_files = []
+            for i, pdf_path in enumerate(pdf_paths):
+                progress.update(task, description=f"[cyan]Checking cache for {pdf_path.name} ({i+1}/{len(pdf_paths)})")
                 cached_ocr = load_object_from_kvstore(model_class=OCRResponse, key=str(pdf_path))
                 if cached_ocr:
                     logger.info(f"Using cached OCR for: '{str(pdf_path)}'")
@@ -158,26 +158,90 @@ async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache
                             f.write(f"## Page {page.index + 1}\n\n")
                             f.write(page.markdown)
                             f.write("\n\n")
-                    progress.advance(task)
-                    continue
-
-            # Process with Mistral OCR
-            try:
-                if pdf_path.protocol in ["http", "https"]:
-                    document_url = str(pdf_path)
-                else:
-                    base64_file = encode_to_base64(pdf_path)
-                    document_url = f"data:application/pdf;base64,{base64_file}"
-
-                ocr_response = await client.ocr.process(
-                    model="mistral-ocr-latest",
-                    document={"type": "document_url", "document_url": document_url},
-                )
-
+                    cached_files.append(pdf_path)
+                progress.advance(task)
+            
+            # Remove cached files from processing list
+            pdf_paths = [path for path in pdf_paths if path not in cached_files]
+            
+            if not pdf_paths:
+                logger.info("All files were found in cache. No need for batch processing.")
+                return
+        
+        # Create document URLs for remaining files
+        progress.update(task, description="[cyan]Preparing batch file...")
+        document_urls = []
+        for pdf_path in pdf_paths:
+            if pdf_path.protocol in ["http", "https"]:
+                document_url = str(pdf_path)
+            else:
+                base64_file = encode_to_base64(pdf_path)
+                document_url = f"data:application/pdf;base64,{base64_file}"
+            document_urls.append(document_url)
+        
+        # Create batch file
+        batch_file_path = "batch_ocr_file.jsonl"
+        create_batch_file(document_urls, batch_file_path)
+        progress.update(task, completed=len(pdf_paths), description="[cyan]Batch file created")
+        
+        # Upload batch file
+        progress.update(task, description="[cyan]Uploading batch file...")
+        batch_data = client.files.upload(
+            file={
+                "file_name": batch_file_path,
+                "content": open(batch_file_path, "rb")
+            },
+            purpose="batch"
+        )
+        
+        # Create batch job
+        progress.update(task, description="[cyan]Creating batch job...")
+        created_job = client.batch.jobs.create(
+            input_files=[batch_data.id],
+            model=ocr_model,
+            endpoint="/v1/ocr",
+            metadata={"job_type": "pdf_ocr_batch"}
+        )
+        
+        # Monitor job progress
+        retrieved_job = client.batch.jobs.get(job_id=created_job.id)
+        monitor_task = progress.add_task(
+            f"[green]Batch job status: {retrieved_job.status}", 
+            total=len(pdf_paths)
+        )
+        
+        while retrieved_job.status in ["QUEUED", "RUNNING"]:
+            retrieved_job = client.batch.jobs.get(job_id=created_job.id)
+            progress.update(
+                monitor_task, 
+                completed=retrieved_job.succeeded_requests + retrieved_job.failed_requests,
+                description=f"[green]Batch job status: {retrieved_job.status} - " +
+                           f"Completed: {retrieved_job.succeeded_requests + retrieved_job.failed_requests}/{retrieved_job.total_requests} " +
+                           f"({round((retrieved_job.succeeded_requests + retrieved_job.failed_requests) / retrieved_job.total_requests * 100, 1)}%)"
+            )
+            await asyncio.sleep(2)
+        
+        # Download results
+        if retrieved_job.status == "SUCCESS":
+            progress.update(monitor_task, description="[green]Downloading results...")
+            response = client.files.download(file_id=retrieved_job.output_file)
+            
+            # Process the results
+            results_task = progress.add_task("[blue]Processing results...", total=len(pdf_paths))
+            
+            # Parse the JSONL response
+            results = response.text.strip().split('\n')
+            for i, result_line in enumerate(results):
+                progress.update(results_task, description=f"[blue]Processing result {i+1}/{len(results)}")
+                
+                result = json.loads(result_line)
+                pdf_path = pdf_paths[int(result["custom_id"])]
+                ocr_response = OCRResponse.model_validate(result["response"])
+                
                 # Cache the result
                 if use_cache:
                     save_object_to_kvstore(key=str(pdf_path), obj=ocr_response)
-
+                
                 # Save to output directory
                 output_file = output_dir / f"{pdf_path.stem}.md"
                 with open(output_file, "w") as f:
@@ -185,11 +249,16 @@ async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache
                         f.write(f"## Page {page.index + 1}\n\n")
                         f.write(page.markdown)
                         f.write("\n\n")
-
-            except Exception as e:
-                logger.error(f"Error processing {pdf_path}: {e}")
-
-            progress.advance(task)
+                
+                progress.advance(results_task)
+            
+            # Clean up the batch file
+            if os.path.exists(batch_file_path):
+                os.remove(batch_file_path)
+                
+            logger.info(f"Batch processing complete. Results saved to {output_dir}")
+        else:
+            logger.error(f"Batch job failed with status: {retrieved_job.status}")
 
 
 
