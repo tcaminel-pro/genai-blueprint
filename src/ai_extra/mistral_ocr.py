@@ -154,6 +154,8 @@ async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache
             # Remove cached files from processing list
             pdf_paths = [path for path in pdf_paths if path not in cached_files]
 
+            debug(pdf_paths)
+
             if not pdf_paths:
                 logger.info("All files were found in cache. No need for batch processing.")
                 return
@@ -205,9 +207,9 @@ async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache
         if retrieved_job.status == "SUCCESS":
             progress.update(monitor_task, description="[green]Downloading results...")
             response = client.files.download(file_id=retrieved_job.output_file)
-            
+
             # Read the response content
-            response_content = response.read().decode('utf-8')
+            response_content = response.read().decode("utf-8")
 
             # Process the results
             results_task = progress.add_task("[blue]Processing results...", total=len(pdf_paths))
@@ -219,11 +221,11 @@ async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache
 
                 result = json.loads(result_line)
                 pdf_path = pdf_paths[int(result["custom_id"])]
-                
+
                 # The batch API returns a different structure than the direct API
                 # We need to extract the actual OCR response from the batch result
                 response_data = result["response"]
-                
+
                 # Check if the response contains the actual OCR data or is wrapped
                 if "body" in response_data and isinstance(response_data["body"], dict):
                     ocr_data = response_data["body"]
