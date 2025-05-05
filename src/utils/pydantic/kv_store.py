@@ -42,7 +42,7 @@ def _encode_key(key: str | dict) -> str:
     return encoded_key + ".json"  # add json so the file can be easily viewed
 
 
-def save_pydantic_to_store(key: str | dict, obj: BaseModel, file_store_path: Path | None = None) -> None:
+def save_object_to_kvstore(key: str | dict, obj: BaseModel, file_store_path: Path | None = None) -> None:
     """Save a Pydantic model to a local file-based key-value store.
 
     The model is saved to a directory based on the model's class name. The key is
@@ -69,8 +69,8 @@ def save_pydantic_to_store(key: str | dict, obj: BaseModel, file_store_path: Pat
     logger.debug(f"add key '{class_name}/{encoded_key}' to local kv_store {file_store_path}'")
 
 
-def read_pydantic_from_store(model_class: type[T], key: str | dict, file_store_path: Path | None = None) -> T | None:
-    """Read a Pydantic model from a local file-based key-value store.
+def load_object_from_kvstore(model_class: type[T], key: str | dict, file_store_path: Path | None = None) -> T | None:
+    """Read a Pydantic object from a local file-based key-value store.
 
     Args:
         model_class: Pydantic model class to reconstruct.
@@ -116,6 +116,6 @@ if __name__ == "__main__":
     with TemporaryDirectory(delete=False) as temp_dir:
         temp_path = Path(temp_dir)
         test_model = TestModel(name="test_object", value=42)
-        save_pydantic_to_store("unique_key", test_model, temp_path)
-        retrieved_model = read_pydantic_from_store(TestModel, "unique_key", temp_path)
+        save_object_to_kvstore("unique_key", test_model, temp_path)
+        retrieved_model = load_object_from_kvstore(TestModel, "unique_key", temp_path)
         print(retrieved_model)

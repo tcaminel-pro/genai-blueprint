@@ -31,7 +31,7 @@ from loguru import logger
 from pydantic import BaseModel, Field
 
 from src.ai_core.llm import LlmFactory
-from src.utils.pydantic.kv_store import read_pydantic_from_store, save_pydantic_to_store
+from src.utils.pydantic.kv_store import load_object_from_kvstore, save_object_to_kvstore
 
 
 class GptrConfVariables(BaseModel):
@@ -130,8 +130,6 @@ class Language(str, Enum):
 
 
 class CommonConfigParams(BaseModel):
-
-
     # https://docs.gptr.dev/docs/gpt-researcher/gptr/config
 
     report_type: ReportType = ReportType.RESEARCH
@@ -245,14 +243,14 @@ def gpt_researcher_chain() -> Runnable[str, ResearchReport]:
         kv_store_key = result_key or query
 
         if use_cached_result:
-            cached_result = read_pydantic_from_store(model_class=ResearchReport, key=kv_store_key)
+            cached_result = load_object_from_kvstore(model_class=ResearchReport, key=kv_store_key)
             if cached_result:
                 logger.info(f"use cached research report for query: '{textwrap.shorten(query, 15)}'")
                 return cached_result
 
         result = await run_gpt_researcher(query=query, **gptr_params, gptr_config=gptr_conf, gptr_logger=gptr_logger)
         if use_cached_result:
-            save_pydantic_to_store(kv_store_key, result)
+            save_object_to_kvstore(kv_store_key, result)
         return result
 
     return RunnableLambda(func=fn)

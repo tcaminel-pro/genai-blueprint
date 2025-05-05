@@ -2,9 +2,9 @@ import asyncio
 import sys
 from typing import Annotated, Optional
 
-from loguru import logger
 import typer
 from langchain.globals import set_debug, set_verbose
+from loguru import logger
 from smolagents import (
     CodeAgent,
 )
@@ -83,14 +83,13 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         agent.run(prompt)
 
-    # Change output_dir : should be a subdir of the file pattern directory AI!
     @cli_app.command()
     def ocr_pdf(
-        file_patterns: list[str] = typer.Argument(..., help="File patterns to match PDF files (glob patterns)"),
+        file_patterns: list[str] = typer.Argument(..., help="File patterns to match PDF files (glob patterns)"),  # noqa: B008
         output_dir: str = typer.Option("./ocr_output", help="Directory to save OCR results"),
         use_cache: bool = typer.Option(True, help="Use cached OCR results if available"),
         recursive: bool = typer.Option(False, help="Search for files recursively"),
-    ):
+    ) -> None:
         """Process PDF files with Mistral OCR and save the results as markdown files.
 
         Example:
