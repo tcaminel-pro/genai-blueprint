@@ -4,9 +4,8 @@ from src.utils.streamlit.recorder import StreamlitRecorder
 
 str = StreamlitRecorder()
 
-# pass the current container in   str.set_container  AI!
 with st.expander("test", expanded=True):
-    str.set_container(st)
+    str.set_container(st.container())
     if st.button("play"):
         with str:
             st.write("Hello")
