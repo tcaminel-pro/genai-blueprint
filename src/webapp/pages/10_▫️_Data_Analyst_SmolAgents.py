@@ -27,6 +27,7 @@ from streamlit_folium import st_folium
 from src.ai_core.llm import LlmFactory
 from src.ai_core.prompts import dedent_ws
 from src.utils.streamlit.load_data import TABULAR_FILE_FORMATS_READERS, load_tabular_data
+from src.utils.streamlit.recorder import StreamlitRecorder
 from src.webapp.ui_components.llm_config import llm_config_widget
 from src.webapp.ui_components.smolagents_streamlit import stream_to_streamlit
 
@@ -197,8 +198,8 @@ else:
     demo = next(d for d in DEMOS if d.name == selected_pill)
     tools = demo.tools
 
-    col1, col2 = st.columns([3, 1])
-    with col2:
+    col1, answer_widget = st.columns([3, 1])
+    with answer_widget:
         st.write("**Available Tools:**")
         for tool in tools:
             st.write(f"- {tool.name}")
@@ -225,7 +226,7 @@ class MyFinalAnswerTool(smolagents.default_tools.FinalAnswerTool):
 
 
 # Replace the default FinalAnswerTool with our custom version
-smolagents.default_tools.FinalAnswerTool = MyFinalAnswerTool
+# smolagents.default_tools.FinalAnswerTool = MyFinalAnswerTool
 
 
 class DisplayAnswerTool(Tool):
@@ -233,7 +234,7 @@ class DisplayAnswerTool(Tool):
     description = "Display important step in the reasonning (1 sentence) or the final answer to the given query."
     inputs = {"answer": {"type": "any", "description": "The final answer to the problem"}}
     output_type = "any"
-
+    # append only if the last element is different than "anwer" AI!
     def forward(self, answer: Any) -> Any:
         st.session_state.agent_output.append(answer)
         return "answer displayed: {answer}"
@@ -302,6 +303,9 @@ PRE_PROMPT = dedent_ws(
     - DO NOT USE other packages (such as os, shutils, etc).
     - Don't generate "if __name__ == "__main__"
     - Don't use st.sidebar
+#   - Call the function '{FINAL_FUNCTION}' to display the final result. It accepts markdown (first choice), str, number, or a pathlib.Path to a generated image, or whenever possible  Python objects of Pandas Dataframe, or Follium Map.
+#   - Print also the outcome on stdio, or the title if it's a diagram.
+
    - {FOLIUM_INSTRUCTION}
     - {IMAGE_INSTRUCTION}
 
@@ -309,28 +313,29 @@ PRE_PROMPT = dedent_ws(
     """
 )
 
-#    - Call the function '{FINAL_FUNCTION}' to display the final result. It accepts markdown (first choice), str, number, or a pathlib.Path to a generated image, or whenever possible  Python objects of Pandas Dataframe, or Follium Map.
-#    - Print also the outcome on stdio, or the title if it's a diagram.
 
-col1, col2 = st.columns(2)
-with col1:
-    if prompt := st.chat_input("What would you like to ask ?"):
-        # st.session_state.agent_output = []
-        # Use our custom tools
+prompt = st.chat_input("What would you like to ask ?")
+log_widget, answer_widget = st.columns(2)
+
+
+strecorder = StreamlitRecorder()
+strecorder.replay(log_widget)
+with log_widget:
+    if prompt:
         # tools += [MyFinalAnswerTool(), DisplayAnswerTool()]
-        tools += [MyFinalAnswerTool(), DisplayAnswerTool()]
+        tools += [DisplayAnswerTool()]
         agent = CodeAgent(
             tools=tools,
             model=llm,
             additional_authorized_imports=AUTHORIZED_IMPORTS,
             max_steps=5,  # for debug
         )
-
-        # with st.container(height=600):
-        with st.status("Agents thoughts:", expanded=True):
-            stream_to_streamlit(agent, PRE_PROMPT + prompt, additional_args={"st": col2}, display_details=False)
+        with strecorder:
+            stream_to_streamlit(
+                agent, PRE_PROMPT + prompt, additional_args={"st": answer_widget}, display_details=False
+            )
 
     debug(st.session_state.agent_output)
-    with col2:
+    with answer_widget:
         st.write("answer:")
         update_display()
