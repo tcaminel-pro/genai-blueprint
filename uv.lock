@@ -1102,18 +1102,10 @@ source = { editable = "." }
 dependencies = [
     { name = "devtools" },
     { name = "fastapi" },
-    { name = "kuzu" },
-    { name = "langserve" },
-    { name = "litellm" },
     { name = "loguru" },
     { name = "omegaconf" },
-    { name = "playwright" },
     { name = "pydantic" },
     { name = "rich", extra = ["jupyter"] },
-    { name = "smolagents", extra = ["gradio"] },
-    { name = "streamlit-extras" },
-    { name = "streamlit-folium" },
-    { name = "streamlit-pydantic" },
     { name = "tabulate" },
     { name = "typer" },
     { name = "universal-pathlib" },
@@ -1137,6 +1129,7 @@ ai = [
     { name = "langserve" },
     { name = "litellm" },
     { name = "mistralai" },
+    { name = "smolagents", extra = ["gradio"] },
 ]
 ai-extra = [
     { name = "duckduckgo-search" },
@@ -1158,6 +1151,7 @@ demos = [
     { name = "enchant" },
     { name = "giskard" },
     { name = "helium" },
+    { name = "kuzu" },
     { name = "langchain-kuzu" },
     { name = "lark" },
     { name = "matplotlib" },
@@ -1168,6 +1162,8 @@ demos = [
     { name = "scikit-learn" },
     { name = "spacy" },
     { name = "sqlalchemy" },
+    { name = "streamlit-extras" },
+    { name = "streamlit-folium" },
     { name = "yfinance" },
 ]
 dev = [
@@ -1195,18 +1191,10 @@ ui = [
 requires-dist = [
     { name = "devtools", specifier = ">=0.12.2" },
     { name = "fastapi", specifier = ">=0.115.6" },
-    { name = "kuzu", specifier = ">=0.7.1" },
-    { name = "langserve", specifier = ">=0.3.1" },
-    { name = "litellm", specifier = "==1.67.2" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "omegaconf", specifier = ">=2.3.0" },
-    { name = "playwright", specifier = ">=1.51.0" },
     { name = "pydantic", specifier = ">=2.7.0,<3" },
     { name = "rich", extras = ["jupyter"], specifier = ">=13.9.4" },
-    { name = "smolagents", extras = ["gradio"], specifier = ">=1.13.0" },
-    { name = "streamlit-extras", specifier = ">=0.6.0" },
-    { name = "streamlit-folium", specifier = ">=0.24.1" },
-    { name = "streamlit-pydantic", specifier = ">=0.6.0" },
     { name = "tabulate", specifier = ">=0.9.0" },
     { name = "typer", specifier = ">=0.13.0" },
     { name = "universal-pathlib", specifier = ">=0.2.6" },
@@ -1215,21 +1203,22 @@ requires-dist = [
 [package.metadata.requires-dev]
 ai = [
     { name = "chromadb", specifier = ">=0.6" },
-    { name = "langchain", specifier = ">=0.3,<0.4" },
+    { name = "langchain", specifier = ">=0.3" },
     { name = "langchain-chroma", specifier = ">=0.2" },
-    { name = "langchain-community", specifier = ">=0.3,<0.4" },
-    { name = "langchain-core", specifier = ">=0.3,<0.4" },
+    { name = "langchain-community", specifier = ">=0.3" },
+    { name = "langchain-core", specifier = ">=0.3" },
     { name = "langchain-deepseek", specifier = ">=0.1.2" },
-    { name = "langchain-experimental", specifier = ">=0.3,<0.4" },
+    { name = "langchain-experimental", specifier = ">=0.3" },
     { name = "langchain-groq", specifier = ">=0.2" },
     { name = "langchain-mcp-adapters", specifier = ">=0.0.5" },
     { name = "langchain-ollama", specifier = ">=0.2" },
     { name = "langchain-openai", specifier = ">=0.3" },
     { name = "langchainhub", specifier = ">=0.1" },
-    { name = "langgraph", specifier = ">=0.2" },
+    { name = "langgraph", specifier = ">=0.4" },
     { name = "langserve", specifier = ">=0.3" },
-    { name = "litellm", specifier = ">=1" },
+    { name = "litellm", specifier = "==1.67.2" },
     { name = "mistralai", specifier = ">=1.7.0" },
+    { name = "smolagents", extras = ["gradio"], specifier = ">=1.13.0" },
 ]
 ai-extra = [
     { name = "duckduckgo-search", specifier = ">=6.1.6" },
@@ -1251,16 +1240,20 @@ demos = [
     { name = "enchant", specifier = ">=0.0.1,<0.0.2" },
     { name = "giskard", specifier = ">=2.15.5" },
     { name = "helium", specifier = ">=5.1.0,<6" },
+    { name = "kuzu", specifier = ">=0.7.1" },
     { name = "langchain-kuzu", specifier = ">=0.3.0" },
     { name = "lark", specifier = ">=1.1.9,<2" },
     { name = "matplotlib", specifier = ">=3.9.0,<4" },
     { name = "playwright", specifier = ">=1.49.1" },
+    { name = "playwright", specifier = ">=1.51.0" },
     { name = "plotly", specifier = ">=5.22.0" },
     { name = "pypdf", specifier = ">=5.1.0,<6" },
     { name = "rank-bm25", specifier = ">=0.2.2" },
     { name = "scikit-learn", specifier = ">=1.6.1" },
     { name = "spacy", specifier = ">=3.7.4,<4" },
     { name = "sqlalchemy", specifier = ">=2.0.29,<3" },
+    { name = "streamlit-extras", specifier = ">=0.6.0" },
+    { name = "streamlit-folium", specifier = ">=0.24.1" },
     { name = "yfinance", specifier = ">=0.2.38" },
 ]
 dev = [
@@ -1344,16 +1337,16 @@ wheels = [
 
 [[package]]
 name = "google-auth"
-version = "2.39.0"
+version = "2.40.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cachetools" },
     { name = "pyasn1-modules" },
     { name = "rsa" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cb/8e/8f45c9a32f73e786e954b8f9761c61422955d23c45d1e8c347f9b4b59e8e/google_auth-2.39.0.tar.gz", hash = "sha256:73222d43cdc35a3aeacbfdcaf73142a97839f10de930550d89ebfe1d0a00cde7", size = 274834, upload_time = "2025-04-14T17:44:49.402Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8b/03/6b824ef961fb2ab74f3b54adf2a357f742d88e0667a3471621cb9477da96/google_auth-2.40.0.tar.gz", hash = "sha256:c277cf39f7c192d8540eb6331c08b5a0796e8041af8343ae73dd6b269732ca6c", size = 280934, upload_time = "2025-05-05T18:24:54.79Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ce/12/ad37a1ef86006d0a0117fc06a4a00bd461c775356b534b425f00dde208ea/google_auth-2.39.0-py2.py3-none-any.whl", hash = "sha256:0150b6711e97fb9f52fe599f55648950cc4540015565d8fbb31be2ad6e1548a2", size = 212319, upload_time = "2025-04-14T17:44:47.699Z" },
+    { url = "https://files.pythonhosted.org/packages/8b/40/02101ed0fd0af369558db30f5a90c7d843d5747343bb55f35cb96cd2112b/google_auth-2.40.0-py2.py3-none-any.whl", hash = "sha256:dc3a5078acb1043c3e43685c22d628afe40af8559cf561de388e0c939280fcc8", size = 216004, upload_time = "2025-05-05T18:24:53.115Z" },
 ]
 
 [[package]]
@@ -1788,7 +1781,7 @@ wheels = [
 
 [[package]]
 name = "ipywidgets"
-version = "8.1.6"
+version = "8.1.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "comm" },
@@ -1797,9 +1790,9 @@ dependencies = [
     { name = "traitlets" },
     { name = "widgetsnbextension" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/aa/98/4074d9cb7e89f7ee387b41e9a4b74c8e0d6196e90b910af1cc674e1cdd3d/ipywidgets-8.1.6.tar.gz", hash = "sha256:d8ace49c66f14419fc66071371b99d01bed230bbc15d8a60233b18bfbd782851", size = 116764, upload_time = "2025-04-10T13:02:35.733Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3e/48/d3dbac45c2814cb73812f98dd6b38bbcc957a4e7bb31d6ea9c03bf94ed87/ipywidgets-8.1.7.tar.gz", hash = "sha256:15f1ac050b9ccbefd45dccfbb2ef6bed0029d8278682d569d71b8dd96bee0376", size = 116721, upload_time = "2025-05-05T12:42:03.489Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/53/b8/62952729573d983d9433faacf62a52ee2e8cf46504418061ad1739967abe/ipywidgets-8.1.6-py3-none-any.whl", hash = "sha256:446e7630a1d025bdc7635e1169fcc06f2ce33b5bd41c2003edeb4a47c8d4bbb1", size = 139808, upload_time = "2025-04-10T13:02:33.904Z" },
+    { url = "https://files.pythonhosted.org/packages/58/6a/9166369a2f092bd286d24e6307de555d63616e8ddb373ebad2b5635ca4cd/ipywidgets-8.1.7-py3-none-any.whl", hash = "sha256:764f2602d25471c213919b8a1997df04bef869251db4ca8efba1b76b1bd9f7bb", size = 139806, upload_time = "2025-05-05T12:41:56.833Z" },
 ]
 
 [[package]]
@@ -1962,11 +1955,11 @@ wheels = [
 
 [[package]]
 name = "jupyterlab-widgets"
-version = "3.0.14"
+version = "3.0.15"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a1/94/766b8199e8a902a4c5ee12a9407a348bbabe9fa22400758576b153d17d8e/jupyterlab_widgets-3.0.14.tar.gz", hash = "sha256:bad03e59546869f026e537e0d170e454259e6dc7048e14041707ca31e523c8a1", size = 203815, upload_time = "2025-04-10T13:00:40.522Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b9/7d/160595ca88ee87ac6ba95d82177d29ec60aaa63821d3077babb22ce031a5/jupyterlab_widgets-3.0.15.tar.gz", hash = "sha256:2920888a0c2922351a9202817957a68c07d99673504d6cd37345299e971bb08b", size = 213149, upload_time = "2025-05-05T12:32:31.004Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/64/7a/f2479ba401e02f7fcbd3fc6af201eac888eaa188574b8e9df19452ab4972/jupyterlab_widgets-3.0.14-py3-none-any.whl", hash = "sha256:54c33e3306b7fca139d165d6190dc6c0627aafa5d14adfc974a4e9a3d26cb703", size = 213999, upload_time = "2025-04-10T13:00:38.626Z" },
+    { url = "https://files.pythonhosted.org/packages/43/6a/ca128561b22b60bd5a0c4ea26649e68c8556b82bc70a0c396eebc977fe86/jupyterlab_widgets-3.0.15-py3-none-any.whl", hash = "sha256:d59023d7d7ef71400d51e6fee9a88867f6e65e10a4201605d2d7f3e8f012a31c", size = 216571, upload_time = "2025-05-05T12:32:29.534Z" },
 ]
 
 [[package]]
@@ -2171,15 +2164,15 @@ wheels = [
 
 [[package]]
 name = "langchain-mcp-adapters"
-version = "0.0.9"
+version = "0.0.10"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "langchain-core" },
     { name = "mcp" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1a/48/dc5544f5b919b4ff9e736ec8db71217431c585c5c87acd3ab7558cc06cee/langchain_mcp_adapters-0.0.9.tar.gz", hash = "sha256:9ecd10fc420d98b3c14115bbca3174575e0a4ea29bd125ef39d11191a72ff1a1", size = 14827, upload_time = "2025-04-16T15:03:05.158Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5f/02/5f9074a8c7d5be88f65a7e54ba7af7af750937621686e64861491bc14f67/langchain_mcp_adapters-0.0.10.tar.gz", hash = "sha256:b60f2ec9bbc99a7a1078d6c5e40d3dbb315ff6226116ec11fcada5763ce38e56", size = 15280, upload_time = "2025-05-05T13:30:39.034Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6f/24/3a4be149e8db15936533357f987b4b89c74c7f039427d6229679dbcc53b9/langchain_mcp_adapters-0.0.9-py3-none-any.whl", hash = "sha256:7c3dedd7830de826f418706c8a2fe388afcf8daf2037a1b39d1e065a5eacb082", size = 10065, upload_time = "2025-04-16T15:03:04.324Z" },
+    { url = "https://files.pythonhosted.org/packages/a8/b5/780e001178c2a9913d06958e897ea2d1ba02e8051c85b4184781b0fc5939/langchain_mcp_adapters-0.0.10-py3-none-any.whl", hash = "sha256:bf2a4f858b384a29fb702bc74589b4477d7401cb23f75a8ef5eed332ae1acc6a", size = 10309, upload_time = "2025-05-05T13:30:38.072Z" },
 ]
 
 [[package]]
@@ -2590,7 +2583,7 @@ wheels = [
 
 [[package]]
 name = "mcp"
-version = "1.6.0"
+version = "1.7.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -2598,13 +2591,14 @@ dependencies = [
     { name = "httpx-sse" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
+    { name = "python-multipart" },
     { name = "sse-starlette" },
     { name = "starlette" },
-    { name = "uvicorn" },
+    { name = "uvicorn", marker = "sys_platform != 'emscripten'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/95/d2/f587cb965a56e992634bebc8611c5b579af912b74e04eb9164bd49527d21/mcp-1.6.0.tar.gz", hash = "sha256:d9324876de2c5637369f43161cd71eebfd803df5a95e46225cab8d280e366723", size = 200031, upload_time = "2025-03-27T16:46:32.336Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/25/ae/588691c45b38f4fbac07fa3d6d50cea44cc6b35d16ddfdf26e17a0467ab2/mcp-1.7.1.tar.gz", hash = "sha256:eb4f1f53bd717f75dda8a1416e00804b831a8f3c331e23447a03b78f04b43a6e", size = 230903, upload_time = "2025-05-02T17:01:56.403Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/10/30/20a7f33b0b884a9d14dd3aa94ff1ac9da1479fe2ad66dd9e2736075d2506/mcp-1.6.0-py3-none-any.whl", hash = "sha256:7bd24c6ea042dbec44c754f100984d186620d8b841ec30f1b19eda9b93a634d0", size = 76077, upload_time = "2025-03-27T16:46:29.919Z" },
+    { url = "https://files.pythonhosted.org/packages/ae/79/fe0e20c3358997a80911af51bad927b5ea2f343ef95ab092b19c9cc48b59/mcp-1.7.1-py3-none-any.whl", hash = "sha256:f7e6108977db6d03418495426c7ace085ba2341b75197f8727f96f9cfd30057a", size = 100365, upload_time = "2025-05-02T17:01:54.674Z" },
 ]
 
 [package.optional-dependencies]
@@ -2809,11 +2803,11 @@ wheels = [
 
 [[package]]
 name = "narwhals"
-version = "1.37.1"
+version = "1.38.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/13/e1/a602073ef14da8f065b08c178861cf782f08a3676492042566ae3ccc5671/narwhals-1.37.1.tar.gz", hash = "sha256:1eb8f17ff00e6c471d5afb704e9068f41657234eb73bde2ee66ad975a170015b", size = 272029, upload_time = "2025-04-29T13:56:33.11Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/88/bf/01dd3ed16326a664a4f9cce6ad43f431ba3bea9a2b81e3c07f7a627575ad/narwhals-1.38.0.tar.gz", hash = "sha256:0a356a21ad00de0db0e631332a823a6a6755544bd10b8e68a02d75029c71392e", size = 277086, upload_time = "2025-05-05T14:21:56.936Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b1/e3/79d95ed89f46b134dd801b54375e362c505303bd739a6737efc14d0de835/narwhals-1.37.1-py3-none-any.whl", hash = "sha256:6f358a23b7351897d6efb45496dc0528918ce4ca6c8f9631594885cd873576a7", size = 332366, upload_time = "2025-04-29T13:56:31.461Z" },
+    { url = "https://files.pythonhosted.org/packages/5e/01/419bebadc11896e92f3255e260497e530a0d608debfc2b06221e72c0d60d/narwhals-1.38.0-py3-none-any.whl", hash = "sha256:148de8f1bec24644e260f6f2fe9b8e2e435f49ad13537a5261f0de34701e9153", size = 338257, upload_time = "2025-05-05T14:21:54.641Z" },
 ]
 
 [[package]]
@@ -4722,20 +4716,6 @@ wheels = [
 ]
 
 [[package]]
-name = "streamlit-pydantic"
-version = "0.6.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "importlib-resources" },
-    { name = "pydantic" },
-    { name = "streamlit" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/8a/da/918863014e53f862a0158f97eca03d8107cd2de45d5e92ecc2b3a85d4f5d/streamlit-pydantic-0.6.0.tar.gz", hash = "sha256:3bc5d51af085eb6791b360f569f1a541681ddcc51579b09a1e2ab54639b39d49", size = 22224, upload_time = "2023-03-29T14:26:25.464Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/bc/53/4bf8c20ebfd5fc60040d7d09777a983b54156af65978617edf56531abb6e/streamlit_pydantic-0.6.0-py3-none-any.whl", hash = "sha256:7a69ec6519f5de1b21bd9737891c61d8fea33d7727824ab19c4c65d49f136304", size = 18135, upload_time = "2023-03-29T14:26:23.647Z" },
-]
-
-[[package]]
 name = "streamlit-toggle-switch"
 version = "1.0.2"
 source = { registry = "https://pypi.org/simple" }
@@ -4782,16 +4762,16 @@ wheels = [
 
 [[package]]
 name = "tavily-python"
-version = "0.7.1"
+version = "0.7.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
     { name = "requests" },
     { name = "tiktoken" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/64/53/9b2103156e221f00273021758b23666c7acb1462e02d9fb7e49bf9f9884d/tavily_python-0.7.1.tar.gz", hash = "sha256:ccbba587fa38d181d54670d6ce26e4f31ad9c7c7f0835d191b9bb542b085dc36", size = 16204, upload_time = "2025-05-01T19:56:20.765Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fe/27/73b4911c718453c8ed6d8c3a0e40c9114fb34e3c80b1b6573e969345fb0e/tavily_python-0.7.2.tar.gz", hash = "sha256:34f713002887df2b5e6b8d7db7bc64ae107395bdb5f53611e80a89dac9cbdf19", size = 16481, upload_time = "2025-05-06T03:19:08.772Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e1/ed/c861140bd072e91efce3a49ac6fc700f7bde0d696ce7fa288649859c70b6/tavily_python-0.7.1-py3-none-any.whl", hash = "sha256:a73c8e68925a62bfe08e3a8bb4434d64d4e62c82081cc8a68a071b78673e9590", size = 14638, upload_time = "2025-05-01T19:56:19.805Z" },
+    { url = "https://files.pythonhosted.org/packages/47/85/57b6f6a53a5600cc11d6713b33bac16bf8d756bf30ddba71f7a64681755d/tavily_python-0.7.2-py3-none-any.whl", hash = "sha256:0d7cc8b1a2f95ac10cf722094c3b5807aade67cc7750f7ca605edef7455d4c62", size = 14917, upload_time = "2025-05-06T03:19:06.469Z" },
 ]
 
 [[package]]

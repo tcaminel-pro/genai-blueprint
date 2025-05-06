@@ -1,4 +1,10 @@
-# add doc module and update docstring with simple exemple taken from 991_ Recorder.py 
+"""Streamlit Recorder Module
+
+Provides functionality to record and replay Streamlit UI actions.
+
+
+"""
+
 from __future__ import annotations
 
 import time
@@ -19,7 +25,22 @@ class StreamlitAction:
 
 
 class StreamlitRecorder:
-    """Records Streamlit actions and allows replaying them."""
+    """
+        Records Streamlit actions and allows replaying them.
+
+        Example usage:
+    ```
+        str = StreamlitRecorder()
+        container = st.container()
+        with str:
+            with container:
+                st.write("Hello")
+                st.markdown("World")
+
+        # Replay actions
+        str.replay(container)  # Replays at normal speed
+        str.replay(container, speed=0.01)  # Replays slower
+    """
 
     def __init__(self) -> None:
         if "streamlit_recorder_actions" not in st.session_state:
@@ -33,7 +54,7 @@ class StreamlitRecorder:
         self._wrap_streamlit_functions()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:  # noqa: ANN001
         """Stop recording by restoring original functions."""
         self._unwrap_streamlit_functions()
 
@@ -80,3 +101,8 @@ class StreamlitRecorder:
                 if action.timestamp > 0:
                     time.sleep(action.timestamp / speed)
                 action.func(*action.args, **action.kwargs)
+
+    def clear(self) -> None:
+        st.session_state.streamlit_recorder_actions = []
+        st.session_state.streamlit_recorder_last_timestamp = None
+        self.original_functions = {}

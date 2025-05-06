@@ -38,6 +38,9 @@ MODEL_ID = None  # Use the one by configuration
 
 DATA_PATH = Path.cwd() / "use_case_data/other"
 
+if "agent_output" not in st.session_state:
+    st.session_state.agent_output = []
+
 
 class DataFrameTool(Tool):
     name: str
@@ -112,6 +115,69 @@ def get_historical_price(symbol: str, start_date: date, end_date: date) -> pd.Da
         return pd.DataFrame()
 
 
+##########################
+#  SmolAgent parameters
+##########################
+
+
+AUTHORIZED_IMPORTS = [
+    "pathlib",
+    "pandas",
+    "matplotlib.*",
+    "numpy",
+    "json",
+    "streamlit",
+    "base64",
+    "tempfile",
+    "sklearn.*",
+    "folium.*",
+]
+
+FINAL_FUNCTION = "print_result"
+
+FOLIUM_INSTRUCTION = dedent_ws(
+    """ 
+    - Use Folium to display a map. For example: 
+        -- to display map at a given location, call  folium.Map([latitude, longitude])
+        -- Do your best to select the zoom factor so whole location enter globaly in the map
+        -- output the map object
+"""
+)
+
+IMAGE_INSTRUCTION = dedent_ws(
+    f""" 
+    -  When creating a plot or generating an image:
+      -- save it as png in a tempory directory (use tempfile)
+      -- call {FINAL_FUNCTION} with the pathlib.Path  
+"""
+)
+
+PRE_PROMPT = dedent_ws(
+    f"""
+    Answer following request. 
+
+    Instructions:
+     - You can use ONLY the following packages:  {", ".join(AUTHORIZED_IMPORTS)}.
+    - DO NOT USE other packages (such as os, shutils, etc).
+    - Don't generate "if __name__ == "__main__"
+    - Don't use st.sidebar
+#   - Call the function '{FINAL_FUNCTION}' to display the final result. It accepts markdown (first choice), str, number, or a pathlib.Path to a generated image, or whenever possible  Python objects of Pandas Dataframe, or Follium Map.
+#   - Print also the outcome on stdio, or the title if it's a diagram.
+
+    - {FOLIUM_INSTRUCTION}
+    - {IMAGE_INSTRUCTION}
+
+    \nRequest :
+    """
+)
+
+
+##########################
+#  Demos definition
+#  todo : put it in a config file
+##########################
+
+
 DEMOS = [
     Demo(
         name="Classic SmolAgents",
@@ -142,24 +208,6 @@ DEMOS = [
             "What feature would you engineered to predict survival rate ? Build a predictive model, and report the F1 score on a test set",
         ],
     ),
-    # Demo(
-    #     name="CO2 Emissions",
-    #     tools=[
-    #         DataFrameTool(
-    #             name="titanic data reader",
-    #             description="Data related to the Titanic passengers",
-    #             source_path=DATA_PATH / "country CO2 emissions",
-    #         )
-    #     ],
-    #     examples=[
-    #         "what was the CO2 emissions of Brazil for energy generation in 2023",
-    #         "Generate a bar chart with emissions by sector for France in 2022",
-    #         "Create a pie chart of emissions by sector",
-    #         "Show the change in emissions from the industrial sector between 2022 and 2024",
-    #         "Create a simple UI with a multiselect widget and a text ",
-    #         "Train a ML model to predict the CO2 evolution of France in the next 2 years. Display the curve with historical and predicted data",
-    #     ],
-    # ),
     Demo(
         name="Stock Price",
         tools=[get_stock_info, get_historical_price],
@@ -176,13 +224,38 @@ DEMOS = [
 ]
 
 
+##########################
+#  UI
+##########################
+
+st.title("Analytics AI Agent")
+llm_config_widget(st.sidebar)
+
+
 @st.cache_data(show_spinner=True)
 def get_cache_dataframe(file_or_filename: Path | UploadedFile, **kwargs) -> pd.DataFrame:
     return load_tabular_data(file_or_filename=file_or_filename, **kwargs)
 
 
 FILE_SElECT_CHOICE = ":open_file_folder: :orange[Select your file]"
-selected_pill = st.pills("Demos:", options=[demo.name for demo in DEMOS] + [FILE_SElECT_CHOICE], default=DEMOS[0].name)
+
+
+strecorder = StreamlitRecorder()
+
+
+def clear_display() -> None:
+    st.session_state.agent_output = []
+    strecorder.clear()
+    # st.rerun()
+
+
+selected_pill = st.pills(
+    "🎬 **Demos:**",
+    options=[demo.name for demo in DEMOS] + [FILE_SElECT_CHOICE],
+    default=DEMOS[0].name,
+    on_change=clear_display,
+)
+
 
 raw_data_file = None
 df: pd.DataFrame | None = None
@@ -234,13 +307,16 @@ class DisplayAnswerTool(Tool):
     description = "Display important step in the reasonning (1 sentence) or the final answer to the given query."
     inputs = {"answer": {"type": "any", "description": "The final answer to the problem"}}
     output_type = "any"
+
     def forward(self, answer: Any) -> Any:
-        if not st.session_state.agent_output or st.session_state.agent_output[-1] != answer:
+        if len(st.session_state.agent_output) == 0 or st.session_state.agent_output[-1] != answer:
             st.session_state.agent_output.append(answer)
         return f"answer displayed: {answer}"
 
 
 def update_display() -> None:
+    if len(st.session_state.agent_output) > 0:
+        st.write("answer:")
     for msg in st.session_state.agent_output:
         if isinstance(msg, str):
             st.markdown(msg)
@@ -254,71 +330,14 @@ def update_display() -> None:
             st.write(msg)
 
 
-st.title("Analytics AI Agent")
-llm_config_widget(st.sidebar)
-
 model_name = LlmFactory(llm_id=MODEL_ID).get_litellm_model_name()
 llm = LiteLLMModel(model_id=model_name)
 
-if "agent_output" not in st.session_state:
-    st.session_state.agent_output = []
-
-AUTHORIZED_IMPORTS = [
-    "pathlib",
-    "pandas",
-    "matplotlib.*",
-    "numpy",
-    "json",
-    "streamlit",
-    "base64",
-    "tempfile",
-    "sklearn.*",
-    "folium.*",
-]
-
-FOLIUM_INSTRUCTION = dedent_ws(
-    """ 
-    - Use Folium to display a map. For example: 
-        -- to display map at a given location, call  folium.Map([latitude, longitude])
-        -- Do your best to select the zoom factor so whole location enter globaly in the map
-        -- output the map object
-"""
-)
-
-IMAGE_INSTRUCTION = dedent_ws(
-    """ 
-    -  When creating a plot or generating an image:
-      -- save it as png in a tempory directory (use tempfile)
-      -- call print_result with the pathlib.Path  
-"""
-)
-
-FINAL_FUNCTION = "final_answer"
-PRE_PROMPT = dedent_ws(
-    f"""
-    Answer following request. 
-
-    Instructions:
-     - You can use ONLY the following packages:  {", ".join(AUTHORIZED_IMPORTS)}.
-    - DO NOT USE other packages (such as os, shutils, etc).
-    - Don't generate "if __name__ == "__main__"
-    - Don't use st.sidebar
-#   - Call the function '{FINAL_FUNCTION}' to display the final result. It accepts markdown (first choice), str, number, or a pathlib.Path to a generated image, or whenever possible  Python objects of Pandas Dataframe, or Follium Map.
-#   - Print also the outcome on stdio, or the title if it's a diagram.
-
-   - {FOLIUM_INSTRUCTION}
-    - {IMAGE_INSTRUCTION}
-
-    \nRequest :
-    """
-)
-
 
 prompt = st.chat_input("What would you like to ask ?")
-log_widget, answer_widget = st.columns(2)
+col1, answer_widget = st.columns(2)
+log_widget = col1.container(height=400)
 
-
-strecorder = StreamlitRecorder()
 strecorder.replay(log_widget)
 with log_widget:
     if prompt:
@@ -337,5 +356,4 @@ with log_widget:
 
     debug(st.session_state.agent_output)
     with answer_widget:
-        st.write("answer:")
         update_display()

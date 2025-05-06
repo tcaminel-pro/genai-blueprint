@@ -14,15 +14,8 @@ dependencies = [
     "omegaconf>=2.3.0",
     "fastapi>=0.115.6",
     "rich[jupyter]>=13.9.4",
-    "kuzu>=0.7.1",
-    "langserve>=0.3.1",
-    "streamlit-pydantic>=0.6.0",
-    "smolagents[gradio]>=1.13.0",
-    "streamlit-folium>=0.24.1",
-    "streamlit-extras>=0.6.0",
-    "playwright>=1.51.0",
     "universal-pathlib>=0.2.6",
-    "litellm==1.67.2",
+
 ]
 
 [project.urls]
@@ -35,22 +28,24 @@ include = ["python"]
 
 [dependency-groups]
 ai = [
-    "langchain>=0.3,<0.4",
-    "langchain-core>=0.3,<0.4",
-    "langchain-community>=0.3,<0.4",
-    "langchain-experimental>=0.3,<0.4",
+    "langchain>=0.3",
+    "langchain-core>=0.3",
+    "langchain-community>=0.3",
+    "langchain-experimental>=0.3",
     "langchain-openai>=0.3",
     "langchain-ollama>=0.2",
     "langchain-deepseek>=0.1.2",
     "langchain-mcp-adapters>=0.0.5",
     "langchain-groq>=0.2",
     "langchain-chroma>=0.2",
-    "langgraph>=0.2",
+    "langgraph>=0.4",
     "langserve>=0.3",
     "langchainhub>=0.1",
-    "litellm>=1",
+    # "litellm>=1",
+    "litellm==1.67.2",  # because issue with next version. TBC
     "chromadb>=0.6",
     "mistralai>=1.7.0",
+    "smolagents[gradio]>=1.13.0",
 ]
 ui = [
     "uvicorn>=0.34.0",
@@ -58,6 +53,7 @@ ui = [
     "streamlit>=1.40",
     "st-cytoscape>=0.0.5",
     "ipycytoscape>=1.3.3",
+
 ]
 ai_extra = [
     "gpt-researcher>=0.10.11",
@@ -86,6 +82,10 @@ demos = [
     "playwright>=1.49.1",
     "helium>=5.1.0,<6",
     "scikit-learn>=1.6.1",
+    "streamlit-folium>=0.24.1",
+    "streamlit-extras>=0.6.0",
+    "kuzu>=0.7.1",
+    "playwright>=1.51.0",
 ]
 autogen = [
     "autogen-openaiext-client>=0.0.3",

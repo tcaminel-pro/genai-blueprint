@@ -1,3 +1,5 @@
+# Does not seems to work on WSL. TBC
+
 from smolagents import CodeAgent, DuckDuckGoSearchTool, GradioUI, LiteLLMModel, VisitWebpageTool
 
 from src.ai_core.llm import LlmFactory

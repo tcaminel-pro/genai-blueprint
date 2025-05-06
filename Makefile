@@ -259,7 +259,7 @@ test_install:  ## Launch cli.py and run LangChain with fake LLM
 	else \
 		export PYTHONPATH=".":$(PYTHONPATH); \
 	fi
-	echo bears | uv run cli run joke -m fake_parrot_local
+	echo bears | uv run cli run joke -m parrot_local_fake
 
 ##############################
 ##  Project specific commands

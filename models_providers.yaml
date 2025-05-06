@@ -10,6 +10,9 @@
 # Use pattern {self.model_family_name}_{version}_{inference provider or library}
 # model_name is provider specific.  It can contains several fields decoded in the factory.
 
+# Capabilities can be : 'reasonning', 'structured_outputs', 'pdf', 'vision'
+# !!! THE ONE HERE ARE INCOMPLETE, AND POSSIBLY INCORRECT !!!! 
+
 # Provider documentation links:
 # OpenAI: https://platform.openai.com/docs/models
 # DeepInfra: https://deepinfra.com/models
@@ -60,7 +63,7 @@ llm:
   capabilities: ['reasonning', 'structured_outputs']
 
 - model:
-  id: fake_parrot
+  id: parrot_local
   providers:
     - fake: parrot
 
@@ -127,13 +130,13 @@ llm:
   id: gpt_o1mini
   providers:
     - openrouter: openai/o1-mini-2024-09-12
-  capabilities: ['structured_outputs']
+  capabilities: ['structured_outputs', 'reasonning']
 
 - model:
   id: gpt_o3mini
   providers:
     - openrouter: openai/o3-mini
-  capabilities: ['structured_outputs']
+  capabilities: ['structured_outputs', 'reasoning']
 
 - model:
   id: liquid_lfm40
