@@ -173,6 +173,7 @@ llm:
   id: deepseek_R1
   providers:
     - deepseek: deepseek-reasoner
+  capabilities: ['reasonning', 'structured_outputs']
 
 - model:
   id: zephyr_7b
