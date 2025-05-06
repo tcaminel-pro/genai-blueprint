@@ -1,4 +1,22 @@
-# add doc module and update docstring with simple exemple taken from 991_ Recorder.py  AI!
+"""Streamlit Recorder Module
+
+Provides functionality to record and replay Streamlit UI actions.
+
+Example usage:
+    str = StreamlitRecorder()
+    container = st.status("Agents thoughts:", expanded=True)
+    
+    # Record actions
+    with str:
+        with container:
+            st.write("Hello")
+            st.markdown("World")
+    
+    # Replay actions
+    str.replay(container)  # Replays at normal speed
+    str.replay(container, speed=0.01)  # Replays at 100x speed
+"""
+
 from __future__ import annotations
 
 import time
