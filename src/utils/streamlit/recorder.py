@@ -1,5 +1,6 @@
 """Record and replay Streamlit actions for testing and demonstration purposes."""
 
+# Add typing information on parameters and return types AI!
 from __future__ import annotations
 
 import time
