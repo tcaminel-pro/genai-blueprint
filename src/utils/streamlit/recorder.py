@@ -1,10 +1,9 @@
 """Record and replay Streamlit actions for testing and demonstration purposes."""
 
-# Add typing information on parameters and return types AI!
 from __future__ import annotations
 
 import time
-from typing import Callable, Tuple
+from typing import Any, Callable, Tuple
 
 
 class StreamlitAction:
@@ -20,7 +19,7 @@ class StreamlitAction:
 class StreamlitRecorder:
     """Records Streamlit actions and allows replaying them."""
 
-    def __init__(self, st_module):
+    def __init__(self, st_module: Any) -> None:
         self.st_module = st_module
         if "streamlit_recorder_actions" not in st_module.session_state:
             st_module.session_state.streamlit_recorder_actions = []
@@ -37,7 +36,7 @@ class StreamlitRecorder:
         """Stop recording by restoring original functions."""
         self._unwrap_streamlit_functions()
 
-    def _wrap_streamlit_functions(self):
+    def _wrap_streamlit_functions(self) -> None:
         """Wrap Streamlit functions to record their calls."""
         functions_to_wrap = ["write", "markdown", "text", "header", "subheader", "code", "dataframe", "expander"]
 
@@ -46,8 +45,8 @@ class StreamlitRecorder:
                 original_func = getattr(self.st_module, func_name)
                 self.original_functions[func_name] = original_func
 
-                def make_wrapper(f):
-                    def wrapper(*args, **kwargs):
+                def make_wrapper(f: Callable) -> Callable:
+                    def wrapper(*args: Any, **kwargs: Any) -> Any:
                         # Record the action
                         now = time.time()
                         time_delta = (
@@ -66,7 +65,7 @@ class StreamlitRecorder:
 
                 setattr(self.st_module, func_name, make_wrapper(original_func))
 
-    def _unwrap_streamlit_functions(self):
+    def _unwrap_streamlit_functions(self) -> None:
         """Restore original Streamlit functions."""
         for func_name, original_func in self.original_functions.items():
             setattr(self.st_module, func_name, original_func)
