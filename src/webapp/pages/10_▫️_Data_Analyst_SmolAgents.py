@@ -234,10 +234,10 @@ class DisplayAnswerTool(Tool):
     description = "Display important step in the reasonning (1 sentence) or the final answer to the given query."
     inputs = {"answer": {"type": "any", "description": "The final answer to the problem"}}
     output_type = "any"
-    # append only if the last element is different than "anwer" AI!
     def forward(self, answer: Any) -> Any:
-        st.session_state.agent_output.append(answer)
-        return "answer displayed: {answer}"
+        if not st.session_state.agent_output or st.session_state.agent_output[-1] != answer:
+            st.session_state.agent_output.append(answer)
+        return f"answer displayed: {answer}"
 
 
 def update_display() -> None:
