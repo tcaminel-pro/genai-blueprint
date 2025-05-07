@@ -1,12 +1,13 @@
-import streamlit as st
 import time
 import uuid
+
+import streamlit as st
 
 # Set page title
 st.title("Auto-Scrolling Container Demo")
 
 # Create a container to hold the content
-content_container = st.container()
+content_container = st.container(height=200)
 
 # Create a unique key for the session state if it doesn't exist
 if "messages" not in st.session_state:
@@ -18,6 +19,7 @@ if "messages" not in st.session_state:
 debug_expander = st.expander("Debug Information")
 debug_container = debug_expander.container()
 
+
 # Function to add a new message
 def add_message():
     timestamp = time.strftime("%H:%M:%S")
@@ -25,14 +27,15 @@ def add_message():
     st.session_state.counter += 1
     new_message = f"Message #{st.session_state.counter} - {timestamp} (ID: {message_id})"
     st.session_state.messages.append(new_message)
-    
+
     # Add debug info
     debug_info = f"Added message: {new_message}"
     st.session_state.debug_info.append(debug_info)
-    
+
     # Keep only the last 20 debug messages
     if len(st.session_state.debug_info) > 20:
         st.session_state.debug_info = st.session_state.debug_info[-20:]
+
 
 # Button to add content
 if st.button("Add New Message"):
@@ -42,7 +45,7 @@ if st.button("Add New Message"):
 with content_container:
     for msg in st.session_state.messages:
         st.text(msg)
-    
+
     # Auto-scroll to bottom using JavaScript
     if st.session_state.messages:
         st.markdown(
@@ -66,14 +69,14 @@ with content_container:
                 setTimeout(scrollToBottom, 100);
             </script>
             """,
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
 
 # Display debug information
 with debug_container:
     st.write(f"Total messages: {len(st.session_state.messages)}")
     st.write(f"Last action timestamp: {time.strftime('%H:%M:%S')}")
-    
+
     if st.session_state.debug_info:
         st.write("Recent actions:")
         for info in st.session_state.debug_info:
