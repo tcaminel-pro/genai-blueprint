@@ -7,7 +7,7 @@ import streamlit as st
 st.title("Auto-Scrolling Container Demo")
 
 # Create a container to hold the content with scrolling
-content_container = st.container()
+content_container = st.container(height=200)
 # Apply CSS to make the container scrollable
 st.markdown("""
 <style>
