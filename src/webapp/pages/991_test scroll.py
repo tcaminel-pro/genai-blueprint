@@ -6,8 +6,17 @@ import streamlit as st
 # Set page title
 st.title("Auto-Scrolling Container Demo")
 
-# Create a container to hold the content
-content_container = st.container(height=200)
+# Create a container to hold the content with scrolling
+content_container = st.container()
+# Apply CSS to make the container scrollable
+st.markdown("""
+<style>
+    [data-testid="stVerticalBlock"] > [style*="flex-direction: column"] > [data-testid="stVerticalBlock"] {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # Create a unique key for the session state if it doesn't exist
 if "messages" not in st.session_state:
@@ -53,20 +62,23 @@ with content_container:
             <script>
                 // Function to scroll to the bottom of a container
                 function scrollToBottom() {
-                    const containers = document.getElementsByClassName('stText');
+                    // Target the container with our messages
+                    const containers = document.querySelectorAll('[data-testid="stVerticalBlock"] > [style*="flex-direction: column"] > [data-testid="stVerticalBlock"]');
                     if (containers.length > 0) {
-                        const lastContainer = containers[containers.length - 1];
-                        lastContainer.scrollIntoView({ behavior: 'smooth' });
+                        // Get the scrollable container
+                        const scrollContainer = containers[0];
+                        // Scroll to the bottom
+                        scrollContainer.scrollTop = scrollContainer.scrollHeight;
                         
                         // Debug info for console
-                        console.log('Auto-scrolled to:', lastContainer);
+                        console.log('Auto-scrolled container to bottom, height:', scrollContainer.scrollHeight);
                     } else {
-                        console.log('No containers found to scroll to');
+                        console.log('No scrollable container found');
                     }
                 }
                 
                 // Execute scroll after a short delay to ensure DOM is updated
-                setTimeout(scrollToBottom, 100);
+                setTimeout(scrollToBottom, 200);
             </script>
             """,
             unsafe_allow_html=True,
