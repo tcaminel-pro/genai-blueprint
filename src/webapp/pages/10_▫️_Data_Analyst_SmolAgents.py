@@ -142,7 +142,8 @@ FOLIUM_INSTRUCTION = dedent_ws(
     - Use Folium to display a map. For example: 
         -- to display map at a given location, call  folium.Map([latitude, longitude])
         -- Do your best to select the zoom factor so whole location enter globaly in the map
-        -- output the map object
+        -- Call the function '{FINAL_FUNCTION}' with the map object
+        -- 
 """
 )
 
@@ -265,6 +266,7 @@ selected_pill = st.pills(
 raw_data_file = None
 df: pd.DataFrame | None = None
 tools = []
+sample_search = None
 
 if selected_pill == FILE_SElECT_CHOICE:
     raw_data_file = st.file_uploader(
@@ -278,13 +280,13 @@ else:
 
     col1, answer_widget = st.columns([3, 1])
     with answer_widget:
-        st.write("**Available Tools:**")
-        for tool in tools:
-            st.write(f"- {tool.name}")
+        st.write("**Tools:**")
+        txt = ", ".join(f"'{t.name}'" for t in tools)
+        st.write(txt)
 
     with col1:
-        st.write("**Example Prompts:**")
-        st.write(demo.examples)
+        # st.write("**Example Prompts:**")
+        sample_search = col1.selectbox("Sample queries:", demo.examples, index=None)
 
 
 if raw_data_file:
@@ -314,52 +316,65 @@ class DisplayAnswerTool(Tool):
     output_type = "any"
 
     def forward(self, answer: Any) -> Any:
-        if len(st.session_state.agent_output) == 0 or st.session_state.agent_output[-1] != answer:
-            st.session_state.agent_output.append(answer)
-        return f"answer displayed: {answer}"
+        try:
+            if len(st.session_state.agent_output) == 0 or st.session_state.agent_output[-1] != answer:
+                st.session_state.agent_output.append(answer)
+            return f"answer displayed: {answer}"
+        except Exception as ex:
+            logger.exception(ex)
+            raise ex
 
 
 def update_display() -> None:
-    if len(st.session_state.agent_output) > 0:
-        st.write("answer:")
-    for msg in st.session_state.agent_output:
-        if isinstance(msg, str):
-            st.markdown(msg)
-        elif isinstance(msg, folium.Map):
-            st_folium(msg)
-        elif isinstance(msg, pd.DataFrame):
-            st.dataframe(msg)
-        elif isinstance(msg, Path):
-            st.image(msg)
-        else:
-            st.write(msg)
+    try:
+        if len(st.session_state.agent_output) > 0:
+            st.write("answer:")
+        for msg in st.session_state.agent_output:
+            if isinstance(msg, str):
+                st.markdown(msg)
+            elif isinstance(msg, folium.Map):
+                st_folium(msg)
+            elif isinstance(msg, pd.DataFrame):
+                st.dataframe(msg)
+            elif isinstance(msg, Path):
+                st.image(msg)
+            else:
+                st.write(msg)
+    except Exception as ex:
+        logger.exception(ex)
+        raise ex
 
 
 model_name = LlmFactory(llm_id=MODEL_ID).get_litellm_model_name()
 llm = LiteLLMModel(model_id=model_name)
 
+with st.form("my_form"):
+    prompt = st.text_area(
+        "Your task", height=68, placeholder=" query here...", value=sample_search or "", label_visibility="collapsed"
+    )
+    submitted = st.form_submit_button("GO !", disabled=prompt is None)
 
-prompt = st.chat_input("What would you like to ask ?")
-col1, answer_widget = st.columns(2)
-log_widget = col1.container(height=400)
+if submitted:
+    col1, answer_widget = st.columns(2)
+    log_widget = col1.container(height=400)
 
-strecorder.replay(log_widget)
-with log_widget:
-    if prompt:
-        # tools += [MyFinalAnswerTool(), DisplayAnswerTool()]
-        tools += [DisplayAnswerTool()]
-        agent = CodeAgent(
-            tools=tools,
-            model=llm,
-            additional_authorized_imports=AUTHORIZED_IMPORTS,
-            max_steps=5,  # for debug
-        )
-        with strecorder:
-            stream_to_streamlit(
-                agent, PRE_PROMPT + prompt, additional_args={"st": answer_widget}, display_details=False
+    strecorder.replay(log_widget)
+    with log_widget:
+        if prompt:
+            # tools += [MyFinalAnswerTool(), DisplayAnswerTool()]
+            tools += [DisplayAnswerTool()]
+            agent = CodeAgent(
+                tools=tools,
+                model=llm,
+                additional_authorized_imports=AUTHORIZED_IMPORTS,
+                max_steps=5,  # for debug
             )
-        scroll_to_here()
+            with strecorder:
+                stream_to_streamlit(
+                    agent, PRE_PROMPT + prompt, additional_args={"st": answer_widget}, display_details=False
+                )
+            scroll_to_here()
 
-    debug(st.session_state.agent_output)
-    with answer_widget:
-        update_display()
+        debug(st.session_state.agent_output)
+        with answer_widget:
+            update_display()

@@ -46,8 +46,7 @@ def scroll_to_here() -> DeltaGenerator:
             var div = document.getElementById('scroll-to-here');
             if (div) {{
                 div.scrollIntoView({{ behavior: 'smooth', block: 'end' }});
-                div.remove()
-
+                div.remove();
             }}
         </script>
         """,

@@ -6,7 +6,7 @@ from src.utils.streamlit.auto_scroll import scroll_to_here
 
 
 def test_simple() -> None:
-    content_container = st.container(height=200)
+    content_container = st.empty()
     if "messages" not in st.session_state:
         st.session_state.messages = []
         st.session_state.counter = 0
@@ -18,9 +18,11 @@ def test_simple() -> None:
     if st.button("Add New Message"):
         add_message()
     with content_container:
-        for msg in st.session_state.messages:
+        msg = "\n".join(st.session_state.messages)
+        # for msg in st.session_state.messages:
+        with st.container(height=200):
             st.text(msg)
-        scroll_to_here()
+            scroll_to_here()
 
 
 def test2() -> None:
@@ -38,4 +40,4 @@ def test2() -> None:
 
 test_simple()
 
-test2()
+#test2()
