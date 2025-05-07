@@ -33,6 +33,8 @@ from smolagents.agent_types import AgentAudio, AgentImage, AgentText
 from smolagents.agents import MultiStepAgent, PlanningStep
 from smolagents.memory import ActionStep, FinalAnswerStep, MemoryStep
 
+from src.utils.streamlit.auto_scroll import scroll_to_here
+
 
 def _get_step_footnote(step_log: MemoryStep, step_name: str) -> str:
     """Get a footnote string for a step log with duration and token information"""
@@ -147,3 +149,4 @@ def stream_to_streamlit(
                 step_log.output_token_count = agent.model.last_output_token_count
 
         _display_step_content(step_log, display_details)
+        scroll_to_here()

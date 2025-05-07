@@ -26,6 +26,7 @@ from streamlit_folium import st_folium
 
 from src.ai_core.llm import LlmFactory
 from src.ai_core.prompts import dedent_ws
+from src.utils.streamlit.auto_scroll import scroll_to_here
 from src.utils.streamlit.load_data import TABULAR_FILE_FORMATS_READERS, load_tabular_data
 from src.utils.streamlit.recorder import StreamlitRecorder
 from src.webapp.ui_components.llm_config import llm_config_widget
@@ -131,6 +132,7 @@ AUTHORIZED_IMPORTS = [
     "tempfile",
     "sklearn.*",
     "folium.*",
+    "requests.*",
 ]
 
 FINAL_FUNCTION = "print_result"
@@ -219,7 +221,10 @@ DEMOS = [
     Demo(
         name="Geo",
         tools=SEARCH_TOOLS,
-        examples=["Display the map of Toulouse"],
+        examples=[
+            "Display the map of Toulouse",
+            "Display a map of France with a population density (gathered from Internet) layer by region or department",
+        ],
     ),
 ]
 
@@ -353,6 +358,7 @@ with log_widget:
             stream_to_streamlit(
                 agent, PRE_PROMPT + prompt, additional_args={"st": answer_widget}, display_details=False
             )
+        scroll_to_here()
 
     debug(st.session_state.agent_output)
     with answer_widget:
