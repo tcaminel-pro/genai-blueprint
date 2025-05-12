@@ -1,0 +1,46 @@
+# Data Analyst SmolAgents Demos Configuration
+demos:
+  - name: "Classic SmolAgents"
+    tools:
+      - DuckDuckGoSearchTool
+      - VisitWebpageTool
+    examples:
+      - "How many seconds would it take for a leopard at full speed to run through Pont des Arts?"
+      - "If the US keeps its 2024 growth rate, how many years will it take for the GDP to double?"
+      - "Which Dutch player scored an open-play goal in the 2022 Netherlands vs Argentina game in the men's FIFA World Cup?"
+
+  - name: "Titanic"
+    tools:
+      - type: DataFrameTool
+        name: "titanic_data_reader"
+        description: "Data related to the Titanic passengers"
+        source_path: "use_case_data/other/titanic.csv"
+      - DuckDuckGoSearchTool
+      - VisitWebpageTool
+    examples:
+      - "What is the proportion of female passengers that survived?"
+      - "Were there any notable individuals or families aboard "
+      - "Plot in a bar chat the proportion of male and female survivors"
+      - "What was the survival rate of passengers on the Titanic?"
+      - "Did the passenger class have an impact on survival rates?"
+      - "What were the ticket fares and cabin locations for the passengers?"
+      - "What are the demographics (age, gender, etc.) of the passengers on the Titanic?"
+      - "What feature would you engineered to predict survival rate ? Build a predictive model, and report the F1 score on a test set"
+
+  - name: "Stock Price"
+    tools:
+      - get_stock_info
+      - get_historical_price
+      - DuckDuckGoSearchTool
+      - VisitWebpageTool
+    examples:
+      - "What is the current price of Meta stock?"
+      - "Show me the historical prices of Apple vs Microsoft stock over the past 6 months"
+
+  - name: "Geo"
+    tools:
+      - DuckDuckGoSearchTool
+      - VisitWebpageTool
+    examples:
+      - "Display the map of Toulouse"
+      - "Display a map of France with a population density (gathered from Internet) layer by region or department"

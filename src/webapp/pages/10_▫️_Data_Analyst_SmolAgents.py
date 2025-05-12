@@ -6,6 +6,7 @@ from typing import Any, Sequence
 
 import folium
 import pandas as pd
+import yaml
 import smolagents.default_tools
 import streamlit as st
 import yfinance as yf
@@ -28,6 +29,7 @@ from src.ai_core.prompts import dedent_ws
 from src.utils.streamlit.auto_scroll import scroll_to_here
 from src.utils.streamlit.load_data import TABULAR_FILE_FORMATS_READERS, load_tabular_data
 from src.utils.streamlit.recorder import StreamlitRecorder
+from src.utils.config_mngr import global_config
 from src.webapp.ui_components.llm_config import llm_config_widget
 from src.webapp.ui_components.smolagents_streamlit import stream_to_streamlit
 

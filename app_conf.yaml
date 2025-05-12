@@ -129,6 +129,8 @@ baseline:
   ui:
     app_name : GenAI Lab and Practicum
     pages_dir : ${paths.src}/webapp/pages
+    demos:
+      data_analyst_smolagents: ${paths.project}/demos/data_analyst_smolagents_demos.yaml
 
 
 #### 
