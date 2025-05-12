@@ -7,7 +7,6 @@
 # Configuration leverage OmegaConf solvers. See :
 # https://omegaconf.readthedocs.io/en/2.3_branch/usage.html#variable-interpolation
 
-
 paths:
   project : ${oc.env:PWD}
   data_root : ${oc.env:HOME}

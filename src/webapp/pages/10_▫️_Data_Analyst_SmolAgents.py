@@ -2,14 +2,13 @@
 
 from datetime import date
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 import folium
 import pandas as pd
 import smolagents.default_tools
 import streamlit as st
 import yfinance as yf
-from devtools import debug
 from groq import BaseModel
 from loguru import logger
 from pydantic import ConfigDict
@@ -72,7 +71,7 @@ class DataFrameTool(Tool):
 
 class Demo(BaseModel):
     name: str
-    tools: list[Tool] = []
+    tools: Sequence[Tool] = []
     examples: list[str]
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -199,7 +198,8 @@ DEMOS = [
                 description="Data related to the Titanic passengers",
                 source_path=DATA_PATH / "titanic.csv",
             )
-        ],
+        ]
+        + SEARCH_TOOLS,
         examples=[
             "What is the proportion of female passengers that survived?",
             "Were there any notable individuals or families aboard ",
@@ -213,7 +213,7 @@ DEMOS = [
     ),
     Demo(
         name="Stock Price",
-        tools=[get_stock_info, get_historical_price],
+        tools=[get_stock_info, get_historical_price] + SEARCH_TOOLS,
         examples=[
             "What is the current price of Meta stock?",
             "Show me the historical prices of Apple vs Microsoft stock over the past 6 months",
@@ -275,14 +275,15 @@ if selected_pill == FILE_SElECT_CHOICE:
         # on_change=clear_submit,
     )
 else:
-    demo = next(d for d in DEMOS if d.name == selected_pill)
+    demo = next((d for d in DEMOS if d.name == selected_pill), None)
+    if demo is None:
+        st.stop()
     tools = demo.tools
 
     col1, answer_widget = st.columns([3, 1])
     with answer_widget:
-        st.write("**Tools:**")
         txt = ", ".join(f"'{t.name}'" for t in tools)
-        st.write(txt)
+        st.write("Tools: " + txt)
 
     with col1:
         # st.write("**Example Prompts:**")
@@ -375,6 +376,6 @@ if submitted:
                 )
             scroll_to_here()
 
-        debug(st.session_state.agent_output)
+        #        debug(st.session_state.agent_output)
         with answer_widget:
             update_display()
