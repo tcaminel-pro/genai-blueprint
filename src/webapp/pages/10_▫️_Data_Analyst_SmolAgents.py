@@ -182,7 +182,7 @@ PRE_PROMPT = dedent_ws(
 ##########################
 
 
-DEMOS = [
+SAMPLES_DEMOS = [
     Demo(
         name="Classic SmolAgents",
         tools=SEARCH_TOOLS,
@@ -259,8 +259,8 @@ def clear_display() -> None:
 
 selected_pill = st.pills(
     "🎬 **Demos:**",
-    options=[demo.name for demo in DEMOS] + [FILE_SElECT_CHOICE],
-    default=DEMOS[0].name,
+    options=[demo.name for demo in SAMPLES_DEMOS] + [FILE_SElECT_CHOICE],
+    default=SAMPLES_DEMOS[0].name,
     on_change=clear_display,
 )
 
@@ -277,7 +277,7 @@ if selected_pill == FILE_SElECT_CHOICE:
         # on_change=clear_submit,
     )
 else:
-    demo = next((d for d in DEMOS if d.name == selected_pill), None)
+    demo = next((d for d in SAMPLES_DEMOS if d.name == selected_pill), None)
     if demo is None:
         st.stop()
     tools = demo.tools

@@ -251,15 +251,13 @@ help:
 	@echo "Available targets:"                                                                                                                  
 	@awk 'BEGIN {FS = ":.*##"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST) | sort 
 
-# There's a ModuleNotFoundError: No module named 'src', but not if PYTHONPATH is set before. Fix it. AI!
-test_install:  ## Launch cli.py and run LangChain with fake LLM
+test_install:
 	@if [ -z "$(PYTHONPATH)" ]; then \
-		echo "Warning: PYTHONPATH is not set. Setting it to current directory."; \
-		export PYTHONPATH="."; \
+		echo "Warning: PYTHONPATH is not set. Ok for this test, but consider to put somewhere: export PYTHONPATH=\".\" "; \
+		echo bears | PYTHONPATH="." uv run cli run joke -m parrot_local_fake ; \
 	else \
-		export PYTHONPATH=".":$(PYTHONPATH); \
+		echo bears |  uv run cli run joke -m parrot_local_fake ;\
 	fi
-	echo bears | uv run cli run joke -m parrot_local_fake
 
 ##############################
 ##  Project specific commands

@@ -84,11 +84,12 @@ PROVIDER_INFO = {
     "deepseek": ("langchain_deepseek", "DEEPSEEK_API_KEY"),
     "openrouter": ("langchain_openai", "OPENROUTER_API_KEY"),
     "huggingface": ("langchain_huggingface", "HUGGINGFACEHUB_API_TOKEN"),
+    "mistral": ("langchain_mistralai", "MISTRAL_API_KEY"),
     # NOT TESTED:
     "bedrock": ("langchain_aws", "AWS_ACCESS_KEY_ID"),
     "anthropic": ("langchain_anthropic", "ANTHROPIC_API_KEY"),
     "google": ("langchain_google_vertexai", "GOOGLE_API_KEY"),
-    "mistral": ("langchain_mistralai", "MISTRAL_API_KEY")
+
 }
 
 
@@ -213,7 +214,7 @@ class LlmFactory(BaseModel):
         return _read_llm_list_file()
 
     @staticmethod
-    def known_items_dict(explain: bool = False) -> dict[str, LlmInfo]:
+    def known_items_dict(explain: bool = True) -> dict[str, LlmInfo]:
         """Return known LLM in the registry whose API key environment variable is known and module can be imported.
 
         If 'explain', add information on debug.trace
@@ -307,7 +308,7 @@ class LlmFactory(BaseModel):
             ```
         """
         if self.info.key not in os.environ and self.info.key != "":
-            raise EnvironmentError (f"No known API key for : {self.llm_id}")
+            raise EnvironmentError(f"No known API key for : {self.llm_id}")
         llm = self.model_factory()
         return llm
 
@@ -410,6 +411,15 @@ class LlmFactory(BaseModel):
                 do_sample=False,
             )  # type: ignore
             return ChatHuggingFace(llm=llm)
+        elif self.info.provider == "mistral":
+            from langchain_mistralai.chat_models import ChatMistralAI
+
+            _ = llm_params.pop("seed")
+            llm = ChatMistralAI(
+                model=self.info.model,
+                **llm_params,
+            )
+
         elif self.info.provider == "fake":
             from langchain_core.language_models.fake_chat_models import ParrotFakeChatModel
 
@@ -420,7 +430,7 @@ class LlmFactory(BaseModel):
 
         else:
             if self.info.provider in LlmFactory.known_items():
-                raise EnvironmentError (f"No API key found for LLM: {self.info.provider}")
+                raise EnvironmentError(f"No API key found for LLM: {self.info.provider}")
             else:
                 raise ValueError(f"unsupported LLM class {self.info.provider}")
 

@@ -15,7 +15,6 @@ dependencies = [
     "fastapi>=0.115.6",
     "rich[jupyter]>=13.9.4",
     "universal-pathlib>=0.2.6",
-
 ]
 
 [project.urls]
@@ -32,17 +31,18 @@ ai = [
     "langchain-core>=0.3",
     "langchain-community>=0.3",
     "langchain-experimental>=0.3",
-    "langchain-openai>=0.3",
-    "langchain-ollama>=0.2",
-    "langchain-deepseek>=0.1.2",
-    "langchain-mcp-adapters>=0.0.5",
-    "langchain-groq>=0.2",
-    "langchain-chroma>=0.2",
     "langgraph>=0.4",
     "langserve>=0.3",
     "langchainhub>=0.1",
+    "langchain-openai>=0.3",
+    "langchain-ollama>=0.2",
+    "langchain-deepseek>=0.1.2",
+    "langchain-mistralai>=0.2.10",
+    "langchain-mcp-adapters>=0.0.5",
+    "langchain-groq>=0.2",
+    "langchain-chroma>=0.2",
     # "litellm>=1",
-    "litellm==1.67.2",  # because issue with next version. TBC
+    "litellm==1.67.2",  # because of issue with next version. TBC
     "chromadb>=0.6",
     "mistralai>=1.7.0",
     "smolagents[gradio]>=1.13.0",

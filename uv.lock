@@ -1122,6 +1122,7 @@ ai = [
     { name = "langchain-experimental" },
     { name = "langchain-groq" },
     { name = "langchain-mcp-adapters" },
+    { name = "langchain-mistralai" },
     { name = "langchain-ollama" },
     { name = "langchain-openai" },
     { name = "langchainhub" },
@@ -1211,6 +1212,7 @@ ai = [
     { name = "langchain-experimental", specifier = ">=0.3" },
     { name = "langchain-groq", specifier = ">=0.2" },
     { name = "langchain-mcp-adapters", specifier = ">=0.0.5" },
+    { name = "langchain-mistralai", specifier = ">=0.2.10" },
     { name = "langchain-ollama", specifier = ">=0.2" },
     { name = "langchain-openai", specifier = ">=0.3" },
     { name = "langchainhub", specifier = ">=0.1" },
@@ -2173,6 +2175,22 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/5f/02/5f9074a8c7d5be88f65a7e54ba7af7af750937621686e64861491bc14f67/langchain_mcp_adapters-0.0.10.tar.gz", hash = "sha256:b60f2ec9bbc99a7a1078d6c5e40d3dbb315ff6226116ec11fcada5763ce38e56", size = 15280, upload_time = "2025-05-05T13:30:39.034Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a8/b5/780e001178c2a9913d06958e897ea2d1ba02e8051c85b4184781b0fc5939/langchain_mcp_adapters-0.0.10-py3-none-any.whl", hash = "sha256:bf2a4f858b384a29fb702bc74589b4477d7401cb23f75a8ef5eed332ae1acc6a", size = 10309, upload_time = "2025-05-05T13:30:38.072Z" },
+]
+
+[[package]]
+name = "langchain-mistralai"
+version = "0.2.10"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+    { name = "httpx-sse" },
+    { name = "langchain-core" },
+    { name = "pydantic" },
+    { name = "tokenizers" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/dc/04/cd75dd40f55925b5fdcc96b0f9a22cc05e3711c2d270cf8b7948d5f389f0/langchain_mistralai-0.2.10.tar.gz", hash = "sha256:698620c7dee8ae85bf1ca1ed5b544285c0764c453efead9a4ae34ab884704ce1", size = 21560, upload_time = "2025-03-27T16:07:51.872Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/dd/d2/d1238951c6f522b7442558cb860dbde9658b8c5d766c6d5d7f7fde0b7f76/langchain_mistralai-0.2.10-py3-none-any.whl", hash = "sha256:fc3bc813eab034335236a3b01ba189cd00bcf2b7e6ac57628d0409438bd13425", size = 16526, upload_time = "2025-03-27T16:07:50.538Z" },
 ]
 
 [[package]]
