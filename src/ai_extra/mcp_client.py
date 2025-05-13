@@ -32,11 +32,48 @@ from src.utils.langgraph import print_astream
 load_dotenv()
 
 # refactor :
-# - create  a function "create_server_parameters" that takes a dict and do the same processing than current get_mcp_servers_from_config and returns a dict
-# - Create a new get_mcp_servers_from_json  that takes a JSON string as input
+def create_server_parameters(server_config: dict) -> dict:
+    """Process individual MCP server configuration dictionary.
+    
+    Handles command aliases, environment variables, and validation.
+    
+    Args:
+        server_config: Raw server configuration dictionary
+        
+    Returns:
+        Processed server parameters dictionary
+    """
+    desc = dict(server_config)
+    if "command" in desc and desc["command"] == "uvx":  # uvx is an alias to 'uv tool run', not always in tha path
+        desc["command"] = "uv"
+        desc["args"] = ["tool", "run"] + desc["args"]
+    if "transport" not in desc:
+        desc["transport"] = "stdio"
+    # Passing the PATH seems needed for some servers, (ex: Tavily)
+    desc["env"] = {"PATH": os.environ.get("PATH", "")} | dict(desc.get("env", {}))
+    
+    desc.pop("description", "")  # not used yet
+    desc.pop("example", None)
+    if not desc.get("disabled"):
+        desc.pop("disabled", None)
+    
+    _ = StdioServerParameters(**desc)  # just to test argument types
+    return desc
 
-# add a parameter 'filter' as a list. Only mcp servers in that list are returned. Dafault is all servers are returned AI!
-def get_mcp_servers_from_config() -> dict:
+def get_mcp_servers_from_json(json_str: str) -> dict:
+    """Retrieve MCP servers from JSON string configuration.
+    
+    Args:
+        json_str: JSON string containing server configurations
+        
+    Returns:
+        Dictionary of server names to their configuration parameters
+    """
+    import json
+    servers = json.loads(json_str)
+    return {name: create_server_parameters(desc) for name, desc in servers.items()}
+
+def get_mcp_servers_from_config(filter: list[str] | None = None) -> dict:
     """Retrieve configured MCP servers from application configuration.
 
     Processes the MCP server configurations from the global config file, handling
@@ -51,25 +88,12 @@ def get_mcp_servers_from_config() -> dict:
     # {'pubmed': {'command': 'uv', 'args': ['tool', 'run', 'pubmedmcp@0.1.3'], ...}}
     ```
     """
-    result = {}
     servers = global_config().get_dict("mcpServers")
-    for name, desc in servers.items():
-        if "command" in desc and desc["command"] == "uvx":  # uvx is an alias to 'uv tool run', not always in tha path
-            desc["command"] = "uv"
-            desc["args"] = ["tool", "run"] + desc["args"]
-        if "transport" not in desc:
-            desc["transport"] = "stdio"
-        # Passing the PATH seems needed for some servers, (ex: Tavily)
-        # First saw here : https://github.com/hideya/langchain-mcp-tools-py/blob/7d4ad392a8c6166db0018ebcb98be65f5a16f70a/src/langchain_mcp_tools/langchain_mcp_tools.py#L86
-        desc["env"] = {"PATH": os.environ.get("PATH", "")} | dict(desc.get("env", {}))
-
-        desc.pop("description", "")  # not used yet
-        desc.pop("example", None)
-        if not desc.get("disabled"):
-            desc.pop("disabled", None)
-            result[name] = dict(**desc)
-
-        _ = StdioServerParameters(**desc)  # just to test argument types
+    result = {
+        name: create_server_parameters(desc) 
+        for name, desc in servers.items()
+        if filter is None or name in filter
+    }
     return result
 
 
