@@ -44,7 +44,7 @@ from typing import Any, Optional
 
 from dotenv import load_dotenv
 from loguru import logger
-from omegaconf import DictConfig, ListConfig, OmegaConf
+from omegaconf import DictConfig, ListConfig, OmegaConf, open_dict
 from pydantic import BaseModel, ConfigDict
 from upath import UPath
 
@@ -86,6 +86,16 @@ class OmegaConfig(BaseModel):
         # logger.info(f"load {yml_file}")
         config = OmegaConf.load(yml_file)
         assert isinstance(config, DictConfig)
+        
+        # Load MCP servers config if specified
+        if "mcpServers" in config.get("baseline", {}):
+            mcp_servers_path = config.baseline.mcpServers
+            if isinstance(mcp_servers_path, str) and mcp_servers_path.endswith(".yaml"):
+                mcp_servers_path = Path(mcp_servers_path)
+                if mcp_servers_path.exists():
+                    mcp_config = OmegaConf.load(mcp_servers_path)
+                    with open_dict(config.baseline):
+                        config.baseline.mcpServers = mcp_config
 
         # Determine which config to use
         config_name_from_env = os.environ.get("BLUEPRINT_CONFIG")
