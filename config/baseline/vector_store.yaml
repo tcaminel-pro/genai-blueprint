@@ -1,4 +1,0 @@
-vector_store:
-  default: Chroma
-  path: ${paths.data_root}/vector_store
-  default_collection: "training_session"

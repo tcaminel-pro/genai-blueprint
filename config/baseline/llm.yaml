@@ -1,8 +1,0 @@
-llm:
-  list: ${paths.project}/models_providers.yaml
-  default_model: gpt_4omini_openai
-  cache: sqlite
-  cache_path: ${paths.data_root}/llm_cache/langchain.db
-  coder_model: qwen25_coder32_openrouter
-  powerful_model: gpt_4_openai
-  fast_model: llama31_8_groq

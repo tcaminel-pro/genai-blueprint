@@ -11,10 +11,6 @@ global_config().set("llm.default_model", "gpt-4")
 ```
 """
 
-# regexp :
-# get_str\(([^,]+)",\s"*([^,]+)\)
-# -> get_str($1.$2)
-
 from __future__ import annotations
 
 import os

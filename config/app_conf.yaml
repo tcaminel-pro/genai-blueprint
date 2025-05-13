@@ -7,17 +7,23 @@
 # Configuration leverage OmegaConf solvers. See :
 # https://omegaconf.readthedocs.io/en/2.3_branch/usage.html#variable-interpolation
 
+# Global path variables 
 paths:
-  project : ${oc.env:PWD}
   data_root : ${oc.env:HOME}
+  project : ${oc.env:PWD}
   src: ${paths.project}/src
+  config: ${paths.project}/config
 
+# Other config files merged to this one
+merge:
+  - ${paths.config}/mcp_servers.yaml
+  
 #####
 # Default configuration (baseline)
 ####
 baseline:
   llm:
-    list: ${paths.project}/models_providers.yaml
+    list: ${paths.config}/models_providers.yaml
     default_model: gpt_4omini_openai # gpt_35_azure # mistral_large_edenai 
     cache : sqlite
     cache_path: ${paths.data_root}/llm_cache/langchain.db
@@ -30,7 +36,7 @@ baseline:
     fast_model : llama31_8_groq
     
   embeddings:
-    list: ${paths.project}/models_providers.yaml
+    list: ${paths.config}/models_providers.yaml
     default_model:  minilm_multilingual_local #ada_002_edenai #
     cache: ${paths.data_root}/hf_models
   vector_store:
@@ -60,13 +66,7 @@ baseline:
       - ${..root}.C_1_tools_example
       - ${..root}.C_2_advanced_rag_langgraph
       - ${..root}.C_3_essay_writer_agent
-      
-  #### 
-  # MCP Servers Configuration
-  # Similar to "C:\Users\a184094\AppData\Roaming\Claude\claude_desktop_config.json"
-  ####    
-  mcpServers: ${oc.env:PROJECT_ROOT}/mcp_servers.yaml
-
+       
   #### 
   # UI Configuration : list of Streamlit pages, ... 
   ####    

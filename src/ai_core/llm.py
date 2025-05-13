@@ -214,7 +214,7 @@ class LlmFactory(BaseModel):
         return _read_llm_list_file()
 
     @staticmethod
-    def known_items_dict(explain: bool = True) -> dict[str, LlmInfo]:
+    def known_items_dict(explain: bool = False) -> dict[str, LlmInfo]:
         """Return known LLM in the registry whose API key environment variable is known and module can be imported.
 
         If 'explain', add information on debug.trace
