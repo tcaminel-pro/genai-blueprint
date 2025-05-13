@@ -83,8 +83,14 @@ def get_mcp_servers_from_config(filter: list[str] | None = None) -> dict:
     Processes the MCP server configurations from the global config file, handling
     command aliases and environment variables. Validates server parameters.
 
+    Args:
+        filter: List of server names to include. If None, all servers are returned.
+
     Returns:
         Dictionary of server names to their configuration parameters
+
+    Raises:
+        ValueError: If any server in the filter is not found in the configuration
 
     Example:
     ```python
@@ -93,6 +99,12 @@ def get_mcp_servers_from_config(filter: list[str] | None = None) -> dict:
     ```
     """
     servers = global_config().get_dict("mcpServers")
+    
+    if filter is not None:
+        missing_servers = [name for name in filter if name not in servers]
+        if missing_servers:
+            raise ValueError(f"Servers not found in configuration: {', '.join(missing_servers)}")
+    
     result = {
         name: create_server_parameters(desc) for name, desc in servers.items() if filter is None or name in filter
     }
