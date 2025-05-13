@@ -1,6 +1,6 @@
 # Does not seems to work on WSL. TBC
 
-from smolagents import CodeAgent, DuckDuckGoSearchTool, GradioUI, LiteLLMModel, VisitWebpageTool
+from smolagents import CodeAgent, GradioUI, LiteLLMModel, VisitWebpageTool, WebSearchTool
 
 from src.ai_core.llm import LlmFactory
 
@@ -11,6 +11,6 @@ print(model_name)
 llm = LiteLLMModel(model_id=model_name)
 
 
-agent = CodeAgent(tools=[DuckDuckGoSearchTool(), VisitWebpageTool()], model=llm)
+agent = CodeAgent(tools=[WebSearchTool(), VisitWebpageTool()], model=llm)
 
 GradioUI(agent).launch()

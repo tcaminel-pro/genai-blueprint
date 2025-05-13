@@ -1,11 +1,9 @@
-from pathlib import Path
-
 import streamlit as st
 from smolagents import (
     CodeAgent,
-    DuckDuckGoSearchTool,
     LiteLLMModel,
     VisitWebpageTool,
+    WebSearchTool,
 )
 
 from src.ai_core.llm import LlmFactory
@@ -25,7 +23,6 @@ SAMPLE_PROMPTS = [
 ]
 
 
-
 llm_config_widget(st.sidebar)
 
 
@@ -40,6 +37,6 @@ with st.expander(label="Prompt examples", expanded=True):
 
 # Input for new messages
 if prompt := st.chat_input("What would you like to ask SmolAgents?"):
-    agent = CodeAgent(tools=[DuckDuckGoSearchTool(), VisitWebpageTool()], model=llm)
+    agent = CodeAgent(tools=[WebSearchTool(), VisitWebpageTool()], model=llm)
     with st.container(height=600):
         stream_to_streamlit(agent, prompt)

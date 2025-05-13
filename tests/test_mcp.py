@@ -15,7 +15,7 @@ import pytest
 from langchain_mcp_adapters.client import StdioServerParameters
 from pydantic import ValidationError
 
-from src.ai_extra.mcp_client import get_mcp_servers_from_config
+from src.ai_extra.mcp_client import get_mcp_servers_dict
 
 
 def test_get_mcp_servers_from_config_valid(monkeypatch):
@@ -35,7 +35,7 @@ def test_get_mcp_servers_from_config_valid(monkeypatch):
         lambda: type("MockConfig", (), {"get_dict": lambda self, key: test_config})(),
     )
 
-    servers = get_mcp_servers_from_config()
+    servers = get_mcp_servers_dict()
     assert "testServer" in servers
     assert servers["testServer"]["command"] == "uv"
     assert servers["testServer"]["args"] == ["tool", "run", "test@1.0.0"]
@@ -59,7 +59,7 @@ def test_uvx_alias_handling(monkeypatch):
         lambda: type("MockConfig", (), {"get_dict": lambda self, key: test_config})(),
     )
 
-    servers = get_mcp_servers_from_config()
+    servers = get_mcp_servers_dict()
     assert servers["testServer"]["command"] == "uv"
     assert servers["testServer"]["args"] == ["tool", "run", "test@1.0.0"]
 

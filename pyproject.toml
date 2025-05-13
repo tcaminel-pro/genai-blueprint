@@ -15,7 +15,6 @@ dependencies = [
     "fastapi>=0.115.6",
     "rich[jupyter]>=13.9.4",
     "universal-pathlib>=0.2.6",
-    "hydra-core>=1.3.2",
 ]
 
 [project.urls]
@@ -46,7 +45,7 @@ ai = [
     "litellm==1.67.2",  # because of issue with next version. TBC
     "chromadb>=0.6",
     "mistralai>=1.7.0",
-    "smolagents[gradio]>=1.13.0",
+    "smolagents[toolkit, mcp, openai, litellm, docker]>=1.13.0",
 ]
 ui = [
     "uvicorn>=0.34.0",
@@ -59,7 +58,6 @@ ui = [
 ai_extra = [
     "gpt-researcher>=0.10.11",
     "unidecode>=1.3.8",
-    "smolagents[mcp]>=1.4.1",
     "tavily-python>=0.3.3",
     "duckduckgo-search>=6.1.6",
     "mcp[cli]>=1.4.1",
@@ -87,6 +85,8 @@ demos = [
     "streamlit-extras>=0.6.0",
     "kuzu>=0.7.1",
     "playwright>=1.51.0",
+    "wordcloud>=1.9.4",
+
 ]
 autogen = [
     "autogen-openaiext-client>=0.0.3",

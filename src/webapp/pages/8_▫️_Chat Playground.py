@@ -15,7 +15,7 @@ from langgraph.prebuilt import create_react_agent
 
 from src.ai_core.llm import get_llm
 from src.ai_core.prompts import dedent_ws, dict_input_message
-from src.ai_extra.mcp_client import get_mcp_servers_from_config
+from src.ai_extra.mcp_client import get_mcp_servers_dict
 from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
 from src.webapp.ui_components.llm_config import llm_config_widget
 from src.webapp.ui_components.streamlit_chat import StreamlitStatusCallbackHandler, display_messages
@@ -75,7 +75,7 @@ with st.container(border=True):
 
 @st.cache_resource()
 async def get_rcp_tool() -> list[BaseTool]:
-    d = get_mcp_servers_from_config()
+    d = get_mcp_servers_dict()
     async with MultiServerMCPClient(d) as client:
         # async with MultiServerMCPClient(test_servers) as client:
         return client.get_tools()
@@ -108,7 +108,7 @@ async def main() -> None:
     config, checkpointer = get_agent_config()
     llm = get_llm()
 
-    mcp_servers_params = get_mcp_servers_from_config() if mcp_enabled else {}
+    mcp_servers_params = get_mcp_servers_dict() if mcp_enabled else {}
     async with MultiServerMCPClient(mcp_servers_params) as client:
         rcp_tools = client.get_tools()
         all_tools = local_tools + rcp_tools

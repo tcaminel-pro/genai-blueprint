@@ -6,7 +6,6 @@ from typing import Any, Sequence
 
 import folium
 import pandas as pd
-import yaml
 import smolagents.default_tools
 import streamlit as st
 import yfinance as yf
@@ -15,10 +14,11 @@ from loguru import logger
 from pydantic import ConfigDict
 from smolagents import (
     CodeAgent,
-    DuckDuckGoSearchTool,
     LiteLLMModel,
+    MCPClient,
     Tool,
     VisitWebpageTool,
+    WebSearchTool,
     tool,
 )
 from streamlit.runtime.uploaded_file_manager import UploadedFile
@@ -26,10 +26,10 @@ from streamlit_folium import st_folium
 
 from src.ai_core.llm import LlmFactory
 from src.ai_core.prompts import dedent_ws
+from src.ai_extra.mcp_client import dict_to_stdio_server_list, get_mcp_servers_dict
 from src.utils.streamlit.auto_scroll import scroll_to_here
 from src.utils.streamlit.load_data import TABULAR_FILE_FORMATS_READERS, load_tabular_data
 from src.utils.streamlit.recorder import StreamlitRecorder
-from src.utils.config_mngr import global_config
 from src.webapp.ui_components.llm_config import llm_config_widget
 from src.webapp.ui_components.smolagents_streamlit import stream_to_streamlit
 
@@ -74,11 +74,12 @@ class DataFrameTool(Tool):
 class Demo(BaseModel):
     name: str
     tools: Sequence[Tool] = []
+    mcp_servers: Sequence[str] = []
     examples: list[str]
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
-SEARCH_TOOLS = [DuckDuckGoSearchTool(), VisitWebpageTool()]
+SEARCH_TOOLS = [WebSearchTool(), VisitWebpageTool()]
 
 
 # cSpell: disable
@@ -134,6 +135,7 @@ AUTHORIZED_IMPORTS = [
     "sklearn.*",
     "folium.*",
     "requests.*",
+    "wordcloud"
 ]
 
 FINAL_FUNCTION = "print_result"
@@ -361,23 +363,37 @@ if submitted:
     col1, answer_widget = st.columns(2)
     log_widget = col1.container(height=400)
 
-    strecorder.replay(log_widget)
-    with log_widget:
-        if prompt:
-            # tools += [MyFinalAnswerTool(), DisplayAnswerTool()]
-            tools += [DisplayAnswerTool()]
-            agent = CodeAgent(
-                tools=tools,
-                model=llm,
-                additional_authorized_imports=AUTHORIZED_IMPORTS,
-                max_steps=5,  # for debug
-            )
-            with strecorder:
-                stream_to_streamlit(
-                    agent, PRE_PROMPT + prompt, additional_args={"st": answer_widget}, display_details=False
-                )
-            scroll_to_here()
+    mcp_tools = []
+    mcp_client = None
 
-        #        debug(st.session_state.agent_output)
-        with answer_widget:
-            update_display()
+    try:
+        mcp_servers = dict_to_stdio_server_list(get_mcp_servers_dict(["filesystem", "weather"]))
+        if mcp_servers:
+            mcp_client = MCPClient(mcp_servers)  # type: ignore
+            mcp_tools = mcp_client.get_tools()
+
+        strecorder.replay(log_widget)
+        with log_widget:
+            if prompt:
+                # tools += [MyFinalAnswerTool(), DisplayAnswerTool()]
+                tools += [DisplayAnswerTool()]
+                tools += mcp_tools
+                agent = CodeAgent(
+                    tools=tools,
+                    model=llm,
+                    additional_authorized_imports=AUTHORIZED_IMPORTS,
+                    max_steps=5,  # for debug
+                )
+                with strecorder:
+                    stream_to_streamlit(
+                        agent, PRE_PROMPT + prompt, additional_args={"st": answer_widget}, display_details=False
+                    )
+                scroll_to_here()
+
+            #        debug(st.session_state.agent_output)
+            with answer_widget:
+                update_display()
+    # use your tools here.
+    finally:
+        if mcp_client:
+            mcp_client.disconnect()

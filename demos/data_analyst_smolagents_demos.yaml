@@ -2,7 +2,7 @@
 demos:
   - name: "Classic SmolAgents"
     tools:
-      - DuckDuckGoSearchTool
+      - WebSearchTool
       - VisitWebpageTool
     examples:
       - "How many seconds would it take for a leopard at full speed to run through Pont des Arts?"
@@ -15,7 +15,7 @@ demos:
         name: "titanic_data_reader"
         description: "Data related to the Titanic passengers"
         source_path: "use_case_data/other/titanic.csv"
-      - DuckDuckGoSearchTool
+      - WebSearchTool
       - VisitWebpageTool
     examples:
       - "What is the proportion of female passengers that survived?"
@@ -31,7 +31,7 @@ demos:
     tools:
       - get_stock_info
       - get_historical_price
-      - DuckDuckGoSearchTool
+      - WebSearchTool
       - VisitWebpageTool
     examples:
       - "What is the current price of Meta stock?"
@@ -39,7 +39,7 @@ demos:
 
   - name: "Geo"
     tools:
-      - DuckDuckGoSearchTool
+      - WebSearchTool
       - VisitWebpageTool
     examples:
       - "Display the map of Toulouse"

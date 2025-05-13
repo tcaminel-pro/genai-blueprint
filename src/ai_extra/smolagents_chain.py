@@ -42,12 +42,12 @@ class RetrieverTool(Tool):
 
 # Quick test
 if __name__ == "__main__":
-    from smolagents import DuckDuckGoSearchTool
+    from smolagents import WebSearchTool
 
     MODEL_ID = "gpt_4omini_openai"
     llm_factory = LlmFactory(llm_id=MODEL_ID, llm_params={"temperature": 0.7})
 
-    agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=get_model_from_factory(llm_factory))
+    agent = CodeAgent(tools=[WebSearchTool()], model=get_model_from_factory(llm_factory))
 
     r = smallagents_chain(agent).invoke(
         "How many seconds would it take for a leopard at full speed to run through Pont des Arts?"
