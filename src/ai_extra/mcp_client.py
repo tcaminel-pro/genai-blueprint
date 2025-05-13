@@ -31,47 +31,51 @@ from src.utils.langgraph import print_astream
 
 load_dotenv()
 
+
 # refactor :
 def create_server_parameters(server_config: dict) -> dict:
     """Process individual MCP server configuration dictionary.
-    
+
     Handles command aliases, environment variables, and validation.
-    
+
     Args:
         server_config: Raw server configuration dictionary
-        
+
     Returns:
         Processed server parameters dictionary
     """
     desc = dict(server_config)
-    if "command" in desc and desc["command"] == "uvx":  # uvx is an alias to 'uv tool run', not always in tha path
+    if "command" in desc and desc["command"] == "uvx":  # uvx is an alias to 'uv tool run', which is not always in the path
         desc["command"] = "uv"
         desc["args"] = ["tool", "run"] + desc["args"]
     if "transport" not in desc:
         desc["transport"] = "stdio"
     # Passing the PATH seems needed for some servers, (ex: Tavily)
     desc["env"] = {"PATH": os.environ.get("PATH", "")} | dict(desc.get("env", {}))
-    
+
     desc.pop("description", "")  # not used yet
     desc.pop("example", None)
     if not desc.get("disabled"):
         desc.pop("disabled", None)
-    
+
     _ = StdioServerParameters(**desc)  # just to test argument types
     return desc
 
+
 def get_mcp_servers_from_json(json_str: str) -> dict:
     """Retrieve MCP servers from JSON string configuration.
-    
+
     Args:
         json_str: JSON string containing server configurations
-        
+
     Returns:
         Dictionary of server names to their configuration parameters
     """
     import json
+
     servers = json.loads(json_str)
     return {name: create_server_parameters(desc) for name, desc in servers.items()}
+
 
 def get_mcp_servers_from_config(filter: list[str] | None = None) -> dict:
     """Retrieve configured MCP servers from application configuration.
@@ -90,9 +94,7 @@ def get_mcp_servers_from_config(filter: list[str] | None = None) -> dict:
     """
     servers = global_config().get_dict("mcpServers")
     result = {
-        name: create_server_parameters(desc) 
-        for name, desc in servers.items()
-        if filter is None or name in filter
+        name: create_server_parameters(desc) for name, desc in servers.items() if filter is None or name in filter
     }
     return result
 
@@ -156,6 +158,5 @@ if __name__ == "__main__":
         "connect to atos.net and get recent news",
     ]
     #  asyncio.run(call_react_agent(examples[-1]))
-    #asyncio.run(call_react_agent(examples[0]))
+    # asyncio.run(call_react_agent(examples[0]))
     asyncio.run(call_react_agent(";\n".join(examples)))
-
