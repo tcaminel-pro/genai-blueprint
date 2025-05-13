@@ -86,7 +86,7 @@ class OmegaConfig(BaseModel):
         # logger.info(f"load {yml_file}")
         config = OmegaConf.load(yml_file)
         assert isinstance(config, DictConfig)
-        
+
         # Load MCP servers config if specified
         if "mcpServers" in config.get("baseline", {}):
             mcp_servers_path = config.baseline.mcpServers
