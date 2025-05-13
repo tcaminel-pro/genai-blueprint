@@ -1,3 +1,4 @@
+#vupdate and complete doc and doctsrings AI!
 """Utilities for interacting with MCP (Multi-Component Platform) servers.
 
 This module provides functionality to:
@@ -33,7 +34,7 @@ load_dotenv()
 
 
 # refactor :
-def create_server_parameters(server_config: dict) -> dict:
+def update_server_parameters(server_config: dict) -> dict:
     """Process individual MCP server configuration dictionary.
 
     Handles command aliases, environment variables, and validation.
@@ -45,7 +46,9 @@ def create_server_parameters(server_config: dict) -> dict:
         Processed server parameters dictionary
     """
     desc = dict(server_config)
-    if "command" in desc and desc["command"] == "uvx":  # uvx is an alias to 'uv tool run', which is not always in the path
+    if (
+        "command" in desc and desc["command"] == "uvx"
+    ):  # uvx is an alias to 'uv tool run', which is not always in the path
         desc["command"] = "uv"
         desc["args"] = ["tool", "run"] + desc["args"]
     if "transport" not in desc:
@@ -62,22 +65,22 @@ def create_server_parameters(server_config: dict) -> dict:
     return desc
 
 
-def get_mcp_servers_from_json(json_str: str) -> dict:
-    """Retrieve MCP servers from JSON string configuration.
+# def get_mcp_servers_from_json(json_str: str) -> dict:
+#     """Retrieve MCP servers from JSON string configuration.
 
-    Args:
-        json_str: JSON string containing server configurations
+#     Args:
+#         json_str: JSON string containing server configurations
 
-    Returns:
-        Dictionary of server names to their configuration parameters
-    """
-    import json
+#     Returns:
+#         Dictionary of server names to their configuration parameters
+#     """
+#     import json
 
-    servers = json.loads(json_str)
-    return {name: create_server_parameters(desc) for name, desc in servers.items()}
+#     servers = json.loads(json_str)
+#     return {name: create_server_parameters(desc) for name, desc in servers.items()}
 
 
-def get_mcp_servers_from_config(filter: list[str] | None = None) -> dict:
+def get_mcp_servers_dict(filter: list[str] | None = None) -> dict:
     """Retrieve configured MCP servers from application configuration.
 
     Processes the MCP server configurations from the global config file, handling
@@ -99,16 +102,21 @@ def get_mcp_servers_from_config(filter: list[str] | None = None) -> dict:
     ```
     """
     servers = global_config().get_dict("mcpServers")
-    
+
     if filter is not None:
         missing_servers = [name for name in filter if name not in servers]
         if missing_servers:
             raise ValueError(f"Servers not found in configuration: {', '.join(missing_servers)}")
-    
-    result = {
-        name: create_server_parameters(desc) for name, desc in servers.items() if filter is None or name in filter
+
+    result_dict = {
+        name: update_server_parameters(desc) for name, desc in servers.items() if filter is None or name in filter
     }
-    return result
+
+    return result_dict
+
+
+def dict_to_stdio_server_list(param_list: dict) -> list[StdioServerParameters]:
+    return [StdioServerParameters(**desc) for name, desc in param_list.items()]
 
 
 async def mcp_agent_runner(
@@ -142,7 +150,7 @@ async def mcp_agent_runner(
 
 
 ## quick test ##
-async def call_react_agent(query: str, llm_id: str | None = None) -> None:
+async def call_react_agent(query: str, llm_id: str | None = None, mcp_server_filter: list | None = None) -> None:
     """Execute a query using MCP tools with a ReAct agent.
 
     Creates a ReAct agent with MCP tools and streams the response to the query.
@@ -154,7 +162,7 @@ async def call_react_agent(query: str, llm_id: str | None = None) -> None:
     from loguru import logger
 
     model = get_llm(llm_id=llm_id)
-    async with MultiServerMCPClient(get_mcp_servers_from_config()) as client:
+    async with MultiServerMCPClient(get_mcp_servers_dict(mcp_server_filter)) as client:
         # async with MultiServerMCPClient(test_servers) as client:
         tools = client.get_tools()
         agent = create_react_agent(model, tools)
@@ -171,4 +179,4 @@ if __name__ == "__main__":
     ]
     #  asyncio.run(call_react_agent(examples[-1]))
     # asyncio.run(call_react_agent(examples[0]))
-    asyncio.run(call_react_agent(";\n".join(examples)))
+    asyncio.run(call_react_agent(";\n".join(examples), mcp_server_filter=["filesystem", "weather", "playwright"]))
