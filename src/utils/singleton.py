@@ -10,7 +10,6 @@ since the class has not to be specialized to become a singleton.
 
 """
 
-
 from __future__ import annotations
 
 import inspect

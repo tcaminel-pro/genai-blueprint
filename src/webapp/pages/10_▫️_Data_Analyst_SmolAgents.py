@@ -135,7 +135,7 @@ AUTHORIZED_IMPORTS = [
     "sklearn.*",
     "folium.*",
     "requests.*",
-    "wordcloud"
+    "wordcloud",
 ]
 
 FINAL_FUNCTION = "print_result"

@@ -26,8 +26,6 @@ def clear_submit() -> None:
     st.session_state["submit"] = False
 
 
-
-
 @st.cache_data(show_spinner=True)
 def get_dataframe(file_or_filename: Path | UploadedFile, **kwargs) -> pd.DataFrame | None:
     return load_tabular_data(file_or_filename=file_or_filename, **kwargs)
@@ -50,7 +48,7 @@ llm_config_widget(st.sidebar, False)
 
 
 title_col1.title("DataFrame Agent")
-#title_col2.image(logo_eviden, width=250)
+# title_col2.image(logo_eviden, width=250)
 title_col1.markdown(
     """
     ## Demo of an Agent to analyse a Dataframe.

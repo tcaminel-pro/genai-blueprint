@@ -3,7 +3,6 @@
 import asyncio
 import textwrap
 from collections import deque
-from datetime import datetime
 from typing import Any, Final
 
 import pandas as pd

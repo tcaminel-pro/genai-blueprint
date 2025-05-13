@@ -18,10 +18,9 @@ Example Usage:
 
 from __future__ import annotations
 
-import os
 from typing import Any, Optional
 
-from hydra import initialize, compose
+from hydra import compose, initialize
 from hydra.utils import get_original_cwd
 from omegaconf import DictConfig, OmegaConf
 from pydantic import BaseModel, ConfigDict
@@ -108,6 +107,7 @@ class HydraConfig(BaseModel):
 def global_config() -> HydraConfig:
     """Get the global config singleton."""
     return HydraConfig.singleton()
+
 
 if __name__ == "__main__":
     config = global_config()
