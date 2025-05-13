@@ -1,36 +1,14 @@
-# Update doc AI!
+"""Configuration manager using OmegaConf for YAML-based app configuration.
 
-"""
-Configuration Manager using OmegaConf.
+Handles loading from app_conf.yaml with environment variable substitution and multiple
+environments. Supports runtime overrides and implements singleton pattern.
 
-This module handles loading and managing application configuration from a YAML file (app_conf.yaml).
-The configuration supports environment variable substitution and multiple environments.
-
-Key Features:
-- Loads configuration from app_conf.yaml in current directory or parent directory
-- Supports environment variable substitution in config values (e.g., {oc.env:HOME})
-- Provides hierarchical configuration with baseline and environment-specific overrides
-- Allows runtime configuration modifications
-- Implements singleton pattern for global access
-
-Configuration File Structure:
-- 'baseline' section contains base configuration
-- Additional sections provide environment-specific overrides
-- Environment variables can be used in values (e.g., {oc.env:HOME}/path)
-
-Configuration selection order:
-1 - selected programmatically by 'select_config"
-2 - defined in BLUEPRINT_CONFIG environment variable
-3 - defined by key 'default_config'
-4 - baseline only
-
-
-Example Usage:
-    # Get a config value
-    model = global_config().get("llm.default_model")
-    global_config().select_config("local")  # Switch to local config
-    # Set a runtime override
-    global_config().set("llm.default_model", "gpt-4")
+Example:
+```python
+model = global_config().get("llm.default_model")
+global_config().select_config("local")
+global_config().set("llm.default_model", "gpt-4")
+```
 """
 
 # regexp :
