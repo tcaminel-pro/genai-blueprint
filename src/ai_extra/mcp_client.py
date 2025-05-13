@@ -35,7 +35,7 @@ load_dotenv()
 # - create  a function "create_server_parameters" that takes a dict and do the same processing than current get_mcp_servers_from_config and returns a dict
 # - Create a new get_mcp_servers_from_json  that takes a JSON string as input
 
-
+# add a parameter 'filter' as a list. Only mcp servers in that list are returned. Dafault is all servers are returned AI!
 def get_mcp_servers_from_config() -> dict:
     """Retrieve configured MCP servers from application configuration.
 
@@ -132,4 +132,6 @@ if __name__ == "__main__":
         "connect to atos.net and get recent news",
     ]
     #  asyncio.run(call_react_agent(examples[-1]))
-    asyncio.run(call_react_agent(examples[0]))
+    #asyncio.run(call_react_agent(examples[0]))
+    asyncio.run(call_react_agent(";\n".join(examples)))
+
