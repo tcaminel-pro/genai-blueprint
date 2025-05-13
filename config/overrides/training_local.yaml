@@ -1,0 +1,4 @@
+llm:
+  default_model: llama32_3_ollama
+embeddings:
+  default_model: artic_22_ollama

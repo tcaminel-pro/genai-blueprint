@@ -1,0 +1,4 @@
+embeddings:
+  list: ${paths.project}/models_providers.yaml
+  default_model: minilm_multilingual_local
+  cache: ${paths.data_root}/hf_models

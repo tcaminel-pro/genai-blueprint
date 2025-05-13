@@ -1,0 +1,9 @@
+defaults:
+  - baseline
+  - overrides/${config}
+  - _self_
+
+paths:
+  project: ${oc.env:PWD}
+  data_root: ${oc.env:HOME}
+  src: ${paths.project}/src
