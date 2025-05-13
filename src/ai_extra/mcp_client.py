@@ -1,14 +1,29 @@
-#vupdate and complete doc and doctsrings AI!
 """Utilities for interacting with MCP (Multi-Component Platform) servers.
 
 This module provides functionality to:
 - Retrieve and configure MCP servers from application configuration
 - Create and manage MCP client connections
 - Execute queries using MCP tools with LangChain agents
+- Validate and process server configurations
+- Run MCP agents with custom queries and server filters
 
 The main components are:
-- get_mcp_servers_from_config: Reads MCP server configurations
-- call_react_agent: Executes queries using MCP tools with a ReAct agent
+- get_mcp_servers_dict: Retrieves and processes MCP server configurations
+- update_server_parameters: Processes individual server configurations
+- mcp_agent_runner: Executes queries using MCP tools with a ReAct agent
+- call_react_agent: Convenience function for running MCP agents with streaming output
+
+Example usage:
+```python
+# Get all configured MCP servers
+servers = get_mcp_servers_dict()
+
+# Run a query using specific MCP servers
+await call_react_agent(
+    "What's the weather in Toulouse?",
+    mcp_server_filter=["weather"]
+)
+```
 """
 
 import asyncio
@@ -38,12 +53,28 @@ def update_server_parameters(server_config: dict) -> dict:
     """Process individual MCP server configuration dictionary.
 
     Handles command aliases, environment variables, and validation.
+    Ensures required parameters are present and properly formatted.
 
     Args:
-        server_config: Raw server configuration dictionary
+        server_config: Raw server configuration dictionary containing:
+            - command: The executable command
+            - args: List of arguments for the command
+            - transport: Communication protocol (defaults to 'stdio')
+            - env: Environment variables
+            - disabled: Optional flag to disable the server
 
     Returns:
-        Processed server parameters dictionary
+        Processed server parameters dictionary ready for server instantiation
+
+    Example:
+    ```python
+    config = {
+        "command": "uvx",
+        "args": ["tool", "run", "pubmedmcp@0.1.3"]
+    }
+    processed = update_server_parameters(config)
+    # {'command': 'uv', 'args': ['tool', 'run', 'pubmedmcp@0.1.3'], 'transport': 'stdio', 'env': {'PATH': ...}}
+    ```
     """
     desc = dict(server_config)
     if (
@@ -116,14 +147,50 @@ def get_mcp_servers_dict(filter: list[str] | None = None) -> dict:
 
 
 def dict_to_stdio_server_list(param_list: dict) -> list[StdioServerParameters]:
+    """Convert a dictionary of server parameters to StdioServerParameters objects.
+
+    Args:
+        param_list: Dictionary where keys are server names and values are
+                   server parameter dictionaries
+
+    Returns:
+        List of StdioServerParameters instances ready for MCP client creation
+
+    Example:
+    ```python
+    servers = {
+        "weather": {"command": "uv", "args": ["tool", "run", "weathermcp"]}
+    }
+    server_params = dict_to_stdio_server_list(servers)
+    # [StdioServerParameters(command='uv', args=['tool', 'run', 'weathermcp'], ...)]
+    ```
+    """
     return [StdioServerParameters(**desc) for name, desc in param_list.items()]
 
 
 async def mcp_agent_runner(
     model: BaseChatModel, servers: list[StdioServerParameters], prompt: str, config: RunnableConfig | None = None
 ) -> str | None:
-    """
-    Function using MCPAdapt.  Use to work, but NOT MAINTAINED !!
+    """Execute a query using MCP tools with a ReAct agent.
+
+    Creates a ReAct agent with MCP tools and processes the query.
+    Note: This function is not actively maintained and may require updates.
+
+    Args:
+        model: The language model to use for the agent
+        servers: List of StdioServerParameters for MCP server connections
+        prompt: The input query to process
+        config: Optional RunnableConfig for the agent execution
+
+    Returns:
+        The final response content from the agent, or None if no response
+
+    Example:
+    ```python
+    model = get_llm()
+    servers = dict_to_stdio_server_list(get_mcp_servers_dict())
+    response = await mcp_agent_runner(model, servers, "What's the weather?")
+    ```
     """
     # TODO: adapt it for SmolAgent
     # see https://hungvtm.medium.com/building-mcp-servers-and-client-with-smolagents-bd9db2d640e6
@@ -151,12 +218,23 @@ async def mcp_agent_runner(
 
 ## quick test ##
 async def call_react_agent(query: str, llm_id: str | None = None, mcp_server_filter: list | None = None) -> None:
-    """Execute a query using MCP tools with a ReAct agent.
+    """Execute a query using MCP tools with a ReAct agent and stream the response.
 
     Creates a ReAct agent with MCP tools and streams the response to the query.
+    This is a convenience wrapper around mcp_agent_runner with streaming output.
 
     Args:
         query: The input query to process
+        llm_id: Optional ID of the language model to use
+        mcp_server_filter: Optional list of server names to include in the agent
+
+    Example:
+    ```python
+    await call_react_agent(
+        "What's the weather in Paris?",
+        mcp_server_filter=["weather"]
+    )
+    ```
     """
     from langgraph.prebuilt import create_react_agent
     from loguru import logger
