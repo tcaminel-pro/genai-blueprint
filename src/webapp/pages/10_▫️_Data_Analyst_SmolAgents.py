@@ -231,6 +231,16 @@ SAMPLES_DEMOS = [
             "Display a map of France with a population density (gathered from Internet) layer by region or department",
         ],
     ),
+    Demo(
+        name="MCP",
+        tools=[],
+        mcp_servers=["filesystem", "weather", "playright"],
+        examples=[
+            "What is the currrent wind force in Toulouse ? ",
+            "List current directory",
+            "connect to atos.net site and get recent news",
+        ],
+    ),
 ]
 
 
@@ -286,8 +296,10 @@ else:
 
     col1, answer_widget = st.columns([3, 1])
     with answer_widget:
-        txt = ", ".join(f"'{t.name}'" for t in tools)
-        st.write("Tools: " + txt)
+        if tools_list := ", ".join(f"'{t.name}'" for t in tools):
+            st.markdown(f"**Tools**: *{tools_list}*")
+        if mcp_list := ", ".join(f"'{mcp}'" for mcp in demo.mcp_servers):
+            st.markdown(f"**MCP**: *{mcp_list}*")            
 
     with col1:
         # st.write("**Example Prompts:**")

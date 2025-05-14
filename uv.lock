@@ -198,19 +198,19 @@ wheels = [
 
 [[package]]
 name = "autogen-agentchat"
-version = "0.5.6"
+version = "0.5.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "autogen-core" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b6/70/298161fc83458ba426d4e868f6f7c9e29c22b660876320a0d2a42e941805/autogen_agentchat-0.5.6.tar.gz", hash = "sha256:b949a30587e538b08a898549f52cd6d6b21689df738fb17bcaea95b8df3572d4", size = 113773, upload-time = "2025-05-02T22:32:28.674Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2b/f4/ff5e99d496db37c8d0480245611eacdb02cacf7e4d86b8b4062e230b4dd6/autogen_agentchat-0.5.7.tar.gz", hash = "sha256:6f888f03224d658cc130548c3e42558a177a7f7f3eb59b414396c412ec282728", size = 115075, upload-time = "2025-05-14T04:25:25.082Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/da/5f/28cbbdcdedaf69556e4de94432369113fc886481b79afaf289c8bab13e84/autogen_agentchat-0.5.6-py3-none-any.whl", hash = "sha256:18df1a17e24897f95bf90f45054f53578b741e78f934789d5eaea18ebb14df0d", size = 105465, upload-time = "2025-05-02T22:32:26.864Z" },
+    { url = "https://files.pythonhosted.org/packages/5d/eb/01267ce3b25b363effea123bd6112613fbfa7064eb5b5f0f8c2910ee12c7/autogen_agentchat-0.5.7-py3-none-any.whl", hash = "sha256:b9c8548e02eed9765c02800182b13bd9747f1561b23df66983bedd8c5fdddb86", size = 106067, upload-time = "2025-05-14T04:25:23.483Z" },
 ]
 
 [[package]]
 name = "autogen-core"
-version = "0.5.6"
+version = "0.5.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jsonref" },
@@ -220,21 +220,21 @@ dependencies = [
     { name = "pydantic" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/eb/30/bcd0e7af9687ff5aac1c30ac1c456ab396cd1497ee6544a5930df1b4910c/autogen_core-0.5.6.tar.gz", hash = "sha256:b34a744d35dc28d5ddb7d8403dd39dafa613cc8bb951cf776131c70964a044ef", size = 2446829, upload-time = "2025-05-02T22:32:15.261Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7d/d6/b5f113fa000741ecedc6a0d6649ef07512f7c922da7b22958280ef225d4e/autogen_core-0.5.7.tar.gz", hash = "sha256:0e3b23b64bd2c7c3180ab4431c137104473e11a846088cc2dd629a0e1fdfbf2f", size = 2448958, upload-time = "2025-05-14T04:25:14.264Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e5/66/55bf9e804c512a45992083339508e03a5073298797a707b963308b739bea/autogen_core-0.5.6-py3-none-any.whl", hash = "sha256:8c6e3a72e6cf527522e415945f56016053106d565d4ff4a2ba64b8b432d9c1ce", size = 94687, upload-time = "2025-05-02T22:32:13.588Z" },
+    { url = "https://files.pythonhosted.org/packages/28/7c/84fbb7dbfd100f9f6b946a0cab3298484ba9cffbed0a07bac77604dae8c1/autogen_core-0.5.7-py3-none-any.whl", hash = "sha256:a276af987b7861092194bfd73bab49ac36f3fee55958a60b0b43ea67612d2e50", size = 96564, upload-time = "2025-05-14T04:25:12.079Z" },
 ]
 
 [[package]]
 name = "autogen-ext"
-version = "0.5.6"
+version = "0.5.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "autogen-core" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/46/bf/321c3957e663e058dbe93db89fbaafcdb0bb81919e470ac3fddb5999a006/autogen_ext-0.5.6.tar.gz", hash = "sha256:a8cb17f12b1180b0d52231267a1d1c4d325be50fbeb4a0c477fb0bdb4a8b8b3f", size = 335300, upload-time = "2025-05-02T22:32:27.463Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5d/11/31d7c07a2e95cdf09f95c1ac4188503f2aa182a6fa127f828915143d08da/autogen_ext-0.5.7.tar.gz", hash = "sha256:987aa70d8eecd05c9dea4aad793e9d1369a3d3ceb022dfeafb4cd98b6b4869fc", size = 336325, upload-time = "2025-05-14T04:25:30.112Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1c/04/792ac73e17968bec26de47092ddb74051c9f7e7c49f139acc6cf8882910b/autogen_ext-0.5.6-py3-none-any.whl", hash = "sha256:710b35be955281dabba426ffa16c6e913f03817840601dc37334882e2163b0b8", size = 296787, upload-time = "2025-05-02T22:32:25.884Z" },
+    { url = "https://files.pythonhosted.org/packages/ae/f1/8f2cb8ee0b7942ddb504ebc5aded1369de2138570bb2d5c19309137fb27d/autogen_ext-0.5.7-py3-none-any.whl", hash = "sha256:1744195107d814621dc0e967b7f7a4fa09e063fa5ed728c3ba118e9aa88acad2", size = 296935, upload-time = "2025-05-14T04:25:28.562Z" },
 ]
 
 [package.optional-dependencies]
@@ -1142,7 +1142,6 @@ ai-extra = [
     { name = "gpt-researcher" },
     { name = "mcp", extra = ["cli"] },
     { name = "openpyxl" },
-    { name = "smolagents", extra = ["mcp"] },
     { name = "tavily-python" },
     { name = "unidecode" },
 ]
@@ -1233,7 +1232,6 @@ ai-extra = [
     { name = "gpt-researcher", specifier = ">=0.10.11" },
     { name = "mcp", extras = ["cli"], specifier = ">=1.4.1" },
     { name = "openpyxl", specifier = ">=3.1.5" },
-    { name = "smolagents", extras = ["mcp"], specifier = ">=1.4.1" },
     { name = "tavily-python", specifier = ">=0.3.3" },
     { name = "unidecode", specifier = ">=1.3.8" },
 ]

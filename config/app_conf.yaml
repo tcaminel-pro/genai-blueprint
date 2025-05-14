@@ -7,113 +7,25 @@
 # Configuration leverage OmegaConf solvers. See :
 # https://omegaconf.readthedocs.io/en/2.3_branch/usage.html#variable-interpolation
 
-# Global path variables 
 paths:
   data_root : ${oc.env:HOME}
   project : ${oc.env:PWD}
   src: ${paths.project}/src
   config: ${paths.project}/config
 
+
 # Other config files merged to this one
 merge:
   - ${paths.config}/mcp_servers.yaml
-  
-#####
-# Default configuration (baseline)
-####
-baseline:
-  llm:
-    list: ${paths.config}/models_providers.yaml
-    default_model: gpt_4omini_openai # gpt_35_azure # mistral_large_edenai 
-    cache : sqlite
-    cache_path: ${paths.data_root}/llm_cache/langchain.db
-
-    ### 
-    # Optional model definitions (you can add your own type): 
-    ###
-    coder_model : qwen25_coder32_openrouter
-    powerful_model : gpt_4_openai
-    fast_model : llama31_8_groq
-    
-  embeddings:
-    list: ${paths.config}/models_providers.yaml
-    default_model:  minilm_multilingual_local #ada_002_edenai #
-    cache: ${paths.data_root}/hf_models
-  vector_store:
-    default: Chroma
-    path: ${paths.data_root}/vector_store
-    default_collection: "training_session"
-  documents:
-    base: ./use_case_data
-  monitoring: 
-    default:  none
-    project: GenAI_demo
-
-  kv_store:
-    path: ${paths.data_root}/kv_store
-
-  commands:
-    modules:
-      - src.ai_core.cli_commands
-      - src.ai_extra.cli_commands
-
-  chains:
-    root: src.ai_chains
-    modules:
-      - ${..root}.A_1_joke 
-      - ${..root}.B_1_naive_rag_example
-      - ${..root}.B_2_self_query
-      - ${..root}.C_1_tools_example
-      - ${..root}.C_2_advanced_rag_langgraph
-      - ${..root}.C_3_essay_writer_agent
-       
-  #### 
-  # UI Configuration : list of Streamlit pages, ... 
-  ####    
-  ui:
-    app_name : GenAI Lab and Practicum
-    pages_dir : ${paths.src}/webapp/pages
-    demos:
-      data_analyst_smolagents: ${paths.project}/demos/data_analyst_smolagents_demos.yaml
-
+  - ${paths.config}/baseline.yaml
+  - ${paths.config}/overrides.yaml
 
 #### 
-# Overridden configurations
-# Set by environment variable "BLUEPRINT_CONFIG", or by the 'default' key, or in code
-####   
-
-training_local:
-  llm:
-    default_model:  llama32_3_ollama
-  embeddings:
-    default_model: artic_22_ollama
-
-training_edenai:
-  llm:
-    default_model: gpt_4omini_edenai
-    cache : memory
-  embeddings:
-    default_model: ada_002_edenai
-
-training_azure:
-  llm:
-    default_model: gpt_4omini_azure
-  embeddings:
-    default_model: ada_002_azure
-
-training_openai:
-  llm:
-    default_model: gpt_4omini_openai
-  embeddings:
-    default_model: ada_002_openai
-
-carbon_monitor_local:
-  llm:
-    default_model: gpt_41mini_openrouter
-  embeddings:
-    default_model: ada_002_openai  
-  
-  datasets_root: ${oc.env:ONEDRIVE}/_ongoing/green_horizon/data
+# UI Configuration : list of Streamlit pages, ... 
+####    
+ui:
+  app_name : GenAI Lab and Practicum
+  pages_dir : ${paths.src}/webapp/pages
 
   
 default_config: carbon_monitor_local   # can be overidden by 'BLUEPRINT_CONFIG' environment variable

@@ -1,0 +1,38 @@
+
+#### 
+# Overridden configurations
+# Set by environment variable "BLUEPRINT_CONFIG", or by the 'default_config' key, or in code
+####   
+
+training_local:
+  llm:
+    default_model:  llama32_3_ollama
+  embeddings:
+    default_model: artic_22_ollama
+
+training_edenai:
+  llm:
+    default_model: gpt_4omini_edenai
+    cache : memory
+  embeddings:
+    default_model: ada_002_edenai
+
+training_azure:
+  llm:
+    default_model: gpt_4omini_azure
+  embeddings:
+    default_model: ada_002_azure
+
+training_openai:
+  llm:
+    default_model: gpt_4omini_openai
+  embeddings:
+    default_model: ada_002_openai
+
+carbon_monitor_local:
+  llm:
+    default_model: gpt_41mini_openrouter
+  embeddings:
+    default_model: ada_002_openai  
+  datasets_root: ${oc.env:ONEDRIVE}/_ongoing/green_horizon/data
+
