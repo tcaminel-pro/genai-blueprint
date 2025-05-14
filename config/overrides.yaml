@@ -28,6 +28,8 @@ training_openai:
     default_model: gpt_4omini_openai
   embeddings:
     default_model: ada_002_openai
+  dummy:
+    bar: foo
 
 carbon_monitor_local:
   llm:

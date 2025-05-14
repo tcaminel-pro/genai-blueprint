@@ -44,10 +44,6 @@ class OmegaConfig(BaseModel):
     def selected(self) -> DictConfig:
         return self.root.get(self.selected_config)
 
-    @property
-    def baseline(self) -> DictConfig:
-        return self.root.get("baseline")
-
     @once
     def singleton() -> OmegaConfig:
         """Returns the singleton instance of Config."""
@@ -57,10 +53,10 @@ class OmegaConfig(BaseModel):
         if not app_conf_path.exists():
             app_conf_path = Path("config/app_conf.yaml").absolute()
         assert app_conf_path.exists(), f"cannot find config file: '{app_conf_path}'"
-        
+
         config = OmegaConf.load(app_conf_path)
         assert isinstance(config, DictConfig)
-        
+
         # Load and merge additional config files
         merge_files = config.get("merge", [])
         for file_path in merge_files:
@@ -68,10 +64,10 @@ class OmegaConfig(BaseModel):
             if not merge_path.exists():
                 merge_path = Path("config") / file_path
             assert merge_path.exists(), f"cannot find config file: '{merge_path}'"
-            
+
             merge_config = OmegaConf.load(merge_path)
             config = OmegaConf.merge(config, merge_config)
-            
+
         OmegaConf.resolve(config)
 
         # Determine which config to use
@@ -106,7 +102,7 @@ class OmegaConfig(BaseModel):
             The configuration value or default if not found
         """
         # Create merged config with runtime overrides first
-        merged = OmegaConf.merge(self.baseline, self.selected)
+        merged = OmegaConf.merge(self.root, self.selected)
         try:
             value = OmegaConf.select(merged, key)
             if value is None:
@@ -118,6 +114,7 @@ class OmegaConfig(BaseModel):
         except Exception as e:
             if default is not None:
                 return default
+            debug(self)
             raise ValueError(f"Configuration key '{key}' not found") from e
 
     def set(self, key: str, value: Any) -> None:
@@ -225,8 +222,9 @@ if __name__ == "__main__":
     global_config().set("llm.default_model", "gpt-4")
     model = global_config().get("llm.default_model")
     print(model)
+    print(global_config().get_list("chains.modules"))
     # Switch configurations
-    global_config().select_config("local")
+    global_config().select_config("training_local")
     model = global_config().get("llm.default_model")
     print(model)
     print(global_config().get_list("chains.modules"))
@@ -234,8 +232,8 @@ if __name__ == "__main__":
     global_config().set("llm.default_model", "foo")
     print(global_config().get_str("llm.default_model"))
 
-    global_config().select_config("edc_local")
-    print(global_config().get_dir_path("ecod_project.datasets_root"))
+    global_config().select_config("training_openai")
+    print(global_config().get("training_openai.dummy"))
 
     print(global_config().root.default_config)
     print(global_config().selected.llm.default_model)

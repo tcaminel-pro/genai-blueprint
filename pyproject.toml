@@ -15,6 +15,7 @@ dependencies = [
     "fastapi>=0.115.6",
     "rich[jupyter]>=13.9.4",
     "universal-pathlib>=0.2.6",
+    "click<8.2",
 ]
 
 [project.urls]
@@ -161,7 +162,8 @@ ignore = [ # Ignored linter rules:
     "PD901", # pandas-df-variable-name',
     "ANN401",  # Annotated with Any
     "ANN002", # Annotate *args
-    "ANN003"  # Annotate **kwarg
+    "ANN003",  # Annotate **kwarg
+    "ANN201"  # Missing return type
  ]
 
 [tool.ruff.lint.pycodestyle]

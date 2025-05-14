@@ -32,7 +32,6 @@ from src.ai_extra.fabric_chain import get_fabric_chain
 from src.utils.config_mngr import config_loguru, global_config
 
 load_dotenv(verbose=True)
-import sys
 
 PRETTY_EXCEPTION = (
     False  #  Alternative : export _TYPER_STANDARD_TRACEBACK=1  see https://typer.tiangolo.com/tutorial/exceptions/
@@ -102,11 +101,12 @@ def define_other_commands(cli_app: typer.Typer) -> None:
 # def callback(logging: bool = False):
 #     print("in callback")
 
+
 def main():
     if "--logging" in sys.argv:
         sys.argv.remove("--logging")
-    debug(sys.argv)
-    logger.disable("src")
+    else:
+        logger.disable("src")
     # print(f"in main {argc=}  {argv=}")
     config_loguru()
     modules = global_config().get_list("commands.modules")

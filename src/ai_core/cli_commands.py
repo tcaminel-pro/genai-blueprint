@@ -94,6 +94,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         The LLM can be changed using --llm-id, otherwise the default one is selected.
         'cache' is the prompt caching strategy, and it can be either 'sqlite' (default) or 'memory'.
         """
+
         set_debug(lc_debug)
         set_verbose(lc_verbose)
         LlmCache.set_method(cache)

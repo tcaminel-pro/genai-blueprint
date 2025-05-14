@@ -86,7 +86,7 @@ class LlmCache:
         set_llm_cache(new_cache)
 
         if new_cache.__class__ != old_cache.__class__:
-            logger.info(f"""LLM cache : {str(new_cache.__class__).split(".")[-1].rstrip("'>")}""")
+            logger.debug(f"""LLM cache : {str(new_cache.__class__).split(".")[-1].rstrip("'>")}""")
 
 
-LlmCache.set_method("default")  # Set default
+#LlmCache.set_method("default")  # Set default
