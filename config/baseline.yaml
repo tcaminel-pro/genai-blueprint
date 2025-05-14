@@ -1,13 +1,9 @@
-# Global path variables 
-paths:
-  data_root : ${oc.env:HOME}
-  project : ${oc.env:PWD}
-  src: ${paths.project}/src
-  config: ${paths.project}/config
+# Default application configuration
+# Can be overriden
 
    
 #####
-# Default configuration (baseline)
+# AI Components
 ####
 llm:
   list: ${paths.config}/providers/llm.yaml
@@ -39,6 +35,9 @@ monitoring:
 kv_store:
   path: ${paths.data_root}/kv_store
 
+#####
+# Modules to be loaded
+####
 commands:
   modules:
     - src.ai_core.cli_commands

@@ -2,7 +2,7 @@
 
 from datetime import date
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 import folium
 import pandas as pd
@@ -73,8 +73,8 @@ class DataFrameTool(Tool):
 
 class Demo(BaseModel):
     name: str
-    tools: Sequence[Tool] = []
-    mcp_servers: Sequence[str] = []
+    tools: list[Tool] = []
+    mcp_servers: list[str] = []
     examples: list[str]
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -134,7 +134,7 @@ AUTHORIZED_IMPORTS = [
     "tempfile",
     "sklearn.*",
     "folium.*",
-    "requests.*",
+    #    "requests.*",
     "wordcloud",
 ]
 
@@ -234,7 +234,7 @@ SAMPLES_DEMOS = [
     Demo(
         name="MCP",
         tools=[],
-        mcp_servers=["filesystem", "weather", "playright"],
+        mcp_servers=["filesystem", "weather", "playwright"],
         examples=[
             "What is the currrent wind force in Toulouse ? ",
             "List current directory",
@@ -248,7 +248,6 @@ SAMPLES_DEMOS = [
 #  UI
 ##########################
 
-st.title("Analytics AI Agent")
 llm_config_widget(st.sidebar)
 
 
@@ -269,17 +268,19 @@ def clear_display() -> None:
     # st.rerun()
 
 
-selected_pill = st.pills(
-    "🎬 **Demos:**",
-    options=[demo.name for demo in SAMPLES_DEMOS] + [FILE_SElECT_CHOICE],
-    default=SAMPLES_DEMOS[0].name,
-    on_change=clear_display,
-)
+c01, c02 = st.columns([6, 4], border=False, gap="medium", vertical_alignment="top")
+c02.title(" CodeAct Agent :material/Mindfulness:")
+with c01.container(border=True):
+    selected_pill = st.pills(
+        "🎬 **Demos:**",
+        options=[demo.name for demo in SAMPLES_DEMOS] + [FILE_SElECT_CHOICE],
+        default=SAMPLES_DEMOS[0].name,
+        on_change=clear_display,
+    )
 
 
 raw_data_file = None
 df: pd.DataFrame | None = None
-tools = []
 sample_search = None
 
 if selected_pill == FILE_SElECT_CHOICE:
@@ -288,22 +289,28 @@ if selected_pill == FILE_SElECT_CHOICE:
         type=list(TABULAR_FILE_FORMATS_READERS.keys()),
         # on_change=clear_submit,
     )
+    demo = Demo(name="custom", examples=[])
 else:
     demo = next((d for d in SAMPLES_DEMOS if d.name == selected_pill), None)
     if demo is None:
         st.stop()
-    tools = demo.tools
 
-    col1, answer_widget = st.columns([3, 1])
-    with answer_widget:
-        if tools_list := ", ".join(f"'{t.name}'" for t in tools):
+    c40, c41 = st.columns([6, 3], vertical_alignment="bottom")
+    with c41:
+        if tools_list := ", ".join(f"'{t.name}'" for t in demo.tools):
             st.markdown(f"**Tools**: *{tools_list}*")
         if mcp_list := ", ".join(f"'{mcp}'" for mcp in demo.mcp_servers):
-            st.markdown(f"**MCP**: *{mcp_list}*")            
+            st.markdown(f"**MCP**: *{mcp_list}*")
 
-    with col1:
+    with c40:
         # st.write("**Example Prompts:**")
-        sample_search = col1.selectbox("Sample queries:", demo.examples, index=None)
+        sample_search = c40.selectbox(
+            label="Sample",
+            placeholder="Select an example (optional)",
+            options=demo.examples,
+            index=None,
+            label_visibility="collapsed",
+        )
 
 
 if raw_data_file:
@@ -365,45 +372,53 @@ def update_display() -> None:
 model_name = LlmFactory(llm_id=MODEL_ID).get_litellm_model_name()
 llm = LiteLLMModel(model_id=model_name)
 
-with st.form("my_form"):
-    prompt = st.text_area(
-        "Your task", height=68, placeholder=" query here...", value=sample_search or "", label_visibility="collapsed"
+with st.form("my_form", border=False):
+    cf1, cf2 = st.columns([15, 1], vertical_alignment="bottom")
+    prompt = cf1.text_area(
+        "Your task",
+        height=68,
+        placeholder="Enter or modify your query here...",
+        value=sample_search or "",
+        label_visibility="collapsed",
     )
-    submitted = st.form_submit_button("GO !", disabled=prompt is None)
+    submitted = cf2.form_submit_button(label="", icon=":material/send:")
 
 if submitted:
-    col1, answer_widget = st.columns(2)
-    log_widget = col1.container(height=400)
+    c40, c41 = st.columns(2)
+    log_widget = c40.container(height=600)
 
     mcp_tools = []
     mcp_client = None
 
     try:
-        mcp_servers = dict_to_stdio_server_list(get_mcp_servers_dict(["filesystem", "weather"]))
-        if mcp_servers:
-            mcp_client = MCPClient(mcp_servers)  # type: ignore
-            mcp_tools = mcp_client.get_tools()
+        if demo.mcp_servers:
+            mcp_servers = dict_to_stdio_server_list(get_mcp_servers_dict(demo.mcp_servers))
+            if mcp_servers:
+                mcp_client = MCPClient(mcp_servers)  # type: ignore
+                mcp_tools = mcp_client.get_tools()
 
         strecorder.replay(log_widget)
         with log_widget:
             if prompt:
                 # tools += [MyFinalAnswerTool(), DisplayAnswerTool()]
-                tools += [DisplayAnswerTool()]
-                tools += mcp_tools
+                tools = demo.tools + mcp_tools + [DisplayAnswerTool()]
+                tools_list = [f"{t.name}: {t.description}" for t in tools]
+                debug(tools_list)
                 agent = CodeAgent(
                     tools=tools,
                     model=llm,
                     additional_authorized_imports=AUTHORIZED_IMPORTS,
-                    max_steps=5,  # for debug
+                    max_steps=10,  # for debug
                 )
-                with strecorder:
-                    stream_to_streamlit(
-                        agent, PRE_PROMPT + prompt, additional_args={"st": answer_widget}, display_details=False
-                    )
-                scroll_to_here()
+                with st.spinner(text="Thinking..."):
+                    with strecorder:
+                        stream_to_streamlit(
+                            agent, PRE_PROMPT + prompt, additional_args={"st": c41}, display_details=False
+                        )
+                    scroll_to_here()
 
             #        debug(st.session_state.agent_output)
-            with answer_widget:
+            with c41:
                 update_display()
     # use your tools here.
     finally:
