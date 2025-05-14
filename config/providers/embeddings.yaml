@@ -1,0 +1,80 @@
+########################
+#  Embeddings service provider
+########################
+
+# Registered Embeddings Services
+
+# for Embeddings:
+# Ollama: https://ollama.com/search?q=embeddings&c=embedding 
+# DeepInfra : https://deepinfra.com/models/embeddings/ 
+# ...
+
+#cSpell: disable
+
+embeddings:
+- model:
+  id: ada_002
+  providers:
+    - openai: text-embedding-ada-002
+    - edenai: openai/1536__text-embedding-ada-002
+    - azure: text-embedding-ada-002/2023-05-15
+
+- model:
+  id: artic_22
+  providers:
+    - ollama: snowflake-arctic-embed:22m
+
+- model:
+  id: bge_m3
+  providers:
+    - deepinfra: BAAI/bge-m3
+
+- model:
+  id: camembert_large
+  providers:
+    - huggingface: dangvantuan/sentence-camembert-large
+
+- model:
+  id: embedding_001
+  providers:
+    - google_genai: text-embedding-ada-002
+
+- model:
+  id: gte15_base
+  providers:
+    - huggingface: Alibaba-NLP/gte-base-en-v1.5
+
+- model:
+  id: gte15_large
+  providers:
+    - huggingface: Alibaba-NLP/gte-large-en-v1.5
+
+- model:
+  id: minilm_multilingual
+  providers:
+    - huggingface: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+
+- model:
+  id: minilm_v2
+  providers:
+    - huggingface: sentence-transformers/all-MiniLM-L6-v2
+
+- model:
+  id: mistral_1024
+  providers:
+    - edenai: mistral/1024__mistral-embed
+
+- model:
+  id: mxbai_large
+  providers:
+    - ollama: mxbai-embed-large
+
+- model:
+  id: solon_large
+  providers:
+    - huggingface: OrdalieTech/Solon-embeddings-large-0.1
+
+- model:
+  id: stella_400
+  providers:
+    - huggingface: dunzhang/stella_en_400M_v5

@@ -103,6 +103,7 @@ def define_other_commands(cli_app: typer.Typer) -> None:
 
 
 def main():
+    # We could fo better with Typer @cli_app.callback(), but I haven't succeded
     if "--logging" in sys.argv:
         sys.argv.remove("--logging")
     else:
