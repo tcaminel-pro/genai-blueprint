@@ -28,9 +28,6 @@ from src.utils.singleton import once
 
 load_dotenv()
 
-# CONFIG_FILES = ["config/app_conf.yaml", "config/mcp_servers.yaml"]
-CONFIG_FILE = "config/app_conf.yaml"
-
 # Ensure PWD is set correctly
 os.environ["PWD"] = os.getcwd()  # Hack because PWD is sometime set to a Windows path in WSL
 
@@ -55,22 +52,26 @@ class OmegaConfig(BaseModel):
     def singleton() -> OmegaConfig:
         """Returns the singleton instance of Config."""
 
-        yml_file = Path.cwd() / CONFIG_FILE
-        if not yml_file.exists():
-            yml_file = Path.cwd().parent / CONFIG_FILE
-        assert yml_file.exists(), f"cannot find config file: '{yml_file}'"
-        # logger.info(f"load {yml_file}")
-        config = OmegaConf.load(yml_file)
-        # debug(yml_file)
+        # Load main config file
+        app_conf_path = Path("config/app_conf.yaml")
+        if not app_conf_path.exists():
+            app_conf_path = Path("config/app_conf.yaml").absolute()
+        assert app_conf_path.exists(), f"cannot find config file: '{app_conf_path}'"
+        
+        config = OmegaConf.load(app_conf_path)
         assert isinstance(config, DictConfig)
-        OmegaConf.resolve(config)
-
-        other_files = config.get("merge") or []
-        for file in other_files:
-            yml_file = Path(file)
-            assert yml_file.exists(), f"cannot find config file: '{yml_file}'"
-            c = OmegaConf.load(yml_file)
-            config = OmegaConf.merge(config, c)
+        
+        # Load and merge additional config files
+        merge_files = config.get("merge", [])
+        for file_path in merge_files:
+            merge_path = Path(file_path)
+            if not merge_path.exists():
+                merge_path = Path("config") / file_path
+            assert merge_path.exists(), f"cannot find config file: '{merge_path}'"
+            
+            merge_config = OmegaConf.load(merge_path)
+            config = OmegaConf.merge(config, merge_config)
+            
         OmegaConf.resolve(config)
 
         # Determine which config to use
