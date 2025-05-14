@@ -3,14 +3,19 @@ from pathlib import Path
 
 import streamlit as st
 from dotenv import load_dotenv
-from loguru import logger
 
 from src.utils.config_mngr import config_loguru, global_config
 
 load_dotenv(verbose=True)
 
 config_loguru()
-logger.info("Starting Web Application...")
+# print("Starting Web Application...")
+
+
+@st.cache_resource()
+def config():
+    return global_config()
+
 
 # Configure Streamlit page settings
 st.set_page_config(
@@ -24,7 +29,7 @@ LOGO = "New Atos logo white.png"
 logo = str(Path.cwd() / "src/webapp/static" / LOGO)
 st.logo(logo, size="medium")
 # Get Streamlit pages to display from config
-pages_dir = global_config().get_dir_path("ui.pages_dir")
+pages_dir = config().get_dir_path("ui.pages_dir")
 # Sort files by the number at the beginning of their name
 pages_fn = sorted(
     pages_dir.glob("*.py"), key=lambda f: int(f.name.split("_")[0]) if f.name.split("_")[0].isdigit() else 0

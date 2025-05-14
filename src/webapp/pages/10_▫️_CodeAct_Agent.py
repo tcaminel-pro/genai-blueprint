@@ -79,7 +79,7 @@ class Demo(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
-SEARCH_TOOLS = [WebSearchTool(), VisitWebpageTool()]
+SEARCH_TOOLS: list[Tool] = [WebSearchTool(), VisitWebpageTool()]
 
 
 # cSpell: disable
@@ -138,14 +138,15 @@ AUTHORIZED_IMPORTS = [
     "wordcloud",
 ]
 
-FINAL_FUNCTION = "print_result"
+PRINT_RESULT = "print_result"
+PRINT_STEP = "print_step"
 
 FOLIUM_INSTRUCTION = dedent_ws(
-    """ 
+    f""" 
     - Use Folium to display a map. For example: 
         -- to display map at a given location, call  folium.Map([latitude, longitude])
         -- Do your best to select the zoom factor so whole location enter globaly in the map
-        -- Call the function '{FINAL_FUNCTION}' with the map object
+        -- Call the function '{PRINT_RESULT}' with the map object
         -- 
 """
 )
@@ -154,7 +155,7 @@ IMAGE_INSTRUCTION = dedent_ws(
     f""" 
     -  When creating a plot or generating an image:
       -- save it as png in a tempory directory (use tempfile)
-      -- call {FINAL_FUNCTION} with the pathlib.Path  
+      -- call {PRINT_RESULT} with the pathlib.Path  
 """
 )
 
@@ -163,12 +164,13 @@ PRE_PROMPT = dedent_ws(
     Answer following request. 
 
     Instructions:
-     - You can use ONLY the following packages:  {", ".join(AUTHORIZED_IMPORTS)}.
+    - You can use ONLY the following packages:  {", ".join(AUTHORIZED_IMPORTS)}.
     - DO NOT USE other packages (such as os, shutils, etc).
     - Don't generate "if __name__ == "__main__"
-    - Don't use st.sidebar
-#   - Call the function '{FINAL_FUNCTION}' to display the final result. It accepts markdown (first choice), str, number, or a pathlib.Path to a generated image, or whenever possible  Python objects of Pandas Dataframe, or Follium Map.
-#   - Print also the outcome on stdio, or the title if it's a diagram.
+    - Don't use st.sidebar 
+    - Call the function '{PRINT_RESULT}' to display the final result. It accepts markdown (first choice), str, number, or a pathlib.Path to a generated image, or whenever possible  Python objects of Pandas Dataframe, or Follium Map.
+    - Call the function '{PRINT_STEP}' to display intermediate informtation. It accepts markdown and str.
+    - Print also the outcome on stdio, or the title if it's a diagram.
 
     - {FOLIUM_INSTRUCTION}
     - {IMAGE_INSTRUCTION}
@@ -267,7 +269,6 @@ def clear_display() -> None:
     strecorder.clear()
     # st.rerun()
 
-
 c01, c02 = st.columns([6, 4], border=False, gap="medium", vertical_alignment="top")
 c02.title(" CodeAct Agent :material/Mindfulness:")
 with c01.container(border=True):
@@ -277,14 +278,16 @@ with c01.container(border=True):
         default=SAMPLES_DEMOS[0].name,
         on_change=clear_display,
     )
-
-
 raw_data_file = None
 df: pd.DataFrame | None = None
 sample_search = None
 
+
+placeholder = st.empty()
+select_block = placeholder.container()
+
 if selected_pill == FILE_SElECT_CHOICE:
-    raw_data_file = st.file_uploader(
+    raw_data_file = select_block.file_uploader(
         "Upload a Data file:",
         type=list(TABULAR_FILE_FORMATS_READERS.keys()),
         # on_change=clear_submit,
@@ -295,16 +298,16 @@ else:
     if demo is None:
         st.stop()
 
-    c40, c41 = st.columns([6, 3], vertical_alignment="bottom")
-    with c41:
+    col_display_left, col_display_right = select_block.columns([6, 3], vertical_alignment="bottom")
+    with col_display_right:
         if tools_list := ", ".join(f"'{t.name}'" for t in demo.tools):
             st.markdown(f"**Tools**: *{tools_list}*")
         if mcp_list := ", ".join(f"'{mcp}'" for mcp in demo.mcp_servers):
             st.markdown(f"**MCP**: *{mcp_list}*")
 
-    with c40:
+    with col_display_left:
         # st.write("**Example Prompts:**")
-        sample_search = c40.selectbox(
+        sample_search = col_display_left.selectbox(
             label="Sample",
             placeholder="Select an example (optional)",
             options=demo.examples,
@@ -314,7 +317,7 @@ else:
 
 
 if raw_data_file:
-    with st.expander(label="Loaded Dataframe", expanded=True):
+    with select_block.expander(label="Loaded Dataframe", expanded=True):
         args = {}
         df = get_cache_dataframe(raw_data_file, **args)
 
@@ -334,8 +337,8 @@ class MyFinalAnswerTool(smolagents.default_tools.FinalAnswerTool):
 
 
 class DisplayAnswerTool(Tool):
-    name = "print_result"
-    description = "Display important step in the reasonning (1 sentence) or the final answer to the given query."
+    name = PRINT_RESULT
+    description = "Display the final answer to the given query."
     inputs = {"answer": {"type": "any", "description": "The final answer to the problem"}}
     output_type = "any"
 
@@ -344,6 +347,22 @@ class DisplayAnswerTool(Tool):
             if len(st.session_state.agent_output) == 0 or st.session_state.agent_output[-1] != answer:
                 st.session_state.agent_output.append(answer)
             return f"answer displayed: {answer}"
+        except Exception as ex:
+            logger.exception(ex)
+            raise ex
+
+
+class DisplayStepTool(Tool):
+    name = PRINT_STEP
+    description = "Display outcome of a reasoning step (1 sentence)"
+    inputs = {"answer": {"type": "any", "description": "one step to solve the probem"}}
+    output_type = "any"
+
+    def forward(self, answer: Any) -> Any:
+        try:
+            if len(st.session_state.agent_output) == 0 or st.session_state.agent_output[-1] != answer:
+                st.session_state.agent_output.append(answer)
+            return f"step displayed: {answer}"
         except Exception as ex:
             logger.exception(ex)
             raise ex
@@ -372,7 +391,9 @@ def update_display() -> None:
 model_name = LlmFactory(llm_id=MODEL_ID).get_litellm_model_name()
 llm = LiteLLMModel(model_id=model_name)
 
-with st.form("my_form", border=False):
+
+
+with select_block.form("my_form", border=False):
     cf1, cf2 = st.columns([15, 1], vertical_alignment="bottom")
     prompt = cf1.text_area(
         "Your task",
@@ -384,8 +405,9 @@ with st.form("my_form", border=False):
     submitted = cf2.form_submit_button(label="", icon=":material/send:")
 
 if submitted:
-    c40, c41 = st.columns(2)
-    log_widget = c40.container(height=600)
+    exec_block= placeholder.container()
+    col_display_left, col_display_right = exec_block.columns(2)
+    log_widget = col_display_left.container(height=600)
 
     mcp_tools = []
     mcp_client = None
@@ -400,8 +422,7 @@ if submitted:
         strecorder.replay(log_widget)
         with log_widget:
             if prompt:
-                # tools += [MyFinalAnswerTool(), DisplayAnswerTool()]
-                tools = demo.tools + mcp_tools + [DisplayAnswerTool()]
+                tools = demo.tools + mcp_tools + [DisplayAnswerTool(), DisplayStepTool()]
                 tools_list = [f"{t.name}: {t.description}" for t in tools]
                 debug(tools_list)
                 agent = CodeAgent(
@@ -413,14 +434,13 @@ if submitted:
                 with st.spinner(text="Thinking..."):
                     with strecorder:
                         stream_to_streamlit(
-                            agent, PRE_PROMPT + prompt, additional_args={"st": c41}, display_details=False
+                            agent, PRE_PROMPT + prompt, additional_args={"st": col_display_right}, display_details=False
                         )
                     scroll_to_here()
 
             #        debug(st.session_state.agent_output)
-            with c41:
+            with col_display_right:
                 update_display()
-    # use your tools here.
     finally:
         if mcp_client:
             mcp_client.disconnect()

@@ -32,9 +32,6 @@ CUSTOM_GPTR_CONFIG = {
 
 st.title("GPT Researcher Playground")
 
-with st.sidebar:
-    st.write("hello")
-
 SAMPLE_SEARCH = [
     "What are the ethical issues with AI autonomous agents ? ",
     "What is the architecture of SmolAgents and how it compare with LangGraph ? ",
@@ -45,8 +42,8 @@ SAMPLE_SEARCH = [
 # See https://docs.gptr.dev/docs/gpt-researcher/gptr/config
 #
 
-c1, c2 = st.columns([5, 1])
-with c1.expander(label="Search Configuration"):
+c_config_left, c_config_right = st.columns([5, 1])
+with c_config_left.expander(label="Search Configuration"):
     col1, col2, col3 = st.columns(3)
     col1.number_input("Max Interation", 1, 5, CUSTOM_GPTR_CONFIG["MAX_ITERATIONS"])
     col1.number_input("Max search per query", 1, 10, CUSTOM_GPTR_CONFIG["MAX_SEARCH_RESULTS_PER_QUERY"])
@@ -57,7 +54,7 @@ with c1.expander(label="Search Configuration"):
         col3.text_area("System prompt:", height=150)
     st.write("Not Yet Implemented".upper())
 
-with c2.popover("how it works", use_container_width=False):
+with c_config_right.popover("how it works", use_container_width=False):
     c21, c22 = st.columns([7, 12])
     c21.write("Normal Research")
     c21.image(
