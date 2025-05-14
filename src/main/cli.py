@@ -102,8 +102,9 @@ def define_other_commands(cli_app: typer.Typer) -> None:
 # def callback(logging: bool = False):
 #     print("in callback")
 
-# test if --logging is in sys.argv. If so, remove it AI!
 def main():
+    if "--logging" in sys.argv:
+        sys.argv.remove("--logging")
     debug(sys.argv)
     logger.disable("src")
     # print(f"in main {argc=}  {argv=}")
