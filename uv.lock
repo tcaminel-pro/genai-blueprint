@@ -1133,14 +1133,16 @@ ai = [
     { name = "langgraph" },
     { name = "langserve" },
     { name = "litellm" },
+    { name = "mcp", extra = ["cli"] },
     { name = "mistralai" },
     { name = "smolagents", extra = ["docker", "litellm", "mcp", "openai", "toolkit"] },
 ]
 ai-extra = [
     { name = "duckduckgo-search" },
     { name = "gpt-researcher" },
-    { name = "mcp", extra = ["cli"] },
+    { name = "ipycytoscape" },
     { name = "openpyxl" },
+    { name = "st-cytoscape" },
     { name = "tavily-python" },
     { name = "unidecode" },
 ]
@@ -1185,9 +1187,7 @@ transformers = [
     { name = "sentence-transformers" },
 ]
 ui = [
-    { name = "ipycytoscape" },
     { name = "sse-starlette" },
-    { name = "st-cytoscape" },
     { name = "streamlit" },
     { name = "uvicorn" },
 ]
@@ -1222,14 +1222,16 @@ ai = [
     { name = "langgraph", specifier = ">=0.4" },
     { name = "langserve", specifier = ">=0.3" },
     { name = "litellm", specifier = "==1.67.2" },
+    { name = "mcp", extras = ["cli"], specifier = ">=1.4.1" },
     { name = "mistralai", specifier = ">=1.7.0" },
     { name = "smolagents", extras = ["toolkit", "mcp", "openai", "litellm", "docker"], specifier = ">=1.13.0" },
 ]
 ai-extra = [
     { name = "duckduckgo-search", specifier = ">=6.1.6" },
     { name = "gpt-researcher", specifier = ">=0.10.11" },
-    { name = "mcp", extras = ["cli"], specifier = ">=1.4.1" },
+    { name = "ipycytoscape", specifier = ">=1.3.3" },
     { name = "openpyxl", specifier = ">=3.1.5" },
+    { name = "st-cytoscape", specifier = ">=0.0.5" },
     { name = "tavily-python", specifier = ">=0.3.3" },
     { name = "unidecode", specifier = ">=1.3.8" },
 ]
@@ -1275,9 +1277,7 @@ transformers = [
     { name = "sentence-transformers", specifier = ">=3.4.1" },
 ]
 ui = [
-    { name = "ipycytoscape", specifier = ">=1.3.3" },
     { name = "sse-starlette", specifier = ">=2.1.0" },
-    { name = "st-cytoscape", specifier = ">=0.0.5" },
     { name = "streamlit", specifier = ">=1.40" },
     { name = "uvicorn", specifier = ">=0.34.0" },
 ]

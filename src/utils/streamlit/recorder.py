@@ -13,6 +13,21 @@ from typing import Any, Callable, Tuple
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
 
+ST_FUNCTION_TO_RECORD = [
+    "write",
+    "markdown",
+    "text",
+    "header",
+    "subheader",
+    "code",
+    "dataframe",
+    "chat_message",
+    "html",
+    "table",
+    "json",
+    "image",
+]
+
 
 class StreamlitAction:
     """Represents a single Streamlit action with its arguments and timestamp."""
@@ -60,9 +75,8 @@ class StreamlitRecorder:
 
     def _wrap_streamlit_functions(self) -> None:
         """Wrap Streamlit functions to record their calls."""
-        functions_to_wrap = ["write", "markdown", "text", "header", "subheader", "code", "dataframe", "expander"]
 
-        for func_name in functions_to_wrap:
+        for func_name in ST_FUNCTION_TO_RECORD:
             if hasattr(st, func_name):
                 original_func = getattr(st, func_name)
                 self.original_functions[func_name] = original_func

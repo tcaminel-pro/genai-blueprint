@@ -127,3 +127,39 @@ def register_commands(cli_app: typer.Typer) -> None:
         asyncio.run(process_pdf_batch(pdf_files, output_path, use_cache))
 
         logger.info(f"OCR processing complete. Results saved to {output_dir}")
+
+    @cli_app.command()
+    def fabric(
+        pattern: Annotated[str, Option("--pattern", "-p")],
+        verbose: Annotated[bool, Option("--verbose", "-v")] = False,
+        debug_mode: Annotated[bool, Option("--debug", "-d")] = False,
+        stream: Annotated[bool, Option("--stream", "-s")] = False,
+        # temperature: float = 0.0,
+        llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
+    ) -> None:
+        """Run 'fabric' pattern on standard input.
+
+        Pattern list is here: https://github.com/danielmiessler/fabric/tree/main/patterns
+        Also described here : https://github.com/danielmiessler/fabric/blob/main/patterns/suggest_pattern/user.md
+
+        ex: echo "artificial intelligence" | python python/main_cli.py fabric create_aphorisms --llm-id llama-70-groq
+        """
+        set_debug(debug_mode)
+        set_verbose(verbose)
+
+        if llm_id is not None and llm_id not in LlmFactory.known_items():
+            print(f"Error: unknown llm_id. \n Should be in {LlmFactory.known_items()}")
+            return
+
+        config = {"llm": llm_id if llm_id else global_config().get_str("llm.default_model")}
+        chain = get_fabric_chain(config)
+        input = repr("\n".join(sys.stdin))
+        input = input.replace("{", "{{").replace("}", "}}")
+
+        if stream:
+            for s in chain.stream({"pattern": pattern, "input_data": input}, config):
+                print(s, end="", flush=True)
+                print("\n")
+        else:
+            result = chain.invoke({"pattern": pattern, "input_data": input}, config)
+            print(result)
