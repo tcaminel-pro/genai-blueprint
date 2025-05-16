@@ -38,6 +38,8 @@ from langchain_core.runnables import RunnableConfig
 from langchain_mcp_adapters.client import MultiServerMCPClient, StdioServerParameters
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
 from mcpadapt.core import MCPAdapt
 from mcpadapt.langchain_adapter import LangChainAdapter
 
@@ -111,41 +113,19 @@ def update_server_parameters(server_config: dict) -> dict:
 #     return {name: create_server_parameters(desc) for name, desc in servers.items()}
 
 
-async def get_mcp_tools_info(filter: list[str] | None = None) -> dict[str, dict[str, str]]:
-    """Get all tools from MCP servers with their names and descriptions.
-
-    Starts all MCP servers from configuration, retrieves their tools,
-    and returns a dictionary mapping server names to their tools' info.
-
-    Args:
-        filter: Optional list of server names to include. If None, all servers are included.
-
-    Returns:
-        Dictionary where keys are server names and values are dictionaries
-        mapping tool names to their descriptions
-
-    Example:
-    ```python
-    tools_info = await get_mcp_tools_info()
-    # {
-    #   'weather': {'get_weather': 'Get current weather for a location'},
-    #   'filesystem': {'list_files': 'List files in a directory'}
-    # }
-    ```
-    """
+async def get_mcp_tools_info(filter: list[str] | None = None) -> dict:
+    """Get all tools from MCP servers with their names and descriptions."""
     servers = get_mcp_servers_dict(filter)
     tools_info = {}
-    
-    async with MultiServerMCPClient(servers) as client:
-        # Get tools grouped by server
-        server_tools = client.get_server_tools()
-        
-        for server_name, tools in server_tools.items():
-            tools_info[server_name] = {
-                tool.name: tool.description for tool in tools
-            }
-    
+    for server_name, param_desc in servers.items():
+        server_params = StdioServerParameters(**param_desc)
+        async with stdio_client(server_params) as (read, write):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                tools = await session.list_tools()
+                tools_info[server_name] = {tool.name: tool.description for tool in tools.tools}
     return tools_info
+
 
 def get_mcp_servers_dict(filter: list[str] | None = None) -> dict:
     """Retrieve configured MCP servers from application configuration.

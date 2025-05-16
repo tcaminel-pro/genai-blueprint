@@ -162,7 +162,8 @@ ignore = [ # Ignored linter rules:
     "ANN401",  # Annotated with Any
     "ANN002", # Annotate *args
     "ANN003",  # Annotate **kwarg
-    "ANN201"  # Missing return type
+    "ANN201",  # Missing return type
+    "ANN202"  # Missing return info
  ]
 
 [tool.ruff.lint.pycodestyle]

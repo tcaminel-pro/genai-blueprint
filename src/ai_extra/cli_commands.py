@@ -12,6 +12,7 @@ The commands are registered with a Typer CLI application and provide:
 - Tool integration
 - Batch processing capabilities
 """
+
 import asyncio
 import sys
 from typing import Annotated, Optional
@@ -142,34 +143,6 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         logger.info(f"OCR processing complete. Results saved to {output_dir}")
 
-    @cli_app.command()
-    def mcp_tools(
-        filter: Annotated[list[str] | None, Option("--filter", "-f")] = None,
-    ) -> None:
-        """Display information about available MCP tools.
-
-        Shows the list of tools from MCP servers along with their descriptions.
-        Can be filtered by server names.
-
-        Example:
-            python -m src.ai_extra.cli_commands mcp_tools
-            python -m src.ai_extra.cli_commands mcp_tools -f weather -f filesystem
-        """
-        async def display_tools():
-            tools_info = await get_mcp_tools_info(filter)
-            if not tools_info:
-                print("No MCP tools found.")
-                return
-
-            for server_name, tools in tools_info.items():
-                print(f"\nServer: {server_name}")
-                print("-" * (len(server_name) + 8))
-                for tool_name, description in tools.items():
-                    print(f"  {tool_name}:")
-                    print(f"    {description}")
-                print()
-
-        asyncio.run(display_tools())
 
     @cli_app.command()
     def fabric(

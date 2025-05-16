@@ -12,17 +12,18 @@ The commands are registered with a Typer CLI application and provide:
 - Streaming support
 - Caching options
 """
+
+import asyncio
 import sys
 from pathlib import Path
 from typing import Annotated, Callable, Optional
 
+from src.ai_core.mcp_client import get_mcp_tools_info
 import typer
 from devtools import pprint
 from langchain.globals import set_debug, set_verbose
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import Runnable
-
-# Import modules where runnables are registered
 from typer import Option
 
 from src.ai_core.cache import LlmCache
@@ -229,3 +230,29 @@ def register_commands(cli_app: typer.Typer) -> None:
         vector = embedder.embed_documents([input])
         print(f"{vector[0][:20]}...")
         print(f"length: {len(vector[0])}")
+
+    @cli_app.command()
+    def list_mcp_tools(
+        filter: Annotated[list[str] | None, Option("--filter", "-f")] = None,
+    ) -> None:
+        """Display information about available MCP tools.
+
+        Shows the list of tools from MCP servers along with their descriptions.
+        Can be filtered by server names.
+        """
+
+        async def display_tools():
+            tools_info = await get_mcp_tools_info(filter)
+            if not tools_info:
+                print("No MCP tools found.")
+                return
+
+            for server_name, tools in tools_info.items():
+                print(f"\nServer: {server_name}")
+                print("-" * (len(server_name) + 8))
+                for tool_name, description in tools.items():
+                    print(f"  {tool_name}:")
+                    print(f"    {description}")
+                print()
+
+        asyncio.run(display_tools())
