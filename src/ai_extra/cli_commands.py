@@ -1,6 +1,16 @@
-# Complete documentation AI!
+"""CLI commands for AI Extra functionality.
 
-"""CLI commands for ...
+This module provides command-line interface commands for:
+- Running MCP React agents
+- Executing SmolAgents with custom tools
+- Processing PDF files with OCR
+- Running Fabric patterns
+
+The commands are registered with a Typer CLI application and provide:
+- Input/output handling (including stdin)
+- Configuration of LLM parameters
+- Tool integration
+- Batch processing capabilities
 """
 import asyncio
 import sys
