@@ -1,5 +1,17 @@
-# CLI commands related to package 
-# Complete documentation AI!
+"""CLI commands for interacting with AI Core functionality.
+
+This module provides command-line interface commands for:
+- Running LLMs directly
+- Executing registered Runnable chains
+- Getting information about available models and chains
+- Working with embeddings
+
+The commands are registered with a Typer CLI application and provide:
+- Input/output handling (including stdin)
+- Configuration of LLM parameters
+- Streaming support
+- Caching options
+"""
 import sys
 from pathlib import Path
 from typing import Annotated, Callable, Optional
