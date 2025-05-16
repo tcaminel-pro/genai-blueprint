@@ -265,3 +265,24 @@ test_install: .pythonpath ## Quick test install
 ##  Project specific commands
 ##############################
 
+
+
+# fix error : /bin/sh: 4: Syntax error: Unterminated quoted string
+# AI!
+call-azure-llm:
+	@echo "Calling Azure LLM..."
+	curl -X POST "$(AZURE_ENDPOINT)/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-02-15-preview" \
+	-H "Content-Type: application/json" \
+	-H "Authorization: Bearer $(AZURE_API_KEY)" \
+	-d '{
+	  "messages": [
+	    {
+	      "role": "system",
+	      "content": "You are a helpful assistant."
+	    },
+	    {
+	      "role": "user",
+	      "content": "Your prompt here"
+	    }
+	  ]
+	}'
