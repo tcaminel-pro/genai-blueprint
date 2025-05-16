@@ -30,7 +30,7 @@ from upath import UPath
 
 from src.ai_core.cache import LlmCache
 from src.ai_core.llm import LlmFactory
-from src.ai_extra.mcp_client import call_react_agent
+from src.ai_core.mcp_client import call_react_agent
 from src.ai_extra.mistral_ocr import process_pdf_batch
 from src.utils.config_mngr import global_config
 

@@ -15,7 +15,7 @@ import pytest
 from langchain_mcp_adapters.client import StdioServerParameters
 from pydantic import ValidationError
 
-from src.ai_extra.mcp_client import get_mcp_servers_dict
+from src.ai_core.mcp_client import get_mcp_servers_dict
 
 
 def test_get_mcp_servers_from_config_valid(monkeypatch):
@@ -69,7 +69,7 @@ async def test_mcp_agent_runner(mocker):
     """Test the MCP agent runner with mocked components."""
     from langchain_core.language_models.chat_models import BaseChatModel
 
-    from src.ai_extra.mcp_client import mcp_agent_runner
+    from src.ai_core.mcp_client import mcp_agent_runner
 
     # Mock the model and server parameters
     mock_model = mocker.Mock(spec=BaseChatModel)

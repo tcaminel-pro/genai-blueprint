@@ -26,7 +26,7 @@ from streamlit_folium import st_folium
 
 from src.ai_core.llm import LlmFactory
 from src.ai_core.prompts import dedent_ws
-from src.ai_extra.mcp_client import dict_to_stdio_server_list, get_mcp_servers_dict
+from src.ai_core.mcp_client import dict_to_stdio_server_list, get_mcp_servers_dict
 from src.utils.streamlit.auto_scroll import scroll_to_here
 from src.utils.streamlit.load_data import TABULAR_FILE_FORMATS_READERS, load_tabular_data
 from src.utils.streamlit.recorder import StreamlitRecorder

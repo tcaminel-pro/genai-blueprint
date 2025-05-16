@@ -15,7 +15,7 @@ from langgraph.prebuilt import create_react_agent
 
 from src.ai_core.llm import get_llm
 from src.ai_core.prompts import dedent_ws, dict_input_message
-from src.ai_extra.mcp_client import get_mcp_servers_dict
+from src.ai_core.mcp_client import get_mcp_servers_dict
 from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
 from src.webapp.ui_components.llm_config import llm_config_widget
 from src.webapp.ui_components.streamlit_chat import StreamlitStatusCallbackHandler, display_messages
