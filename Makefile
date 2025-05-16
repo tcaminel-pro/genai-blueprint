@@ -261,15 +261,29 @@ test_install: .pythonpath ## Quick test install
 	echo bears | PYTHONPATH="." uv run cli run joke -m parrot_local_fake
 
 
+# Load .env file environ variable in shell
+# export $(grep -v '^#' ~/.env | xargs)
+
+call-azure-llm:
+	@echo "Calling Azure LLM..."
+	curl -X POST "$(AZURE_OPENAI_ENDPOINT)/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-02-15-preview" \
+	-H "Content-Type: application/json" \
+	-H "Authorization: Bearer $(AZURE_OPENAI_API_KEY)" \
+	-d "{\"messages\":[{\"role\":\"user\",\"content\":\"Tell me a joke\"}]}"
+
+call-openrouter-llm:
+	@echo "Calling OpenRouter LLM..."
+	curl https://openrouter.ai/api/v1/chat/completions \
+	-H "Content-Type: application/json" \
+	-H "Authorization: Bearer $(OPENROUTER_API_KEY)" \
+	-d "{ \"model\": \"openai/gpt-4.1-mini\", \"messages\":[{\"role\":\"user\",\"content\":\"Tell me a joke\"}]}"
+
 ##############################
 ##  Project specific commands
 ##############################
 
+##############################
+##  MICS
+##############################
 
 
-call-azure-llm:
-	@echo "Calling Azure LLM..."
-	curl -X POST "$(AZURE_ENDPOINT)/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-02-15-preview" \
-	-H "Content-Type: application/json" \
-	-H "Authorization: Bearer $(AZURE_API_KEY)" \
-	-d "{\"messages\":[{\"role\":\"system\",\"content\":\"You are a helpful assistant.\"},{\"role\":\"user\",\"content\":\"Your prompt here\"}]}"
