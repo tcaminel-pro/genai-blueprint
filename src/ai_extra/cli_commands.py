@@ -1,3 +1,7 @@
+# Complete documentation AI!
+
+"""CLI commands for ...
+"""
 import asyncio
 import sys
 from typing import Annotated, Optional
