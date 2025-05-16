@@ -111,6 +111,40 @@ def update_server_parameters(server_config: dict) -> dict:
 #     return {name: create_server_parameters(desc) for name, desc in servers.items()}
 
 
+async def get_mcp_tools_info(filter: list[str] | None = None) -> dict[str, dict[str, str]]:
+    """Get all tools from MCP servers with their names and descriptions.
+
+    Starts all MCP servers from configuration, retrieves their tools,
+    and returns a dictionary mapping server names to their tools' info.
+
+    Args:
+        filter: Optional list of server names to include. If None, all servers are included.
+
+    Returns:
+        Dictionary where keys are server names and values are dictionaries
+        mapping tool names to their descriptions
+
+    Example:
+    ```python
+    tools_info = await get_mcp_tools_info()
+    # {
+    #   'weather': {'get_weather': 'Get current weather for a location'},
+    #   'filesystem': {'list_files': 'List files in a directory'}
+    # }
+    ```
+    """
+    servers = get_mcp_servers_dict(filter)
+    tools_info = {}
+    
+    async with MultiServerMCPClient(servers) as client:
+        for server_name, server_params in servers.items():
+            tools = client.get_tools(server_name)
+            tools_info[server_name] = {
+                tool.name: tool.description for tool in tools
+            }
+    
+    return tools_info
+
 def get_mcp_servers_dict(filter: list[str] | None = None) -> dict:
     """Retrieve configured MCP servers from application configuration.
 
