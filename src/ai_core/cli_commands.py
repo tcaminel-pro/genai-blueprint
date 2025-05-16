@@ -36,6 +36,25 @@ from src.utils.config_mngr import global_config
 
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
+    def config_info() -> None:
+        """
+        Display current configuration and available API keys.
+        """
+        # Show selected config
+        config = global_config()
+        print(f"Selected configuration: {config.selected_config}")
+        
+        # Show available API keys
+        print("\nAvailable API keys:")
+        from src.ai_core.llm import PROVIDER_INFO
+        for provider, (_, key_name) in PROVIDER_INFO.items():
+            if key_name and key_name in os.environ:
+                print(f"  {provider}: {key_name} = {'*' * 8} (set)")
+            elif key_name:
+                print(f"  {provider}: {key_name} = (not set)")
+            else:
+                print(f"  {provider}: (no key required)")
+    @cli_app.command()
     def llm(
         input: str | None = None,  # input
         cache: str = "memory",
