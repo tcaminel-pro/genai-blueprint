@@ -1,5 +1,5 @@
 # CLI commands related to package 
-
+# Complete documentation AI!
 import sys
 from pathlib import Path
 from typing import Annotated, Callable, Optional
