@@ -137,11 +137,12 @@ async def get_mcp_tools_info(filter: list[str] | None = None) -> dict[str, dict[
     tools_info = {}
     
     async with MultiServerMCPClient(servers) as client:
-        for server_name, server_params in servers.items():
-            tools = client.get_tools(server_name)
-            tools_info[server_name] = {
-                tool.name: tool.description for tool in tools
-            }
+        all_tools = client.get_tools()
+        for tool in all_tools:
+            server_name = tool.server_name
+            if server_name not in tools_info:
+                tools_info[server_name] = {}
+            tools_info[server_name][tool.name] = tool.description
     
     return tools_info
 
