@@ -25,12 +25,17 @@ CURRENT_DIR := $(shell pwd)
 
 #cSpell: disable
 
-.PHONY: .uv   .pre-commit 
+.PHONY: .uv   .pre-commit .pythonpath
 .uv:  ## Check that uv is installed
 	@uv -V || echo 'Please install uv: https://docs.astral.sh/uv/getting-started/installation/'
 
 .pre-commit: .uv  ## Check that pre-commit is installed    see https://pre-commit.com/
 	@uv run pre-commit -V || uv pip install pre-commit
+
+.pythonpath:
+	@if [ -z "$(PYTHONPATH)" ]; then \
+		@echo "Warning: PYTHONPATH is not set. Consider to put somewhere: export PYTHONPATH=\".\" "; \
+	fi
 
 
 ##############################
@@ -106,7 +111,6 @@ telemetry:  ## Run Phoenix telemetry server in background
 ##############################
 
 .PHONY: check_uv install
-
 
 check_uv:  ## Check if uv is installed, install if missing
 	@if command -v uv >/dev/null 2>&1; then \
@@ -238,7 +242,7 @@ sync_dirs: ## Sync subdirectories between two root directories
 
 clean_history:  ## Remove duplicate entries and common commands from .bash_history
 	@if [ -f ~/.bash_history ]; then \
-		awk '!/^(ls|cat|hgrep|h|cd|p|m|ll|pwd|code|mkdir|export|poetry run ruff|rmdir|uv tree|make)( |$$)/ && !seen[$$0]++' ~/.bash_history > ~/.bash_history_unique && \
+		awk '!/^(ls|cat|hgrep|h|cd|p|m|ll|pwd|code|mkdir|export|rmdir|uv tree|make)( |$$)/ && !seen[$$0]++' ~/.bash_history > ~/.bash_history_unique && \
 		mv ~/.bash_history_unique ~/.bash_history; \
 		echo "Done : duplicates and common commands removed. \nRun 'history -c; history -r' in your shell to reload the cleaned history"; \
 	else \
@@ -251,13 +255,11 @@ help:
 	@echo "Available targets:"                                                                                                                  
 	@awk 'BEGIN {FS = ":.*##"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST) | sort 
 
-test_install:
-	@if [ -z "$(PYTHONPATH)" ]; then \
-		echo "Warning: PYTHONPATH is not set. Ok for this test, but consider to put somewhere: export PYTHONPATH=\".\" "; \
-		echo bears | PYTHONPATH="." uv run cli run joke -m parrot_local_fake ; \
-	else \
-		echo bears |  uv run cli run joke -m parrot_local_fake ;\
-	fi
+
+test_install: .pythonpath ## Quick test install
+	@echo "Call a fake LLM that returns the prompt. Here it should  display 'tell me a joke on ...'"
+	echo bears | PYTHONPATH="." uv run cli run joke -m parrot_local_fake
+
 
 ##############################
 ##  Project specific commands

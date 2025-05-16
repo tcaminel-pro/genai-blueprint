@@ -37,15 +37,15 @@ We use `make` and `uv`. This command install `uv` if not present, then load the 
 The project requires `Python 12` (that can be easily installed by `uv`)
 
 Configuration:
-* Application settings are in file : `app_conf.yaml` ; Should likely be edited (and improved...)
+* Application settings are in file : `config/app_conf.yaml` and merged ones; Should likely be edited (and improved...)
 * API keys are taken from  a `.env` file, in the project directory or its parents 
 
 Quick test:
-* Run `echo "computers" | uv run src/main_cli.py run joke  -m fake_parrot_local` 
-  * It should display 'Tell me a joke on computers' 
+* Run `make test_install` 
+  * It should display 'Tell me a joke on bears' 
   * Don't care about the warnings
   * add `--help` to see the different options
-  * You can change the LLM by taking one in defined in `models_providers.yaml`  (if keys are in the `.env` file)
+  * You can change the LLM by taking one in defined in `/config/providers.yaml`  (if keys are in the `.env` file)
 * Run 'make test' 
   - There some issues with several tests in //. 
   - You might need to change section 'pytest' `app_conf.yaml` too
@@ -55,9 +55,9 @@ Quick test:
 ### Key Files and Directories
 
 #### Configuration
-- `app_conf.yaml`: Main configuration file for LLMs, embeddings, vector stores and chains.  
-- `models_providers.yaml`: Contains model definitions and provider configurations
-- `pyproject.toml`: Poetry project configuration
+- `config/baseline.yaml`: Main configuration file for LLMs, embeddings, vector stores and chains.  
+- `config/models_providers.yaml`: Contains model definitions and provider configurations
+- `pyproject.toml`: uv project configuration
 
 
 #### Core AI Components facilitating LangChain programming

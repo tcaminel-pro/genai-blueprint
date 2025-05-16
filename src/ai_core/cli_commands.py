@@ -1,3 +1,5 @@
+# CLI commands related to package 
+
 import sys
 from pathlib import Path
 from typing import Annotated, Callable, Optional

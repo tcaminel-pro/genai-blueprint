@@ -24,7 +24,7 @@ try:
     from gpt_researcher import GPTResearcher
 except ImportError as ex:
     raise ImportError(
-        "gpt-researcher package is required. Install with: poetry add gpt-researcher --group ai_extra"
+        "gpt-researcher package is required. Install with: uv add gpt-researcher --group ai_extra"
     ) from ex
 from langchain_core.runnables import Runnable, RunnableConfig, RunnableLambda
 from loguru import logger

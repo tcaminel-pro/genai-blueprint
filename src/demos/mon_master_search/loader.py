@@ -16,7 +16,7 @@ from src.utils.pydantic.jsonl_store import load_objects_from_jsonl, store_object
 try:
     from abbreviations import schwartz_hearst
 except ImportError as ex:
-    raise ImportError("abbreviations package is required. Install with: poetry add abbreviations --group demos") from ex
+    raise ImportError("abbreviations package is required. Install with: uv add abbreviations --group demos") from ex
 from langchain_community.document_loaders.base import BaseLoader
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
@@ -226,7 +226,7 @@ def find_acronyms():
     try:
         import enchant
     except ImportError as ex:
-        raise ImportError("enchant package is required. Install with: poetry add enchant --group demos") from ex
+        raise ImportError("enchant package is required. Install with: uv add enchant --group demos") from ex
 
     french_dict = enchant.Dict("fr")
     english_dict = enchant.Dict("en")
