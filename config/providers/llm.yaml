@@ -5,7 +5,7 @@
 # Registered LLMs Services
 
 # LLM_id should follow Python variables constraints - ie no '-' no space etc
-# Use pattern {self.model_family_name}_{version}_{inference provider or library}
+# Use pattern {self.model_family_name}_{version}
 # model_name is provider specific.  It can contains several fields decoded in the factory.
 
 # Capabilities can be : 'reasonning', 'structured_outputs', 'pdf', 'vision'
@@ -24,6 +24,7 @@
 # Amazon : https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html
 # DeepSeek: https://api-docs.deepseek.com/quick_start/pricing 
 # HuggingFace: https://huggingface.co/models
+# ...
 
 #cSpell: disable
 
@@ -57,7 +58,7 @@ llm:
     - edenai: deepseek/deepseek-reasoner
   capabilities: ['reasonning', 'structured_outputs']
 
-- model:
+- model:  # fake model for tests
   id: parrot_local
   providers:
     - fake: parrot
@@ -75,10 +76,10 @@ llm:
   capabilities: ['structured_outputs']
 
 - model:
-  id: gemma2_2
+  id: gemma3_4b
   providers:
-    - ollama: gemma2:2b
-  capabilities: ['structured_outputs']
+    - ollama: gemma3:4b
+  capabilities: ['structured_outputs', 'vision']
 
 - model:
   id: google_gemini15flash

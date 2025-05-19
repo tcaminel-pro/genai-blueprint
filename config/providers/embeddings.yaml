@@ -4,7 +4,7 @@
 
 # Registered Embeddings Services
 
-# for Embeddings:
+# Provider documentation links:
 # Ollama: https://ollama.com/search?q=embeddings&c=embedding 
 # DeepInfra : https://deepinfra.com/models/embeddings/ 
 # ...
@@ -16,7 +16,7 @@ embeddings:
   id: ada_002
   providers:
     - openai: text-embedding-ada-002
-    - edenai: openai/1536__text-embedding-ada-002
+    - edenai: openai/text-embedding-ada-002
     - azure: text-embedding-ada-002/2023-05-15
 
 - model:

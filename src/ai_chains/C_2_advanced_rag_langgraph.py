@@ -50,9 +50,83 @@ class DataRoute(Enum):
 
 yesno_enum_parser = EnumOutputParser(enum=YesOrNo)
 
-to_lower = RunnableLambda(lambda x: x.content.lower())
+to_lower = RunnableLambda(lambda x: x.content.lower())  # type: ignore
+
+### State
 
 
+class GraphState(TypedDict, total=False):
+    """Represents the state of our graph."""
+
+    question: str  # the question
+    generation: str  # LLM generation
+    web_search: str  # whether to add search
+    documents: list[Document]  # list of documents
+
+
+# function and node to check if the question is related to content in the Vector Store
+
+
+def question_router() -> Runnable[Any, DataRoute]:
+    parser = EnumOutputParser(enum=DataRoute)
+
+    system_prompt = """
+        You are an expert at routing a user question to a vectorstore or web search.
+        Use the vectorstore for questions on LLM  agents, prompt engineering, and adversarial attacks.
+        You do not need to be stringent with the keywords in the question related to these topics.
+        Otherwise, use web-search.
+        Give a binary choice 'web_search' or 'vectorstore' based on the question with no permeable or explanation.
+
+        """
+    user_prompt = """
+        Question to route: {question} \n
+        Instructions: {instructions} """
+
+    prompt = def_prompt(system_prompt, user_prompt).partial(instructions=parser.get_format_instructions())
+    question_router = prompt | get_llm(llm_id=LLM_ID) | parser
+    return question_router  # type: ignore
+
+
+def route_question(state: GraphState) -> Literal["websearch", "vectorstore"]:
+    """Route question to web search or RAG.
+    Returns next node to call.
+    """
+    logger.debug("---ROUTE QUESTION---")
+    question = state["question"]
+    source = question_router().invoke({"question": question})
+    logger.debug(question, source)
+    if source == DataRoute.WEB_SEARCH:
+        logger.debug("---ROUTE QUESTION TO WEB SEARCH---")
+        return "websearch"
+    elif source == DataRoute.VECTOR_STORE:
+        logger.debug("---ROUTE QUESTION TO RAG---")
+        return "vectorstore"
+    else:
+        raise Exception("Bug: unknown source")
+
+
+# Node for a Web Search
+
+
+def web_search(state: GraphState) -> GraphState:
+    """Web search based based on the question
+    Returns:
+        state (dict): Appended web results to documents.
+    """
+    logger.debug("---WEB SEARCH---")
+    question = state["question"]
+    documents = state.get("documents") or []
+
+    web_results = basic_web_search(question)
+
+    if documents is not None:
+        documents.append(web_results)
+    else:
+        documents = [web_results]
+    return {"documents": documents, "question": question}
+
+
+# Functions and node to retrive read data from Internet and put it in the vector store
 def retriever() -> BaseRetriever:
     urls = [
         "https://lilianweng.github.io/posts/2023-06-23-agent/",
@@ -80,6 +154,73 @@ def retriever() -> BaseRetriever:
     return retriever
 
 
+# Node 'retrieve' to query the vector store
+
+
+def retrieve(state: GraphState) -> GraphState:
+    """Retrieve documents from vectorstore
+    Returns:
+        state (dict): New key added to state, documents, that contains retrieved documents.
+    """
+    logger.debug("---RETRIEVE---")
+    question = state["question"]
+
+    # Retrieval
+    documents = retriever().invoke(question)
+    return {"documents": documents, "question": question}
+
+
+# Function and node for the generation part of the RAG
+
+
+def rag_chain() -> Runnable[Any, str]:
+    system_prompt = """
+        You are an assistant for question-answering tasks.
+        Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know.
+        Use three sentences maximum and keep the answer concise."""
+    user_prompt = """
+        Question: {question}
+        Context: {context}
+        Answer: """
+    logger.debug("Rag chain'")
+    prompt = def_prompt(system=system_prompt, user=user_prompt)
+    return prompt | get_llm(llm_id=LLM_ID) | StrOutputParser()
+
+
+def generate(state: GraphState) -> GraphState:
+    """Generate answer using RAG on retrieved documents
+    Returns:
+        state (dict): New key added to state, generation, that contains LLM generation.
+    """
+    logger.debug("---GENERATE---")
+    question = state["question"]
+    documents = state["documents"]
+
+    # RAG generation
+    generation = rag_chain().invoke({"context": documents, "question": question})
+    return {"documents": documents, "question": question, "generation": generation}
+
+
+
+# Node to assess the relevance of the retrived documents
+
+def answer_grader() -> Runnable[Any, YesOrNo]:
+    system_prompt = """
+        You are a grader assessing whether an answer is useful to resolve a question.
+        Evaluate whether the answer is useful to resolve a question.
+        Answer only by 'yes' or 'no', without any other comment.\n"""
+    user_prompt = """
+        Here are the answer:
+        \n---  {generation} \n---
+        Here is the question: {question} \n
+        Instructions: {instructions}
+        """
+    prompt = def_prompt(system_prompt, user_prompt).partial(instructions=yesno_enum_parser.get_format_instructions())
+    return prompt | get_llm(llm_id=LLM_ID) | to_lower | yesno_enum_parser  # type: ignore
+
+
+
+
 def retrieval_grader() -> Runnable[Any, YesOrNo]:
     ### Retrieval Grader
 
@@ -100,111 +241,6 @@ def retrieval_grader() -> Runnable[Any, YesOrNo]:
     logger.debug("Retrieval Grader'")
     retrieval_grader = prompt | get_llm(llm_id=LLM_ID) | to_lower | yesno_enum_parser
     return retrieval_grader  # type: ignore
-
-
-def rag_chain() -> Runnable[Any, str]:
-    system_prompt = """
-        You are an assistant for question-answering tasks.
-        Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know.
-        Use three sentences maximum and keep the answer concise."""
-    user_prompt = """
-        Question: {question}
-        Context: {context}
-        Answer: """
-    logger.debug("Rag chain'")
-    prompt = def_prompt(system=system_prompt, user=user_prompt)
-    return prompt | get_llm(llm_id=LLM_ID) | StrOutputParser()
-
-
-def hallucination_grader() -> Runnable[Any, YesOrNo]:
-    system_prompt = """
-        You are a grader assessing whether an answer is grounded in / supported by a set of facts.
-        Evaluate  whether the answer is grounded in / supported by a set of facts.
-        Answer only by 'yes' or 'no', without any other comment.\n"""
-    user_prompt = """
-        Here are the facts:
-        --- \n {documents} ---\n
-        Here is the answer: {generation} \n
-        Instructions: {instructions} """
-    prompt = def_prompt(system_prompt, user_prompt).partial(instructions=yesno_enum_parser.get_format_instructions())
-    return prompt | get_llm(llm_id=LLM_ID) | to_lower | yesno_enum_parser  # type: ignore
-
-
-def answer_grader() -> Runnable[Any, YesOrNo]:
-    system_prompt = """
-        You are a grader assessing whether an answer is useful to resolve a question.
-        Evaluate whether the answer is useful to resolve a question.
-        Answer only by 'yes' or 'no', without any other comment.\n"""
-    user_prompt = """
-        Here are the answer:
-        \n---  {generation} \n---
-        Here is the question: {question} \n
-        Instructions: {instructions}
-        """
-    prompt = def_prompt(system_prompt, user_prompt).partial(instructions=yesno_enum_parser.get_format_instructions())
-    return prompt | get_llm(llm_id=LLM_ID) | to_lower | yesno_enum_parser  # type: ignore
-
-
-def question_router() -> Runnable[Any, DataRoute]:
-    parser = EnumOutputParser(enum=DataRoute)
-
-    system_prompt = """
-        You are an expert at routing a user question to a vectorstore or web search.
-        Use the vectorstore for questions on LLM  agents, prompt engineering, and adversarial attacks.
-        You do not need to be stringent with the keywords in the question related to these topics.
-        Otherwise, use web-search.
-        Give a binary choice 'web_search' or 'vectorstore' based on the question with no permeable or explanation.
-
-        """
-    user_prompt = """
-        Question to route: {question} \n
-        Instructions: {instructions} """
-
-    prompt = def_prompt(system_prompt, user_prompt).partial(instructions=parser.get_format_instructions())
-    question_router = prompt | get_llm(llm_id=LLM_ID) | parser
-    return question_router
-
-
-### State
-
-
-class GraphState(TypedDict, total=False):
-    """Represents the state of our graph."""
-
-    question: str  # the question
-    generation: str  # LLM generation
-    web_search: str  # whether to add search
-    documents: list[Document]  # list of documents
-
-
-### Nodes
-
-
-def retrieve(state: GraphState) -> GraphState:
-    """Retrieve documents from vectorstore
-    Returns:
-        state (dict): New key added to state, documents, that contains retrieved documents.
-    """
-    logger.debug("---RETRIEVE---")
-    question = state["question"]
-
-    # Retrieval
-    documents = retriever().invoke(question)
-    return {"documents": documents, "question": question}
-
-
-def generate(state: GraphState) -> GraphState:
-    """Generate answer using RAG on retrieved documents
-    Returns:
-        state (dict): New key added to state, generation, that contains LLM generation.
-    """
-    logger.debug("---GENERATE---")
-    question = state["question"]
-    documents = state["documents"]
-
-    # RAG generation
-    generation = rag_chain().invoke({"context": documents, "question": question})
-    return {"documents": documents, "question": question, "generation": generation}
 
 
 def grade_documents(state: GraphState) -> GraphState:
@@ -236,45 +272,6 @@ def grade_documents(state: GraphState) -> GraphState:
     return {"documents": filtered_docs, "question": question, "web_search": web_search}
 
 
-def web_search(state: GraphState) -> GraphState:
-    """Web search based based on the question
-    Returns:
-        state (dict): Appended web results to documents.
-    """
-    logger.debug("---WEB SEARCH---")
-    question = state["question"]
-    documents = state.get("documents") or []
-
-    web_results = basic_web_search(question)
-
-    if documents is not None:
-        documents.append(web_results)
-    else:
-        documents = [web_results]
-    return {"documents": documents, "question": question}
-
-
-### Conditional edges
-
-
-def route_question(state: GraphState) -> Literal["websearch", "vectorstore"]:
-    """Route question to web search or RAG.
-    Returns next node to call.
-    """
-    logger.debug("---ROUTE QUESTION---")
-    question = state["question"]
-    source = question_router().invoke({"question": question})
-    logger.debug(question, source)
-    if source == DataRoute.WEB_SEARCH:
-        logger.debug("---ROUTE QUESTION TO WEB SEARCH---")
-        return "websearch"
-    elif source == DataRoute.VECTOR_STORE:
-        logger.debug("---ROUTE QUESTION TO RAG---")
-        return "vectorstore"
-    else:
-        raise Exception("Bug: unknown source")
-
-
 def decide_to_generate(state: GraphState) -> Literal["websearch", "generate"]:
     """Determines whether to generate an answer, or add web search
     Returns binary decision for next node to call.
@@ -293,6 +290,23 @@ def decide_to_generate(state: GraphState) -> Literal["websearch", "generate"]:
         # We have relevant documents, so generate answer
         logger.debug("---DECISION: GENERATE---")
         return "generate"
+
+
+# Function and node to detect allucination
+
+
+def hallucination_grader() -> Runnable[Any, YesOrNo]:
+    system_prompt = """
+        You are a grader assessing whether an answer is grounded in / supported by a set of facts.
+        Evaluate  whether the answer is grounded in / supported by a set of facts.
+        Answer only by 'yes' or 'no', without any other comment.\n"""
+    user_prompt = """
+        Here are the facts:
+        --- \n {documents} ---\n
+        Here is the answer: {generation} \n
+        Instructions: {instructions} """
+    prompt = def_prompt(system_prompt, user_prompt).partial(instructions=yesno_enum_parser.get_format_instructions())
+    return prompt | get_llm(llm_id=LLM_ID) | to_lower | yesno_enum_parser  # type: ignore
 
 
 def grade_generation_v_documents_and_question(
@@ -326,6 +340,9 @@ def grade_generation_v_documents_and_question(
         return "not supported"
 
 
+#####
+## Create Graph
+####
 def create_graph(conf: dict) -> CompiledGraph:
     workflow = StateGraph(GraphState)
 

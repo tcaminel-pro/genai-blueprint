@@ -97,5 +97,5 @@ def main():
 
 
 if __name__ == "__main__":
-    cli_app()
-    # main()
+    #cli_app()
+    main()

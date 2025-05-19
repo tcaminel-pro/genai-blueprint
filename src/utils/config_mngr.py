@@ -82,7 +82,6 @@ class OmegaConfig(BaseModel):
             logger.warning(f"Configuration selected by key 'default_config' not found: {config_name_from_yaml}")
             config_name_from_yaml = None
         selected_config = config_name_from_env or config_name_from_yaml or "baseline"
-        print(f"config={selected_config}")
         return OmegaConfig(root=config, selected_config=selected_config)
 
     def select_config(self, config_name: str) -> None:

@@ -2,7 +2,6 @@
 # Application configuration file 
 ################
 
-# cSpell:disable
 
 # Configuration leverage OmegaConf solvers. See :
 # https://omegaconf.readthedocs.io/en/2.3_branch/usage.html#variable-interpolation
@@ -20,6 +19,11 @@ merge:
   - ${paths.config}/overrides.yaml
   - ${paths.config}/mcp_servers.yaml
 
+# Default configuration, as defined in baseline.yaml, overrides.yaml, here, or elsewhere.
+# It can be overidden by 'BLUEPRINT_CONFIG' environment variable, or in code
+
+default_config: training_edenai   
+
 #### 
 # UI Configuration : list of Streamlit pages, ... 
 ####    
@@ -28,4 +32,3 @@ ui:
   pages_dir : ${paths.src}/webapp/pages
 
   
-default_config: carbon_monitor_local   # can be overidden by 'BLUEPRINT_CONFIG' environment variable

@@ -232,16 +232,9 @@ class EmbeddingsFactory(BaseModel):
         elif self.info.provider == "edenai":
             from langchain_community.embeddings.edenai import EdenAiEmbeddings
 
-            if "__" in self.info.model:
-                # Format: dimensions__model_name
-                dimensions, _, model = self.info.model.partition("__")
-                provider, _, model_name = model.partition("/")
-                edenai_api_key = os.environ["EDENAI_API_KEY"]
-                emb = EdenAiEmbeddings(model=model_name, provider=provider, edenai_api_key=edenai_api_key)
-            else:
-                provider, _, model = self.info.model.partition("/")
-                edenai_api_key = os.environ["EDENAI_API_KEY"]
-                emb = EdenAiEmbeddings(model=model, provider=provider, edenai_api_key=edenai_api_key)
+            provider, _, model = self.info.model.partition("/")
+            edenai_api_key = os.environ["EDENAI_API_KEY"]
+            emb = EdenAiEmbeddings(model=model, provider=provider, edenai_api_key=edenai_api_key)
         elif self.info.provider == "azure":
             from langchain_openai import AzureOpenAIEmbeddings
 

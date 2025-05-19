@@ -14,11 +14,11 @@ The commands are registered with a Typer CLI application and provide:
 """
 
 import asyncio
+import os
 import sys
 from pathlib import Path
 from typing import Annotated, Callable, Optional
 
-from src.ai_core.mcp_client import get_mcp_tools_info
 import typer
 from devtools import pprint
 from langchain.globals import set_debug, set_verbose
@@ -29,7 +29,8 @@ from typer import Option
 from src.ai_core.cache import LlmCache
 from src.ai_core.chain_registry import ChainRegistry
 from src.ai_core.embeddings import EmbeddingsFactory, get_embeddings
-from src.ai_core.llm import LlmFactory
+from src.ai_core.llm import PROVIDER_INFO, LlmFactory
+from src.ai_core.mcp_client import get_mcp_tools_info
 from src.ai_core.vector_store import VectorStoreFactory
 from src.utils.config_mngr import global_config
 
@@ -40,20 +41,15 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         Display current configuration and available API keys.
         """
-        # Show selected config
         config = global_config()
         print(f"Selected configuration: {config.selected_config}")
-        
+
         # Show available API keys
         print("\nAvailable API keys:")
-        from src.ai_core.llm import PROVIDER_INFO
         for provider, (_, key_name) in PROVIDER_INFO.items():
             if key_name and key_name in os.environ:
                 print(f"  {provider}: {key_name} = {'*' * 8} (set)")
-            elif key_name:
-                print(f"  {provider}: {key_name} = (not set)")
-            else:
-                print(f"  {provider}: (no key required)")
+
     @cli_app.command()
     def llm(
         input: str | None = None,  # input
