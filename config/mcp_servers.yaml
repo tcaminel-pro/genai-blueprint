@@ -25,14 +25,14 @@ mcpServers:
     command: npx
     args:  ["-y", "@modelcontextprotocol/server-github"]
     env:
-      GITHUB_PERSONAL_ACCESS_TOKEN: ${oc.env:GITHUB_TOKEN}
+      GITHUB_PERSONAL_ACCESS_TOKEN: ${oc.env:GITHUB_TOKEN, null}
     disabled: true
 
   tavily-mcp: 
     command: npx
     args: [ "-y" ,"tavily-mcp"]
     env: 
-      TAVILY_API_KEY : ${oc.env:TAVILY_API_KEY}
+      TAVILY_API_KEY : ${oc.env:TAVILY_API_KEY, null}
   #  disabled: true
     
   ppt: 

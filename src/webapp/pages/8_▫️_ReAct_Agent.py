@@ -14,8 +14,8 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 
 from src.ai_core.llm import get_llm
-from src.ai_core.prompts import dedent_ws, dict_input_message
 from src.ai_core.mcp_client import get_mcp_servers_dict
+from src.ai_core.prompts import dedent_ws, dict_input_message
 from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
 from src.webapp.ui_components.llm_config import llm_config_widget
 from src.webapp.ui_components.streamlit_chat import StreamlitStatusCallbackHandler, display_messages
@@ -108,10 +108,11 @@ async def main() -> None:
     config, checkpointer = get_agent_config()
     llm = get_llm()
 
-    mcp_servers_params = get_mcp_servers_dict() if mcp_enabled else {}
+    mcp_servers_params = get_mcp_servers_dict(["weather", "playwright", "ppt"]) if mcp_enabled else {}
     async with MultiServerMCPClient(mcp_servers_params) as client:
         rcp_tools = client.get_tools()
         all_tools = local_tools + rcp_tools
+        debug(all_tools)
         if "tools" not in st.session_state:
             st.session_state["tools"] = all_tools
             st.rerun()
