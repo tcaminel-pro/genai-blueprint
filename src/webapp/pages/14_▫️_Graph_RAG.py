@@ -37,7 +37,7 @@ with st.form("graph_input_form"):
     use_cache = st.checkbox("Cache built graph", value=True)
     submitted = st.form_submit_button("Process Text")
 
-DB = "/temp/test_db"
+DB = "/tmp/test_db"
 if submitted:
     # Define schema
 

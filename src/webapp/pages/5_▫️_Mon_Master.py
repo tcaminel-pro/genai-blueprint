@@ -16,11 +16,8 @@ from src.demos.mon_master_search.model_subset import EXAMPLE_QUERIES
 
 LLM = "gemini_pro_google"
 
-REPO = Path("/mnt/c/Users/a184094/OneDrive - Eviden/_En cours/mon_master/")
-FILES = REPO / "synthesis_v2.json"
 
 DEFAULT_RESULT_COUNT = 100
-
 
 ################################
 #  UI

@@ -1,13 +1,13 @@
 import asyncio
 import uuid
-from typing import Literal, Tuple, cast
+from typing import Tuple, cast
 
 import streamlit as st
 from dotenv import load_dotenv
 from langchain.callbacks import tracing_v2_enabled
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
-from langchain_core.tools import BaseTool, tool
+from langchain_core.tools import BaseTool
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import MemorySaver
@@ -20,22 +20,13 @@ from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
 from src.webapp.ui_components.llm_config import llm_config_widget
 from src.webapp.ui_components.streamlit_chat import StreamlitStatusCallbackHandler, display_messages
 
+MCP_SERVERS = ["weather", "playwright", "ppt"]
+MCP_SERVERS = ["weather"]
 load_dotenv()
 
 llm_config_widget(st.sidebar, False)
 
 st.title("Chat Playground")
-
-
-@tool
-def get_weather(city: Literal["nyc", "sf"]) -> str:
-    """Use this to get weather information."""
-    if city == "nyc":
-        return "It might be cloudy in nyc"
-    elif city == "sf":
-        return "It's always sunny in sf"
-    else:
-        raise AssertionError("Unknown city")
 
 
 mcp_enabled = st.toggle("MCP", True)
@@ -74,28 +65,6 @@ with st.container(border=True):
 
 
 @st.cache_resource()
-async def get_rcp_tool() -> list[BaseTool]:
-    d = get_mcp_servers_dict()
-    async with MultiServerMCPClient(d) as client:
-        # async with MultiServerMCPClient(test_servers) as client:
-        return client.get_tools()
-
-
-# @st.cache_resource()
-# def create_agent(rcp_tools: list = []) -> Tuple[CompiledGraph, RunnableConfig]:
-#     llm = get_llm()
-#     checkpointer = MemorySaver()
-#     thread_id = str(uuid.uuid4())
-#     config = {"configurable": {"thread_id": thread_id}}
-#     all_tools = tools + rcp_tools
-#     # print(all_tools)
-#     agent = create_react_agent(
-#         model=llm, tools=all_tools, prompt=system_prompt_input or None, checkpointer=checkpointer
-#     )
-#     return agent, cast(RunnableConfig, config)
-
-
-@st.cache_resource()
 def get_agent_config() -> tuple[RunnableConfig, BaseCheckpointSaver]:
     thread_id = str(uuid.uuid4())
     config = {"configurable": {"thread_id": thread_id}}
@@ -108,9 +77,11 @@ async def main() -> None:
     config, checkpointer = get_agent_config()
     llm = get_llm()
 
-    mcp_servers_params = get_mcp_servers_dict(["weather", "playwright", "ppt"]) if mcp_enabled else {}
+    mcp_servers_params = get_mcp_servers_dict(MCP_SERVERS) if mcp_enabled else {}
+    debug(mcp_servers_params)
     async with MultiServerMCPClient(mcp_servers_params) as client:
         rcp_tools = client.get_tools()
+        debug(rcp_tools)
         all_tools = local_tools + rcp_tools
         debug(all_tools)
         if "tools" not in st.session_state:

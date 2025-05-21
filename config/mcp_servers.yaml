@@ -49,6 +49,8 @@ mcpServers:
   weather:
       command: uv
       args: 
+        - "--directory"
+        - ${paths.src}/mcp_server/
         - run 
-        - ${paths.src}/mcp_server/weather_server.py
+        - weather_server.py
       disabled: false

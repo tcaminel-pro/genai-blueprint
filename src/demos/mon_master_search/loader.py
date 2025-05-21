@@ -151,9 +151,9 @@ class offre_formation_loader(BaseLoader):
                 yield from process_json(str(member.name), parcours)
 
 
-REPO = Path("/mnt/c/Users/a184094/OneDrive - Eviden/_En cours/mon_master/")
+REPO = global_config().get_dir_path("onedrive_data", create_if_not_exists=False)
 FILES = REPO / "synthesis_v2.json"
-
+assert FILES.exists()
 
 EMBEDDINGS_MODEL = "minilm_multilingual_local"
 EMBEDDINGS_MODEL = "camembert_large_local"

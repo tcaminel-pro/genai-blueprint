@@ -1,6 +1,5 @@
 from enum import Enum
 from functools import cache
-from pathlib import Path
 
 import pandas as pd
 from langchain.retrievers import EnsembleRetriever
@@ -12,6 +11,7 @@ from loguru import logger
 from src.ai_core.embeddings import EmbeddingsFactory
 from src.ai_core.vector_store import VectorStoreFactory
 from src.ai_extra.bm25s_retriever import get_spacy_preprocess_fn
+from src.demos.mon_master_search.loader import FILES
 from src.demos.mon_master_search.model_subset import EXAMPLE_QUERIES
 from src.utils.pydantic.jsonl_store import load_objects_from_jsonl
 
@@ -20,8 +20,6 @@ from src.utils.pydantic.jsonl_store import load_objects_from_jsonl
 DEFAULT_RESULT_COUNT = 20
 RATIO_SPARSE = 50
 EMBEDDINGS_MODEL_ID = "solon_large_local"
-REPO = Path("/mnt/c/Users/a184094/OneDrive - Eviden/_ongoing/mon_master/")
-FILES = REPO / "synthesis_v2.json"
 
 
 class SearchMode(Enum):
