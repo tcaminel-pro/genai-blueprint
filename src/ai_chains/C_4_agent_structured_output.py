@@ -53,3 +53,4 @@ get_weather_chain = RunnableLambda(get_weather_fn).with_config(llm_config(MODEL)
 answer = get_weather_chain.invoke("what's the weather in New York?")
 
 print(answer)
+debug(answer)

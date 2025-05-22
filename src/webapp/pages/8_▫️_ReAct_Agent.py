@@ -21,7 +21,7 @@ from src.webapp.ui_components.llm_config import llm_config_widget
 from src.webapp.ui_components.streamlit_chat import StreamlitStatusCallbackHandler, display_messages
 
 MCP_SERVERS = ["weather", "playwright", "ppt"]
-MCP_SERVERS = ["weather"]
+#MCP_SERVERS = ["weather"]
 load_dotenv()
 
 llm_config_widget(st.sidebar, False)
@@ -81,7 +81,6 @@ async def main() -> None:
     debug(mcp_servers_params)
     async with MultiServerMCPClient(mcp_servers_params) as client:
         rcp_tools = client.get_tools()
-        debug(rcp_tools)
         all_tools = local_tools + rcp_tools
         debug(all_tools)
         if "tools" not in st.session_state:

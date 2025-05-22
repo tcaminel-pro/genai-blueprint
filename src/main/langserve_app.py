@@ -53,12 +53,12 @@ add_routes(
     path="/openai",
 )
 
-# for runnable in chain_registry.get_runnable_list() :
-#     add_routes(
-#         app,
-#         runnable.get(),
-#         path="/" + runnable.name.lower()
-#     )
+for runnable in chain_registry.get_runnable_list() :
+    add_routes(
+        app,
+        runnable.get(),
+        path="/" + runnable.name.lower()
+    )
 
 if __name__ == "__main__":
     import uvicorn

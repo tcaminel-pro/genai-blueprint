@@ -24,7 +24,7 @@ from src.utils.singleton import once
 
 load_dotenv(verbose=True)
 
-LLM_ID = "deepseek_chatv3_deepseek"
+LLM_ID = None
 
 
 class YesOrNo(Enum):

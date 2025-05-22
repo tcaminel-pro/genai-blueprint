@@ -1,6 +1,8 @@
 # Taken from : https://hungvtm.medium.com/building-mcp-servers-and-client-with-smolagents-bd9db2d640e6
+# and https://medium.com/@rohitobrai11/designing-an-mcp-server-for-live-weather-forecasts-and-alerts-in-claude-desktop-aff55c8bf3aa
 
 
+from textwrap import dedent
 from typing import Any
 
 import httpx
@@ -26,13 +28,12 @@ async def make_nws_request(url: str) -> dict[str, Any] | None:
 
 def format_alert(feature: dict) -> str:
     props = feature["properties"]
-    return f"""
-Event: {props.get("event", "Unknown")}
-Area: {props.get("areaDesc", "Unknown")}
-Severity: {props.get("severity", "Unknown")}
-Description: {props.get("description", "No description available")}
-Instructions: {props.get("instruction", "No specific instructions provided")}
-"""
+    return dedent(f"""
+        Event: {props.get("event", "Unknown")}
+        Area: {props.get("areaDesc", "Unknown")}
+        Severity: {props.get("severity", "Unknown")}
+        Description: {props.get("description", "No description available")}
+        Instructions: {props.get("instruction", "No specific instructions provided")}""")
 
 
 @mcp.tool()
@@ -50,7 +51,7 @@ async def get_alerts(state: str) -> str:
 
 @mcp.tool()
 async def get_forecast(latitude: float, longitude: float) -> str:
-    """Get weather forecast for a location given by latitude and logitude."""
+    """Get weather forecast for a location given by latitude and longitude."""
     points_url = f"{NWS_API_BASE}/points/{latitude},{longitude}"
     points_data = await make_nws_request(points_url)
     if not points_data:
@@ -62,12 +63,13 @@ async def get_forecast(latitude: float, longitude: float) -> str:
     periods = forecast_data["properties"]["periods"]
     forecasts = []
     for period in periods[:5]:
-        forecasts.append(f"""
-{period["name"]}:
-Temperature: {period["temperature"]}\u00b0{period["temperatureUnit"]}
-Wind: {period["windSpeed"]} {period["windDirection"]}
-Forecast: {period["detailedForecast"]}
-""")
+        forecasts.append(
+            dedent(f"""
+            {period["name"]}:
+            Temperature: {period["temperature"]}\u00b0{period["temperatureUnit"]}
+            Wind: {period["windSpeed"]} {period["windDirection"]}
+            Forecast: {period["detailedForecast"]} """)
+        )
     return "\n---\n".join(forecasts)
 
 

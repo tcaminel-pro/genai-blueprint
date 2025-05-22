@@ -6,7 +6,6 @@ from typing import Any
 
 import folium
 import pandas as pd
-import smolagents
 import streamlit as st
 import yfinance as yf
 from groq import BaseModel
@@ -25,8 +24,8 @@ from streamlit.runtime.uploaded_file_manager import UploadedFile
 from streamlit_folium import st_folium
 
 from src.ai_core.llm import LlmFactory
-from src.ai_core.prompts import dedent_ws
 from src.ai_core.mcp_client import dict_to_stdio_server_list, get_mcp_servers_dict
+from src.ai_core.prompts import dedent_ws
 from src.utils.streamlit.auto_scroll import scroll_to_here
 from src.utils.streamlit.load_data import TABULAR_FILE_FORMATS_READERS, load_tabular_data
 from src.utils.streamlit.recorder import StreamlitRecorder
@@ -34,6 +33,7 @@ from src.webapp.ui_components.llm_config import llm_config_widget
 from src.webapp.ui_components.smolagents_streamlit import stream_to_streamlit
 
 MODEL_ID = None  # Use the one by configuration
+MODEL_ID = "gpt_41mini_openrouter"
 # MODEL_ID = "qwen_qwq32_deepinfra"
 # MODEL_ID = "gpt_o3mini_openrouter"
 # MODEL_ID = "qwen_qwq32_openrouter"
@@ -136,13 +136,13 @@ AUTHORIZED_IMPORTS = [
     "wordcloud",
 ]
 
-PRINT_INFORMATION = "print_information"
+PRINT_INFORMATION = "my_final_answer"
 
 IMAGE_INSTRUCTION = dedent_ws(
     f""" 
     -  When creating a plot or generating an image:
       -- save it as png in a tempory directory (use tempfile)
-      -- call '{PRINT_INFORMATION}' or 'final_answer' with the pathlib.Path  
+      -- call '{PRINT_INFORMATION}' with the pathlib.Path  
 """
 )
 
@@ -151,7 +151,7 @@ FOLIUM_INSTRUCTION = dedent_ws(
     - If requested by the user, use Folium to display a map. For example: 
         -- to display map at a given location, call  folium.Map([latitude, longitude])
         -- Do your best to select the zoom factor so whole location enter globaly in the map 
-        -- Call the function '{PRINT_INFORMATION}' or  'final_answer' with the map object"""
+        -- Call the function '{PRINT_INFORMATION}' with the map object"""
 )
 
 PRE_PROMPT = dedent_ws(
@@ -163,7 +163,7 @@ PRE_PROMPT = dedent_ws(
     - DO NOT USE other packages (such as os, shutils, etc).
     - Don't generate "if __name__ == "__main__"
     - Don't use st.sidebar 
-    - Call the function '{PRINT_INFORMATION}' to relevant information before calling 'final_answer'
+    - Call the function '{PRINT_INFORMATION}' with same content that 'final_answer', before calling it.
 
     - {FOLIUM_INSTRUCTION}
     - {IMAGE_INSTRUCTION}
@@ -318,66 +318,41 @@ if raw_data_file:
         df = get_cache_dataframe(raw_data_file, **args)
 
 
-# class MyFinalAnswerTool(smolagents.default_tools.FinalAnswerTool):
-#     """
-#     adds session state tracking for displaying answers in the Streamlit UI.
-#     """
+@tool
+def my_final_answer(answer: Any) -> Any:
+    """
+    Provides a final answer to the given problem.
 
-#     def forward(self, answer: Any) -> Any:
-#         st.session_state.agent_output.append(answer)
-#         super().forward(answer)
-
-
-# Replace the default FinalAnswerTool with our custom version
-# smolagents.default_tools.FinalAnswerTool = MyFinalAnswerTool
-
-
-class MyFinalAnswerTool(smolagents.default_tools.FinalAnswerTool):
-    def forward(self, answer: Any) -> Any:
-        try:
-            if len(st.session_state.agent_output) == 0 or st.session_state.agent_output[-1] != answer:
-                st.session_state.agent_output.append(answer)
-                st.write(answer)
-            return str(answer)
-        except Exception as ex:
-            logger.exception(ex)
-            raise ex
-
-
-smolagents.default_tools.FinalAnswerTool = MyFinalAnswerTool
-
-
-class DisplayInformationTool(Tool):
-    name = PRINT_INFORMATION
-    description = "Display relevant information"
-    inputs = {"answer": {"type": "any", "description": "one step to solve the probem"}}
-    output_type = "any"
-
-    def forward(self, answer: Any) -> Any:
-        try:
-            if len(st.session_state.agent_output) == 0 or st.session_state.agent_output[-1] != answer:
-                st.session_state.agent_output.append(answer)
-            return f"displayed: {answer}"
-        except Exception as ex:
-            logger.exception(ex)
-            raise ex
+        Args:
+        answer : "The final answer to the problem
+    """
+    # additional_args = getattr(my_final_answer, "_additional_args", {})
+    # widget = additional_args.get("widget") # Does not woek here
+    if len(st.session_state.agent_output) == 0 or st.session_state.agent_output[-1] != answer:
+        st.session_state.agent_output.append(answer)
+        display(answer)
+    return str(answer)
 
 
 def update_display() -> None:
+    if len(st.session_state.agent_output) > 0:
+        st.write("answer:")
+    for msg in st.session_state.agent_output:
+        display(msg)
+
+
+def display(msg: Any) -> None:
     try:
-        if len(st.session_state.agent_output) > 0:
-            st.write("answer:")
-        for msg in st.session_state.agent_output:
-            if isinstance(msg, str):
-                st.markdown(msg)
-            elif isinstance(msg, folium.Map):
-                st_folium(msg)
-            elif isinstance(msg, pd.DataFrame):
-                st.dataframe(msg)
-            elif isinstance(msg, Path):
-                st.image(msg)
-            else:
-                st.write(msg)
+        if isinstance(msg, str):
+            st.markdown(msg)
+        elif isinstance(msg, folium.Map):
+            st_folium(msg)
+        elif isinstance(msg, pd.DataFrame):
+            st.dataframe(msg)
+        elif isinstance(msg, Path):
+            st.image(msg)
+        else:
+            st.write(msg)
     except Exception as ex:
         logger.exception(ex)
         raise ex
@@ -403,7 +378,8 @@ if submitted:
     exec_block = placeholder.container()
     col_display_left, col_display_right = exec_block.columns(2)
     log_widget = col_display_left.container(height=HEIGHT)
-    result_display = col_display_right.container(height=HEIGHT)
+    # result_display = col_display_right.container(height=HEIGHT)
+    result_display = col_display_right
 
     mcp_tools = []
     mcp_client = None
@@ -418,7 +394,7 @@ if submitted:
         strecorder.replay(log_widget)
         with log_widget:
             if prompt:
-                tools = demo.tools + mcp_tools + [MyFinalAnswerTool(), DisplayInformationTool()]
+                tools = demo.tools + mcp_tools + [my_final_answer]
                 tools_list = [f"{t.name}: {t.description}" for t in tools]
                 agent = CodeAgent(
                     tools=tools,
@@ -426,19 +402,17 @@ if submitted:
                     additional_authorized_imports=AUTHORIZED_IMPORTS,
                     max_steps=10,  # for debug
                 )
-                # agent.prompt_templates["system_prompt"] = re.sub(
-                #     r"\bfinal_answer\b", PRINT_RESULT, agent.prompt_templates["system_prompt"]
-                # )
-                agent.tools.setdefault("final_answer", MyFinalAnswerTool())
                 debug(agent.tools)
                 with st.spinner(text="Thinking..."):
+                    col_display_right.write(f"query: {prompt}")
                     with strecorder:
                         stream_to_streamlit(
-                            agent, PRE_PROMPT + prompt, additional_args={"st": col_display_right}, display_details=False
+                            agent,
+                            PRE_PROMPT + prompt,
+                            additional_args={"widget": col_display_right},  # does not work in fact
+                            display_details=False,
                         )
                     scroll_to_here()
-
-            #        debug(st.session_state.agent_output)
             with col_display_right:
                 update_display()
     finally:
