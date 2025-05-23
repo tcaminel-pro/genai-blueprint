@@ -43,6 +43,9 @@ DATA_PATH = Path.cwd() / "use_case_data/other"
 if "agent_output" not in st.session_state:
     st.session_state.agent_output = []
 
+if "result_display" not in st.session_state:
+    st.session_state.result_display = st
+
 
 class DataFrameTool(Tool):
     name: str
@@ -126,7 +129,7 @@ AUTHORIZED_IMPORTS = [
     "pathlib",
     "pandas",
     "matplotlib.*",
-    "numpy",
+    "numpy.*",
     "json",
     "streamlit",
     "base64",
@@ -147,11 +150,13 @@ IMAGE_INSTRUCTION = dedent_ws(
 )
 
 FOLIUM_INSTRUCTION = dedent_ws(
-    """ 
+    f""" 
     - If requested by the user, use Folium to display a map. For example: 
         -- to display map at a given location, call  folium.Map([latitude, longitude])
         -- Do your best to select the zoom factor so whole location enter globaly in the map 
-        -- Call the function '{PRINT_INFORMATION}' with the map object"""
+        -- save it as png in a tempory directory (use tempfile)
+        -- Call the function '{PRINT_INFORMATION}' with the map object 
+        """
 )
 
 PRE_PROMPT = dedent_ws(
@@ -324,13 +329,13 @@ def my_final_answer(answer: Any) -> Any:
     Provides a final answer to the given problem.
 
         Args:
-        answer : "The final answer to the problem
+        answer : The final answer to the problem.  Can be Markdown or an object of type pd.DataFrame, Path or folium.Map
     """
     # additional_args = getattr(my_final_answer, "_additional_args", {})
     # widget = additional_args.get("widget") # Does not woek here
     if len(st.session_state.agent_output) == 0 or st.session_state.agent_output[-1] != answer:
         st.session_state.agent_output.append(answer)
-        display(answer)
+        display_final_msg(answer)
     return str(answer)
 
 
@@ -338,21 +343,23 @@ def update_display() -> None:
     if len(st.session_state.agent_output) > 0:
         st.write("answer:")
     for msg in st.session_state.agent_output:
-        display(msg)
+        display_final_msg(msg)
 
 
-def display(msg: Any) -> None:
+def display_final_msg(msg: Any) -> None:
     try:
-        if isinstance(msg, str):
-            st.markdown(msg)
-        elif isinstance(msg, folium.Map):
-            st_folium(msg)
-        elif isinstance(msg, pd.DataFrame):
-            st.dataframe(msg)
-        elif isinstance(msg, Path):
-            st.image(msg)
-        else:
-            st.write(msg)
+        with st.session_state.result_display:
+            st.write(f"{type(msg)}")
+            if isinstance(msg, str):
+                st.markdown(msg)
+            elif isinstance(msg, folium.Map):
+                st_folium(msg)
+            elif isinstance(msg, pd.DataFrame):
+                st.dataframe(msg)
+            elif isinstance(msg, Path):
+                st.image(msg)
+            else:
+                st.write(msg)
     except Exception as ex:
         logger.exception(ex)
         raise ex
@@ -378,8 +385,10 @@ if submitted:
     exec_block = placeholder.container()
     col_display_left, col_display_right = exec_block.columns(2)
     log_widget = col_display_left.container(height=HEIGHT)
-    # result_display = col_display_right.container(height=HEIGHT)
-    result_display = col_display_right
+    result_display = col_display_right.container(height=HEIGHT)
+    # result_display = col_display_right
+
+    st.session_state.result_display = result_display
 
     mcp_tools = []
     mcp_client = None
@@ -404,12 +413,12 @@ if submitted:
                 )
                 debug(agent.tools)
                 with st.spinner(text="Thinking..."):
-                    col_display_right.write(f"query: {prompt}")
+                    result_display.write(f"query: {prompt}")
                     with strecorder:
                         stream_to_streamlit(
                             agent,
                             PRE_PROMPT + prompt,
-                            additional_args={"widget": col_display_right},  # does not work in fact
+                            # additional_args={"widget": col_display_right},  # does not work in fact
                             display_details=False,
                         )
                     scroll_to_here()

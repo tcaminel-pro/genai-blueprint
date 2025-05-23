@@ -83,7 +83,7 @@ def load_object_from_kvstore(model_class: type[T], key: str | dict, file_store_p
     # Use the lowercase class name of the Pydantic model
 
     if file_store_path is None:
-        file_store_path = global_config().get_dir_path("kv_store.path")
+        file_store_path = global_config().get_dir_path("kv_store.path", create_if_not_exists=True)
     class_name = model_class.__name__
     file_store = LocalFileStore(file_store_path / class_name)
 
