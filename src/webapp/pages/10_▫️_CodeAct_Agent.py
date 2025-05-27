@@ -63,15 +63,16 @@ if "result_display" not in st.session_state:
 
 class DataFrameTool(Tool):
     """A tool for working with Pandas DataFrames from various data sources.
-    
+
     This tool provides access to tabular data stored in files and allows the AI agent
     to perform data analysis operations on the loaded DataFrame.
-    
+
     Attributes:
         name: Unique identifier for the tool
         description: Brief description of the tool's functionality
         source_path: Path to the data file containing the DataFrame
     """
+
     name: str
     description: str
     inputs = {
@@ -100,16 +101,17 @@ class DataFrameTool(Tool):
 
 class CodeactDemo(BaseModel):
     """Configuration class for CodeAct Agent demonstrations.
-    
+
     This class defines the structure for setting up different demo scenarios
     including available tools, MCP servers, and example prompts.
-    
+
     Attributes:
         name: Name of the demonstration
         tools: List of available tools for the demo
         mcp_servers: List of MCP server configurations
         examples: List of example prompts for the demo
     """
+
     name: str
     tools: list[Tool] = []
     mcp_servers: list[str] = []
@@ -119,25 +121,18 @@ class CodeactDemo(BaseModel):
 
 @tool
 def get_stock_info(symbol: str, key: str) -> dict:
-    """Retrieve specific information about a stock using its ticker symbol.
-    
+    """Retrieve specific information about a stock using its ticker symbol and key.
+
     This tool interfaces with Yahoo Finance to fetch various stock metrics
     including price, company information, and financial indicators.
-    
-    Args:
-        symbol: Stock ticker symbol (e.g., 'AAPL' for Apple)
-        key: Specific metric to retrieve from the stock info
-        
-    Returns:
-        Dictionary containing the requested stock information
-    """
-    """Return the correct stock info value given the appropriate symbol and key.
     If asked generically for 'stock price', use currentPrice.
 
     Args:
-        symbol : Stock ticker symbol.
-        key : must be one of the following: address1, city, state, zip, country, phone, website, industry, industryKey, industryDisp, sector, sectorKey, sectorDisp, longBusinessSummary, fullTimeEmployees, companyOfficers, auditRisk, boardRisk, compensationRisk, shareHolderRightsRisk, overallRisk, governanceEpochDate, compensationAsOfEpochDate, maxAge, priceHint, previousClose, open, dayLow, dayHigh, regularMarketPreviousClose, regularMarketOpen, regularMarketDayLow, regularMarketDayHigh, dividendRate, dividendYield, exDividendDate, beta, trailingPE, forwardPE, volume, regularMarketVolume, averageVolume, averageVolume10days, averageDailyVolume10Day, bid, ask, bidSize, askSize, marketCap, fiftyTwoWeekLow, fiftyTwoWeekHigh, priceToSalesTrailing12Months, fiftyDayAverage, twoHundredDayAverage, currency, enterpriseValue, profitMargins, floatShares, sharesOutstanding, sharesShort, sharesShortPriorMonth, sharesShortPreviousMonthDate, dateShortInterest, sharesPercentSharesOut, heldPercentInsiders, heldPercentInstitutions, shortRatio, shortPercentOfFloat, impliedSharesOutstanding, bookValue, priceToBook, lastFiscalYearEnd, nextFiscalYearEnd, mostRecentQuarter, earningsQuarterlyGrowth, netIncomeToCommon, trailingEps, forwardEps, pegRatio, enterpriseToRevenue, enterpriseToEbitda, 52WeekChange, SandP52WeekChange, lastDividendValue, lastDividendDate, exchange, quoteType, symbol, underlyingSymbol, shortName, longName, firstTradeDateEpochUtc, timeZoneFullName, timeZoneShortName, uuid, messageBoardId, gmtOffSetMilliseconds, currentPrice, targetHighPrice, targetLowPrice, targetMeanPrice, targetMedianPrice, recommendationMean, recommendationKey, numberOfAnalystOpinions, totalCash, totalCashPerShare, ebitda, totalDebt, quickRatio, currentRatio, totalRevenue, debtToEquity, revenuePerShare, returnOnAssets, returnOnEquity, freeCashflow, operatingCashflow, earningsGrowth, revenueGrowth, grossMargins, ebitdaMargins, operatingMargins, financialCurrency, trailingPegRatio.
+        symbol: Stock ticker symbol (e.g., 'AAPL' for Apple)
+        key: Specific metric to retrieve from the stock info.   must be one of the following: address1, city, state, zip, country, phone, website, industry, industryKey, industryDisp, sector, sectorKey, sectorDisp, longBusinessSummary, fullTimeEmployees, companyOfficers, auditRisk, boardRisk, compensationRisk, shareHolderRightsRisk, overallRisk, governanceEpochDate, compensationAsOfEpochDate, maxAge, priceHint, previousClose, open, dayLow, dayHigh, regularMarketPreviousClose, regularMarketOpen, regularMarketDayLow, regularMarketDayHigh, dividendRate, dividendYield, exDividendDate, beta, trailingPE, forwardPE, volume, regularMarketVolume, averageVolume, averageVolume10days, averageDailyVolume10Day, bid, ask, bidSize, askSize, marketCap, fiftyTwoWeekLow, fiftyTwoWeekHigh, priceToSalesTrailing12Months, fiftyDayAverage, twoHundredDayAverage, currency, enterpriseValue, profitMargins, floatShares, sharesOutstanding, sharesShort, sharesShortPriorMonth, sharesShortPreviousMonthDate, dateShortInterest, sharesPercentSharesOut, heldPercentInsiders, heldPercentInstitutions, shortRatio, shortPercentOfFloat, impliedSharesOutstanding, bookValue, priceToBook, lastFiscalYearEnd, nextFiscalYearEnd, mostRecentQuarter, earningsQuarterlyGrowth, netIncomeToCommon, trailingEps, forwardEps, pegRatio, enterpriseToRevenue, enterpriseToEbitda, 52WeekChange, SandP52WeekChange, lastDividendValue, lastDividendDate, exchange, quoteType, symbol, underlyingSymbol, shortName, longName, firstTradeDateEpochUtc, timeZoneFullName, timeZoneShortName, uuid, messageBoardId, gmtOffSetMilliseconds, currentPrice, targetHighPrice, targetLowPrice, targetMeanPrice, targetMedianPrice, recommendationMean, recommendationKey, numberOfAnalystOpinions, totalCash, totalCashPerShare, ebitda, totalDebt, quickRatio, currentRatio, totalRevenue, debtToEquity, revenuePerShare, returnOnAssets, returnOnEquity, freeCashflow, operatingCashflow, earningsGrowth, revenueGrowth, grossMargins, ebitdaMargins, operatingMargins, financialCurrency, trailingPegRatio.
 
+    Returns:
+        Dictionary containing the requested stock information
     """
     data = yf.Ticker(symbol)
     stock_info = data.info
@@ -146,19 +141,6 @@ def get_stock_info(symbol: str, key: str) -> dict:
 
 @tool
 def get_historical_price(symbol: str, start_date: date, end_date: date) -> pd.DataFrame:
-    """Fetch historical stock price data for a given time period.
-    
-    This tool retrieves daily price data including open, close, high, low prices
-    and volume for the specified date range.
-    
-    Args:
-        symbol: Stock ticker symbol
-        start_date: Start date for the historical data
-        end_date: End date for the historical data
-        
-    Returns:
-        DataFrame containing historical price data with Date and Close price columns
-    """
     """Fetches historical stock prices for a given symbol from 'start_date' to 'end_date'.
 
     Args:
@@ -246,10 +228,10 @@ PRE_PROMPT = dedent_ws(
 
 def load_demos_from_config() -> List[CodeactDemo]:
     """Load and configure demonstration scenarios from the application configuration.
-    
+
     This function reads the demo configurations from the global config and creates
     corresponding CodeactDemo objects with their associated tools and examples.
-    
+
     Returns:
         List of configured CodeactDemo objects
     """
@@ -304,7 +286,7 @@ def load_demos_from_config() -> List[CodeactDemo]:
         return []
 
 
-# Load demos from config or use defaults
+# Load demos from config
 SAMPLES_DEMOS = load_demos_from_config()
 
 ##########################
@@ -317,14 +299,14 @@ llm_config_widget(st.sidebar)
 @st.cache_data(show_spinner=True)
 def get_cache_dataframe(file_or_filename: Path | UploadedFile, **kwargs) -> pd.DataFrame:
     """Load and cache a DataFrame from a file or uploaded file object.
-    
+
     This function handles various file formats and caches the loaded DataFrame
     to improve performance for repeated access.
-    
+
     Args:
         file_or_filename: Path to the file or Streamlit UploadedFile object
         **kwargs: Additional arguments to pass to the file reader
-        
+
     Returns:
         Loaded Pandas DataFrame
     """
@@ -332,7 +314,6 @@ def get_cache_dataframe(file_or_filename: Path | UploadedFile, **kwargs) -> pd.D
 
 
 FILE_SElECT_CHOICE = ":open_file_folder: :orange[Select your file]"
-
 
 strecorder = StreamlitRecorder()
 
@@ -399,13 +380,13 @@ if raw_data_file:
 @tool
 def my_final_answer(answer: Any) -> Any:
     """Display the final result of the AI agent's execution.
-    
+
     This tool handles the presentation of different types of results including
     Markdown text, DataFrames, images, and Folium maps in the Streamlit interface.
-    
+
     Args:
         answer: The final result to display, can be various types
-        
+
     Returns:
         String representation of the answer
     """
@@ -425,7 +406,7 @@ def my_final_answer(answer: Any) -> Any:
 
 def update_display() -> None:
     """Update the Streamlit display with all accumulated agent outputs.
-    
+
     This function iterates through the stored agent outputs and displays
     them in the appropriate format in the Streamlit interface.
     """
@@ -437,10 +418,10 @@ def update_display() -> None:
 
 def display_final_msg(msg: Any) -> None:
     """Display a single message in the appropriate format.
-    
+
     This function handles the rendering of different message types including
     Markdown, DataFrames, images, and Folium maps in the Streamlit interface.
-    
+
     Args:
         msg: The message to display, can be various types
     """
