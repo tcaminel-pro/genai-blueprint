@@ -80,19 +80,7 @@ def load_demos_from_config() -> List[GraphRagDemo]:
         return result
     except Exception as e:
         logger.exception(f"Error loading demos from config: {e}")
-        # Return default demo if config loading fails
-        return [
-            GraphRagDemo(
-                name="Company Leadership",
-                text="Tim Cook is the CEO of Apple. Apple has its headquarters in California.",
-                allowed_nodes=["Person", "Company", "Location"],
-                allowed_relationships=[
-                    ("Person", "IS_CEO_OF", "Company"),
-                    ("Company", "HAS_HEADQUARTERS_IN", "Location"),
-                ],
-                example_queries=["Who is CEO of Apple?", "Where is Apple headquartered?"],
-            )
-        ]
+        return []
 
 
 # Load demos from config
