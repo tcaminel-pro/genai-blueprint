@@ -87,16 +87,15 @@ def load_demos_from_config() -> List[ReactDemo]:
         return []
 
 
-# Load demos from config or use defaults
 SAMPLES_DEMOS = load_demos_from_config()
 
-# Set local_tools from SAMPLES_DEMOS 'tools' field by introspection
+debug(type(my_custom_weather))
 local_tools = []
 for demo in SAMPLES_DEMOS:
     for tool_name in demo.tools:
         if tool_name in globals() and callable(globals()[tool_name]):
             tool_func = globals()[tool_name]
-            if hasattr(tool_func, "__tool_metadata__") and tool_func not in local_tools:
+            if isinstance(tool_func, BaseTool):
                 local_tools.append(tool_func)
 
 
