@@ -186,7 +186,15 @@ PRE_PROMPT = dedent_ws(
 def load_demos_from_config() -> List[Demo]:
     """Load demos configuration from YAML file"""
 
+    # Import tools directly from smolagents
     from smolagents import WebSearchTool, VisitWebpageTool  # noqa: F401, I001
+
+    # Create a tools dictionary for easy access
+    tools_dict = {
+        "WebSearchTool": WebSearchTool,
+        "VisitWebpageTool": VisitWebpageTool,
+        "DataFrameTool": DataFrameTool
+    }
 
     try:
         # Get the demos configuration from the YAML file
@@ -202,10 +210,9 @@ def load_demos_from_config() -> List[Demo]:
             # Process tools
             tools = []
             for tool_config in demo_config.get("tools", []):
-                debug(tool_config)
                 if isinstance(tool_config, DictConfig):
                     tool_type = tool_config.get("type", "")
-                    debug(tool_type)
+                    
                     # Handle different tool types
                     if tool_type == "DataFrameTool":
                         tools.append(
@@ -220,17 +227,11 @@ def load_demos_from_config() -> List[Demo]:
                         func_name = tool_config.get("name", "")
                         if func_name in globals():
                             tools.append(globals()[func_name])
+                    elif tool_type in tools_dict:
+                        # Create tool from the tools dictionary
+                        tools.append(tools_dict[tool_type]())
                     else:
-                        # This method does not work ( Unknown tool type: WebSearchTool). Fix it AI!
-                        try:
-                            tool_class = globals().get(tool_type)
-                            debug(tool_type, tool_class)
-                            if tool_class and issubclass(tool_class, Tool):
-                                tools.append(tool_class())
-                            else:
-                                logger.warning(f"Unknown tool type: {tool_type}")
-                        except Exception as ex:
-                            logger.warning(f"Failed to create tool {tool_type}: {ex}")
+                        logger.warning(f"Unknown tool type: {tool_type}")
 
             demo = Demo(
                 name=name,
