@@ -37,7 +37,7 @@ class GraphRagDemo(BaseModel):
     name: str
     text: str
     allowed_nodes: List[str]
-    allowed_relationships: List[Tuple[str, str, str]]
+    allowed_relationships: List[List[str]]
     example_queries: List[str] = []
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -61,11 +61,8 @@ def load_demos_from_config() -> List[GraphRagDemo]:
             allowed_nodes = demo_config.get("allowed_nodes", [])
             relationships_raw = demo_config.get("allowed_relationships", [])
 
-            # Convert relationships from list of dicts to list of tuples
-            allowed_relationships = []
-            for rel in relationships_raw:
-                if isinstance(rel, dict) and "source" in rel and "relation" in rel and "target" in rel:
-                    allowed_relationships.append((rel["source"], rel["relation"], rel["target"]))
+            # Use relationships directly as they are already in the right format
+            allowed_relationships = relationships_raw
 
             example_queries = demo_config.get("example_queries", [])
 
@@ -127,8 +124,9 @@ with st.form("graph_input_form"):
     with col2.expander("Nodes:"):
         st.write(demo.allowed_nodes)
     with col2.expander("Allowed Relationships:"):
-        for src, rel, dst in demo.allowed_relationships:
-            st.code(f"{src} -[{rel}]-> {dst}")
+        for rel in demo.allowed_relationships:
+            src, relation, dst = rel
+            st.code(f"{src} -[{relation}]-> {dst}")
     use_cache = st.checkbox("Cache built graph", value=True)
     submitted = st.form_submit_button("Process Text")
 
