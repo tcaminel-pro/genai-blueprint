@@ -76,7 +76,7 @@ class DataFrameTool(Tool):
         return df
 
 
-class Demo(BaseModel):
+class CodeactDemo(BaseModel):
     name: str
     tools: list[Tool] = []
     mcp_servers: list[str] = []
@@ -185,7 +185,7 @@ PRE_PROMPT = dedent_ws(
 ##########################
 
 
-def load_demos_from_config() -> List[Demo]:
+def load_demos_from_config() -> List[CodeactDemo]:
     """Load demos configuration from YAML file"""
 
     tools_dict = {
@@ -193,7 +193,7 @@ def load_demos_from_config() -> List[Demo]:
         "VisitWebpageTool": VisitWebpageTool,
     }
     try:
-        demos_config = global_config().get_list("codeact_agent_demo")
+        demos_config = global_config().get_list("codeact_agent_demos")
         result = []
         # Create Demo objects from the configuration
         for demo_config in demos_config:
@@ -224,7 +224,7 @@ def load_demos_from_config() -> List[Demo]:
                     else:
                         logger.warning(f"Unknown tool type: {tool_type}")
 
-            demo = Demo(
+            demo = CodeactDemo(
                 name=name,
                 tools=tools,
                 mcp_servers=mcp_servers,
@@ -287,7 +287,7 @@ if selected_pill == FILE_SElECT_CHOICE:
         type=list(TABULAR_FILE_FORMATS_READERS.keys()),
         # on_change=clear_submit,
     )
-    demo = Demo(name="custom", examples=[])
+    demo = CodeactDemo(name="custom", examples=[])
 else:
     demo = next((d for d in SAMPLES_DEMOS if d.name == selected_pill), None)
     if demo is None:
