@@ -1,14 +1,104 @@
+"""Streamlit page for Graph RAG demo with Kuzu.
+
+Provides an interactive interface to build and query knowledge graphs from text.
+Supports configurable node types, relationship types, and demo presets.
+"""
+
+from typing import List, Tuple
+
 import kuzu
 import streamlit as st
 from langchain_core.documents import Document
 from langchain_experimental.graph_transformers import LLMGraphTransformer
 from langchain_kuzu.chains.graph_qa.kuzu import KuzuQAChain
 from langchain_kuzu.graphs.kuzu_graph import KuzuGraph
+from loguru import logger
+from pydantic import BaseModel, ConfigDict
 from st_cytoscape import cytoscape
 
 from src.ai_core.llm import get_llm
+from src.utils.config_mngr import global_config
 from src.webapp.ui_components.cypher_graph_display import get_cytoscape_json, get_cytoscape_style
+from src.webapp.ui_components.llm_config import llm_config_widget
 
+
+# Define demo class
+class GraphRagDemo(BaseModel):
+    """Configuration for a Graph RAG demo preset.
+
+    Attributes:
+        name: Unique demo name
+        text: Sample text to analyze
+        allowed_nodes: List of node types to extract
+        allowed_relationships: List of relationship types to extract
+        example_queries: Example queries for the demo
+    """
+
+    name: str
+    text: str
+    allowed_nodes: List[str]
+    allowed_relationships: List[Tuple[str, str, str]]
+    example_queries: List[str] = []
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+
+def load_demos_from_config() -> List[GraphRagDemo]:
+    """Load demo configurations from global config.
+
+    Returns:
+        List of GraphRagDemo instances loaded from config
+
+    Raises:
+        Exception: If config loading fails
+    """
+    try:
+        demos_config = global_config().get_list("graph_rag_demos")
+        result = []
+        # Create Demo objects from the configuration
+        for demo_config in demos_config:
+            name = demo_config.get("name", "")
+            text = demo_config.get("text", "")
+            allowed_nodes = demo_config.get("allowed_nodes", [])
+            relationships_raw = demo_config.get("allowed_relationships", [])
+
+            # Convert relationships from list of dicts to list of tuples
+            allowed_relationships = []
+            for rel in relationships_raw:
+                if isinstance(rel, dict) and "source" in rel and "relation" in rel and "target" in rel:
+                    allowed_relationships.append((rel["source"], rel["relation"], rel["target"]))
+
+            example_queries = demo_config.get("example_queries", [])
+
+            demo = GraphRagDemo(
+                name=name,
+                text=text,
+                allowed_nodes=allowed_nodes,
+                allowed_relationships=allowed_relationships,
+                example_queries=example_queries,
+            )
+            result.append(demo)
+        return result
+    except Exception as e:
+        logger.exception(f"Error loading demos from config: {e}")
+        # Return default demo if config loading fails
+        return [
+            GraphRagDemo(
+                name="Company Leadership",
+                text="Tim Cook is the CEO of Apple. Apple has its headquarters in California.",
+                allowed_nodes=["Person", "Company", "Location"],
+                allowed_relationships=[
+                    ("Person", "IS_CEO_OF", "Company"),
+                    ("Company", "HAS_HEADQUARTERS_IN", "Location"),
+                ],
+                example_queries=["Who is CEO of Apple?", "Where is Apple headquartered?"],
+            )
+        ]
+
+
+# Load demos from config
+SAMPLE_DEMOS = load_demos_from_config()
+
+llm_config_widget(st.sidebar, False)
 llm = get_llm(llm_id=None)
 st.title("Graph RAG with Kuzu")
 
@@ -16,23 +106,40 @@ st.title("Graph RAG with Kuzu")
 if "graph" not in st.session_state:
     st.session_state.graph = None
 
-allowed_nodes = ["Person", "Company", "Location"]
-allowed_relationships = [
-    ("Person", "IS_CEO_OF", "Company"),
-    ("Company", "HAS_HEADQUARTERS_IN", "Location"),
-]
+
+def clear_display() -> None:
+    """Reset the graph display and state."""
+    if "graph" in st.session_state:
+        st.session_state.graph = None
+
+
+# Demo selection
+c01, c02 = st.columns([6, 4], border=False, gap="medium", vertical_alignment="top")
+with c01.container(border=True):
+    selected_pill = st.pills(
+        "🎬 **Demos:**",
+        options=[demo.name for demo in SAMPLE_DEMOS],
+        default=SAMPLE_DEMOS[0].name,
+        on_change=clear_display,
+    )
+
+# Get selected demo
+demo = next((d for d in SAMPLE_DEMOS if d.name == selected_pill), None)
+if demo is None:
+    st.stop()
+
 # Form for text input and processing
 with st.form("graph_input_form"):
     col1, col2 = st.columns([2, 1])
     text = col1.text_area(
         "Enter text to analyze:",
-        value="Tim Cook is the CEO of Apple. Apple has its headquarters in California.",
+        value=demo.text,
         height=100,
     )
     with col2.expander("Nodes:"):
-        st.write(allowed_nodes)
+        st.write(demo.allowed_nodes)
     with col2.expander("Allowed Relationships:"):
-        for src, rel, dst in allowed_relationships:
+        for src, rel, dst in demo.allowed_relationships:
             st.code(f"{src} -[{rel}]-> {dst}")
     use_cache = st.checkbox("Cache built graph", value=True)
     submitted = st.form_submit_button("Process Text")
@@ -73,9 +180,20 @@ if graph := st.session_state.graph:
 
 with st.form("graph_query_form"):
     st.subheader("Query the Knowledge Graph")
+
+    # Display example queries if available
+    if demo.example_queries:
+        sample_query = st.selectbox(
+            "Example queries:",
+            options=demo.example_queries,
+            index=0 if demo.example_queries else None,
+        )
+    else:
+        sample_query = None
+
     input = st.text_area(
         "Enter query:",
-        value="Who is CEO of Apple ? ",
+        value=sample_query or "Who is CEO of Apple?",
         height=100,
     )
     submitted = st.form_submit_button("Ask KG!")

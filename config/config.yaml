@@ -1,0 +1,2 @@
+# Add this to your existing config.yaml file
+graph_rag_demos: !include graph_rag_demos.yaml
