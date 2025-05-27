@@ -1,3 +1,13 @@
+"""Streamlit page for ReAct Agent demo.
+
+Provides an interactive interface to run ReAct agents with different configurations.
+Supports custom tools, MCP servers integration, and demo presets.
+
+Example:
+    ```
+    from src.webapp.pages import 8_▫️_ReAct_Agent
+    ```
+"""
 import asyncio
 import uuid
 from json import tool
@@ -30,8 +40,15 @@ llm_config_widget(st.sidebar, False)
 
 
 @tool
-def my_custom_weather(location: str):
-    "return an approximate weather"
+def my_custom_weather(location: str) -> str:
+    """Return an approximate weather for given location.
+    
+    Args:
+        location: City name to get weather for
+        
+    Returns:
+        Weather description string
+    """
 
     if location == "Toulouse":
         return "Il faut beau"
@@ -52,6 +69,15 @@ SYSTEM_PROMPT = dedent_ws(
 
 # Define demo class
 class ReactDemo(BaseModel):
+    """Configuration for a ReAct agent demo preset.
+    
+    Attributes:
+        name: Unique demo name
+        tools: List of tool names to include
+        mcp_servers: List of MCP server names to use
+        examples: Example queries for the demo
+        system_prompt: Custom system prompt for the agent
+    """
     name: str
     tools: list[str] = []
     mcp_servers: list[str] = []
@@ -61,7 +87,14 @@ class ReactDemo(BaseModel):
 
 
 def load_demos_from_config() -> List[ReactDemo]:
-    """Load demos configuration from YAML file"""
+    """Load demo configurations from global config.
+    
+    Returns:
+        List of ReactDemo instances loaded from config
+        
+    Raises:
+        Exception: If config loading fails
+    """
     try:
         demos_config = global_config().get_list("react_agent_demos")
         result = []
@@ -100,6 +133,7 @@ for demo in SAMPLES_DEMOS:
 
 
 def clear_display() -> None:
+    """Reset the chat display and tools state."""
     if "messages" in st.session_state:
         st.session_state.messages = []
     if "tools" in st.session_state:
@@ -147,6 +181,11 @@ with st.expander("Available Tools", expanded=False):
 
 @st.cache_resource()
 def get_agent_config() -> tuple[RunnableConfig, BaseCheckpointSaver]:
+    """Create and cache agent configuration.
+    
+    Returns:
+        Tuple of (RunnableConfig, checkpoint saver) with unique thread ID
+    """
     thread_id = str(uuid.uuid4())
     config = {"configurable": {"thread_id": thread_id}}
     checkpointer = MemorySaver()
@@ -154,6 +193,14 @@ def get_agent_config() -> tuple[RunnableConfig, BaseCheckpointSaver]:
 
 
 async def main() -> None:
+    """Main async function to run the ReAct agent demo.
+    
+    Handles:
+    - UI setup and demo selection
+    - Tool initialization
+    - Agent execution
+    - Streaming output display
+    """
     display_messages(st)
     config, checkpointer = get_agent_config()
     llm = get_llm()
