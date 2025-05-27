@@ -54,11 +54,12 @@ MODEL_ID = "gpt_41mini_openrouter"
 
 DATA_PATH = Path.cwd() / "use_case_data/other"
 
+# Initialize session state variables for managing agent output and display
 if "agent_output" not in st.session_state:
-    st.session_state.agent_output = []
+    st.session_state.agent_output = []  # Stores all agent responses
 
 if "result_display" not in st.session_state:
-    st.session_state.result_display = st
+    st.session_state.result_display = st  # Default display container
 
 
 class DataFrameTool(Tool):
@@ -293,7 +294,8 @@ SAMPLES_DEMOS = load_demos_from_config()
 #  UI
 ##########################
 
-llm_config_widget(st.sidebar)
+# Add LLM configuration widget to the sidebar
+llm_config_widget(st.sidebar)  # Allows users to configure model parameters
 
 
 @st.cache_data(show_spinner=True)
@@ -319,49 +321,62 @@ strecorder = StreamlitRecorder()
 
 
 def clear_display() -> None:
-    st.session_state.agent_output = []
-    strecorder.clear()
-    # st.rerun()
+    """Clear the current display and reset agent output when changing demos"""
+    st.session_state.agent_output = []  # Reset stored outputs
+    strecorder.clear()  # Clear the action recorder
+    # st.rerun()  # Optional: Uncomment to force UI refresh
 
 
+# Create main UI layout with two columns
 c01, c02 = st.columns([6, 4], border=False, gap="medium", vertical_alignment="top")
+
+# Right column - Display title and branding
 c02.title(" CodeAct Agent :material/Mindfulness:")
+
+# Left column - Demo selection interface
 with c01.container(border=True):
+    # Create pill-style selector for demos and file upload
     selected_pill = st.pills(
         "🎬 **Demos:**",
         options=[demo.name for demo in SAMPLES_DEMOS] + [FILE_SElECT_CHOICE],
         default=SAMPLES_DEMOS[0].name,
-        on_change=clear_display,
+        on_change=clear_display,  # Clear display when changing selection
     )
 raw_data_file = None
 df: pd.DataFrame | None = None
 sample_search = None
 
 
+# Create a placeholder for dynamic content
 placeholder = st.empty()
 select_block = placeholder.container()
 
+# Handle file upload or demo selection
 if selected_pill == FILE_SElECT_CHOICE:
+    # Show file uploader for custom data
     raw_data_file = select_block.file_uploader(
         "Upload a Data file:",
         type=list(TABULAR_FILE_FORMATS_READERS.keys()),
-        # on_change=clear_submit,
     )
     demo = CodeactDemo(name="custom", examples=[])
 else:
+    # Get selected demo configuration
     demo = next((d for d in SAMPLES_DEMOS if d.name == selected_pill), None)
     if demo is None:
         st.stop()
 
+    # Create columns for demo details
     col_display_left, col_display_right = select_block.columns([6, 3], vertical_alignment="bottom")
+    
+    # Right column - Display available tools and MCP servers
     with col_display_right:
         if tools_list := ", ".join(f"'{t.name}'" for t in demo.tools):
             st.markdown(f"**Tools**: *{tools_list}*")
         if mcp_list := ", ".join(f"'{mcp}'" for mcp in demo.mcp_servers):
             st.markdown(f"**MCP**: *{mcp_list}*")
 
+    # Left column - Show example prompts
     with col_display_left:
-        # st.write("**Example Prompts:**")
         sample_search = col_display_left.selectbox(
             label="Sample",
             placeholder="Select an example (optional)",
@@ -447,25 +462,38 @@ model_name = LlmFactory(llm_id=MODEL_ID).get_litellm_model_name()
 llm = LiteLLMModel(model_id=model_name)
 
 
+# Create input form for user queries
 with select_block.form("my_form", border=False):
+    # Split form into input and submit button
     cf1, cf2 = st.columns([15, 1], vertical_alignment="bottom")
+    
+    # Text area for user input
     prompt = cf1.text_area(
         "Your task",
         height=68,
         placeholder="Enter or modify your query here...",
-        value=sample_search or "",
+        value=sample_search or "",  # Pre-fill with selected example
         label_visibility="collapsed",
     )
+    
+    # Submit button with send icon
     submitted = cf2.form_submit_button(label="", icon=":material/send:")
 
 if submitted:
-    HEIGHT = 800
+    # Set up execution display area
+    HEIGHT = 800  # Fixed height for output containers
     exec_block = placeholder.container()
+    
+    # Split execution area into two columns
     col_display_left, col_display_right = exec_block.columns(2)
+    
+    # Left column - Agent execution log
     log_widget = col_display_left.container(height=HEIGHT)
+    
+    # Right column - Results display
     result_display = col_display_right.container(height=HEIGHT)
-    # result_display = col_display_right
-
+    
+    # Update session state with current display container
     st.session_state.result_display = result_display
 
     mcp_tools = []
