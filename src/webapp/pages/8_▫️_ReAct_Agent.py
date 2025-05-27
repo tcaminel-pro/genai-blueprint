@@ -1,19 +1,19 @@
 import asyncio
 import uuid
-from typing import Any, List, Tuple, cast
+from json import tool
+from typing import List, Tuple, cast
 
 import streamlit as st
 from dotenv import load_dotenv
 from langchain.callbacks import tracing_v2_enabled
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
-from langchain_core.tools import BaseTool
+from langchain_core.tools import BaseTool, tool
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 from loguru import logger
-from omegaconf import DictConfig
 from pydantic import BaseModel, ConfigDict
 
 from src.ai_core.llm import get_llm
@@ -28,6 +28,17 @@ load_dotenv()
 
 llm_config_widget(st.sidebar, False)
 
+
+@tool
+def my_custom_weather(location: str):
+    "return an approximate weather"
+
+    if location == "Toulouse":
+        return "Il faut beau"
+    else:
+        return "I don't know"
+
+
 st.title("ReAct Agent")
 
 # Default system prompt
@@ -37,6 +48,7 @@ SYSTEM_PROMPT = dedent_ws(
     - If the user asks for a list of something and that the tool returns a list, print it as Markdown table. 
 """
 )
+
 
 # Define demo class
 class ReactDemo(BaseModel):
@@ -51,7 +63,7 @@ class ReactDemo(BaseModel):
 def load_demos_from_config() -> List[ReactDemo]:
     """Load demos configuration from YAML file"""
     try:
-        demos_config = global_config().get_list("react_agent_demo")
+        demos_config = global_config().get_list("react_agent_demos")
         result = []
         # Create Demo objects from the configuration
         for demo_config in demos_config:
@@ -77,34 +89,17 @@ def load_demos_from_config() -> List[ReactDemo]:
 
 # Load demos from config or use defaults
 SAMPLES_DEMOS = load_demos_from_config()
-if not SAMPLES_DEMOS:
-    # Fallback to default demos if config loading fails
-    SAMPLES_DEMOS = [
-        ReactDemo(
-            name="Weather & Web",
-            mcp_servers=["weather", "playwright"],
-            examples=[
-                "What is the weather in San Francisco?",
-                "Connect to atos.net with a browser, find the page with blogs, and get list of recent blog articles",
-            ],
-        ),
-        ReactDemo(
-            name="Weather & PowerPoint",
-            mcp_servers=["weather", "ppt"],
-            examples=[
-                "Get weather in Toulouse today. Create a PowerPoint file about it and usual climate in Toulouse",
-            ],
-        ),
-    ]
 
-# Initialize local tools
+# Set local_tools from SAMPLES_DEMOS 'tools' field by introspection on Python tools functios AI!
 local_tools = []
+
 
 def clear_display() -> None:
     if "messages" in st.session_state:
         st.session_state.messages = []
     if "tools" in st.session_state:
         del st.session_state.tools
+
 
 c01, c02 = st.columns([6, 4], border=False, gap="medium", vertical_alignment="top")
 with c01.container(border=True):
@@ -123,6 +118,7 @@ if demo is None:
 # Display demo information
 col_display_left, col_display_right = st.columns([6, 3], vertical_alignment="bottom")
 with col_display_right:
+    debug(demo.tools)
     if tools_list := ", ".join(f"'{t}'" for t in demo.tools):
         st.markdown(f"**Tools**: *{tools_list}*")
     if mcp_list := ", ".join(f"'{mcp}'" for mcp in demo.mcp_servers):
@@ -168,15 +164,13 @@ async def main() -> None:
         if "tools" not in st.session_state:
             st.session_state["tools"] = all_tools
             st.rerun()
-        
+
         # Create agent with demo's system prompt
-        agent = create_react_agent(
-            model=llm, tools=all_tools, prompt=demo.system_prompt, checkpointer=checkpointer
-        )
+        agent = create_react_agent(model=llm, tools=all_tools, prompt=demo.system_prompt, checkpointer=checkpointer)
 
         # Use sample as default query if selected
         query = st.chat_input(placeholder="Enter your question...") or sample_search
-        
+
         if query:
             st.session_state.messages.append(HumanMessage(content=query))
             st_callback = get_streamlit_cb(st.container())
