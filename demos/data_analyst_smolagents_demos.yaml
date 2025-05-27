@@ -11,7 +11,7 @@ demos:
 
   - name: "Titanic"
     tools:
-      - type: DataFrameTool
+      - class: DataFrameTool
         name: "titanic_data_reader"
         description: "Data related to the Titanic passengers"
         source_path: "use_case_data/other/titanic.csv"
@@ -44,3 +44,10 @@ demos:
     examples:
       - "Display the map of Toulouse"
       - "Display a map of France with a population density (gathered from Internet) layer by region or department"
+
+  - name: "MCP"
+    mco-servers: ["filesystem", "weather", "playwright"]
+    examples:
+      - "What is the currrent wind force in Toulouse ? "
+      - "List current directory"
+      - "connect to atos.net site and get recent news"
