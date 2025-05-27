@@ -138,8 +138,8 @@ if submitted:
 
     llm_transformer = LLMGraphTransformer(
         llm=llm,
-        allowed_nodes=allowed_nodes,
-        allowed_relationships=allowed_relationships,
+        allowed_nodes=demo.allowed_nodes,
+        allowed_relationships=demo.allowed_relationships,
     )
 
     # Convert the given text into graph documents
