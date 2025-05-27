@@ -2,8 +2,8 @@
 demos:
   - name: "Classic SmolAgents"
     tools:
-      - WebSearchTool
-      - VisitWebpageTool
+      - type: "WebSearchTool"
+      - type: "VisitWebpageTool"
     examples:
       - "How many seconds would it take for a leopard at full speed to run through Pont des Arts?"
       - "If the US keeps its 2024 growth rate, how many years will it take for the GDP to double?"
@@ -11,12 +11,12 @@ demos:
 
   - name: "Titanic"
     tools:
-      - class: DataFrameTool
+      - type: "DataFrameTool"
         name: "titanic_data_reader"
         description: "Data related to the Titanic passengers"
         source_path: "use_case_data/other/titanic.csv"
-      - WebSearchTool
-      - VisitWebpageTool
+      - type: "WebSearchTool"
+      - type: "VisitWebpageTool"
     examples:
       - "What is the proportion of female passengers that survived?"
       - "Were there any notable individuals or families aboard "
@@ -29,24 +29,26 @@ demos:
 
   - name: "Stock Price"
     tools:
-      - get_stock_info
-      - get_historical_price
-      - WebSearchTool
-      - VisitWebpageTool
+      - type: "function"
+        name: "get_stock_info"
+      - type: "function"
+        name: "get_historical_price"
+      - type: "WebSearchTool"
+      - type: "VisitWebpageTool"
     examples:
       - "What is the current price of Meta stock?"
       - "Show me the historical prices of Apple vs Microsoft stock over the past 6 months"
 
   - name: "Geo"
     tools:
-      - WebSearchTool
-      - VisitWebpageTool
+      - type: "WebSearchTool"
+      - type: "VisitWebpageTool"
     examples:
       - "Display the map of Toulouse"
       - "Display a map of France with a population density (gathered from Internet) layer by region or department"
 
   - name: "MCP"
-    mco-servers: ["filesystem", "weather", "playwright"]
+    mcp_servers: ["filesystem", "weather", "playwright"]
     examples:
       - "What is the currrent wind force in Toulouse ? "
       - "List current directory"
