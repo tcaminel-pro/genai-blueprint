@@ -17,19 +17,14 @@ The CLI is built using Typer and supports:
 
 import importlib
 import sys
-from typing import Annotated, Optional
 
 import typer
 from dotenv import load_dotenv
-from langchain.globals import set_debug, set_verbose
 from loguru import logger
 
 # Import modules where runnables are registered
-from typer import Option
-
-from src.ai_core.llm import LlmFactory
-from src.ai_extra.fabric_chain import get_fabric_chain
-from src.utils.config_mngr import config_loguru, global_config
+from src.utils.config_mngr import global_config
+from src.utils.logger_factory import setup_logging
 
 load_dotenv(verbose=True)
 
@@ -57,9 +52,8 @@ def define_other_commands(cli_app: typer.Typer) -> None:
 
     @cli_app.command()
     def echo(message: str) -> None:
-        """ Echo the message (for test purpose)"""
+        """Echo the message (for test purpose)"""
         print(message)
-
 
 
 # NOT WORKING HERE
@@ -75,7 +69,7 @@ def main():
     else:
         logger.disable("src")
     # print(f"in main {argc=}  {argv=}")
-    config_loguru()
+    setup_logging()
     modules = global_config().get_list("commands.modules")
     # Import and register commands from each module
     for module in modules:
@@ -97,5 +91,5 @@ def main():
 
 
 if __name__ == "__main__":
-    #cli_app()
+    # cli_app()
     main()

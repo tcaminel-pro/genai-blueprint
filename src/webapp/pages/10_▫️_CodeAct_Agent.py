@@ -17,6 +17,8 @@ from smolagents import (
     LiteLLMModel,
     MCPClient,
     Tool,
+    VisitWebpageTool,
+    WebSearchTool,
     tool,
 )
 from streamlit.runtime.uploaded_file_manager import UploadedFile
@@ -186,21 +188,13 @@ PRE_PROMPT = dedent_ws(
 def load_demos_from_config() -> List[Demo]:
     """Load demos configuration from YAML file"""
 
-    # Import tools directly from smolagents
-    from smolagents import WebSearchTool, VisitWebpageTool  # noqa: F401, I001
-
-    # Create a tools dictionary for easy access
     tools_dict = {
         "WebSearchTool": WebSearchTool,
         "VisitWebpageTool": VisitWebpageTool,
-        "DataFrameTool": DataFrameTool
     }
-
     try:
-        # Get the demos configuration from the YAML file
         demos_config = global_config().get_list("codeact_agent_demo")
         result = []
-
         # Create Demo objects from the configuration
         for demo_config in demos_config:
             name = demo_config.get("name", "")
@@ -212,7 +206,6 @@ def load_demos_from_config() -> List[Demo]:
             for tool_config in demo_config.get("tools", []):
                 if isinstance(tool_config, DictConfig):
                     tool_type = tool_config.get("type", "")
-                    
                     # Handle different tool types
                     if tool_type == "DataFrameTool":
                         tools.append(
@@ -223,12 +216,10 @@ def load_demos_from_config() -> List[Demo]:
                             )
                         )
                     elif tool_type == "function":
-                        # Get function by name from globals
                         func_name = tool_config.get("name", "")
                         if func_name in globals():
                             tools.append(globals()[func_name])
                     elif tool_type in tools_dict:
-                        # Create tool from the tools dictionary
                         tools.append(tools_dict[tool_type]())
                     else:
                         logger.warning(f"Unknown tool type: {tool_type}")
@@ -240,7 +231,6 @@ def load_demos_from_config() -> List[Demo]:
                 examples=examples,
             )
             result.append(demo)
-
         return result
     except Exception as e:
         logger.exception(f"Error loading demos from config: {e}")

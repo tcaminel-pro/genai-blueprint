@@ -14,7 +14,6 @@ global_config().set("llm.default_model", "gpt-4")
 from __future__ import annotations
 
 import os
-import sys
 from pathlib import Path
 from typing import Any, Optional
 
@@ -67,7 +66,7 @@ class OmegaConfig(BaseModel):
 
             merge_config = OmegaConf.load(merge_path)
             config = OmegaConf.merge(config, merge_config)
-            
+
         # Try to load demos configuration if it exists
         demos_path = Path("demos/data_analyst_smolagents_demos.yaml")
         if demos_path.exists():
@@ -202,24 +201,6 @@ class OmegaConfig(BaseModel):
 def global_config() -> OmegaConfig:
     """Get the global config singleton."""
     return OmegaConfig.singleton()
-
-
-def config_loguru() -> None:
-    """
-    Configure the logger.
-    """
-
-    LOGURU_FORMAT = "<cyan>{time:HH:mm:ss}</cyan>-<level>{level: <7}</level> | <magenta>{file.name}</magenta>:<green>{line} <italic>{function}</italic></green>- <level>{message}</level>"
-    # Workaround "LOGURU_FORMAT" does not seems to be taken into account
-    format_str = os.environ.get("LOGURU_FORMAT") or LOGURU_FORMAT
-    logger.remove()
-    logger.add(
-        sys.stderr,
-        colorize=True,
-        format=format_str,
-        backtrace=False,
-        diagnose=True,
-    )
 
 
 ## for quick test ##

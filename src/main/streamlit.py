@@ -4,11 +4,12 @@ from pathlib import Path
 import streamlit as st
 from dotenv import load_dotenv
 
-from src.utils.config_mngr import config_loguru, global_config
+from src.utils.config_mngr import global_config
+from src.utils.logger_factory import setup_logging
 
 load_dotenv(verbose=True)
 
-config_loguru()
+setup_logging()
 # print("Starting Web Application...")
 
 
