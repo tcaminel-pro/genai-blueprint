@@ -200,16 +200,11 @@ def load_demos_from_config() -> List[Demo]:
             # Process tools
             tools = []
             for tool_config in demo_config.get("tools", []):
-                debug(tool_config)
                 if isinstance(tool_config, dict):
                     tool_type = tool_config.get("type", "")
 
                     # Handle different tool types
-                    if tool_type == "WebSearchTool":
-                        tools.append(WebSearchTool())
-                    elif tool_type == "VisitWebpageTool":
-                        tools.append(VisitWebpageTool())
-                    elif tool_type == "DataFrameTool":
+                    if tool_type == "DataFrameTool":
                         tools.append(
                             DataFrameTool(
                                 name=tool_config.get("name", ""),
@@ -223,7 +218,15 @@ def load_demos_from_config() -> List[Demo]:
                         if func_name in globals():
                             tools.append(globals()[func_name])
                     else:
-                        logger.warning("unknown tool type or onknown tool")
+                        # Try to create tool from class name
+                        try:
+                            tool_class = globals().get(tool_type)
+                            if tool_class and issubclass(tool_class, Tool):
+                                tools.append(tool_class())
+                            else:
+                                logger.warning(f"Unknown tool type: {tool_type}")
+                        except Exception as ex:
+                            logger.warning(f"Failed to create tool {tool_type}: {ex}")
 
             demo = Demo(
                 name=name,
@@ -231,7 +234,6 @@ def load_demos_from_config() -> List[Demo]:
                 mcp_servers=mcp_servers,
                 examples=examples,
             )
-            debug(demo.tools)
             result.append(demo)
 
         return result
