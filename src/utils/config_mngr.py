@@ -81,7 +81,7 @@ class OmegaConfig(BaseModel):
 
         # Determine which config to use
         config_name_from_env = os.environ.get("BLUEPRINT_CONFIG")
-        config_name_from_yaml = config.get("default_config")
+        config_name_from_yaml = config.get("default_config") # type: ignore
         if config_name_from_env and config_name_from_env not in config:
             logger.warning(
                 f"Configuration selected by environment variable 'BLUEPRINT_CONFIG' not found: {config_name_from_env}"
@@ -91,7 +91,7 @@ class OmegaConfig(BaseModel):
             logger.warning(f"Configuration selected by key 'default_config' not found: {config_name_from_yaml}")
             config_name_from_yaml = None
         selected_config = config_name_from_env or config_name_from_yaml or "baseline"
-        return OmegaConfig(root=config, selected_config=selected_config)
+        return OmegaConfig(root=config, selected_config=selected_config) # type: ignore
 
     def select_config(self, config_name: str) -> None:
         """Select a different configuration section to override defaults."""

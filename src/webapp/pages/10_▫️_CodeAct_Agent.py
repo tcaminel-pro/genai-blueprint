@@ -317,6 +317,7 @@ def get_cache_dataframe(file_or_filename: Path | UploadedFile, **kwargs) -> pd.D
 
 FILE_SElECT_CHOICE = ":open_file_folder: :orange[Select your file]"
 
+# recorder of agents generated output, to be re-displayed when the page is rerun.
 strecorder = StreamlitRecorder()
 
 
@@ -367,7 +368,7 @@ else:
 
     # Create columns for demo details
     col_display_left, col_display_right = select_block.columns([6, 3], vertical_alignment="bottom")
-    
+
     # Right column - Display available tools and MCP servers
     with col_display_right:
         if tools_list := ", ".join(f"'{t.name}'" for t in demo.tools):
@@ -466,7 +467,7 @@ llm = LiteLLMModel(model_id=model_name)
 with select_block.form("my_form", border=False):
     # Split form into input and submit button
     cf1, cf2 = st.columns([15, 1], vertical_alignment="bottom")
-    
+
     # Text area for user input
     prompt = cf1.text_area(
         "Your task",
@@ -475,7 +476,7 @@ with select_block.form("my_form", border=False):
         value=sample_search or "",  # Pre-fill with selected example
         label_visibility="collapsed",
     )
-    
+
     # Submit button with send icon
     submitted = cf2.form_submit_button(label="", icon=":material/send:")
 
@@ -483,16 +484,16 @@ if submitted:
     # Set up execution display area
     HEIGHT = 800  # Fixed height for output containers
     exec_block = placeholder.container()
-    
+
     # Split execution area into two columns
     col_display_left, col_display_right = exec_block.columns(2)
-    
+
     # Left column - Agent execution log
     log_widget = col_display_left.container(height=HEIGHT)
-    
+
     # Right column - Results display
     result_display = col_display_right.container(height=HEIGHT)
-    
+
     # Update session state with current display container
     st.session_state.result_display = result_display
 

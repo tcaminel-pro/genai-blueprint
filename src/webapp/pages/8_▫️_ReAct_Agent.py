@@ -3,11 +3,8 @@
 Provides an interactive interface to run ReAct agents with different configurations.
 Supports custom tools, MCP servers integration, and demo presets.
 
-Example:
-    ```
-    from src.webapp.pages import 8_▫️_ReAct_Agent
-    ```
 """
+
 import asyncio
 import uuid
 from json import tool
@@ -42,10 +39,10 @@ llm_config_widget(st.sidebar, False)
 @tool
 def my_custom_weather(location: str) -> str:
     """Return an approximate weather for given location.
-    
+
     Args:
         location: City name to get weather for
-        
+
     Returns:
         Weather description string
     """
@@ -70,7 +67,7 @@ SYSTEM_PROMPT = dedent_ws(
 # Define demo class
 class ReactDemo(BaseModel):
     """Configuration for a ReAct agent demo preset.
-    
+
     Attributes:
         name: Unique demo name
         tools: List of tool names to include
@@ -78,6 +75,7 @@ class ReactDemo(BaseModel):
         examples: Example queries for the demo
         system_prompt: Custom system prompt for the agent
     """
+
     name: str
     tools: list[str] = []
     mcp_servers: list[str] = []
@@ -88,10 +86,10 @@ class ReactDemo(BaseModel):
 
 def load_demos_from_config() -> List[ReactDemo]:
     """Load demo configurations from global config.
-    
+
     Returns:
         List of ReactDemo instances loaded from config
-        
+
     Raises:
         Exception: If config loading fails
     """
@@ -182,7 +180,7 @@ with st.expander("Available Tools", expanded=False):
 @st.cache_resource()
 def get_agent_config() -> tuple[RunnableConfig, BaseCheckpointSaver]:
     """Create and cache agent configuration.
-    
+
     Returns:
         Tuple of (RunnableConfig, checkpoint saver) with unique thread ID
     """
@@ -194,7 +192,7 @@ def get_agent_config() -> tuple[RunnableConfig, BaseCheckpointSaver]:
 
 async def main() -> None:
     """Main async function to run the ReAct agent demo.
-    
+
     Handles:
     - UI setup and demo selection
     - Tool initialization
