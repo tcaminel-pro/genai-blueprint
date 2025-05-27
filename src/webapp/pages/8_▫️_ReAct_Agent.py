@@ -1,6 +1,6 @@
 import asyncio
 import uuid
-from typing import Tuple, cast
+from typing import Any, List, Tuple, cast
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -12,56 +12,137 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
+from loguru import logger
+from omegaconf import DictConfig
+from pydantic import BaseModel, ConfigDict
 
 from src.ai_core.llm import get_llm
 from src.ai_core.mcp_client import get_mcp_servers_dict
 from src.ai_core.prompts import dedent_ws, dict_input_message
+from src.utils.config_mngr import global_config
 from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
 from src.webapp.ui_components.llm_config import llm_config_widget
 from src.webapp.ui_components.streamlit_chat import StreamlitStatusCallbackHandler, display_messages
 
-MCP_SERVERS = ["weather", "playwright", "ppt"]
-# MCP_SERVERS = ["weather"]
 load_dotenv()
 
 llm_config_widget(st.sidebar, False)
 
-st.title("Chat Playground")
+st.title("ReAct Agent")
 
-
-mcp_enabled = st.toggle("MCP", True)
-# tools = [ref_product_search_tool, get_weather, get_material_breakdown]
-local_tools = []
-
-examples = ["What is the weather in San Francisco ? ", "What's it known for?"]
-
-
-examples += [
-    "What is the content of current directory ? "
-    "Connect to atos.net with a browser, find the page with blogs, and get list of recent blog articles",
-    "Get weather in Toulouse today. Create a Powerpoint file in that directty about it and usual climate in Toulouse",
-]
-
-
+# Default system prompt
 SYSTEM_PROMPT = dedent_ws(
     """
-    Your are a LCA expert assistant. Use provided tools to answer questions. \n
+    Your are a helpful assistant. Use provided tools to answer questions. \n
     - If the user asks for a list of something and that the tool returns a list, print it as Markdown table. 
 """
 )
 
-with st.container(border=True):
-    col1, col2 = st.columns([3, 3])
-    col1.write("Examples")
-    col1.write(examples)
-    with col2.expander("System prompt"):
-        system_prompt_input = st.text_area("System Prompt", value=SYSTEM_PROMPT, height=200)
+# Define demo class
+class ReactDemo(BaseModel):
+    name: str
+    tools: list[str] = []
+    mcp_servers: list[str] = []
+    examples: list[str] = []
+    system_prompt: str = SYSTEM_PROMPT
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    with col2.expander("Tools"):
-        if tools := st.session_state.get("tools"):
-            tools = cast(list[BaseTool], tools)
-            d = {t.name: t.description for t in tools}
-            st.dataframe(d)
+
+def load_demos_from_config() -> List[ReactDemo]:
+    """Load demos configuration from YAML file"""
+    try:
+        demos_config = global_config().get_list("react_agent_demo")
+        result = []
+        # Create Demo objects from the configuration
+        for demo_config in demos_config:
+            name = demo_config.get("name", "")
+            examples = demo_config.get("examples", [])
+            mcp_servers = demo_config.get("mcp_servers", [])
+            tools = demo_config.get("tools", [])
+            system_prompt = demo_config.get("system_prompt", SYSTEM_PROMPT)
+
+            demo = ReactDemo(
+                name=name,
+                tools=tools,
+                mcp_servers=mcp_servers,
+                examples=examples,
+                system_prompt=system_prompt,
+            )
+            result.append(demo)
+        return result
+    except Exception as e:
+        logger.exception(f"Error loading demos from config: {e}")
+        return []
+
+
+# Load demos from config or use defaults
+SAMPLES_DEMOS = load_demos_from_config()
+if not SAMPLES_DEMOS:
+    # Fallback to default demos if config loading fails
+    SAMPLES_DEMOS = [
+        ReactDemo(
+            name="Weather & Web",
+            mcp_servers=["weather", "playwright"],
+            examples=[
+                "What is the weather in San Francisco?",
+                "Connect to atos.net with a browser, find the page with blogs, and get list of recent blog articles",
+            ],
+        ),
+        ReactDemo(
+            name="Weather & PowerPoint",
+            mcp_servers=["weather", "ppt"],
+            examples=[
+                "Get weather in Toulouse today. Create a PowerPoint file about it and usual climate in Toulouse",
+            ],
+        ),
+    ]
+
+# Initialize local tools
+local_tools = []
+
+def clear_display() -> None:
+    if "messages" in st.session_state:
+        st.session_state.messages = []
+    if "tools" in st.session_state:
+        del st.session_state.tools
+
+c01, c02 = st.columns([6, 4], border=False, gap="medium", vertical_alignment="top")
+with c01.container(border=True):
+    selected_pill = st.pills(
+        "🎬 **Demos:**",
+        options=[demo.name for demo in SAMPLES_DEMOS],
+        default=SAMPLES_DEMOS[0].name,
+        on_change=clear_display,
+    )
+
+# Get selected demo
+demo = next((d for d in SAMPLES_DEMOS if d.name == selected_pill), None)
+if demo is None:
+    st.stop()
+
+# Display demo information
+col_display_left, col_display_right = st.columns([6, 3], vertical_alignment="bottom")
+with col_display_right:
+    if tools_list := ", ".join(f"'{t}'" for t in demo.tools):
+        st.markdown(f"**Tools**: *{tools_list}*")
+    if mcp_list := ", ".join(f"'{mcp}'" for mcp in demo.mcp_servers):
+        st.markdown(f"**MCP**: *{mcp_list}*")
+
+with col_display_left:
+    sample_search = col_display_left.selectbox(
+        label="Sample",
+        placeholder="Select an example (optional)",
+        options=demo.examples,
+        index=None,
+        label_visibility="collapsed",
+    )
+
+# Display tools if available
+with st.expander("Available Tools", expanded=False):
+    if tools := st.session_state.get("tools"):
+        tools = cast(list[BaseTool], tools)
+        d = {t.name: t.description for t in tools}
+        st.dataframe(d)
 
 
 @st.cache_resource()
@@ -77,22 +158,26 @@ async def main() -> None:
     config, checkpointer = get_agent_config()
     llm = get_llm()
 
-    mcp_servers_params = get_mcp_servers_dict(MCP_SERVERS) if mcp_enabled else {}
-    debug(mcp_servers_params)
+    # Get MCP servers from selected demo
+    mcp_servers_params = get_mcp_servers_dict(demo.mcp_servers) if demo.mcp_servers else {}
     client = None
     try:
         client = MultiServerMCPClient(mcp_servers_params)
         rcp_tools = await client.get_tools()
         all_tools = local_tools + rcp_tools
-        debug(all_tools)
         if "tools" not in st.session_state:
             st.session_state["tools"] = all_tools
             st.rerun()
+        
+        # Create agent with demo's system prompt
         agent = create_react_agent(
-            model=llm, tools=all_tools, prompt=system_prompt_input or None, checkpointer=checkpointer
+            model=llm, tools=all_tools, prompt=demo.system_prompt, checkpointer=checkpointer
         )
 
-        if query := st.chat_input():
+        # Use sample as default query if selected
+        query = st.chat_input(placeholder="Enter your question...") or sample_search
+        
+        if query:
             st.session_state.messages.append(HumanMessage(content=query))
             st_callback = get_streamlit_cb(st.container())
             st.chat_message("human").write(query)
@@ -123,7 +208,8 @@ async def main() -> None:
             st.session_state.messages.append(response)
             st.link_button("Trace", url)
     finally:
-        pass
+        if client:
+            pass  # Add cleanup if needed
 
 
 # Run the async main function
