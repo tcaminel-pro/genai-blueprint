@@ -90,8 +90,14 @@ def load_demos_from_config() -> List[ReactDemo]:
 # Load demos from config or use defaults
 SAMPLES_DEMOS = load_demos_from_config()
 
-# Set local_tools from SAMPLES_DEMOS 'tools' field by introspection on Python tools functios AI!
+# Set local_tools from SAMPLES_DEMOS 'tools' field by introspection
 local_tools = []
+for demo in SAMPLES_DEMOS:
+    for tool_name in demo.tools:
+        if tool_name in globals() and callable(globals()[tool_name]):
+            tool_func = globals()[tool_name]
+            if hasattr(tool_func, "__tool_metadata__") and tool_func not in local_tools:
+                local_tools.append(tool_func)
 
 
 def clear_display() -> None:
@@ -118,7 +124,6 @@ if demo is None:
 # Display demo information
 col_display_left, col_display_right = st.columns([6, 3], vertical_alignment="bottom")
 with col_display_right:
-    debug(demo.tools)
     if tools_list := ", ".join(f"'{t}'" for t in demo.tools):
         st.markdown(f"**Tools**: *{tools_list}*")
     if mcp_list := ", ".join(f"'{mcp}'" for mcp in demo.mcp_servers):
