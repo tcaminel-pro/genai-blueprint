@@ -410,7 +410,6 @@ if submitted:
                     additional_authorized_imports=AUTHORIZED_IMPORTS,
                     max_steps=10,  # for debug
                 )
-                debug(agent.tools)
                 with st.spinner(text="Thinking..."):
                     result_display.write(f"query: {prompt}")
                     with strecorder:
