@@ -1,7 +1,7 @@
 # Data Analyst SmolAgents Demos Configuration
-demos:
+codeact_agent_demo:
   - name: "Classic SmolAgents"
-    tools:
+    tools: 
       - type: "WebSearchTool"
       - type: "VisitWebpageTool"
     examples:

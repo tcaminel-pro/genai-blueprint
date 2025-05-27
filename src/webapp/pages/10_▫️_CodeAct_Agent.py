@@ -2,7 +2,7 @@
 
 from datetime import date
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any, List
 
 import folium
 import pandas as pd
@@ -22,7 +22,6 @@ from smolagents import (
 )
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 from streamlit_folium import st_folium
-from omegaconf import OmegaConf
 
 from src.ai_core.llm import LlmFactory
 from src.ai_core.mcp_client import dict_to_stdio_server_list, get_mcp_servers_dict
@@ -82,9 +81,6 @@ class Demo(BaseModel):
     mcp_servers: list[str] = []
     examples: list[str]
     model_config = ConfigDict(arbitrary_types_allowed=True)
-
-
-SEARCH_TOOLS: list[Tool] = [WebSearchTool(), VisitWebpageTool()]
 
 
 @tool
@@ -188,65 +184,64 @@ PRE_PROMPT = dedent_ws(
 ##########################
 
 
-SAMPLES_DEMOS = [
-    Demo(
-        name="Classic SmolAgents",
-        tools=SEARCH_TOOLS,
-        examples=[
-            "How many seconds would it take for a leopard at full speed to run through Pont des Arts?",
-            "If the US keeps its 2024 growth rate, how many years will it take for the GDP to double?",
-            "Which Dutch player scored an open-play goal in the 2022 Netherlands vs Argentina game in the men’s FIFA World Cup?",
-        ],
-    ),
-    Demo(
-        name="Titanic",
-        tools=[
-            DataFrameTool(
-                name="titanic_data_reader",
-                description="Data related to the Titanic passengers",
-                source_path=DATA_PATH / "titanic.csv",
-            )
-        ]
-        + SEARCH_TOOLS,
-        examples=[
-            "What is the proportion of female passengers that survived?",
-            "Were there any notable individuals or families aboard ",
-            "Plot in a bar chat the proportion of male and female survivors",
-            "What was the survival rate of passengers on the Titanic?",
-            "Did the passenger class have an impact on survival rates?",
-            "What were the ticket fares and cabin locations for the passengers?"
-            "What are the demographics (age, gender, etc.) of the passengers on the Titanic?",
-            "What feature would you engineered to predict survival rate ? Build a predictive model, and report the F1 score on a test set",
-        ],
-    ),
-    Demo(
-        name="Stock Price",
-        tools=[get_stock_info, get_historical_price] + SEARCH_TOOLS,
-        examples=[
-            "What is the current price of Meta stock?",
-            "Show me the historical prices of Apple vs Microsoft stock over the past 6 months",
-        ],
-    ),
-    Demo(
-        name="Geo",
-        tools=SEARCH_TOOLS,
-        examples=[
-            "Display the map of Toulouse",
-            "Display a map of France with a population density (gathered from Internet) layer by region or department",
-        ],
-    ),
-    Demo(
-        name="MCP",
-        tools=[],
-        mcp_servers=["filesystem", "weather", "playwright"],
-        examples=[
-            "What is the currrent wind force in Toulouse ? ",
-            "List current directory",
-            "connect to atos.net site and get recent news",
-        ],
-    ),
-]
+def load_demos_from_config() -> List[Demo]:
+    """Load demos configuration from YAML file"""
+    try:
+        # Get the demos configuration from the YAML file
+        demos_config = global_config().get("codeact_agent_demo")
+        result = []
 
+        # Create Demo objects from the configuration
+        for demo_config in demos_config:
+            name = demo_config.get("name", "")
+            examples = demo_config.get("examples", [])
+            mcp_servers = demo_config.get("mcp_servers", [])
+
+            # Process tools
+            tools = []
+            for tool_config in demo_config.get("tools", []):
+                debug(tool_config)
+                if isinstance(tool_config, dict):
+                    tool_type = tool_config.get("type", "")
+
+                    # Handle different tool types
+                    if tool_type == "WebSearchTool":
+                        tools.append(WebSearchTool())
+                    elif tool_type == "VisitWebpageTool":
+                        tools.append(VisitWebpageTool())
+                    elif tool_type == "DataFrameTool":
+                        tools.append(
+                            DataFrameTool(
+                                name=tool_config.get("name", ""),
+                                description=tool_config.get("description", ""),
+                                source_path=DATA_PATH / tool_config.get("source_path", "").split("/")[-1],
+                            )
+                        )
+                    elif tool_type == "function":
+                        # Get function by name from globals
+                        func_name = tool_config.get("name", "")
+                        if func_name in globals():
+                            tools.append(globals()[func_name])
+                    else:
+                        logger.warning("unknown tool type or onknown tool")
+
+            demo = Demo(
+                name=name,
+                tools=tools,
+                mcp_servers=mcp_servers,
+                examples=examples,
+            )
+            debug(demo.tools)
+            result.append(demo)
+
+        return result
+    except Exception as e:
+        logger.exception(f"Error loading demos from config: {e}")
+        return []
+
+
+# Load demos from config or use defaults
+SAMPLES_DEMOS = load_demos_from_config()
 
 ##########################
 #  UI

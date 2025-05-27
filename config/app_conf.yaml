@@ -18,6 +18,8 @@ merge:
   - ${paths.config}/baseline.yaml
   - ${paths.config}/overrides.yaml
   - ${paths.config}/mcp_servers.yaml
+  - ${paths.config}/demos/codeact_agent.yaml
+
 
 # Default configuration, as defined in baseline.yaml, overrides.yaml, here, or elsewhere.
 # It can be overidden by 'BLUEPRINT_CONFIG' environment variable, or in code

@@ -37,10 +37,10 @@ llm:
   capabilities: ['structured_outputs']
 
 - model:
-  id: claude_sonnet37
+  id: claude_sonnet
   providers:
-    - edenai: anthropic/claude-3-7-sonnet-latest
-    - openrouter: anthropic/claude-3.7-sonnet
+    - edenai: anthropic/anthropic/claude-sonnet-4-20251514
+    - openrouter: anthropic/claude-sonnet-4
   capabilities: ['structured_outputs', 'pdf', 'vision']
 
 - model:
