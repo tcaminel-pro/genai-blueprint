@@ -1,5 +1,27 @@
-"""https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_rag_agent_llama3_local.ipynb
-https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_agentic_rag.ipynb.
+"""Advanced RAG implementation using LangGraph for agentic document retrieval and generation.
+
+This module implements an advanced Retrieval Augmented Generation (RAG) pipeline that:
+1. Dynamically routes queries between web search and vector store retrieval
+2. Performs multi-step document relevance grading
+3. Generates answers with hallucination detection
+4. Implements fallback to web search when needed
+
+Key components:
+- State machine for managing RAG workflow
+- Document retrieval from both web and vector store
+- LLM-based grading for document relevance and answer quality
+- Configurable retriever with initial document indexing
+- Integrated web search capability
+
+The graph implements a robust RAG pipeline that:
+- Handles ambiguous queries
+- Detects and filters irrelevant documents
+- Verifies answer quality and grounding
+- Provides fallback mechanisms for poor results
+
+Based on LangGraph examples:
+- https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_rag_agent_llama3_local.ipynb
+- https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_agentic_rag.ipynb
 """
 
 import sys
