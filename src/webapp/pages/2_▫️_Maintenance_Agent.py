@@ -161,6 +161,8 @@ SYSTEM_PROMPT = dedent_ws(
     To do so, you have different tools to access maintenance planning, spares etc.
     Make sure to use only the provided tools to answer the user request.
     If you don't find relevant tool, answer "I don't know"
+    
+    Current date: {current_date}
     """
 )
 
@@ -179,9 +181,11 @@ async def main() -> None:
     if not with_clear_container(submit_clicked):
         return
 
-    # Add current date context to the query
-
-    dated_input = f"{user_input}\n\nCurrent date: {datetime.now().strftime('%Y-%m-%d')}"
+    # Get current date
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    
+    # Use the user input directly
+    dated_input = user_input
 
     # Add message to chat history
     st.session_state.messages.append(HumanMessage(content=dated_input))
