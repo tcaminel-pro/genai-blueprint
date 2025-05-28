@@ -15,7 +15,6 @@ from multiple data sources.
 import asyncio
 import uuid
 from datetime import datetime
-from pathlib import Path
 from typing import cast
 
 import pandas as pd
@@ -36,7 +35,6 @@ from src.demos.maintenance_agent.maintenance_agents import (
     create_maintenance_tools,
 )
 from src.demos.maintenance_agent.maintenance_data import dummy_database
-from src.utils.config_mngr import global_config
 from src.utils.streamlit.clear_result import with_clear_container
 from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
 from src.webapp.ui_components.llm_config import llm_config_widget
@@ -67,26 +65,16 @@ SAMPLE_PROMPTS = {
 
 LLM_ID = None
 
-
-# if not st.session_state.get("authenticated"):
-#     st.write("not authenticated")
-#     st.stop()
-
 llm_config_widget(st.sidebar)
 
 ################################
 #  UI
 ################################
 
-title_col1, title_col2 = st.columns([2, 1])
-
-logo_eviden = str(Path.cwd() / "src/webapp/static/eviden-logo-white.png")
-
-title_col1.title("Maintenance Operation Assistant")
-title_col2.image(logo_eviden, width=250)
-title_col1.markdown(
+st.title("Maintenance Operation Assistant")
+st.markdown(
     """
-    ## LLM-Augmented Autonomous Agents Demo for Maintenance Operation.
+    ## Autonomous Agent Demo for Maintenance Operation.
 
 
     The goal is to support  plant turbine maintenance operations.
@@ -152,6 +140,7 @@ with st.form(key="form"):
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+
 @st.cache_resource()
 def get_agent_config() -> tuple[RunnableConfig, BaseCheckpointSaver]:
     """Create and cache agent configuration.
@@ -164,6 +153,7 @@ def get_agent_config() -> tuple[RunnableConfig, BaseCheckpointSaver]:
     checkpointer = MemorySaver()
     return cast(RunnableConfig, config), checkpointer
 
+
 # System prompt for the maintenance agent
 SYSTEM_PROMPT = dedent_ws(
     """
@@ -173,6 +163,7 @@ SYSTEM_PROMPT = dedent_ws(
     If you don't find relevant tool, answer "I don't know"
     """
 )
+
 
 async def main() -> None:
     """Main async function to run the Maintenance Agent demo.
@@ -184,45 +175,41 @@ async def main() -> None:
     - Streaming output display
     """
     display_messages(st)
-    
+
     if not with_clear_container(submit_clicked):
         return
-        
+
     # Add current date context to the query
+    # Add the date in SYSTEM_PROMPT using langchain promt templates tools. AI!
     dated_input = f"{user_input}\n\nCurrent date: {datetime.now().strftime('%Y-%m-%d')}"
-    
+
     # Add message to chat history
     st.session_state.messages.append(HumanMessage(content=dated_input))
     st.chat_message("user").write(user_input)
-    
+
     # Create status to show agent progress
     status = st.status("Agent starting...", expanded=True)
     status_callback = StreamlitStatusCallbackHandler(status)
-    
+
     # Get agent configuration
     config, checkpointer = get_agent_config()
     llm = get_llm()
-    
+
     # Get tools
     tools = create_maintenance_tools()
-    
+
     # Create agent with ReAct pattern
-    agent = create_react_agent(
-        model=llm, 
-        tools=tools, 
-        prompt=SYSTEM_PROMPT,
-        checkpointer=checkpointer
-    )
-    
+    agent = create_react_agent(model=llm, tools=tools, prompt=SYSTEM_PROMPT, checkpointer=checkpointer)
+
     # Get streamlit callback
     st_callback = get_streamlit_cb(st.container())
-    
+
     # Prepare input
     inputs = dict_input_message(user=dated_input)
-    
+
     # Update config
     config["configurable"].update({"st_container": status})
-    
+
     try:
         # Run agent with tracing
         with tracing_v2_enabled() as cb:
@@ -230,22 +217,23 @@ async def main() -> None:
                 inputs,
                 config | {"callbacks": [st_callback, status_callback]},
             )
-            
+
             async for step in astream:
                 for node, update in step.items():
                     if node == "agent":
                         response = update["messages"][-1]
                         assert isinstance(response, AIMessage)
                         st.chat_message("ai", avatar="🛠️").write(response.content)
-            
+
             url = cb.get_run_url()
             st.session_state.messages.append(response)
             st.link_button("Trace", url)
-            
+
         status.update(label="Done", state="complete", expanded=False)
     except Exception as ex:
         logger.exception(ex)
         st.error(f"An error occurred: {ex}")
+
 
 # Run the async main function
 asyncio.run(main())
