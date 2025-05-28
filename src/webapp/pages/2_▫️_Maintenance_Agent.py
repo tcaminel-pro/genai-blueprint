@@ -29,12 +29,12 @@ from loguru import logger  # noqa: F401
 
 from src.ai_core.llm import get_llm
 from src.ai_core.prompts import dedent_ws, dict_input_message
-from src.demos.maintenance_agent.maintenance_agents import (
+from src.demos.maintenance_agent.tools import (
     DATA_PATH,
     PROCEDURES,
     create_maintenance_tools,
 )
-from src.demos.maintenance_agent.maintenance_data import dummy_database
+from src.demos.maintenance_agent.dummy_data import dummy_database
 from src.utils.streamlit.clear_result import with_clear_container
 from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
 from src.webapp.ui_components.llm_config import llm_config_widget
@@ -64,6 +64,11 @@ SAMPLE_PROMPTS = {
 # fmt:on
 
 LLM_ID = None
+
+
+# if not st.session_state.get("authenticated"):
+#     st.write("not authenticated")
+#     st.stop()
 
 llm_config_widget(st.sidebar)
 
@@ -161,8 +166,6 @@ SYSTEM_PROMPT = dedent_ws(
     To do so, you have different tools to access maintenance planning, spares etc.
     Make sure to use only the provided tools to answer the user request.
     If you don't find relevant tool, answer "I don't know"
-    
-    Current date: {current_date}
     """
 )
 
@@ -181,14 +184,10 @@ async def main() -> None:
     if not with_clear_container(submit_clicked):
         return
 
-    # Get current date
-    current_date = datetime.now().strftime('%Y-%m-%d')
-    
-    # Use the user input directly
-    dated_input = user_input
+    # Add current date context to the query
 
     # Add message to chat history
-    st.session_state.messages.append(HumanMessage(content=dated_input))
+    st.session_state.messages.append(HumanMessage(content=user_input))
     st.chat_message("user").write(user_input)
 
     # Create status to show agent progress
@@ -197,22 +196,16 @@ async def main() -> None:
 
     # Get agent configuration
     config, checkpointer = get_agent_config()
-    llm = get_llm()
-
-    # Get tools
-    tools = create_maintenance_tools()
-
-    # Create agent with ReAct pattern using formatted system prompt
-    formatted_system_prompt = SYSTEM_PROMPT.format(current_date=current_date)
-    agent = create_react_agent(model=llm, tools=tools, prompt=formatted_system_prompt, checkpointer=checkpointer)
-
-    # Get streamlit callback
+    agent = create_react_agent(
+        model=get_llm(),
+        tools=create_maintenance_tools(),
+        prompt=f"{SYSTEM_PROMPT}\nCurrent date:{datetime.now().strftime('%Y-%m-%d')}",
+        checkpointer=checkpointer,
+    )
     st_callback = get_streamlit_cb(st.container())
 
-    # Prepare input
-    inputs = dict_input_message(user=dated_input)
-
-    # Update config
+    # Prepare input and config
+    inputs = dict_input_message(user=user_input)
     config["configurable"].update({"st_container": status})
 
     try:

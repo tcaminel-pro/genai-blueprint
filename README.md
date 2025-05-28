@@ -34,7 +34,7 @@ Built on the LangChain ecosystem with integrations for other leading solutions.
 For an overview of the code structure and patterns:
 [Tutorial: genai-blueprint](https://code2tutorial.com/tutorial/d4f58807-1657-41e1-92b8-15a3a10cb162/index.md) 
 
-Note: The tutorial may be slightly outdated - refer to the code for current implementations.
+Note: The tutorial is automatocally generated and may be slightly outdated - refer to the code for current implementations.
 
 ## Getting Started
 
