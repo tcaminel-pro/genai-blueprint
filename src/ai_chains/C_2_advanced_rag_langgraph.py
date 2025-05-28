@@ -69,10 +69,10 @@ class GraphState(TypedDict, total=False):
 
 def question_router() -> Runnable[Any, DataRoute]:
     """Routes the question to either web search or vector store retrieval.
-    
-    Input: 
+
+    Input:
         question (str): The user's question
-    
+
     Returns:
         DataRoute: Either WEB_SEARCH or VECTOR_STORE based on question content
     """
@@ -97,13 +97,13 @@ def question_router() -> Runnable[Any, DataRoute]:
 
 def route_question(state: GraphState) -> Literal["websearch", "vectorstore"]:
     """Entry point that routes question to appropriate search method.
-    
+
     Input state:
         question (str): The user's question
-    
+
     Returns:
         str: Next node name ('websearch' or 'vectorstore')
-    
+
     Side effects:
         Logs routing decision
     """
@@ -126,14 +126,14 @@ def route_question(state: GraphState) -> Literal["websearch", "vectorstore"]:
 
 def web_search(state: GraphState) -> GraphState:
     """Performs web search and stores results.
-    
+
     Input state:
         question (str): The search query
-    
+
     Returns state:
         documents (list[Document]): Web search results
         question (str): Original question (unchanged)
-    
+
     Side effects:
         Calls external web search API
     """
@@ -153,10 +153,10 @@ def web_search(state: GraphState) -> GraphState:
 # Functions and node to retrive read data from Internet and put it in the vector store
 def retriever() -> BaseRetriever:
     """Creates and configures vector store retriever with initial documents.
-    
+
     Returns:
         BaseRetriever: Configured retriever instance
-    
+
     Side effects:
         - Initializes vector store if empty
         - Indexes documents from predefined URLs
@@ -192,10 +192,10 @@ def retriever() -> BaseRetriever:
 
 def retrieve(state: GraphState) -> GraphState:
     """Retrieves documents from vector store matching the question.
-    
+
     Input state:
         question (str): The search query
-    
+
     Returns state:
         documents (list[Document]): Retrieved documents
         question (str): Original question (unchanged)
@@ -213,12 +213,12 @@ def retrieve(state: GraphState) -> GraphState:
 
 def rag_chain() -> Runnable[Any, str]:
     """Creates RAG chain that generates answers from context.
-    
+
     Returns:
         Runnable: Configured chain that takes:
             Input: dict with 'question' and 'context' keys
             Output: str generated answer
-    
+
     The chain:
         1. Formats prompt with question and context
         2. Calls LLM
@@ -239,11 +239,11 @@ def rag_chain() -> Runnable[Any, str]:
 
 def generate(state: GraphState) -> GraphState:
     """Generates answer using RAG chain.
-    
+
     Input state:
         question (str): Original question
         documents (list[Document]): Retrieved context
-    
+
     Returns state:
         generation (str): LLM-generated answer
         question (str): Original question (unchanged)
@@ -258,17 +258,17 @@ def generate(state: GraphState) -> GraphState:
     return {"documents": documents, "question": question, "generation": generation}
 
 
-
 # Node to assess the relevance of the retrived documents
+
 
 def answer_grader() -> Runnable[Any, YesOrNo]:
     """Creates chain that grades if answer properly addresses question.
-    
+
     Returns:
         Runnable: Chain that takes:
             Input: dict with 'question' and 'generation' keys
             Output: YesOrNo verdict
-    
+
     The chain:
         1. Formats prompt with question and answer
         2. Calls LLM classifier
@@ -288,16 +288,14 @@ def answer_grader() -> Runnable[Any, YesOrNo]:
     return prompt | get_llm(llm_id=LLM_ID) | to_lower | yesno_enum_parser  # type: ignore
 
 
-
-
 def retrieval_grader() -> Runnable[Any, YesOrNo]:
     """Creates chain that grades document relevance to question.
-    
+
     Returns:
         Runnable: Chain that takes:
             Input: dict with 'question' and 'document' keys
             Output: YesOrNo verdict
-    
+
     The chain:
         1. Formats prompt with question and document
         2. Calls LLM classifier
@@ -326,16 +324,16 @@ def retrieval_grader() -> Runnable[Any, YesOrNo]:
 
 def grade_documents(state: GraphState) -> GraphState:
     """Filters documents by relevance and sets web search flag if needed.
-    
+
     Input state:
         question (str): Original question
         documents (list[Document]): Retrieved documents
-    
+
     Returns state:
         documents (list[Document]): Filtered relevant documents
         question (str): Original question (unchanged)
         web_search (str): "Yes" if any doc was irrelevant, else "No"
-    
+
     Side effects:
         Logs relevance decisions for each document
     """
@@ -364,13 +362,13 @@ def grade_documents(state: GraphState) -> GraphState:
 
 def decide_to_generate(state: GraphState) -> Literal["websearch", "generate"]:
     """Decides next step based on document relevance.
-    
+
     Input state:
         web_search (str): "Yes" if any doc was irrelevant
-    
+
     Returns:
         str: Next node name ('websearch' or 'generate')
-    
+
     Decision logic:
         - If web_search="Yes", route to websearch
         - Else proceed to generate answer
@@ -396,12 +394,12 @@ def decide_to_generate(state: GraphState) -> Literal["websearch", "generate"]:
 
 def hallucination_grader() -> Runnable[Any, YesOrNo]:
     """Creates chain that checks if answer is supported by documents.
-    
+
     Returns:
         Runnable: Chain that takes:
             Input: dict with 'documents' and 'generation' keys
             Output: YesOrNo verdict
-    
+
     The chain:
         1. Formats prompt with documents and answer
         2. Calls LLM classifier
@@ -426,18 +424,18 @@ def grade_generation_v_documents_and_question(
     """Evaluates answer quality on two dimensions:
         1. Grounded in documents (not hallucinated)
         2. Actually answers the question
-    
+
     Input state:
         question (str): Original question
         documents (list[Document]): Retrieved context
         generation (str): LLM's answer
-    
+
     Returns:
         str: Next step:
             "useful" - Good answer
             "not useful" - Answer doesn't address question
             "not supported" - Hallucinated answer
-    
+
     Side effects:
         Logs evaluation decisions
     """
