@@ -179,18 +179,9 @@ async def main() -> None:
     if not with_clear_container(submit_clicked):
         return
 
-    # Get current date and format prompt
-    from langchain_core.prompts import ChatPromptTemplate
-    
-    current_date = datetime.now().strftime('%Y-%m-%d')
-    prompt_template = ChatPromptTemplate.from_messages([
-        ("system", SYSTEM_PROMPT + "\n\nCurrent date: {current_date}"),
-        ("human", "{input}")
-    ])
-    dated_input = prompt_template.format(
-        current_date=current_date,
-        input=user_input
-    )
+    # Add current date context to the query
+
+    dated_input = f"{user_input}\n\nCurrent date: {datetime.now().strftime('%Y-%m-%d')}"
 
     # Add message to chat history
     st.session_state.messages.append(HumanMessage(content=dated_input))
@@ -207,9 +198,8 @@ async def main() -> None:
     # Get tools
     tools = create_maintenance_tools()
 
-    # Create agent with ReAct pattern using formatted system prompt
-    formatted_system_prompt = SYSTEM_PROMPT.format(current_date=current_date)
-    agent = create_react_agent(model=llm, tools=tools, prompt=formatted_system_prompt, checkpointer=checkpointer)
+    # Create agent with ReAct pattern
+    agent = create_react_agent(model=llm, tools=tools, prompt=SYSTEM_PROMPT, checkpointer=checkpointer)
 
     # Get streamlit callback
     st_callback = get_streamlit_cb(st.container())
