@@ -161,8 +161,6 @@ SYSTEM_PROMPT = dedent_ws(
     To do so, you have different tools to access maintenance planning, spares etc.
     Make sure to use only the provided tools to answer the user request.
     If you don't find relevant tool, answer "I don't know"
-    
-    Current date: {current_date}
     """
 )
 
@@ -181,11 +179,18 @@ async def main() -> None:
     if not with_clear_container(submit_clicked):
         return
 
-    # Get current date
-    current_date = datetime.now().strftime('%Y-%m-%d')
+    # Get current date and format prompt
+    from langchain_core.prompts import ChatPromptTemplate
     
-    # Use the user input directly
-    dated_input = user_input
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    prompt_template = ChatPromptTemplate.from_messages([
+        ("system", SYSTEM_PROMPT + "\n\nCurrent date: {current_date}"),
+        ("human", "{input}")
+    ])
+    dated_input = prompt_template.format(
+        current_date=current_date,
+        input=user_input
+    )
 
     # Add message to chat history
     st.session_state.messages.append(HumanMessage(content=dated_input))
