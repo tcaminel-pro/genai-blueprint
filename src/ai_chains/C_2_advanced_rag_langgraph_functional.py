@@ -1,4 +1,9 @@
-"""Advanced RAG implementation using LangGraph's Functional API."""
+"""Advanced RAG implementation using LangGraph's Functional API.
+
+This is an adaptation of C_2_advanced_rag_langgraph.py using LangGraph's 
+Functional API (@task/@entrypoint decorators) instead of the StateGraph API.
+Implements the same RAG pipeline with document retrieval, grading and generation.
+"""
 
 import sys
 from enum import Enum
