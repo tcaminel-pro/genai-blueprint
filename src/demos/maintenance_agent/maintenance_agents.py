@@ -24,8 +24,8 @@ from langchain.agents import (
     create_tool_calling_agent,
 )
 from langchain.callbacks.base import BaseCallbackHandler
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.tools import BaseTool, tool
 from langchain.vectorstores.base import VectorStore
@@ -150,8 +150,12 @@ def create_maintenance_tools() -> list[BaseTool]:
         prompt = def_prompt(system_prompt, "{input}")
         retriever = maintenance_procedure_vectors(PROCEDURES[0]).as_retriever()
         llm = get_llm()
-        question_answer_chain = create_stuff_documents_chain(llm, prompt)
-        chain = create_retrieval_chain(retriever, question_answer_chain)
+        chain = (
+            {"context": retriever, "input": RunnablePassthrough()} 
+            | prompt 
+            | llm 
+            | StrOutputParser()
+        )
         return chain.invoke({"input": full_query})
 
     @tool
