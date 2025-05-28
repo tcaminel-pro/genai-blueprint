@@ -12,21 +12,27 @@ about maintenance operations, with the agent retrieving and synthesizing informa
 from multiple data sources.
 """
 
+import asyncio
+import uuid
 from datetime import datetime
 from pathlib import Path
+from typing import cast
 
 import pandas as pd
 import streamlit as st
 from langchain.callbacks import tracing_v2_enabled
-from langchain_community.callbacks import StreamlitCallbackHandler
+from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.runnables import RunnableConfig
+from langgraph.checkpoint.base import BaseCheckpointSaver
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.prebuilt import create_react_agent
 from loguru import logger  # noqa: F401
 
 from src.ai_core.llm import get_llm
-from src.ai_core.prompts import dedent_ws
+from src.ai_core.prompts import dedent_ws, dict_input_message
 from src.demos.maintenance_agent.maintenance_agents import (
     DATA_PATH,
     PROCEDURES,
-    create_maintenance_agent,
     create_maintenance_tools,
 )
 from src.demos.maintenance_agent.maintenance_data import dummy_database
@@ -34,6 +40,7 @@ from src.utils.config_mngr import global_config
 from src.utils.streamlit.clear_result import with_clear_container
 from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
 from src.webapp.ui_components.llm_config import llm_config_widget
+from src.webapp.ui_components.streamlit_chat import StreamlitStatusCallbackHandler, display_messages
 
 # fmt:off
 SAMPLE_PROMPTS = {
@@ -141,35 +148,104 @@ with st.form(key="form"):
     user_input = st.text_area(label="Or, ask your own question / prompt", value=sample_prompt, height=150)
     submit_clicked = st.form_submit_button("Submit Question")
 
-output_container = st.empty()
-if with_clear_container(submit_clicked):
-    output_container = output_container.container()
-    output_container.chat_message("user").write(user_input)
-    answer_container = output_container.chat_message("assistant", avatar="🛠️")
+# Initialize messages in session state if not present
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-    streamlit_callback = get_streamlit_cb(answer_container)
-    streamlit_callback2 = StreamlitCallbackHandler(answer_container)
+@st.cache_resource()
+def get_agent_config() -> tuple[RunnableConfig, BaseCheckpointSaver]:
+    """Create and cache agent configuration.
 
+    Returns:
+        Tuple of (RunnableConfig, checkpoint saver) with unique thread ID
+    """
+    thread_id = str(uuid.uuid4())
+    config = {"configurable": {"thread_id": thread_id}}
+    checkpointer = MemorySaver()
+    return cast(RunnableConfig, config), checkpointer
+
+# System prompt for the maintenance agent
+SYSTEM_PROMPT = dedent_ws(
+    """
+    You are a helpful assistant to help a maintenance engineer.
+    To do so, you have different tools to access maintenance planning, spares etc.
+    Make sure to use only the provided tools to answer the user request.
+    If you don't find relevant tool, answer "I don't know"
+    """
+)
+
+async def main() -> None:
+    """Main async function to run the Maintenance Agent demo.
+
+    Handles:
+    - UI setup and demo selection
+    - Tool initialization
+    - Agent execution
+    - Streaming output display
+    """
+    display_messages(st)
+    
+    if not with_clear_container(submit_clicked):
+        return
+        
+    # Add current date context to the query
+    dated_input = f"{user_input}\n\nCurrent date: {datetime.now().strftime('%Y-%m-%d')}"
+    
+    # Add message to chat history
+    st.session_state.messages.append(HumanMessage(content=dated_input))
+    st.chat_message("user").write(user_input)
+    
+    # Create status to show agent progress
+    status = st.status("Agent starting...", expanded=True)
+    status_callback = StreamlitStatusCallbackHandler(status)
+    
+    # Get agent configuration
+    config, checkpointer = get_agent_config()
     llm = get_llm()
-
+    
+    # Get tools
+    tools = create_maintenance_tools()
+    
+    # Create agent with ReAct pattern
+    agent = create_react_agent(
+        model=llm, 
+        tools=tools, 
+        prompt=SYSTEM_PROMPT,
+        checkpointer=checkpointer
+    )
+    
+    # Get streamlit callback
+    st_callback = get_streamlit_cb(st.container())
+    
+    # Prepare input
+    inputs = dict_input_message(user=dated_input)
+    
+    # Update config
+    config["configurable"].update({"st_container": status})
+    
     try:
-        # Add current date context to the query
-        dated_input = f"{user_input}\n\nCurrent date: {datetime.now().strftime('%Y-%m-%d')}"
-        chain = create_maintenance_agent(
-            metadata={"st_container": ("answer_container", answer_container)},
-            callbacks=[streamlit_callback2, streamlit_callback],
-        )
-        if global_config().get_str("monitoring.default") == "langsmith":
-            with tracing_v2_enabled() as cb:
-                answer = chain.invoke({"input": dated_input})
-                url = cb.get_run_url()
-                answer_container.write("[trace](%s)" % url)
-            if output := answer.get("output"):
-                answer_container.write(output)
-            else:
-                answer_container.write(answer)
-        else:
-            NotImplementedError()
-
+        # Run agent with tracing
+        with tracing_v2_enabled() as cb:
+            astream = agent.astream(
+                inputs,
+                config | {"callbacks": [st_callback, status_callback]},
+            )
+            
+            async for step in astream:
+                for node, update in step.items():
+                    if node == "agent":
+                        response = update["messages"][-1]
+                        assert isinstance(response, AIMessage)
+                        st.chat_message("ai", avatar="🛠️").write(response.content)
+            
+            url = cb.get_run_url()
+            st.session_state.messages.append(response)
+            st.link_button("Trace", url)
+            
+        status.update(label="Done", state="complete", expanded=False)
     except Exception as ex:
         logger.exception(ex)
+        st.error(f"An error occurred: {ex}")
+
+# Run the async main function
+asyncio.run(main())

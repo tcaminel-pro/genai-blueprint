@@ -1,21 +1,14 @@
-"""LLM Augmented Autonomous Agent for Maintenance.
+"""Tools for Maintenance Agent.
 
-This module implements an AI assistant for maintenance operations that can:
-- Retrieve and explain maintenance procedures
-- Query planning databases for task assignments
-- Check tool availability and locations via ERP system
-- Access historical sensor data
-- Provide task-specific information and requirements
+This module provides tools for maintenance operations including:
+- Maintenance procedure retrieval
+- Planning database queries
+- Tool availability and location checks
+- Sensor data access
+- Maintenance history retrieval
 
-Key Components:
-- Vector stores for maintenance procedure similarity search
-- SQL query tools for planning system access
-- ERP system integration for tool management
-- Sensor data retrieval capabilities
-- Agent orchestration for complex queries
-
-The agent uses LangChain's tool calling capabilities to dynamically select and
-combine these tools based on the user's query.
+These tools can be used with a ReAct agent to create a comprehensive
+maintenance assistant.
 """
 
 from functools import cache
@@ -23,19 +16,13 @@ from pathlib import Path
 from textwrap import dedent
 
 import streamlit as st
-from langchain.agents import (
-    AgentExecutor,
-    create_tool_calling_agent,
-)
-from langchain.callbacks.base import BaseCallbackHandler
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.tools import BaseTool, tool
 from langchain.vectorstores.base import VectorStore
 from langchain_community.document_loaders import TextLoader
 from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import Runnable, RunnablePassthrough
+from langchain_core.runnables import RunnablePassthrough
 from loguru import logger
 
 from src.ai_core.embeddings import EmbeddingsFactory
@@ -192,54 +179,3 @@ def create_maintenance_tools() -> list[BaseTool]:
     ]
 
 
-def create_maintenance_agent(
-    verbose: bool = False,
-    callbacks: list[BaseCallbackHandler] | None = None,
-    metadata: dict | None = None,
-) -> Runnable:
-    """Create a maintenance agent that returns a runnable AgentExecutor.
-
-    Args:
-        verbose: Whether to enable verbose logging
-        callbacks: Optional list of callback handlers
-        metadata: Additional metadata for the agent
-
-    Returns:
-        Runnable: Configured agent executor ready to handle maintenance queries
-
-    The agent:
-    1. Uses tool calling to dynamically select appropriate tools
-    2. Handles complex queries by combining multiple tools
-    3. Provides structured responses to maintenance-related questions
-    4. Includes error handling and parsing safeguards
-    """
-    # Get the LLM info
-    # Create tools
-    tools = create_maintenance_tools()
-    system = dedent_ws(
-        """
-        You are a helpful assistant to help a maintenance engineer.
-        To do so, you have different tools (functions)  to access maintenance planning, spares etc.
-        Make sure to use only the provided tools (functions) to answer the user request.
-        If you don't find relevant tool, answer "I don't know"
-        """
-    )
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", system),
-            ("placeholder", "{chat_history}"),
-            ("human", "{input}"),
-            ("placeholder", "{agent_scratchpad}"),
-        ]
-    )
-    agent = create_tool_calling_agent(get_llm(), tools, prompt)
-    agent_executor = AgentExecutor(
-        agent=agent,
-        tools=tools,
-        verbose=verbose,
-        handle_parsing_errors=True,
-        metadata={"agentName": "MaintenanceAgent1"} | (metadata or {}),
-        callbacks=callbacks,
-    )
-    # return agent_executor | StrOutputParser()
-    return agent_executor
