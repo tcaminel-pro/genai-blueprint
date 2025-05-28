@@ -13,7 +13,6 @@ The main components are:
 
 #
 # Complete doc and docstring AI!
-from datetime import datetime
 from functools import cache
 from pathlib import Path
 from textwrap import dedent
@@ -24,15 +23,14 @@ from langchain.agents import (
     create_tool_calling_agent,
 )
 from langchain.callbacks.base import BaseCallbackHandler
-from langchain_core.runnables import RunnablePassthrough
-from langchain_core.output_parsers import StrOutputParser
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.tools import BaseTool, tool
 from langchain.vectorstores.base import VectorStore
 from langchain_community.document_loaders import TextLoader
 from langchain_community.utilities.sql_database import SQLDatabase
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import Runnable
+from langchain_core.runnables import Runnable, RunnablePassthrough
 from loguru import logger
 
 from src.ai_core.embeddings import EmbeddingsFactory
@@ -98,7 +96,6 @@ def create_maintenance_tools() -> list[BaseTool]:
     Returns:
         list[BaseTool]: List of configured tools including:
             - Planning info retrieval
-            - Current time
             - Maintenance times
             - Maintenance issues
             - Procedure retrieval
@@ -115,11 +112,6 @@ def create_maintenance_tools() -> list[BaseTool]:
         graph = create_sql_querying_graph(get_llm(), db, examples=examples[:5])
         result = graph.invoke({"question": query})
         return result["answer"]
-
-    @tool
-    def get_current_time() -> str:
-        """A tool to get the current time."""
-        return datetime.now().isoformat()
 
     @tool
     def get_maintenance_times(area: str) -> str:
@@ -150,12 +142,7 @@ def create_maintenance_tools() -> list[BaseTool]:
         prompt = def_prompt(system_prompt, "{input}")
         retriever = maintenance_procedure_vectors(PROCEDURES[0]).as_retriever()
         llm = get_llm()
-        chain = (
-            {"context": retriever, "input": RunnablePassthrough()} 
-            | prompt 
-            | llm 
-            | StrOutputParser()
-        )
+        chain = {"context": retriever, "input": RunnablePassthrough()} | prompt | llm | StrOutputParser()
         return chain.invoke({"input": full_query})
 
     @tool
@@ -185,7 +172,6 @@ def create_maintenance_tools() -> list[BaseTool]:
         get_maintenance_times,
         get_maintenance_issues,
         get_planning_info,
-        get_current_time,
         maintenance_procedure_retriever,
         get_info_from_erp,
         get_sensor_values,
