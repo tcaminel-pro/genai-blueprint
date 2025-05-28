@@ -1,18 +1,22 @@
 """LLM Augmented Autonomous Agent for Maintenance.
 
-This module provides tools and agents for assisting maintenance engineers with various tasks
-including procedure retrieval, planning information, sensor data, and ERP system queries.
+This module implements an AI assistant for maintenance operations that can:
+- Retrieve and explain maintenance procedures
+- Query planning databases for task assignments
+- Check tool availability and locations via ERP system
+- Access historical sensor data
+- Provide task-specific information and requirements
 
-The main components are:
-- Maintenance procedure vector stores for similarity search
-- SQL query tools for maintenance planning data
-- Sensor data retrieval tools
-- ERP system query tools
-- A maintenance agent that orchestrates these tools
+Key Components:
+- Vector stores for maintenance procedure similarity search
+- SQL query tools for planning system access
+- ERP system integration for tool management
+- Sensor data retrieval capabilities
+- Agent orchestration for complex queries
+
+The agent uses LangChain's tool calling capabilities to dynamically select and
+combine these tools based on the user's query.
 """
-
-#
-# Complete doc and docstring AI!
 from functools import cache
 from pathlib import Path
 from textwrap import dedent
@@ -55,13 +59,19 @@ VECTOR_STORE_ID = "InMemory"
 
 @st.cache_resource(show_spinner=True)
 def maintenance_procedure_vectors(text: str) -> VectorStore:
-    """Index and store a document for similarity matching using embeddings.
+    """Create vector store from maintenance procedure documents.
 
     Args:
         text: Name of the text file containing maintenance procedures
 
     Returns:
         VectorStore: Configured vector store with indexed documents
+
+    The procedure documents are:
+    1. Loaded from the specified text file
+    2. Split into chunks for efficient retrieval
+    3. Embedded using configured embeddings
+    4. Stored in the vector store
     """
     vs_factory = VectorStoreFactory(
         id=VECTOR_STORE_ID,
@@ -95,12 +105,15 @@ def create_maintenance_tools() -> list[BaseTool]:
 
     Returns:
         list[BaseTool]: List of configured tools including:
-            - Planning info retrieval
-            - Maintenance times
-            - Maintenance issues
-            - Procedure retrieval
-            - ERP system queries
-            - Sensor data
+            - Planning info retrieval: Query task assignments and schedules
+            - Maintenance times: Access historical maintenance timings
+            - Maintenance issues: Retrieve past maintenance problems
+            - Procedure retrieval: Search maintenance procedures
+            - ERP system queries: Check tool availability and locations
+            - Sensor data: Access historical sensor readings
+
+    Each tool is implemented as a LangChain tool with appropriate
+    descriptions and functionality for maintenance operations.
     """
     logger.info("create tools")
 
@@ -192,6 +205,12 @@ def create_maintenance_agent(
 
     Returns:
         Runnable: Configured agent executor ready to handle maintenance queries
+
+    The agent:
+    1. Uses tool calling to dynamically select appropriate tools
+    2. Handles complex queries by combining multiple tools
+    3. Provides structured responses to maintenance-related questions
+    4. Includes error handling and parsing safeguards
     """
     # Get the LLM info
     # Create tools
