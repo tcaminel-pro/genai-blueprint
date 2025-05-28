@@ -198,8 +198,9 @@ async def main() -> None:
     # Get tools
     tools = create_maintenance_tools()
 
-    # Create agent with ReAct pattern
-    agent = create_react_agent(model=llm, tools=tools, prompt=SYSTEM_PROMPT, checkpointer=checkpointer)
+    # Create agent with ReAct pattern using formatted system prompt
+    formatted_system_prompt = SYSTEM_PROMPT.format(current_date=current_date)
+    agent = create_react_agent(model=llm, tools=tools, prompt=formatted_system_prompt, checkpointer=checkpointer)
 
     # Get streamlit callback
     st_callback = get_streamlit_cb(st.container())
