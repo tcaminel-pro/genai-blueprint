@@ -12,6 +12,7 @@ about maintenance operations, with the agent retrieving and synthesizing informa
 from multiple data sources.
 """
 
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -153,8 +154,9 @@ if with_clear_container(submit_clicked):
 
     llm = get_llm()
 
-    # Add a postpromt after user_input to set the current date AI!
     try:
+        # Add current date context to the query
+        dated_input = f"{user_input}\n\nCurrent date: {datetime.now().strftime('%Y-%m-%d')}"
         chain = create_maintenance_agent(
             metadata={"st_container": ("answer_container", answer_container)}, callbacks=[streamlit_callback]
         )
