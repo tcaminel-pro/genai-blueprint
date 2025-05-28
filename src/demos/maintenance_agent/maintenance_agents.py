@@ -17,6 +17,7 @@ Key Components:
 The agent uses LangChain's tool calling capabilities to dynamically select and
 combine these tools based on the user's query.
 """
+
 from functools import cache
 from pathlib import Path
 from textwrap import dedent
@@ -156,7 +157,7 @@ def create_maintenance_tools() -> list[BaseTool]:
         retriever = maintenance_procedure_vectors(PROCEDURES[0]).as_retriever()
         llm = get_llm()
         chain = {"context": retriever, "input": RunnablePassthrough()} | prompt | llm | StrOutputParser()
-        return chain.invoke({"input": full_query})
+        return chain.invoke(full_query)
 
     @tool
     def get_info_from_erp(tools_name: list[str], time: str) -> str:

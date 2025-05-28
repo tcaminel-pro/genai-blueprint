@@ -18,7 +18,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 from langchain.callbacks import tracing_v2_enabled
-from langsmith import Client
+from langchain_community.callbacks import StreamlitCallbackHandler
 from loguru import logger  # noqa: F401
 
 from src.ai_core.llm import get_llm
@@ -32,7 +32,7 @@ from src.demos.maintenance_agent.maintenance_agents import (
 from src.demos.maintenance_agent.maintenance_data import dummy_database
 from src.utils.config_mngr import global_config
 from src.utils.streamlit.clear_result import with_clear_container
-from src.utils.streamlit.thread_issue_fix import get_streamlit_cb_v2
+from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
 from src.webapp.ui_components.llm_config import llm_config_widget
 
 # fmt:off
@@ -147,10 +147,8 @@ if with_clear_container(submit_clicked):
     output_container.chat_message("user").write(user_input)
     answer_container = output_container.chat_message("assistant", avatar="🛠️")
 
-    client = Client()
-    # streamlit_callback = get_streamlit_cb(answer_container)
-    streamlit_callback = get_streamlit_cb_v2(answer_container)
-    # streamlit_callback = StreamlitCallbackHandler(answer_container)
+    streamlit_callback = get_streamlit_cb(answer_container)
+    streamlit_callback2 = StreamlitCallbackHandler(answer_container)
 
     llm = get_llm()
 
@@ -158,11 +156,12 @@ if with_clear_container(submit_clicked):
         # Add current date context to the query
         dated_input = f"{user_input}\n\nCurrent date: {datetime.now().strftime('%Y-%m-%d')}"
         chain = create_maintenance_agent(
-            metadata={"st_container": ("answer_container", answer_container)}, callbacks=[streamlit_callback]
+            metadata={"st_container": ("answer_container", answer_container)},
+            callbacks=[streamlit_callback2, streamlit_callback],
         )
         if global_config().get_str("monitoring.default") == "langsmith":
             with tracing_v2_enabled() as cb:
-                answer = chain.invoke({"input": user_input})
+                answer = chain.invoke({"input": dated_input})
                 url = cb.get_run_url()
                 answer_container.write("[trace](%s)" % url)
             if output := answer.get("output"):
