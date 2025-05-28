@@ -153,6 +153,7 @@ if with_clear_container(submit_clicked):
 
     llm = get_llm()
 
+    # Add a postpromt after user_input to set the current date AI!
     try:
         chain = create_maintenance_agent(
             metadata={"st_container": ("answer_container", answer_container)}, callbacks=[streamlit_callback]
