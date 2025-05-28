@@ -1,6 +1,6 @@
 """Advanced RAG implementation using LangGraph's Functional API.
 
-This is an adaptation of C_2_advanced_rag_langgraph.py using LangGraph's 
+This is an adaptation of C_2_advanced_rag_langgraph.py using LangGraph's
 Functional API (@task/@entrypoint decorators) instead of the StateGraph API.
 Implements the same RAG pipeline with document retrieval, grading and generation.
 """
@@ -91,7 +91,7 @@ def retrieval_grader(question: str, document: str) -> YesOrNo:
         Instructions: {instructions}"""
     prompt = def_prompt(system_prompt, user_prompt).partial(instructions=yesno_enum_parser.get_format_instructions())
     chain = prompt | get_llm(llm_id=LLM_ID) | to_lower | yesno_enum_parser
-    return chain.invoke({"question": question, "document": document})
+    return chain.invoke({"question": question, "document": document})  # type: ignore
 
 
 @task
@@ -122,7 +122,7 @@ def hallucination_grader(documents: list[Document], generation: str) -> YesOrNo:
         Instructions: {instructions} """
     prompt = def_prompt(system_prompt, user_prompt).partial(instructions=yesno_enum_parser.get_format_instructions())
     chain = prompt | get_llm(llm_id=LLM_ID) | to_lower | yesno_enum_parser
-    return chain.invoke({"documents": documents, "generation": generation})
+    return chain.invoke({"documents": documents, "generation": generation}) # type: ignore
 
 
 @task
