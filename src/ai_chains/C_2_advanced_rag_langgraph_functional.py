@@ -43,6 +43,7 @@ class DataRoute(Enum):
 
 
 yesno_enum_parser = EnumOutputParser(enum=YesOrNo)
+# fix the Pylance warning " Attribute "content" is unknown". X is a Document AI!
 to_lower = RunnableLambda(lambda x: x.content.lower())
 
 
@@ -122,7 +123,7 @@ def hallucination_grader(documents: list[Document], generation: str) -> YesOrNo:
         Instructions: {instructions} """
     prompt = def_prompt(system_prompt, user_prompt).partial(instructions=yesno_enum_parser.get_format_instructions())
     chain = prompt | get_llm(llm_id=LLM_ID) | to_lower | yesno_enum_parser
-    return chain.invoke({"documents": documents, "generation": generation}) # type: ignore
+    return chain.invoke({"documents": documents, "generation": generation})  # type: ignore
 
 
 @task
@@ -139,7 +140,7 @@ def answer_grader(question: str, generation: str) -> YesOrNo:
         """
     prompt = def_prompt(system_prompt, user_prompt).partial(instructions=yesno_enum_parser.get_format_instructions())
     chain = prompt | get_llm(llm_id=LLM_ID) | to_lower | yesno_enum_parser
-    return chain.invoke({"question": question, "generation": generation})
+    return chain.invoke({"question": question, "generation": generation})  # type: ignore
 
 
 @task
@@ -157,7 +158,7 @@ def question_router(question: str) -> DataRoute:
         Instructions: {instructions} """
     prompt = def_prompt(system_prompt, user_prompt).partial(instructions=parser.get_format_instructions())
     chain = prompt | get_llm(llm_id=LLM_ID) | parser
-    return chain.invoke({"question": question})
+    return chain.invoke({"question": question}) # type: ignore
 
 
 @entrypoint(checkpointer=MemorySaver())
