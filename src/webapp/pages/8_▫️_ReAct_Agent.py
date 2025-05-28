@@ -170,11 +170,10 @@ with col_display_left:
     )
 
 # Display tools if available
-# change column names to "Name", "Description" AI!
 with st.expander("Available Tools", expanded=False):
     if tools := st.session_state.get("tools"):
         tools = cast(list[BaseTool], tools)
-        d = {t.name: t.description for t in tools}
+        d = {"Name": [t.name for t in tools], "Description": [t.description for t in tools]}
         st.dataframe(d)
 
 
