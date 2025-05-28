@@ -43,8 +43,7 @@ class DataRoute(Enum):
 
 
 yesno_enum_parser = EnumOutputParser(enum=YesOrNo)
-# fix the Pylance warning " Attribute "content" is unknown". X is a Document AI!
-to_lower = RunnableLambda(lambda x: x.content.lower())
+to_lower = RunnableLambda(lambda x: getattr(x, "content", "").lower())
 
 
 @once
