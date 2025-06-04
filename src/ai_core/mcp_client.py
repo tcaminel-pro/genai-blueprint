@@ -256,13 +256,12 @@ async def call_react_agent(query: str, llm_id: str | None = None, mcp_server_fil
     from loguru import logger
 
     model = get_llm(llm_id=llm_id)
-    async with MultiServerMCPClient(get_mcp_servers_dict(mcp_server_filter)) as client:
-        # async with MultiServerMCPClient(test_servers) as client:
-        tools = client.get_tools()
-        agent = create_react_agent(model, tools)
-        logger.info("invoke MCP agent...")
-        resp = agent.astream({"messages": query})
-        await print_astream(resp)
+    client = MultiServerMCPClient(get_mcp_servers_dict(mcp_server_filter))
+    tools = await client.get_tools()
+    agent = create_react_agent(model, tools)
+    logger.info("invoke MCP agent...")
+    resp = agent.astream({"messages": query})
+    await print_astream(resp)
 
 
 if __name__ == "__main__":

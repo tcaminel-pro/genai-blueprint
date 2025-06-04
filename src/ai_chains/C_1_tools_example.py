@@ -5,7 +5,6 @@ from operator import itemgetter
 from langchain.agents import AgentExecutor, create_tool_calling_agent, tool
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable
-from langchain_core.tools import tool
 
 from src.ai_core.chain_registry import (
     Example,

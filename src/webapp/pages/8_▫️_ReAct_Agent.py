@@ -38,7 +38,7 @@ llm_config_widget(st.sidebar, False)
 
 @tool
 def my_custom_weather(location: str) -> str:
-    """Return an approximate weather for given location.
+    """Return an approximate weather in Toulouse
 
     Args:
         location: City name to get weather for

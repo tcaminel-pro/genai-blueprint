@@ -31,7 +31,7 @@ from upath import UPath
 
 from src.ai_core.cache import LlmCache
 from src.ai_core.llm import LlmFactory
-from src.ai_core.mcp_client import call_react_agent, get_mcp_tools_info
+from src.ai_core.mcp_client import call_react_agent
 from src.ai_extra.mistral_ocr import process_pdf_batch
 from src.utils.config_mngr import global_config
 
@@ -40,13 +40,14 @@ def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def mcp_agent(
         input: str | None = None,
+        server: list[str] = [],
         cache: str = "memory",
         lc_verbose: Annotated[bool, Option("--verbose", "-v")] = False,
         lc_debug: Annotated[bool, Option("--debug", "-d")] = False,
         llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
     ) -> None:
         """
-        Quick test
+        MCP Server call 
         """
         set_debug(lc_debug)
         set_verbose(lc_verbose)
@@ -64,7 +65,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             print("Error: Input parameter or something in stdin is required")
             return
 
-        asyncio.run(call_react_agent(input))
+        asyncio.run(call_react_agent(input, llm_id=llm_id, mcp_server_filter=server))
 
     @cli_app.command()
     def smolagents(
@@ -142,7 +143,6 @@ def register_commands(cli_app: typer.Typer) -> None:
         asyncio.run(process_pdf_batch(pdf_files, output_path, use_cache))
 
         logger.info(f"OCR processing complete. Results saved to {output_dir}")
-
 
     @cli_app.command()
     def fabric(
