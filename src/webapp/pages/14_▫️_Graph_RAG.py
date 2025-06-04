@@ -4,7 +4,7 @@ Provides an interactive interface to build and query knowledge graphs from text.
 Supports configurable node types, relationship types, and demo presets.
 """
 
-from typing import List, Tuple
+from typing import List
 
 import kuzu
 import streamlit as st
@@ -61,16 +61,8 @@ def load_demos_from_config() -> List[GraphRagDemo]:
             allowed_nodes = demo_config.get("allowed_nodes", [])
             relationships_raw = demo_config.get("allowed_relationships", [])
 
-            # Convert relationships to proper format (list of 3-item tuples)
-            allowed_relationships = []
-            for rel in relationships_raw:
-                if isinstance(rel, str):
-                    # If it's a string, split into source, relation, target
-                    parts = rel.split()
-                    if len(parts) == 3:
-                        allowed_relationships.append(tuple(parts))
-                elif isinstance(rel, (list, tuple)) and len(rel) == 3:
-                    allowed_relationships.append(tuple(rel))
+            # Use relationships directly as they are already in the right format
+            allowed_relationships = relationships_raw
 
             example_queries = demo_config.get("example_queries", [])
 
