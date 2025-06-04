@@ -61,8 +61,16 @@ def load_demos_from_config() -> List[GraphRagDemo]:
             allowed_nodes = demo_config.get("allowed_nodes", [])
             relationships_raw = demo_config.get("allowed_relationships", [])
 
-            # Use relationships directly as they are already in the right format
-            allowed_relationships = relationships_raw
+            # Convert relationships to proper format (list of 3-item tuples)
+            allowed_relationships = []
+            for rel in relationships_raw:
+                if isinstance(rel, str):
+                    # If it's a string, split into source, relation, target
+                    parts = rel.split()
+                    if len(parts) == 3:
+                        allowed_relationships.append(tuple(parts))
+                elif isinstance(rel, (list, tuple)) and len(rel) == 3:
+                    allowed_relationships.append(tuple(rel))
 
             example_queries = demo_config.get("example_queries", [])
 
