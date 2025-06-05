@@ -18,12 +18,21 @@ training_edenai:
     default_model: ada_002_edenai
   onedrive_data: ${oc.env:ONEDRIVE, null}/_ongoing/training GenAI
 
+training_openrouter:
+  llm:
+    default_model: gpt_41mini_openrouter
+    cache : memory
+  embeddings:
+    default_model: ada_002_edenai
+  onedrive_data: ${oc.env:ONEDRIVE, null}/_ongoing/training GenAI
+
 training_azure:
   llm:
     default_model: gpt_4omini_azure
   embeddings:
     default_model: ada_002_azure
   onedrive_data: ${oc.env:ONEDRIVE, null}/_ongoing/training GenAI
+
 
 training_openai:
   llm:
