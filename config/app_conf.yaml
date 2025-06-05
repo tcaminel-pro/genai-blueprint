@@ -27,7 +27,7 @@ merge:
 # Default configuration, as defined in baseline.yaml, overrides.yaml, here, or elsewhere.
 # It can be overidden by 'BLUEPRINT_CONFIG' environment variable, or in code
 
-default_config: training_edenai   
+default_config: training_azure   
 
 #### 
 # UI Configuration : list of Streamlit pages, ... 

@@ -16,14 +16,14 @@ training_edenai:
     cache : memory
   embeddings:
     default_model: ada_002_edenai
-  onedrive_data: ${oc.env:ONEDRIVE}/_ongoing/training GenAI
+  onedrive_data: ${oc.env:ONEDRIVE, null}/_ongoing/training GenAI
 
 training_azure:
   llm:
     default_model: gpt_4omini_azure
   embeddings:
     default_model: ada_002_azure
-  onedrive_data: ${oc.env:ONEDRIVE}/_ongoing/training GenAI
+  onedrive_data: ${oc.env:ONEDRIVE, null}/_ongoing/training GenAI
 
 training_openai:
   llm:
