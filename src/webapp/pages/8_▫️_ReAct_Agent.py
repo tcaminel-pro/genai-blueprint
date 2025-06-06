@@ -35,6 +35,10 @@ load_dotenv()
 
 llm_config_widget(st.sidebar, False)
 
+from langchain_community.tools import DuckDuckGoSearchRun  # noqa: E402
+
+duckduck_search_tool = DuckDuckGoSearchRun()
+
 
 @tool
 def my_custom_weather(location: str) -> str:
@@ -121,7 +125,7 @@ def load_demos_from_config() -> List[ReactDemo]:
 SAMPLES_DEMOS = load_demos_from_config()
 
 debug(type(my_custom_weather))
-local_tools = []
+local_tools = [duckduck_search_tool]
 for demo in SAMPLES_DEMOS:
     for tool_name in demo.tools:
         if tool_name in globals() and callable(globals()[tool_name]):
@@ -209,7 +213,7 @@ async def main() -> None:
     try:
         client = MultiServerMCPClient(mcp_servers_params)
         rcp_tools = await client.get_tools()
-        all_tools = local_tools + rcp_tools
+        all_tools = local_tools + rcp_tools 
         if "tools" not in st.session_state:
             st.session_state["tools"] = all_tools
             st.rerun()

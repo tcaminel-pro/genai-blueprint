@@ -25,4 +25,11 @@
       - "Research the latest AI developments on OpenAI's website"
       - "Find information about quantum computing on IBM's website"
       - "Connect to atos.net with a browser, find the page with blogs, and get list of recent blog articles"
+  
+  - name: "Ma super idée"
+    mcp_servers:
+      - "ppt"
+      - filesystem
+    examples:
+      - "write a powerpoint with the current directory. Create one slide with directy list."
     

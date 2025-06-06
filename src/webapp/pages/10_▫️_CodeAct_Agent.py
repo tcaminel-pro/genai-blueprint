@@ -443,7 +443,6 @@ def display_final_msg(msg: Any) -> None:
     """
     try:
         with st.session_state.result_display:
-            st.write(f"{type(msg)}")
             if isinstance(msg, str):
                 st.markdown(msg)
             elif isinstance(msg, folium.Map):
@@ -500,6 +499,8 @@ if submitted:
     mcp_tools = []
     mcp_client = None
 
+    with col_display_right:
+        update_display()
     try:
         if demo.mcp_servers:
             mcp_servers = dict_to_stdio_server_list(get_mcp_servers_dict(demo.mcp_servers))
@@ -528,8 +529,7 @@ if submitted:
                             display_details=False,
                         )
                     scroll_to_here()
-            with col_display_right:
-                update_display()
+
     finally:
         if mcp_client:
             mcp_client.disconnect()
