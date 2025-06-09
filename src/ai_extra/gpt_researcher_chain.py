@@ -159,15 +159,13 @@ class GptrConfig(BaseModel):
         conf = next((c for c in gptr_configs if c.name == searched_name), None)
         if conf is None:
             raise ValueError(f"Unknown config {searched_name} in GPT Researcher config list (key: gdpr_configs)")
-        
+
         # Create a dictionary with all configuration values
         config_dict = {k: v for k, v in conf.items() if k not in ["name", "description"]}
-        
+
         # Create the GptrConfig object with the extracted configuration
         result = GptrConfig(
-            name=conf.get("name", searched_name),
-            description=conf.get("description", ""),
-            config=config_dict
+            name=conf.get("name", searched_name), description=conf.get("description", ""), config=config_dict
         )
         debug(conf, result)
         return result
