@@ -7,6 +7,7 @@ language models, settings, and research operations. It handles:
 - Creation of temporary configuration files
 - Execution of research tasks with configurable parameters
 - Management of research reports and metadata
+- Loading and saving configurations from YAML files
 
 Main function is: gpt_researcher_chain
 
@@ -14,11 +15,14 @@ Main function is: gpt_researcher_chain
 
 import asyncio
 import json
+import os
 import tempfile
 import textwrap
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, List, Optional
+
+import yaml
 
 try:
     from gpt_researcher import GPTResearcher
@@ -31,6 +35,7 @@ from loguru import logger
 from pydantic import BaseModel, Field
 
 from src.ai_core.llm import LlmFactory
+from src.utils.config_mngr import global_config
 from src.utils.pydantic.kv_store import load_object_from_kvstore, save_object_to_kvstore
 
 
@@ -128,6 +133,105 @@ class Language(str, Enum):
     SPANISH = "spanish"
     GERMAN = "german"
 
+
+class GptrConfig(BaseModel):
+    """Configuration for GPT Researcher.
+    
+    Attributes:
+        name: Name of the configuration
+        description: Description of the configuration
+        config: Dictionary of configuration parameters
+    """
+    name: str
+    description: str = ""
+    config: Dict[str, Any] = Field(default_factory=dict)
+    
+    @classmethod
+    def load(cls, config_name: str = "default") -> "GptrConfig":
+        """Load a configuration from a YAML file.
+        
+        Args:
+            config_name: Name of the configuration file (without extension)
+            
+        Returns:
+            GptrConfig: Loaded configuration
+        """
+        try:
+            config_dir = Path("config/demo")
+            config_file = config_dir / f"gptr_config_{config_name}.yaml"
+            
+            if not config_file.exists():
+                # Create default config if it doesn't exist
+                if config_name == "default":
+                    default_config = cls(
+                        name="Default Configuration",
+                        description="Default configuration for GPT Researcher",
+                        config={
+                            "max_iterations": 3,
+                            "max_search_results_per_query": 5,
+                            "report_type": "research_report",
+                            "search_engine": "tavily",
+                            "tone": "Objective",
+                            "llm_id": "gpt_41mini_openrouter"
+                        }
+                    )
+                    default_config.save("default")
+                    return default_config
+                else:
+                    raise FileNotFoundError(f"Configuration file {config_file} not found")
+            
+            with open(config_file, "r") as f:
+                data = yaml.safe_load(f)
+                
+            return cls(**data)
+        except Exception as e:
+            logger.error(f"Error loading configuration: {e}")
+            # Return default configuration
+            return cls(
+                name="Default Configuration",
+                description="Default configuration for GPT Researcher",
+                config={
+                    "max_iterations": 3,
+                    "max_search_results_per_query": 5,
+                    "report_type": "research_report",
+                    "search_engine": "tavily",
+                    "tone": "Objective",
+                    "llm_id": "gpt_41mini_openrouter"
+                }
+            )
+    
+    def save(self, config_name: str) -> None:
+        """Save the configuration to a YAML file.
+        
+        Args:
+            config_name: Name of the configuration file (without extension)
+        """
+        config_dir = Path("config/demo")
+        config_dir.mkdir(parents=True, exist_ok=True)
+        
+        config_file = config_dir / f"gptr_config_{config_name}.yaml"
+        
+        with open(config_file, "w") as f:
+            yaml.dump(self.model_dump(), f, default_flow_style=False)
+            
+    @classmethod
+    def list_configs(cls) -> List[str]:
+        """List all available configurations.
+        
+        Returns:
+            List[str]: List of configuration names (without extension)
+        """
+        config_dir = Path("config/demo")
+        if not config_dir.exists():
+            config_dir.mkdir(parents=True, exist_ok=True)
+            # Create default config
+            cls.load("default")
+            
+        configs = []
+        for file in config_dir.glob("gptr_config_*.yaml"):
+            configs.append(file.stem.replace("gptr_config_", ""))
+        
+        return configs
 
 class CommonConfigParams(BaseModel):
     # https://docs.gptr.dev/docs/gpt-researcher/gptr/config

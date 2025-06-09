@@ -1,34 +1,44 @@
-""" """
+"""Deep Search Agent using GPT Researcher.
+
+This module provides a Streamlit interface for configuring and running
+GPT Researcher searches with customizable parameters and configuration management.
+"""
 
 import asyncio
+import os
 import textwrap
 from collections import deque
-from typing import Any, Final
+from typing import Any, Dict, Final, List
 
 import pandas as pd
 import streamlit as st
+import yaml
 from devtools import debug
 from langchain.callbacks import tracing_v2_enabled
 
 from src.ai_core.llm import configurable
 from src.ai_extra.gpt_researcher_chain import (
+    GptrConfig,
     GptrConfVariables,
     ReportType,
     SearchEngine,
     Tone,
     gpt_researcher_chain,
 )
+from src.utils.config_mngr import global_config
 from src.utils.streamlit.auto_scroll import scroll_to_here
 
 LOG_SIZE_MAX = 100
 
-GPTR_LLM_ID = "gpt_41mini_openrouter"
-# GPTR_LLM_ID = "deepseek:deepseek-chat"
+# Initialize session state for configuration
+if "current_config" not in st.session_state:
+    st.session_state.current_config = "default"
+    
+if "custom_config" not in st.session_state:
+    st.session_state.custom_config = {}
 
-CUSTOM_GPTR_CONFIG = {
-    "MAX_ITERATIONS": 3,
-    "MAX_SEARCH_RESULTS_PER_QUERY": 5,
-}
+# Load available configurations
+available_configs = GptrConfig.list_configs()
 
 st.title("GPT Researcher Playground")
 
@@ -39,22 +49,104 @@ SAMPLE_SEARCH = [
     "Define what is Agentic AI",
 ]
 
-# See https://docs.gptr.dev/docs/gpt-researcher/gptr/config
-#
+# Configuration sidebar
+with st.sidebar:
+    st.header("Configuration")
+    
+    # Configuration selection
+    selected_config = st.selectbox(
+        "Select Configuration", 
+        options=available_configs,
+        index=available_configs.index(st.session_state.current_config) if st.session_state.current_config in available_configs else 0
+    )
+    
+    # Load the selected configuration
+    if selected_config != st.session_state.current_config:
+        st.session_state.current_config = selected_config
+        loaded_config = GptrConfig.load(selected_config)
+        st.session_state.custom_config = loaded_config.config
+    else:
+        loaded_config = GptrConfig.load(selected_config)
+    
+    # Display configuration info
+    st.info(f"**{loaded_config.name}**\n\n{loaded_config.description}")
+    
+    # Configuration management
+    with st.expander("Save/Create Configuration"):
+        config_name = st.text_input("Configuration Name", value=loaded_config.name)
+        config_desc = st.text_area("Description", value=loaded_config.description)
+        
+        col1, col2 = st.columns(2)
+        save_btn = col1.button("Save Configuration")
+        create_btn = col2.button("Create New")
+        
+        if save_btn:
+            # Update and save the current configuration
+            current_config = GptrConfig(
+                name=config_name,
+                description=config_desc,
+                config=st.session_state.custom_config
+            )
+            current_config.save(selected_config)
+            st.success(f"Configuration '{config_name}' saved!")
+            # Refresh the list
+            st.rerun()
+            
+        if create_btn:
+            # Create a new configuration
+            new_config_name = f"custom_{len(available_configs)}"
+            new_config = GptrConfig(
+                name=config_name,
+                description=config_desc,
+                config=st.session_state.custom_config
+            )
+            new_config.save(new_config_name)
+            st.session_state.current_config = new_config_name
+            st.success(f"New configuration created as '{new_config_name}'!")
+            # Refresh the list
+            st.rerun()
 
-c_config_left, c_config_right = st.columns([5, 1])
-with c_config_left.expander(label="Search Configuration"):
+# Main configuration area
+with st.expander("Search Configuration", expanded=True):
     col1, col2, col3 = st.columns(3)
-    col1.number_input("Max Interation", 1, 5, CUSTOM_GPTR_CONFIG["MAX_ITERATIONS"])
-    col1.number_input("Max search per query", 1, 10, CUSTOM_GPTR_CONFIG["MAX_SEARCH_RESULTS_PER_QUERY"])
-    search_mode = col2.selectbox("Search Mode", [rt.value for rt in ReportType])
-    col2.selectbox("Search Engine", [rt.value for rt in SearchEngine])
-    col2.selectbox("Tone", [rt.value for rt in Tone])
-    if search_mode == "custom_report":
-        col3.text_area("System prompt:", height=150)
-    st.write("Not Yet Implemented".upper())
+    
+    # Get current values from session state or defaults
+    max_iterations = st.session_state.custom_config.get("max_iterations", 3)
+    max_search_results = st.session_state.custom_config.get("max_search_results_per_query", 5)
+    report_type = st.session_state.custom_config.get("report_type", "research_report")
+    search_engine = st.session_state.custom_config.get("search_engine", "tavily")
+    tone = st.session_state.custom_config.get("tone", "Objective")
+    llm_id = st.session_state.custom_config.get("llm_id", "gpt_41mini_openrouter")
+    
+    # Configuration inputs
+    new_max_iterations = col1.number_input("Max Iterations", 1, 5, value=max_iterations)
+    new_max_search_results = col1.number_input("Max search per query", 1, 10, value=max_search_results)
+    new_llm_id = col1.text_input("LLM ID", value=llm_id)
+    
+    new_report_type = col2.selectbox("Report Type", [rt.value for rt in ReportType], index=[rt.value for rt in ReportType].index(report_type) if report_type in [rt.value for rt in ReportType] else 0)
+    new_search_engine = col2.selectbox("Search Engine", [rt.value for rt in SearchEngine], index=[rt.value for rt in SearchEngine].index(search_engine) if search_engine in [rt.value for rt in SearchEngine] else 0)
+    new_tone = col2.selectbox("Tone", [rt.value for rt in Tone], index=[rt.value for rt in Tone].index(tone) if tone in [rt.value for rt in Tone] else 0)
+    
+    # Custom prompt for custom report type
+    custom_prompt = ""
+    if new_report_type == "custom_report":
+        custom_prompt = col3.text_area("System prompt:", height=150, value=st.session_state.custom_config.get("custom_prompt", ""))
+    
+    # Update session state with new values
+    st.session_state.custom_config = {
+        "max_iterations": new_max_iterations,
+        "max_search_results_per_query": new_max_search_results,
+        "report_type": new_report_type,
+        "search_engine": new_search_engine,
+        "tone": new_tone,
+        "llm_id": new_llm_id
+    }
+    
+    if custom_prompt:
+        st.session_state.custom_config["custom_prompt"] = custom_prompt
 
-with c_config_right.popover("how it works", use_container_width=False):
+# How it works popover
+with st.popover("How it works", use_container_width=False):
     c21, c22 = st.columns([7, 12])
     c21.write("Normal Research")
     c21.image(
@@ -63,6 +155,7 @@ with c_config_right.popover("how it works", use_container_width=False):
     c22.write("Deep Research")
     c22.image("https://github.com/user-attachments/assets/eba2d94b-bef3-4f8d-bbc0-f15bd0a40968")
 
+# Query input area
 col1, col2 = st.columns([4, 1])
 sample_search = col1.selectbox("Sample queries:", SAMPLE_SEARCH, index=None)
 
@@ -109,12 +202,7 @@ class CustomLogsHandler:
 # log_container = None
 
 
-researcher_conf = GptrConfVariables(
-    fast_llm_id=GPTR_LLM_ID,
-    smart_llm_id=GPTR_LLM_ID,
-    # strategic_llm_id=gpt_llm,
-    extra_params=CUSTOM_GPTR_CONFIG,
-)
+# This section is no longer needed as we're using the configuration from session state
 
 
 async def main() -> None:
@@ -149,8 +237,31 @@ async def main() -> None:
                 ["log", "**Report**", "Context", "Images", "Sources", "Stats"]
             )
             log_handler = CustomLogsHandler(log, 200)
-
-            gptr_params = {"report_source": "web", "tone": "Objective"}
+            
+            # Create researcher configuration from the current settings
+            config = st.session_state.custom_config
+            
+            # Create GptrConfVariables from the configuration
+            researcher_conf = GptrConfVariables(
+                fast_llm_id=config.get("llm_id"),
+                smart_llm_id=config.get("llm_id"),
+                extra_params={
+                    "MAX_ITERATIONS": config.get("max_iterations", 3),
+                    "MAX_SEARCH_RESULTS_PER_QUERY": config.get("max_search_results_per_query", 5),
+                }
+            )
+            
+            # Set up parameters for the researcher
+            gptr_params = {
+                "report_source": "web", 
+                "tone": config.get("tone", "Objective"),
+                "report_type": config.get("report_type", "research_report"),
+            }
+            
+            # Add custom prompt if specified
+            if config.get("report_type") == "custom_report" and config.get("custom_prompt"):
+                gptr_params["custom_prompt"] = config.get("custom_prompt")
+            
             gptr_chain = gpt_researcher_chain().with_config(
                 configurable(
                     {

@@ -1,0 +1,10 @@
+# Default GPT Researcher configuration
+name: Default Configuration
+description: Default configuration for GPT Researcher
+config:
+  max_iterations: 3
+  max_search_results_per_query: 5
+  report_type: research_report
+  search_engine: tavily
+  tone: Objective
+  llm_id: gpt_41mini_openrouter
