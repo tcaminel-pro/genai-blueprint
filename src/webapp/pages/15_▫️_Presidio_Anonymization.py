@@ -11,6 +11,8 @@ from langchain_experimental.data_anonymizer import (
 )
 from loguru import logger
 from pydantic import BaseModel, ConfigDict
+from presidio_analyzer import PatternRecognizer
+from faker import Faker
 
 
 class AnonymizationDemo(BaseModel):
@@ -25,7 +27,32 @@ st.caption("Protect PII (Personally Identifiable Information) using Microsoft Pr
 
 # Initialize session state
 if "anon" not in st.session_state:
-    st.session_state.anon = AnonymizationDemo(anonymizer=PresidioReversibleAnonymizer())
+    anonymizer = PresidioReversibleAnonymizer()
+    
+    # Add custom recognizers for company and project names
+    company_recognizer = PatternRecognizer(
+        supported_entity="COMPANY",
+        patterns=[r"\b[A-Z][a-z]+(?:[\s-][A-Z][a-z]+)*\b"],
+        context=["company", "organization", "firm", "enterprise"]
+    )
+    
+    project_recognizer = PatternRecognizer(
+        supported_entity="PROJECT",
+        patterns=[r"\b[A-Z]+-\d+[A-Z]*\b", r"\b[A-Z][a-z]+(?:[\s-][A-Z][a-z]+\d*)*\b"],
+        context=["project", "initiative", "program"]
+    )
+    
+    anonymizer.add_recognizer(company_recognizer)
+    anonymizer.add_recognizer(project_recognizer)
+    
+    # Add custom operators for fake data generation
+    fake = Faker()
+    anonymizer.add_operators({
+        "COMPANY": lambda _: fake.company(),
+        "PROJECT": lambda _: fake.bothify(text="PROJ-????", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    })
+    
+    st.session_state.anon = AnonymizationDemo(anonymizer=anonymizer)
 
 # Main layout
 col1, col2 = st.columns(2)
