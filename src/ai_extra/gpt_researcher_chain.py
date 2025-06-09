@@ -154,50 +154,20 @@ class GptrConfig(BaseModel):
 
         Returns:
             GptrConfig: Loaded configuration
+            
+        Raises:
+            FileNotFoundError: If the configuration file doesn't exist
         """
-        try:
-            config_dir = Path("config/demos")
-            config_file = config_dir / f"gptr_config_{config_name}.yaml"
+        config_dir = Path("config/demo")
+        config_file = config_dir / f"gptr_config_{config_name}.yaml"
 
-            if not config_file.exists():
-                # Create default config if it doesn't exist
-                if config_name == "default":
-                    default_config = cls(
-                        name="Default Configuration",
-                        description="Default configuration for GPT Researcher",
-                        config={
-                            "max_iterations": 3,
-                            "max_search_results_per_query": 5,
-                            "report_type": "research_report",
-                            "search_engine": "tavily",
-                            "tone": "Objective",
-                            "llm_id": "gpt_41mini_openrouter",
-                        },
-                    )
-                    default_config.save("default")
-                    return default_config
-                else:
-                    raise FileNotFoundError(f"Configuration file {config_file} not found")
+        if not config_file.exists():
+            raise FileNotFoundError(f"Configuration file {config_file} not found")
 
-            with open(config_file, "r") as f:
-                data = yaml.safe_load(f)
+        with open(config_file, "r") as f:
+            data = yaml.safe_load(f)
 
-            return cls(**data)
-        except Exception as e:
-            logger.error(f"Error loading configuration: {e}")
-            # Return default configuration
-            return cls(
-                name="Default Configuration",
-                description="Default configuration for GPT Researcher",
-                config={
-                    "max_iterations": 3,
-                    "max_search_results_per_query": 5,
-                    "report_type": "research_report",
-                    "search_engine": "tavily",
-                    "tone": "Objective",
-                    "llm_id": "gpt_41mini_openrouter",
-                },
-            )
+        return cls(**data)
 
     def save(self, config_name: str) -> None:
         """Save the configuration to a YAML file.
@@ -223,13 +193,15 @@ class GptrConfig(BaseModel):
         config_dir = Path("config/demo")
         if not config_dir.exists():
             config_dir.mkdir(parents=True, exist_ok=True)
-            # Create default config
-            cls.load("default")
 
         configs = []
         for file in config_dir.glob("gptr_config_*.yaml"):
             configs.append(file.stem.replace("gptr_config_", ""))
-
+            
+        # Return at least one default config name even if no files exist
+        if not configs:
+            configs.append("default")
+            
         return configs
 
 

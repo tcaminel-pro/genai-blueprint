@@ -7,6 +7,7 @@ GPT Researcher searches with customizable parameters and configuration managemen
 import asyncio
 import textwrap
 from collections import deque
+from pathlib import Path
 from typing import Any, Final
 
 import pandas as pd
@@ -35,8 +36,33 @@ if "current_config" not in sss:
 if "custom_config" not in sss:
     sss.custom_config = {}
 
-# Load available configurations
-available_configs = GptrConfig.list_configs()
+# Load available configurations and ensure default config exists
+try:
+    available_configs = GptrConfig.list_configs()
+    
+    # Create default config if it doesn't exist
+    config_dir = Path("config/demo")
+    config_dir.mkdir(parents=True, exist_ok=True)
+    
+    default_config_file = config_dir / "gptr_config_default.yaml"
+    if not default_config_file.exists():
+        default_config = GptrConfig(
+            name="Default Configuration",
+            description="Default configuration for GPT Researcher",
+            config={
+                "max_iterations": 3,
+                "max_search_results_per_query": 5,
+                "report_type": "research_report",
+                "search_engine": "tavily",
+                "tone": "Objective",
+                "llm_id": "gpt_41mini_openrouter",
+            }
+        )
+        default_config.save("default")
+        available_configs = GptrConfig.list_configs()
+except Exception as e:
+    st.error(f"Error loading configurations: {e}")
+    available_configs = ["default"]
 
 st.title("GPT Researcher Playground")
 
@@ -59,12 +85,29 @@ with st.sidebar:
     )
 
     # Load the selected configuration
-    if selected_config != sss.current_config:
-        sss.current_config = selected_config
-        loaded_config = GptrConfig.load(selected_config)
+    try:
+        if selected_config != sss.current_config:
+            sss.current_config = selected_config
+            loaded_config = GptrConfig.load(selected_config)
+            sss.custom_config = loaded_config.config
+        else:
+            loaded_config = GptrConfig.load(selected_config)
+    except FileNotFoundError:
+        # If configuration doesn't exist, create a default one
+        st.warning(f"Configuration '{selected_config}' not found. Using default settings.")
+        loaded_config = GptrConfig(
+            name=f"New Configuration ({selected_config})",
+            description="Created automatically",
+            config={
+                "max_iterations": 3,
+                "max_search_results_per_query": 5,
+                "report_type": "research_report",
+                "search_engine": "tavily",
+                "tone": "Objective",
+                "llm_id": "gpt_41mini_openrouter",
+            }
+        )
         sss.custom_config = loaded_config.config
-    else:
-        loaded_config = GptrConfig.load(selected_config)
 
     # Display configuration info
     st.info(f"**{loaded_config.name}**\n\n{loaded_config.description}")
