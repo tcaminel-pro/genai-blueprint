@@ -39,11 +39,11 @@ if "custom_config" not in sss:
 # Load available configurations and ensure default config exists
 try:
     available_configs = GptrConfig.list_configs()
-    
+
     # Create default config if it doesn't exist
     config_dir = Path("config/demo")
     config_dir.mkdir(parents=True, exist_ok=True)
-    
+
     default_config_file = config_dir / "gptr_config_default.yaml"
     if not default_config_file.exists():
         default_config = GptrConfig(
@@ -56,7 +56,7 @@ try:
                 "search_engine": "tavily",
                 "tone": "Objective",
                 "llm_id": "gpt_41mini_openrouter",
-            }
+            },
         )
         default_config.save("default")
         available_configs = GptrConfig.list_configs()
@@ -73,71 +73,16 @@ SAMPLE_SEARCH = [
     "Define what is Agentic AI",
 ]
 
-# Configuration sidebar
-with st.sidebar:
-    st.header("Configuration")
+# Configuration selection
+selected_config = st.selectbox(
+    "Select Configuration",
+    options=available_configs,
+)
+loaded_config = GptrConfig.load(selected_config)
+debug(loaded_config)
+sss.custom_config = loaded_config.config
 
-    # Configuration selection
-    selected_config = st.selectbox(
-        "Select Configuration",
-        options=available_configs,
-        index=available_configs.index(sss.current_config) if sss.current_config in available_configs else 0,
-    )
-
-    # Load the selected configuration
-    try:
-        if selected_config != sss.current_config:
-            sss.current_config = selected_config
-            loaded_config = GptrConfig.load(selected_config)
-            sss.custom_config = loaded_config.config
-        else:
-            loaded_config = GptrConfig.load(selected_config)
-    except FileNotFoundError:
-        # If configuration doesn't exist, create a default one
-        st.warning(f"Configuration '{selected_config}' not found. Using default settings.")
-        loaded_config = GptrConfig(
-            name=f"New Configuration ({selected_config})",
-            description="Created automatically",
-            config={
-                "max_iterations": 3,
-                "max_search_results_per_query": 5,
-                "report_type": "research_report",
-                "search_engine": "tavily",
-                "tone": "Objective",
-                "llm_id": "gpt_41mini_openrouter",
-            }
-        )
-        sss.custom_config = loaded_config.config
-
-    # Display configuration info
-    st.info(f"**{loaded_config.name}**\n\n{loaded_config.description}")
-
-    # Configuration management
-    with st.expander("Save/Create Configuration"):
-        config_name = st.text_input("Configuration Name", value=loaded_config.name)
-        config_desc = st.text_area("Description", value=loaded_config.description)
-
-        col1, col2 = st.columns(2)
-        save_btn = col1.button("Save Configuration")
-        create_btn = col2.button("Create New")
-
-        if save_btn:
-            # Update and save the current configuration
-            current_config = GptrConfig(name=config_name, description=config_desc, config=sss.custom_config)
-            current_config.save(selected_config)
-            st.success(f"Configuration '{config_name}' saved!")
-            # Refresh the list
-            st.rerun()
-
-        if create_btn:
-            # Create a new configuration
-            new_config_name = f"custom_{len(available_configs)}"
-            new_config = GptrConfig(name=config_name, description=config_desc, config=sss.custom_config)
-            new_config.save(new_config_name)
-            sss.current_config = new_config_name
-            st.success(f"New configuration created as '{new_config_name}'!")
-            # Refresh the list
-            st.rerun()
+debug(selected_config, sss.custom_config)
 
 # Main configuration area
 with st.expander("Search Configuration", expanded=True):

@@ -1,9 +1,13 @@
-config:
+gdpr_configs:
+- name: default
   llm_id: gpt_41mini_openrouter
   max_iterations: 3
   max_search_results_per_query: 5
   report_type: research_report
   search_engine: tavily
   tone: Objective
-description: Default configuration for GPT Researcher
-name: Default Configuration
+  description: Default configuration for GPT Researcher
+- name: detailed
+  max_iterations : 5
+  report_type: detailed_report
+

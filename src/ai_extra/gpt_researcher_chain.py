@@ -21,7 +21,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List
 
-import yaml
+from src.utils.config_mngr import global_config
 
 try:
     from gpt_researcher import GPTResearcher
@@ -146,63 +146,27 @@ class GptrConfig(BaseModel):
     config: Dict[str, Any] = Field(default_factory=dict)
 
     @classmethod
-    def load(cls, config_name: str = "default") -> "GptrConfig":
-        """Load a configuration from a YAML file.
+    def load(cls, searched_name: str = "default") -> "GptrConfig":
+        """Load a configuration from global confing
 
         Args:
-            config_name: Name of the configuration file (without extension)
+            config_name: Name of the configuration
 
         Returns:
             GptrConfig: Loaded configuration
-            
-        Raises:
-            FileNotFoundError: If the configuration file doesn't exist
         """
-        config_dir = Path("config/demo")
-        config_file = config_dir / f"gptr_config_{config_name}.yaml"
-
-        if not config_file.exists():
-            raise FileNotFoundError(f"Configuration file {config_file} not found")
-
-        with open(config_file, "r") as f:
-            data = yaml.safe_load(f)
-
-        return cls(**data)
-
-    def save(self, config_name: str) -> None:
-        """Save the configuration to a YAML file.
-
-        Args:
-            config_name: Name of the configuration file (without extension)
-        """
-        config_dir = Path("config/demo")
-        config_dir.mkdir(parents=True, exist_ok=True)
-
-        config_file = config_dir / f"gptr_config_{config_name}.yaml"
-
-        with open(config_file, "w") as f:
-            yaml.dump(self.model_dump(), f, default_flow_style=False)
+        gptr_configs = global_config().get_list("gdpr_configs")
+        conf = next((c for c in gptr_configs if c.name == searched_name), None)
+        if conf is None:
+            raise ValueError(f"Unknown config {searched_name} in GPT Researcher config list (key: gdpr_configs)")
+        debug(conf, cls(**conf))
+        return GptrConfig(**conf)
 
     @classmethod
     def list_configs(cls) -> List[str]:
-        """List all available configurations.
+        """List all available configurations"""
 
-        Returns:
-            List[str]: List of configuration names (without extension)
-        """
-        config_dir = Path("config/demo")
-        if not config_dir.exists():
-            config_dir.mkdir(parents=True, exist_ok=True)
-
-        configs = []
-        for file in config_dir.glob("gptr_config_*.yaml"):
-            configs.append(file.stem.replace("gptr_config_", ""))
-            
-        # Return at least one default config name even if no files exist
-        if not configs:
-            configs.append("default")
-            
-        return configs
+        return [c.name for c in global_config().get_list("gdpr_configs")]
 
 
 class CommonConfigParams(BaseModel):
