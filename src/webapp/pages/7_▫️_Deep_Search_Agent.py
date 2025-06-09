@@ -5,16 +5,15 @@ GPT Researcher searches with customizable parameters and configuration managemen
 """
 
 import asyncio
-import os
 import textwrap
 from collections import deque
-from typing import Any, Dict, Final, List
+from typing import Any, Final
 
 import pandas as pd
 import streamlit as st
-import yaml
 from devtools import debug
 from langchain.callbacks import tracing_v2_enabled
+from streamlit import session_state as sss
 
 from src.ai_core.llm import configurable
 from src.ai_extra.gpt_researcher_chain import (
@@ -25,17 +24,16 @@ from src.ai_extra.gpt_researcher_chain import (
     Tone,
     gpt_researcher_chain,
 )
-from src.utils.config_mngr import global_config
 from src.utils.streamlit.auto_scroll import scroll_to_here
 
 LOG_SIZE_MAX = 100
 
 # Initialize session state for configuration
-if "current_config" not in st.session_state:
-    st.session_state.current_config = "default"
-    
-if "custom_config" not in st.session_state:
-    st.session_state.custom_config = {}
+if "current_config" not in sss:
+    sss.current_config = "default"
+
+if "custom_config" not in sss:
+    sss.custom_config = {}
 
 # Load available configurations
 available_configs = GptrConfig.list_configs()
@@ -52,56 +50,48 @@ SAMPLE_SEARCH = [
 # Configuration sidebar
 with st.sidebar:
     st.header("Configuration")
-    
+
     # Configuration selection
     selected_config = st.selectbox(
-        "Select Configuration", 
+        "Select Configuration",
         options=available_configs,
-        index=available_configs.index(st.session_state.current_config) if st.session_state.current_config in available_configs else 0
+        index=available_configs.index(sss.current_config) if sss.current_config in available_configs else 0,
     )
-    
+
     # Load the selected configuration
-    if selected_config != st.session_state.current_config:
-        st.session_state.current_config = selected_config
+    if selected_config != sss.current_config:
+        sss.current_config = selected_config
         loaded_config = GptrConfig.load(selected_config)
-        st.session_state.custom_config = loaded_config.config
+        sss.custom_config = loaded_config.config
     else:
         loaded_config = GptrConfig.load(selected_config)
-    
+
     # Display configuration info
     st.info(f"**{loaded_config.name}**\n\n{loaded_config.description}")
-    
+
     # Configuration management
     with st.expander("Save/Create Configuration"):
         config_name = st.text_input("Configuration Name", value=loaded_config.name)
         config_desc = st.text_area("Description", value=loaded_config.description)
-        
+
         col1, col2 = st.columns(2)
         save_btn = col1.button("Save Configuration")
         create_btn = col2.button("Create New")
-        
+
         if save_btn:
             # Update and save the current configuration
-            current_config = GptrConfig(
-                name=config_name,
-                description=config_desc,
-                config=st.session_state.custom_config
-            )
+            current_config = GptrConfig(name=config_name, description=config_desc, config=sss.custom_config)
             current_config.save(selected_config)
             st.success(f"Configuration '{config_name}' saved!")
             # Refresh the list
             st.rerun()
-            
+
         if create_btn:
             # Create a new configuration
             new_config_name = f"custom_{len(available_configs)}"
-            new_config = GptrConfig(
-                name=config_name,
-                description=config_desc,
-                config=st.session_state.custom_config
-            )
+            new_config = GptrConfig(name=config_name, description=config_desc, config=sss.custom_config)
             new_config.save(new_config_name)
-            st.session_state.current_config = new_config_name
+            sss.current_config = new_config_name
             st.success(f"New configuration created as '{new_config_name}'!")
             # Refresh the list
             st.rerun()
@@ -109,41 +99,57 @@ with st.sidebar:
 # Main configuration area
 with st.expander("Search Configuration", expanded=True):
     col1, col2, col3 = st.columns(3)
-    
+
     # Get current values from session state or defaults
-    max_iterations = st.session_state.custom_config.get("max_iterations", 3)
-    max_search_results = st.session_state.custom_config.get("max_search_results_per_query", 5)
-    report_type = st.session_state.custom_config.get("report_type", "research_report")
-    search_engine = st.session_state.custom_config.get("search_engine", "tavily")
-    tone = st.session_state.custom_config.get("tone", "Objective")
-    llm_id = st.session_state.custom_config.get("llm_id", "gpt_41mini_openrouter")
-    
+    max_iterations = sss.custom_config.get("max_iterations", 3)
+    max_search_results = sss.custom_config.get("max_search_results_per_query", 5)
+    report_type = sss.custom_config.get("report_type", "research_report")
+    search_engine = sss.custom_config.get("search_engine", "tavily")
+    tone = sss.custom_config.get("tone", "Objective")
+    llm_id = sss.custom_config.get("llm_id", "gpt_41mini_openrouter")
+
     # Configuration inputs
     new_max_iterations = col1.number_input("Max Iterations", 1, 5, value=max_iterations)
     new_max_search_results = col1.number_input("Max search per query", 1, 10, value=max_search_results)
     new_llm_id = col1.text_input("LLM ID", value=llm_id)
-    
-    new_report_type = col2.selectbox("Report Type", [rt.value for rt in ReportType], index=[rt.value for rt in ReportType].index(report_type) if report_type in [rt.value for rt in ReportType] else 0)
-    new_search_engine = col2.selectbox("Search Engine", [rt.value for rt in SearchEngine], index=[rt.value for rt in SearchEngine].index(search_engine) if search_engine in [rt.value for rt in SearchEngine] else 0)
-    new_tone = col2.selectbox("Tone", [rt.value for rt in Tone], index=[rt.value for rt in Tone].index(tone) if tone in [rt.value for rt in Tone] else 0)
-    
+
+    new_report_type = col2.selectbox(
+        "Report Type",
+        [rt.value for rt in ReportType],
+        index=[rt.value for rt in ReportType].index(report_type)
+        if report_type in [rt.value for rt in ReportType]
+        else 0,
+    )
+    new_search_engine = col2.selectbox(
+        "Search Engine",
+        [rt.value for rt in SearchEngine],
+        index=[rt.value for rt in SearchEngine].index(search_engine)
+        if search_engine in [rt.value for rt in SearchEngine]
+        else 0,
+    )
+    new_tone = col2.selectbox(
+        "Tone",
+        [rt.value for rt in Tone],
+        index=[rt.value for rt in Tone].index(tone) if tone in [rt.value for rt in Tone] else 0,
+    )
+
     # Custom prompt for custom report type
     custom_prompt = ""
     if new_report_type == "custom_report":
-        custom_prompt = col3.text_area("System prompt:", height=150, value=st.session_state.custom_config.get("custom_prompt", ""))
-    
+        custom_prompt = col3.text_area("System prompt:", height=150, value=sss.custom_config.get("custom_prompt", ""))
+
     # Update session state with new values
-    st.session_state.custom_config = {
+    sss.custom_config = {
         "max_iterations": new_max_iterations,
         "max_search_results_per_query": new_max_search_results,
         "report_type": new_report_type,
         "search_engine": new_search_engine,
         "tone": new_tone,
-        "llm_id": new_llm_id
+        "llm_id": new_llm_id,
     }
-    
+
     if custom_prompt:
-        st.session_state.custom_config["custom_prompt"] = custom_prompt
+        sss.custom_config["custom_prompt"] = custom_prompt
 
 # How it works popover
 with st.popover("How it works", use_container_width=False):
@@ -160,13 +166,13 @@ col1, col2 = st.columns([4, 1])
 sample_search = col1.selectbox("Sample queries:", SAMPLE_SEARCH, index=None)
 
 
-if "log_entries" not in st.session_state:
-    st.session_state.log_entries = deque(maxlen=100)
-if "research_full_report" not in st.session_state:
-    st.session_state.research_full_report = None
+if "log_entries" not in sss:
+    sss.log_entries = deque(maxlen=100)
+if "research_full_report" not in sss:
+    sss.research_full_report = None
 
-if "traces" not in st.session_state:
-    st.session_state.traces = {}
+if "traces" not in sss:
+    sss.traces = {}
 
 
 class CustomLogsHandler:
@@ -184,11 +190,11 @@ class CustomLogsHandler:
 
     async def send_json(self, data: dict[str, Any]) -> None:
         debug(data)
-        if "log_entries" not in st.session_state:
-            st.session_state.log_entries = deque(maxlen=100)
+        if "log_entries" not in sss:
+            sss.log_entries = deque(maxlen=100)
         type = data.get("type")
         if type == "logs":
-            st.session_state.log_entries.append(data)
+            sss.log_entries.append(data)
             with self.log_container:
                 line = textwrap.shorten(data["output"], 120)
                 st.text(line)
@@ -237,10 +243,10 @@ async def main() -> None:
                 ["log", "**Report**", "Context", "Images", "Sources", "Stats"]
             )
             log_handler = CustomLogsHandler(log, 200)
-            
+
             # Create researcher configuration from the current settings
-            config = st.session_state.custom_config
-            
+            config = sss.custom_config
+
             # Create GptrConfVariables from the configuration
             researcher_conf = GptrConfVariables(
                 fast_llm_id=config.get("llm_id"),
@@ -248,20 +254,20 @@ async def main() -> None:
                 extra_params={
                     "MAX_ITERATIONS": config.get("max_iterations", 3),
                     "MAX_SEARCH_RESULTS_PER_QUERY": config.get("max_search_results_per_query", 5),
-                }
+                },
             )
-            
+
             # Set up parameters for the researcher
             gptr_params = {
-                "report_source": "web", 
+                "report_source": "web",
                 "tone": config.get("tone", "Objective"),
                 "report_type": config.get("report_type", "research_report"),
             }
-            
+
             # Add custom prompt if specified
             if config.get("report_type") == "custom_report" and config.get("custom_prompt"):
                 gptr_params["custom_prompt"] = config.get("custom_prompt")
-            
+
             gptr_chain = gpt_researcher_chain().with_config(
                 configurable(
                     {
@@ -274,11 +280,11 @@ async def main() -> None:
             )
             with tracing_v2_enabled() as cb:
                 with st.spinner(text="GPT Researcher running..."):
-                    st.session_state.research_full_report = await gptr_chain.ainvoke(search_input)
-                    st.session_state.traces["web_search"] = cb.get_run_url()
+                    sss.research_full_report = await gptr_chain.ainvoke(search_input)
+                    sss.traces["web_search"] = cb.get_run_url()
                     await log_handler.write_log("🍾 The search report is ready !")
 
-            research_full_report = st.session_state.research_full_report
+            research_full_report = sss.research_full_report
             if research_full_report:
                 # write in fist tabs
                 web_research_result = research_full_report.report
@@ -303,7 +309,7 @@ async def main() -> None:
 
                 # 'Stats' tab content
                 stats_tab_web.write(f"Research costs: ${research_full_report.costs}")
-                if trace_url := st.session_state.traces.get("web_search"):
+                if trace_url := sss.traces.get("web_search"):
                     stats_tab_web.write(f"trace: {trace_url}")
 
 
