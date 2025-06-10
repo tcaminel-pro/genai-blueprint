@@ -22,6 +22,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 from loguru import logger
 from pydantic import BaseModel, ConfigDict
+from streamlit import session_state as sss
 
 from src.ai_core.llm import get_llm
 from src.ai_core.mcp_client import get_mcp_servers_dict
@@ -136,10 +137,10 @@ for demo in SAMPLES_DEMOS:
 
 def clear_display() -> None:
     """Reset the chat display and tools state."""
-    if "messages" in st.session_state:
-        st.session_state.messages = []
-    if "tools" in st.session_state:
-        del st.session_state.tools
+    if "messages" in sss:
+        sss.messages = []
+    if "tools" in sss:
+        del sss.tools
 
 
 c01, c02 = st.columns([6, 4], border=False, gap="medium", vertical_alignment="top")
@@ -175,7 +176,7 @@ with col_display_left:
 
 # Display tools if available
 with st.expander("Available Tools", expanded=False):
-    if tools := st.session_state.get("tools"):
+    if tools := sss.get("tools"):
         tools = cast(list[BaseTool], tools)
         d = {"Name": [t.name for t in tools], "Description": [t.description for t in tools]}
         st.dataframe(d)
@@ -213,9 +214,9 @@ async def main() -> None:
     try:
         client = MultiServerMCPClient(mcp_servers_params)
         rcp_tools = await client.get_tools()
-        all_tools = local_tools + rcp_tools 
-        if "tools" not in st.session_state:
-            st.session_state["tools"] = all_tools
+        all_tools = local_tools + rcp_tools
+        if "tools" not in sss:
+            sss["tools"] = all_tools
             st.rerun()
 
         # Create agent with demo's system prompt
@@ -225,7 +226,7 @@ async def main() -> None:
         query = st.chat_input(placeholder="Enter your question...") or sample_search
 
         if query:
-            st.session_state.messages.append(HumanMessage(content=query))
+            sss.messages.append(HumanMessage(content=query))
             st_callback = get_streamlit_cb(st.container())
             st.chat_message("human").write(query)
 
@@ -252,7 +253,7 @@ async def main() -> None:
                             st.chat_message("ai").write(response.content)
                 url = cb.get_run_url()
             status.update(label="Done", state="complete", expanded=False)
-            st.session_state.messages.append(response)
+            sss.messages.append(response)
             st.link_button("Trace", url)
     finally:
         if client:

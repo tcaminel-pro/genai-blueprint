@@ -14,7 +14,8 @@ dependencies = [
     "fastapi>=0.115.6",
     "rich[jupyter]>=13.9.4",
     "universal-pathlib>=0.2.6",
-    "gradio>=5.30.0",
+    "pip>=25.1.1",
+    "fuzzysearch>=0.8.0",
 ]
 
 [project.urls]
@@ -53,6 +54,7 @@ ui = [
     "uvicorn>=0.34.0",
     "sse-starlette>=2.1.0",
     "streamlit>=1.40",
+    #"gradio>=5.30.0",
 ]
 ai_extra = [
     "gpt-researcher>=0.10.11",
@@ -119,7 +121,7 @@ default-groups = [
     "ui",
     "ai_extra",
     "demos",
-    "autogen",
+#    "autogen",
   #  "transformers",
     "dev",
 ]

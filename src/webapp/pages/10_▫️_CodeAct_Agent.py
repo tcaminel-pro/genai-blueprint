@@ -33,6 +33,7 @@ from smolagents import (
     WebSearchTool,
     tool,
 )
+from streamlit import session_state as sss
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 from streamlit_folium import st_folium
 
@@ -55,11 +56,11 @@ MODEL_ID = "gpt_41mini_openrouter"
 DATA_PATH = Path.cwd() / "use_case_data/other"
 
 # Initialize session state variables for managing agent output and display
-if "agent_output" not in st.session_state:
-    st.session_state.agent_output = []  # Stores all agent responses
+if "agent_output" not in sss:
+    sss.agent_output = []  # Stores all agent responses
 
-if "result_display" not in st.session_state:
-    st.session_state.result_display = st  # Default display container
+if "result_display" not in sss:
+    sss.result_display = st  # Default display container
 
 
 class DataFrameTool(Tool):
@@ -323,7 +324,7 @@ strecorder = StreamlitRecorder()
 
 def clear_display() -> None:
     """Clear the current display and reset agent output when changing demos"""
-    st.session_state.agent_output = []  # Reset stored outputs
+    sss.agent_output = []  # Reset stored outputs
     strecorder.clear()  # Clear the action recorder
     # st.rerun()  # Optional: Uncomment to force UI refresh
 
@@ -414,8 +415,8 @@ def my_final_answer(answer: Any) -> Any:
     """
     # additional_args = getattr(my_final_answer, "_additional_args", {})
     # widget = additional_args.get("widget") # Does not woek here
-    if len(st.session_state.agent_output) == 0 or st.session_state.agent_output[-1] != answer:
-        st.session_state.agent_output.append(answer)
+    if len(sss.agent_output) == 0 or sss.agent_output[-1] != answer:
+        sss.agent_output.append(answer)
         display_final_msg(answer)
     return str(answer)
 
@@ -426,9 +427,9 @@ def update_display() -> None:
     This function iterates through the stored agent outputs and displays
     them in the appropriate format in the Streamlit interface.
     """
-    if len(st.session_state.agent_output) > 0:
+    if len(sss.agent_output) > 0:
         st.write("answer:")
-    for msg in st.session_state.agent_output:
+    for msg in sss.agent_output:
         display_final_msg(msg)
 
 
@@ -442,7 +443,7 @@ def display_final_msg(msg: Any) -> None:
         msg: The message to display, can be various types
     """
     try:
-        with st.session_state.result_display:
+        with sss.result_display:
             if isinstance(msg, str):
                 st.markdown(msg)
             elif isinstance(msg, folium.Map):
@@ -494,7 +495,7 @@ if submitted:
     result_display = col_display_right.container(height=HEIGHT)
 
     # Update session state with current display container
-    st.session_state.result_display = result_display
+    sss.result_display = result_display
 
     mcp_tools = []
     mcp_client = None

@@ -12,6 +12,7 @@ import time
 from typing import Any, Callable, Tuple
 
 import streamlit as st
+from streamlit import session_state as sss
 from streamlit.delta_generator import DeltaGenerator
 
 ST_FUNCTION_TO_RECORD = [
@@ -59,10 +60,10 @@ class StreamlitRecorder:
     """
 
     def __init__(self) -> None:
-        if "streamlit_recorder_actions" not in st.session_state:
-            st.session_state.streamlit_recorder_actions = []
-        if "streamlit_recorder_last_timestamp" not in st.session_state:
-            st.session_state.streamlit_recorder_last_timestamp = None
+        if "streamlit_recorder_actions" not in sss:
+            sss.streamlit_recorder_actions = []
+        if "streamlit_recorder_last_timestamp" not in sss:
+            sss.streamlit_recorder_last_timestamp = None
         self.original_functions = {}
 
     def __enter__(self) -> StreamlitRecorder:
@@ -87,12 +88,10 @@ class StreamlitRecorder:
                         # Record the action
                         now = time.time()
                         time_delta = (
-                            now - st.session_state.streamlit_recorder_last_timestamp
-                            if st.session_state.streamlit_recorder_last_timestamp
-                            else 0
+                            now - sss.streamlit_recorder_last_timestamp if sss.streamlit_recorder_last_timestamp else 0
                         )
-                        st.session_state.streamlit_recorder_last_timestamp = now
-                        st.session_state.streamlit_recorder_actions.append(StreamlitAction(f, args, kwargs, time_delta))
+                        sss.streamlit_recorder_last_timestamp = now
+                        sss.streamlit_recorder_actions.append(StreamlitAction(f, args, kwargs, time_delta))
                         # Execute the original function
                         return f(*args, **kwargs)
 
@@ -112,12 +111,12 @@ class StreamlitRecorder:
             speed: Speed multiplier for replay (1.0 = normal speed)
         """
         with container:
-            for action in st.session_state.streamlit_recorder_actions:
+            for action in sss.streamlit_recorder_actions:
                 if action.timestamp > 0:
                     time.sleep(action.timestamp / speed)
                 action.func(*action.args, **action.kwargs)
 
     def clear(self) -> None:
-        st.session_state.streamlit_recorder_actions = []
-        st.session_state.streamlit_recorder_last_timestamp = None
+        sss.streamlit_recorder_actions = []
+        sss.streamlit_recorder_last_timestamp = None
         self.original_functions = {}

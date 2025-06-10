@@ -7,7 +7,6 @@ GPT Researcher searches with customizable parameters and configuration managemen
 import asyncio
 import textwrap
 from collections import deque
-from pathlib import Path
 from typing import Any, Final
 
 import pandas as pd
@@ -37,32 +36,8 @@ if "custom_config" not in sss:
     sss.custom_config = {}
 
 # Load available configurations and ensure default config exists
-try:
-    available_configs = GptrConfig.list_configs()
+available_configs = GptrConfig.list_configs()
 
-    # Create default config if it doesn't exist
-    config_dir = Path("config/demo")
-    config_dir.mkdir(parents=True, exist_ok=True)
-
-    default_config_file = config_dir / "gptr_config_default.yaml"
-    if not default_config_file.exists():
-        default_config = GptrConfig(
-            name="Default Configuration",
-            description="Default configuration for GPT Researcher",
-            config={
-                "max_iterations": 3,
-                "max_search_results_per_query": 5,
-                "report_type": "research_report",
-                "search_engine": "tavily",
-                "tone": "Objective",
-                "llm_id": "gpt_41mini_openrouter",
-            },
-        )
-        default_config.save("default")
-        available_configs = GptrConfig.list_configs()
-except Exception as e:
-    st.error(f"Error loading configurations: {e}")
-    available_configs = ["default"]
 
 st.title("GPT Researcher Playground")
 
@@ -78,7 +53,7 @@ selected_config = st.selectbox(
     "Select Configuration",
     options=available_configs,
     key="selected_config",
-    on_change=lambda: sss.update({"custom_config": GptrConfig.load(st.session_state.selected_config).config})
+    on_change=lambda: sss.update({"custom_config": GptrConfig.load(st.session_state.selected_config).config}),
 )
 loaded_config = GptrConfig.load(selected_config)
 debug(loaded_config)
@@ -88,7 +63,7 @@ if not sss.custom_config or sss.custom_config != loaded_config.config:
 debug(selected_config, sss.custom_config)
 
 # Main configuration area
-with st.expander("Search Configuration", expanded=True):
+with st.expander("Search configuration (partial)", expanded=True):
     col1, col2, col3 = st.columns(3)
 
     # Get current values from session state or defaults

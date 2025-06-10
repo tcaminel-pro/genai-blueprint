@@ -48,19 +48,19 @@ if "anon" not in st.session_state:
         context=["project", "initiative", "program"],
     )
 
-    anonymizer.add_recognizer(company_recognizer)
-    anonymizer.add_recognizer(project_recognizer)
+    # anonymizer.add_recognizer(company_recognizer)
+    # anonymizer.add_recognizer(project_recognizer)
 
     # Add custom operators for fake data generation
     fake = Faker()
-    from presidio_anonymizer.entities import OperatorConfig
+    from presidio_anonymizer.entities import OperatorConfig  # noqa: F401
     
-    anonymizer.add_operators(
-        {
-            "COMPANY": OperatorConfig("custom", {"lambda": lambda _: fake.company()}),
-            "PROJECT": OperatorConfig("custom", {"lambda": lambda _: fake.bothify(text="PROJ-????", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ")}),
-        }
-    )
+    # anonymizer.add_operators(
+    #     {
+    #         "COMPANY": OperatorConfig("custom", {"lambda": lambda _: fake.company()}),
+    #         "PROJECT": OperatorConfig("custom", {"lambda": lambda _: fake.bothify(text="PROJ-????", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ")}),
+    #     }
+    # )
 
     st.session_state.anon = AnonymizationDemo(anonymizer=anonymizer)
 

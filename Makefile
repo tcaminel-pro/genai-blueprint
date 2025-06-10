@@ -71,7 +71,7 @@ aider-haiku:
 aider-sonnet: 
 	aider $(AIDER_OPTS) --cache-prompts --model openrouter/anthropic/claude-3.7-sonnet;   
 aider-r1:
-	aider $(AIDER_OPTS) --model deepseek/deepseek-reasoner; 
+	aider $(AIDER_OPTS) --model openrouter/deepseek/deepseek-r1
 aider-o3:
 	aider $(AIDER_OPTS) --model o3-mini; 
 
@@ -84,7 +84,7 @@ lint: ## Run Ruff an all Python files to format fix imports
 quality: ## Run Ruff an all Python files to check quality
 	find . -path "./src/wip" -prune -o -path "./.venv" -prune -o -type f -name '*.py' | xargs ruff check --fix 
 
-clean_notebooks:  ## Clean Jupyter notebook outputs. 
+clean-notebooks:  ## Clean Jupyter notebook outputs. 
 	@find . -name "*.ipynb" | while read -r notebook; do \
 		echo "Cleaning outputs from: $$notebook"; \
 		uvx jupyter nbconvert --clear-output --inplace "$$notebook"; \
@@ -124,6 +124,10 @@ check_uv:  ## Check if uv is installed, install if missing
 
 install: check_uv   ## Install SW
 	uv sync
+
+install_spacy_models:  ## Install Spacy Models for NLP
+	uv run --with spacy spacy download fr_core_news_sm
+	uv run --with spacy spacy download en_core_web_lg
 
 
 ##############################

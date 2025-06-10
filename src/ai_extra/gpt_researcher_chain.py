@@ -167,7 +167,6 @@ class GptrConfig(BaseModel):
         result = GptrConfig(
             name=conf.get("name", searched_name), description=conf.get("description", ""), config=config_dict
         )
-        debug(conf, result)
         return result
 
     @classmethod

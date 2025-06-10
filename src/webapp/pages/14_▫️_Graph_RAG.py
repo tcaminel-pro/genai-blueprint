@@ -15,6 +15,7 @@ from langchain_kuzu.graphs.kuzu_graph import KuzuGraph
 from loguru import logger
 from pydantic import BaseModel, ConfigDict
 from st_cytoscape import cytoscape
+from streamlit import session_state as sss
 
 from src.ai_core.llm import get_llm
 from src.utils.config_mngr import global_config
@@ -93,14 +94,14 @@ llm = get_llm(llm_id=None)
 st.title("Graph RAG with Kuzu")
 
 # Initialize session state for graph data
-if "graph" not in st.session_state:
-    st.session_state.graph = None
+if "graph" not in sss:
+    sss.graph = None
 
 
 def clear_display() -> None:
     """Reset the graph display and state."""
-    if "graph" in st.session_state:
-        st.session_state.graph = None
+    if "graph" in sss:
+        sss.graph = None
 
 
 # Demo selection
@@ -156,10 +157,10 @@ if submitted:
         graph_documents,  # type: ignore
         include_source=True,
     )
-    st.session_state.graph = graph
+    sss.graph = graph
 
 # Display the graph if we have data
-if graph := st.session_state.graph:
+if graph := sss.graph:
     with st.expander("Graph Visualization", expanded=True):
         cytoscape(
             elements=get_cytoscape_json(graph),  # type: ignore

@@ -10,4 +10,3 @@ gdpr_configs:
 - name: detailed
   max_iterations : 5
   report_type: detailed_report
-

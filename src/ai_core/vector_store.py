@@ -224,15 +224,12 @@ class VectorStoreFactory(BaseModel):
             self._record_manager.create_schema()
 
         return vector_store
-    
-    # mark next function as obsolete and to be removed in future versions AI!
 
     def as_retriever_configurable(self, top_k: int = 4, filter: dict | None = None) -> VectorStoreRetriever:
         """Configure a retriever with a specific number of most relevant documents.
-        
+
         .. deprecated:: 0.1.0
-           This method will be removed in a future version. Use the standard 
-           `as_retriever()` method with search_kwargs instead.
+           This method will be removed in a future version. 
 
         Args:
             top_k: Number of documents to retrieve (default 4)
@@ -242,11 +239,12 @@ class VectorStoreFactory(BaseModel):
             Configurable vector store retriever
         """
         import warnings
+
         warnings.warn(
             "as_retriever_configurable() is deprecated and will be removed in a future version. "
             "Use as_retriever() with search_kwargs instead.",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
         search_kwargs = {"k": top_k}
         if filter:
