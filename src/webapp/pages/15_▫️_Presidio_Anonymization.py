@@ -53,10 +53,12 @@ if "anon" not in st.session_state:
 
     # Add custom operators for fake data generation
     fake = Faker()
+    from presidio_anonymizer.entities import OperatorConfig
+    
     anonymizer.add_operators(
         {
-            "COMPANY": lambda _: fake.company(),
-            "PROJECT": lambda _: fake.bothify(text="PROJ-????", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
+            "COMPANY": OperatorConfig("custom", {"lambda": lambda _: fake.company()}),
+            "PROJECT": OperatorConfig("custom", {"lambda": lambda _: fake.bothify(text="PROJ-????", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ")}),
         }
     )
 
