@@ -75,8 +75,9 @@ with col2:
     if st.button("Anonymize Text"):
         with st.spinner("Detecting and anonymizing PII..."):
             try:
-                # Anonymize the text
-                st.session_state.anonymized_text = st.session_state.anon.anonymizer.anonymize(input_text)
+                # Anonymize the text and convert to string
+                anonymized_result = st.session_state.anon.anonymizer.anonymize(input_text)
+                st.session_state.anonymized_text = str(anonymized_result)
                 st.session_state.show_reversible = True
             except Exception as e:
                 logger.error(f"Anonymization failed: {e}")
