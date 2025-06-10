@@ -224,9 +224,11 @@ class VectorStoreFactory(BaseModel):
             self._record_manager.create_schema()
 
         return vector_store
+    
+    # mark next function as obsolete and to be removed in future versions AI!
 
     def as_retriever_configurable(self, top_k: int = 4, filter: dict | None = None) -> VectorStoreRetriever:
-        """Configure a retriever with a specific number of most relevant documents.
+        """Configure a retriever with a specific number of most relevant documents. MABY OBSOLETE ?
 
         Args:
             top_k: Number of documents to retrieve (default 4)
