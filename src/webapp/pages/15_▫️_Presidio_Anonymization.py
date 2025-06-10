@@ -71,7 +71,7 @@ with col1:
 with col2:
     st.subheader("Anonymized Results")
 
-    # fix exception "Anonymization error: 'str' object has no attribute 'to_dict'"  AI!
+    # 
     if st.button("Anonymize Text"):
         with st.spinner("Detecting and anonymizing PII..."):
             try:
