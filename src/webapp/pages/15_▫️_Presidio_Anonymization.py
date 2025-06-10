@@ -2,17 +2,18 @@
 
 Demonstrates PII detection, anonymization, and reversible de-anonymization capabilities.
 """
+# https://python.langchain.com/v0.1/docs/guides/productionization/safety/presidio_data_anonymization/
 
 from typing import Any
 
 import streamlit as st
+from faker import Faker
 from langchain_experimental.data_anonymizer import (
     PresidioReversibleAnonymizer,
 )
 from loguru import logger
-from pydantic import BaseModel, ConfigDict
 from presidio_analyzer import PatternRecognizer
-from faker import Faker
+from pydantic import BaseModel, ConfigDict
 
 
 class AnonymizationDemo(BaseModel):
@@ -28,30 +29,32 @@ st.caption("Protect PII (Personally Identifiable Information) using Microsoft Pr
 # Initialize session state
 if "anon" not in st.session_state:
     anonymizer = PresidioReversibleAnonymizer()
-    
+
     # Add custom recognizers for company and project names
     company_recognizer = PatternRecognizer(
         supported_entity="COMPANY",
         patterns=[r"\b[A-Z][a-z]+(?:[\s-][A-Z][a-z]+)*\b"],
-        context=["company", "organization", "firm", "enterprise"]
+        context=["company", "organization", "firm", "enterprise"],
     )
-    
+
     project_recognizer = PatternRecognizer(
         supported_entity="PROJECT",
         patterns=[r"\b[A-Z]+-\d+[A-Z]*\b", r"\b[A-Z][a-z]+(?:[\s-][A-Z][a-z]+\d*)*\b"],
-        context=["project", "initiative", "program"]
+        context=["project", "initiative", "program"],
     )
-    
+
     anonymizer.add_recognizer(company_recognizer)
     anonymizer.add_recognizer(project_recognizer)
-    
+
     # Add custom operators for fake data generation
     fake = Faker()
-    anonymizer.add_operators({
-        "COMPANY": lambda _: fake.company(),
-        "PROJECT": lambda _: fake.bothify(text="PROJ-????", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-    })
-    
+    anonymizer.add_operators(
+        {
+            "COMPANY": lambda _: fake.company(),
+            "PROJECT": lambda _: fake.bothify(text="PROJ-????", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
+        }
+    )
+
     st.session_state.anon = AnonymizationDemo(anonymizer=anonymizer)
 
 # Main layout
@@ -68,6 +71,7 @@ with col1:
 with col2:
     st.subheader("Anonymized Results")
 
+    # fix exception "Anonymization error: 'str' object has no attribute 'to_dict'"  AI!
     if st.button("Anonymize Text"):
         with st.spinner("Detecting and anonymizing PII..."):
             try:
@@ -102,24 +106,3 @@ with col2:
                     st.info("No PII mappings available")
             else:
                 st.info("No reversible mappings available")
-
-# Documentation sidebar
-with st.sidebar:
-    st.markdown("### About Presidio")
-    st.markdown("""
-    Microsoft Presidio helps protect sensitive data by:
-    - 🔍 Identifying PII in text
-    - 🎭 Anonymizing with realistic fake data
-    - 🔄 Supporting reversible anonymization
-    """)
-
-    st.markdown("### Supported PII Types")
-    st.markdown("""
-    - Names
-    - Email addresses
-    - Phone numbers
-    - Credit cards
-    - Locations
-    - IP addresses
-    - And [more...](https://microsoft.github.io/presidio/supported_entities/)
-    """)
