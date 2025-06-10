@@ -12,7 +12,7 @@ from langchain_experimental.data_anonymizer import (
     PresidioReversibleAnonymizer,
 )
 from loguru import logger
-from presidio_analyzer import PatternRecognizer
+from presidio_analyzer import PatternRecognizer, Pattern
 from pydantic import BaseModel, ConfigDict
 
 
@@ -33,13 +33,18 @@ if "anon" not in st.session_state:
     # Add custom recognizers for company and project names
     company_recognizer = PatternRecognizer(
         supported_entity="COMPANY",
-        patterns=[r"\b[A-Z][a-z]+(?:[\s-][A-Z][a-z]+)*\b"],
+        patterns=[
+            Pattern(name="company_pattern", regex=r"\b[A-Z][a-z]+(?:[\s-][A-Z][a-z]+)*\b", score=0.8)
+        ],
         context=["company", "organization", "firm", "enterprise"],
     )
 
     project_recognizer = PatternRecognizer(
         supported_entity="PROJECT",
-        patterns=[r"\b[A-Z]+-\d+[A-Z]*\b", r"\b[A-Z][a-z]+(?:[\s-][A-Z][a-z]+\d*)*\b"],
+        patterns=[
+            Pattern(name="project_code_pattern", regex=r"\b[A-Z]+-\d+[A-Z]*\b", score=0.8),
+            Pattern(name="project_name_pattern", regex=r"\b[A-Z][a-z]+(?:[\s-][A-Z][a-z]+\d*)*\b", score=0.8)
+        ],
         context=["project", "initiative", "program"],
     )
 
