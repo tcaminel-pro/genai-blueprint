@@ -46,6 +46,7 @@ yesno_enum_parser = EnumOutputParser(enum=YesOrNo)
 to_lower = RunnableLambda(lambda x: getattr(x, "content", "").lower())
 
 
+# Creates and returns a retriever with pre-loaded documents if empty
 @once
 def retriever() -> BaseRetriever:
     urls = [
@@ -71,11 +72,13 @@ def retriever() -> BaseRetriever:
     return vectorstore.as_retriever()
 
 
+# Task: Retrieves documents relevant to the question from vector store
 @task
 def retrieve_documents(question: str) -> list[Document]:
     return retriever().invoke("question")
 
 
+# Task: Grades whether a retrieved document is relevant to the question
 @task
 def retrieval_grader(question: str, document: str) -> YesOrNo:
     system_prompt = """
@@ -94,6 +97,7 @@ def retrieval_grader(question: str, document: str) -> YesOrNo:
     return chain.invoke({"question": question, "document": document})  # type: ignore
 
 
+# Task: Generates an answer to the question using retrieved context
 @task
 def rag_chain(question: str, context: list[Document]) -> str:
     system_prompt = """
@@ -109,6 +113,7 @@ def rag_chain(question: str, context: list[Document]) -> str:
     return chain.invoke({"question": question, "context": context})
 
 
+# Task: Checks if generated answer is supported by the documents
 @task
 def hallucination_grader(documents: list[Document], generation: str) -> YesOrNo:
     system_prompt = """
@@ -125,6 +130,7 @@ def hallucination_grader(documents: list[Document], generation: str) -> YesOrNo:
     return chain.invoke({"documents": documents, "generation": generation})  # type: ignore
 
 
+# Task: Evaluates if generated answer is useful for the question
 @task
 def answer_grader(question: str, generation: str) -> YesOrNo:
     system_prompt = """
@@ -142,6 +148,7 @@ def answer_grader(question: str, generation: str) -> YesOrNo:
     return chain.invoke({"question": question, "generation": generation})  # type: ignore
 
 
+# Task: Routes question to either vector store or web search
 @task
 def question_router(question: str) -> DataRoute:
     parser = EnumOutputParser(enum=DataRoute)
@@ -160,6 +167,7 @@ def question_router(question: str) -> DataRoute:
     return chain.invoke({"question": question}) # type: ignore
 
 
+# Main workflow that orchestrates the RAG pipeline with fallback logic
 @entrypoint(checkpointer=MemorySaver())
 def advanced_rag_workflow(question: str) -> dict:
     # Route question to appropriate source
