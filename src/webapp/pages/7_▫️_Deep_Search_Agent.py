@@ -11,9 +11,9 @@ from typing import Any, Final
 
 import pandas as pd
 import streamlit as st
-from md2pdf import md2pdf
 from devtools import debug
 from langchain.callbacks import tracing_v2_enabled
+from md2pdf import md2pdf
 from streamlit import session_state as sss
 
 from src.ai_core.llm import configurable
@@ -254,18 +254,8 @@ async def main() -> None:
             research_full_report = sss.research_full_report
             if research_full_report:
                 # write in fist tabs
-                web_research_result = research_full_report.report
-                report_tab.write(web_research_result)
-                
-                if report_tab.button("Export to PDF"):
-                    md2pdf.write_pdf(
-                        "research_report.pdf",
-                        md_content=web_research_result,
-                        base_url=None,
-                        css_file_path=None,
-                        encoding="utf-8"
-                    )
-                    report_tab.success("PDF saved as research_report.pdf")
+                sss.web_research_result = research_full_report.report
+                report_tab.write(sss.web_research_result)
                 context_tab.write(research_full_report.context)
 
                 # 'Image' tab content
@@ -288,6 +278,15 @@ async def main() -> None:
                 stats_tab_web.write(f"Research costs: ${research_full_report.costs}")
                 if trace_url := sss.traces.get("web_search"):
                     stats_tab_web.write(f"trace: {trace_url}")
+
+    if "web_research_result" in sss and st.button("Export to PDF"):
+        # add a file selector to select PDF output file name and path AI!
+        md2pdf(
+            "research_report.pdf",
+            md_content=sss.web_research_result,
+            base_url=None,
+            css_file_path=None,
+        )
 
 
 asyncio.run(main())
