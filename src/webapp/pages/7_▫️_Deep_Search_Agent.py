@@ -5,8 +5,11 @@ GPT Researcher searches with customizable parameters and configuration managemen
 """
 
 import asyncio
+import os
+import tempfile
 import textwrap
 from collections import deque
+from pathlib import Path
 from typing import Any, Final
 
 import pandas as pd
@@ -289,13 +292,15 @@ async def main() -> None:
                     css_file_path=None,
                 )
                 pdf_bytes = Path(tmpfile.name).read_bytes()
-            
+
+            # add date and time in file_name in short form AI!
+
             st.download_button(
                 "Download PDF Report",
                 data=pdf_bytes,
                 file_name="research_report.pdf",
                 mime="application/pdf",
-                help="Download the full research report as PDF"
+                help="Download the full research report as PDF",
             )
         except Exception as e:
             st.error(f"Error generating PDF: {str(e)}")
