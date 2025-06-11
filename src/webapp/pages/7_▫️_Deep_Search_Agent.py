@@ -279,6 +279,7 @@ async def main() -> None:
                 if trace_url := sss.traces.get("web_search"):
                     stats_tab_web.write(f"trace: {trace_url}")
 
+    # Download the PDF file instead of saving it to disk AI!
     if "web_research_result" in sss:
         filename = st.text_input("PDF file name", value="research_report.pdf")
         if st.button("Export to PDF"):
