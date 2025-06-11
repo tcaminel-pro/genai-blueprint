@@ -1,27 +1,10 @@
-"""Advanced RAG implementation using LangGraph for agentic document retrieval and generation.
+"""Advanced RAG implementation using LangGraph's StateGraph API.
 
-This module implements an advanced Retrieval Augmented Generation (RAG) pipeline that:
-1. Dynamically routes queries between web search and vector store retrieval
-2. Performs multi-step document relevance grading
-3. Generates answers with hallucination detection
-4. Implements fallback to web search when needed
-
-Key components:
-- State machine for managing RAG workflow
-- Document retrieval from both web and vector store
-- LLM-based grading for document relevance and answer quality
-- Configurable retriever with initial document indexing
-- Integrated web search capability
-
-The graph implements a robust RAG pipeline that:
-- Handles ambiguous queries
-- Detects and filters irrelevant documents
-- Verifies answer quality and grounding
-- Provides fallback mechanisms for poor results
-
-Based on LangGraph examples:
-- https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_rag_agent_llama3_local.ipynb
-- https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_agentic_rag.ipynb
+Implements a robust RAG pipeline with:
+- Dynamic query routing
+- Document relevance grading 
+- Answer generation with hallucination detection
+- Web search fallback
 """
 
 import sys
@@ -89,15 +72,8 @@ class GraphState(TypedDict, total=False):
 # function and node to check if the question is related to content in the Vector Store
 
 
+# Routes question to either vector store or web search
 def question_router() -> Runnable[Any, DataRoute]:
-    """Routes the question to either web search or vector store retrieval.
-
-    Input:
-        question (str): The user's question
-
-    Returns:
-        DataRoute: Either WEB_SEARCH or VECTOR_STORE based on question content
-    """
     parser = EnumOutputParser(enum=DataRoute)
 
     system_prompt = """
@@ -146,19 +122,8 @@ def route_question(state: GraphState) -> Literal["websearch", "vectorstore"]:
 # Node for a Web Search
 
 
+# Performs web search and stores results
 def web_search(state: GraphState) -> GraphState:
-    """Performs web search and stores results.
-
-    Input state:
-        question (str): The search query
-
-    Returns state:
-        documents (list[Document]): Web search results
-        question (str): Original question (unchanged)
-
-    Side effects:
-        Calls external web search API
-    """
     logger.debug("---WEB SEARCH---")
     question = state["question"]
     documents = state.get("documents") or []
@@ -173,16 +138,8 @@ def web_search(state: GraphState) -> GraphState:
 
 
 # Functions and node to retrive read data from Internet and put it in the vector store
+# Creates retriever with pre-loaded documents if empty
 def retriever() -> BaseRetriever:
-    """Creates and configures vector store retriever with initial documents.
-
-    Returns:
-        BaseRetriever: Configured retriever instance
-
-    Side effects:
-        - Initializes vector store if empty
-        - Indexes documents from predefined URLs
-    """
     urls = [
         "https://lilianweng.github.io/posts/2023-06-23-agent/",
         "https://lilianweng.github.io/posts/2023-03-15-prompt-engineering/",
@@ -233,19 +190,8 @@ def retrieve(state: GraphState) -:
 # Function and node for the generation part of the RAG
 
 
+# Generates an answer to the question using retrieved context
 def rag_chain() -> Runnable[Any, str]:
-    """Creates RAG chain that generates answers from context.
-
-    Returns:
-        Runnable: Configured chain that takes:
-            Input: dict with 'question' and 'context' keys
-            Output: str generated answer
-
-    The chain:
-        1. Formats prompt with question and context
-        2. Calls LLM
-        3. Parses response
-    """
     system_prompt = """
         You are an assistant for question-answering tasks.
         Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know.
@@ -259,18 +205,8 @@ def rag_chain() -> Runnable[Any, str]:
     return prompt | get_llm(llm_id=LLM_ID) | StrOutputParser()
 
 
+# Generates answer using RAG chain
 def generate(state: GraphState) -> GraphState:
-    """Generates answer using RAG chain.
-
-    Input state:
-        question (str): Original question
-        documents (list[Document]): Retrieved context
-
-    Returns state:
-        generation (str): LLM-generated answer
-        question (str): Original question (unchanged)
-        documents (list[Document]): Retrieved context (unchanged)
-    """
     logger.debug("---GENERATE---")
     question = state["question"]
     documents = state["documents"]
@@ -283,19 +219,8 @@ def generate(state: GraphState) -> GraphState:
 # Node to assess the relevance of the retrived documents
 
 
+# Evaluates if generated answer is useful for the question
 def answer_grader() -> Runnable[Any, YesOrNo]:
-    """Creates chain that grades if answer properly addresses question.
-
-    Returns:
-        Runnable: Chain that takes:
-            Input: dict with 'question' and 'generation' keys
-            Output: YesOrNo verdict
-
-    The chain:
-        1. Formats prompt with question and answer
-        2. Calls LLM classifier
-        3. Parses yes/no response
-    """
     system_prompt = """
         You are a grader assessing whether an answer is useful to resolve a question.
         Evaluate whether the answer is useful to resolve a question.
@@ -310,19 +235,8 @@ def answer_grader() -> Runnable[Any, YesOrNo]:
     return prompt | get_llm(llm_id=LLM_ID) | to_lower | yesno_enum_parser  # type: ignore
 
 
+# Grades whether a retrieved document is relevant to the question
 def retrieval_grader() -> Runnable[Any, YesOrNo]:
-    """Creates chain that grades document relevance to question.
-
-    Returns:
-        Runnable: Chain that takes:
-            Input: dict with 'question' and 'document' keys
-            Output: YesOrNo verdict
-
-    The chain:
-        1. Formats prompt with question and document
-        2. Calls LLM classifier
-        3. Parses yes/no response
-    """
     ### Retrieval Grader
 
     system_prompt = """
@@ -344,21 +258,8 @@ def retrieval_grader() -> Runnable[Any, YesOrNo]:
     return retrieval_grader  # type: ignore
 
 
+# Filters documents by relevance to the question
 def grade_documents(state: GraphState) -> GraphState:
-    """Filters documents by relevance and sets web search flag if needed.
-
-    Input state:
-        question (str): Original question
-        documents (list[Document]): Retrieved documents
-
-    Returns state:
-        documents (list[Document]): Filtered relevant documents
-        question (str): Original question (unchanged)
-        web_search (str): "Yes" if any doc was irrelevant, else "No"
-
-    Side effects:
-        Logs relevance decisions for each document
-    """
     logger.debug("---CHECK DOCUMENT RELEVANCE TO QUESTION---")
     question = state["question"]
     documents = state["documents"]
@@ -382,19 +283,8 @@ def grade_documents(state: GraphState) -> GraphState:
     return {"documents": filtered_docs, "question": question, "web_search": web_search}
 
 
+# Decides next step based on document relevance
 def decide_to_generate(state: GraphState) -> Literal["websearch", "generate"]:
-    """Decides next step based on document relevance.
-
-    Input state:
-        web_search (str): "Yes" if any doc was irrelevant
-
-    Returns:
-        str: Next node name ('websearch' or 'generate')
-
-    Decision logic:
-        - If web_search="Yes", route to websearch
-        - Else proceed to generate answer
-    """
     logger.debug("---ASSESS GRADED DOCUMENTS---")
     # state["question"]
     web_search = state["web_search"]
@@ -414,19 +304,8 @@ def decide_to_generate(state: GraphState) -> Literal["websearch", "generate"]:
 # Function and node to detect allucination
 
 
+# Checks if generated answer is supported by the documents
 def hallucination_grader() -> Runnable[Any, YesOrNo]:
-    """Creates chain that checks if answer is supported by documents.
-
-    Returns:
-        Runnable: Chain that takes:
-            Input: dict with 'documents' and 'generation' keys
-            Output: YesOrNo verdict
-
-    The chain:
-        1. Formats prompt with documents and answer
-        2. Calls LLM classifier
-        3. Parses yes/no response
-    """
     system_prompt = """
         You are a grader assessing whether an answer is grounded in / supported by a set of facts.
         Evaluate  whether the answer is grounded in / supported by a set of facts.
@@ -440,27 +319,10 @@ def hallucination_grader() -> Runnable[Any, YesOrNo]:
     return prompt | get_llm(llm_id=LLM_ID) | to_lower | yesno_enum_parser  # type: ignore
 
 
+# Evaluates answer quality and grounding
 def grade_generation_v_documents_and_question(
     state: GraphState,
 ) -> Literal["useful", "not useful", "not supported"]:
-    """Evaluates answer quality on two dimensions:
-        1. Grounded in documents (not hallucinated)
-        2. Actually answers the question
-
-    Input state:
-        question (str): Original question
-        documents (list[Document]): Retrieved context
-        generation (str): LLM's answer
-
-    Returns:
-        str: Next step:
-            "useful" - Good answer
-            "not useful" - Answer doesn't address question
-            "not supported" - Hallucinated answer
-
-    Side effects:
-        Logs evaluation decisions
-    """
     logger.debug("---CHECK HALLUCINATIONS---")
     question = state["question"]
     documents = state["documents"]
