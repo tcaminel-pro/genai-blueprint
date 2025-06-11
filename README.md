@@ -1,33 +1,35 @@
-# GenAI Blueprint
+# GenAI Framework
 
-A comprehensive framework for building and deploying Generative AI applications with:
+A production-ready framework for building and deploying Generative AI applications with:
 
-- **Core Patterns**: Factory implementations for LLMs, Embeddings, Vector Stores and Runnables
-- **Reusable Components**: Well-integrated building blocks for AI applications
-- **Agent Templates**: Cloud-ready, configurable agent implementations including:
-  - ReAct and CodeAct agents
-  - API tool-calling agents  
-  - Semantic/hybrid search
-  - Research agents
-  - Multi-agent systems (CrewAI, MCP)
+- **Core Components**: Factories for LLMs, Embeddings, Vector Stores and Runnables
+- **Modular Architecture**: Plug-and-play components for AI workflows
+- **Agent Systems**:
+  - ReAct and Plan-and-Execute agents
+  - Multi-tool calling agents
+  - Hybrid search (semantic + keyword)
+  - Research and data analysis agents
+  - Multi-agent coordination (CrewAI, MCP, AutoGen)
 
-Built on the LangChain ecosystem with integrations for other leading solutions.
+Built on LangChain with extensions for enterprise use cases.
 
-## Core Technologies
+## Core Stack
 
-**Main Dependencies**:
-- `LangChain`, `LangGraph`, `LangServe` - Core AI orchestration
-- `OmegaConf` - Configuration management
-- `Streamlit` - Web UI
-- `Typer` - CLI interface
-- `FastAPI` - REST APIs
-- `Pydantic` - Data modeling and validation
+**Foundation**:
+- `LangChain` - AI orchestration
+- `LangGraph` - Agent workflows  
+- `Pydantic` - Data validation
+- `FastAPI` - REST endpoints
+- `Streamlit` - Web interfaces
+- `Typer` - CLI framework
 
 **Key Integrations**:
-- `SmallAgents` - Lightweight agent framework
-- `GPT Researcher` - Deep web research
-- `MCP` - Model Context Protocol
-- `Tavily` - Web search API
+- `LlamaIndex` - Advanced RAG
+- `Tavily` - Web search
+- `GPT Researcher` - Autonomous research
+- `MCP` - Model coordination
+- `AutoGen` - Multi-agent systems
+- `Weaviate` - Vector database
 
 ## Documentation
 
@@ -140,44 +142,38 @@ Configure LLMs via `/config/providers.yaml` after setting up API keys.
 - `CONVENTION.md`: Coding convention used by Aider-chat (a coding assistant)
 
 
-## Example CLI Commands
-The framework provides several CLI commands for interacting with AI components:
+## CLI Usage Examples
 
-**Basic LLM Interaction**
+**Core Operations**:
 ```bash
-uv run cli llm --input "Hello world"  # Simple LLM query
-echo "Hello world" | uv run cli llm  # Pipe input
-uv run cli llm --llm-id gpt-4 --stream  # Use specific model with streaming
+# LLM queries
+uv run llm "Explain quantum computing" --model gpt-4 --stream
+cat document.txt | uv run llm --task summarize
+
+# Chain execution  
+uv run chain research --input "AI safety trends" --verbose
+uv run chain analyze --file data.csv --output report.md
+
+# RAG pipelines
+uv run rag index --dir ./docs --collection research_papers
+uv run rag query "neural networks" --top-k 5
+
+# Agent Systems
+uv run agent research "latest AI papers" --tools web-search,arxiv
+uv run agent analyze --file financial_report.pdf --agent financial-analyst
 ```
 
-**Running Registered Chains**
-```bash 
-uv run cli run joke --input "bears"  # Run a joke chain
-```
-
-**MCP Agent Commands**
+**Advanced Features**:
 ```bash
-echo "get news from atos.net web site" | uv run cli mcp-agent --server playwright --server filesystem
-```
+# Multi-agent workflows
+uv run multiagent project-plan --agents planner,researcher,editor
 
-**SmolAgents**
-```bash
-uv run cli smolagents "How many seconds would it take for a leopard at full speed to run through Pont des Arts?" -t web_search
-```
+# Data processing
+uv run process pdf-to-text *.pdf --output ./text_files
+uv run process extract-tables document.pdf --format csv
 
-**Fabric Patterns**
-```bash
-echo "artificial intelligence" | uv run cli fabric -p "create_aphorisms" --llm-id llama-70-groq
-```
-
-**PDF Processing**
-```bash
-uv run cli ocr-pdf "*.pdf" "data/*.pdf" --output-dir=./ocr_results
-```
-
-**Utilities**
-```bash
-uv run cli list-models  # List available models
-uv run cli config-info  # Show current configuration
-uv run cli list-mcp-tools --filter playwright  # List available MCP tools
+# System Management
+uv config set llm.default_model=gpt-4
+uv config show --all
+uv tools list --category web-search
 ```
