@@ -12,7 +12,7 @@ from langchain_experimental.data_anonymizer import (
     PresidioReversibleAnonymizer,
 )
 from loguru import logger
-from presidio_analyzer import PatternRecognizer, Pattern
+from presidio_analyzer import Pattern, PatternRecognizer
 from pydantic import BaseModel, ConfigDict
 
 
@@ -33,9 +33,7 @@ if "anon" not in st.session_state:
     # Add custom recognizers for company and project names
     company_recognizer = PatternRecognizer(
         supported_entity="COMPANY",
-        patterns=[
-            Pattern(name="company_pattern", regex=r"\b[A-Z][a-z]+(?:[\s-][A-Z][a-z]+)*\b", score=0.8)
-        ],
+        patterns=[Pattern(name="company_pattern", regex=r"\b[A-Z][a-z]+(?:[\s-][A-Z][a-z]+)*\b", score=0.8)],
         context=["company", "organization", "firm", "enterprise"],
     )
 
@@ -43,7 +41,7 @@ if "anon" not in st.session_state:
         supported_entity="PROJECT",
         patterns=[
             Pattern(name="project_code_pattern", regex=r"\b[A-Z]+-\d+[A-Z]*\b", score=0.8),
-            Pattern(name="project_name_pattern", regex=r"\b[A-Z][a-z]+(?:[\s-][A-Z][a-z]+\d*)*\b", score=0.8)
+            Pattern(name="project_name_pattern", regex=r"\b[A-Z][a-z]+(?:[\s-][A-Z][a-z]+\d*)*\b", score=0.8),
         ],
         context=["project", "initiative", "program"],
     )
@@ -54,7 +52,7 @@ if "anon" not in st.session_state:
     # Add custom operators for fake data generation
     fake = Faker()
     from presidio_anonymizer.entities import OperatorConfig  # noqa: F401
-    
+
     # anonymizer.add_operators(
     #     {
     #         "COMPANY": OperatorConfig("custom", {"lambda": lambda _: fake.company()}),

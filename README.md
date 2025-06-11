@@ -52,24 +52,24 @@ make install
 **Configuration**:
 - Main settings: `config/app_conf.yaml`
 - API keys: `.env` file in project root or parent directories
+- `config/baseline.yaml`: Main configuration file for LLMs, embeddings, vector stores and chains.  
+- `config/overide.yaml`: overriden configuration. Can be selected by an environment variable  
+- `config/providers/llm.yaml` and `embeddings.yaml`: Contains model definitions and provider configurations
+- `config/mcp_servers.yaml` : MCP Servers parameters 
+- `pyproject.toml`: uv project configuration
+- `config/demos`: Demos related configuration
+
 
 **Quick Test**:
 ```bash
 make test_install  # Verifies basic functionality
 make test         # Runs test suite (some parallel tests may need adjustment)
 ```
-
-Configure LLMs via `/config/providers.yaml` after setting up API keys.
+Configure LLMs via `/config/providers/llm.yaml` after setting up API keys.
 
 
 
 ### Key Files and Directories
-
-#### Configuration
-- `config/baseline.yaml`: Main configuration file for LLMs, embeddings, vector stores and chains.  
-- `config/models_providers.yaml`: Contains model definitions and provider configurations
-- `pyproject.toml`: uv project configuration
-
 
 #### Core AI Components facilitating LangChain programming
 - `src/ai_core/`: Core AI infrastructure
@@ -143,37 +143,66 @@ Configure LLMs via `/config/providers.yaml` after setting up API keys.
 
 
 ## CLI Usage Examples
-
-**Core Operations**:
+The framework provides several CLI commands for interacting with AI components.
+They are registered in the configuration file 
 ```bash
-# LLM queries
-uv run llm "Explain quantum computing" --model gpt-4 --stream
-cat document.txt | uv run llm --task summarize
+uv run cli --help   # list of defined commands
 
-# Chain execution  
-uv run chain research --input "AI safety trends" --verbose
-uv run chain analyze --file data.csv --output report.md
-
-# RAG pipelines
-uv run rag index --dir ./docs --collection research_papers
-uv run rag query "neural networks" --top-k 5
-
-# Agent Systems
-uv run agent research "latest AI papers" --tools web-search,arxiv
-uv run agent analyze --file financial_report.pdf --agent financial-analyst
+**Basic LLM Interaction**
+```bash
+uv run cli llm --input "Hello world"  # Simple LLM query
+echo "Hello world" | uv run cli llm  # Pipe input
+uv run cli llm --llm-id gpt-4 --stream  # Use specific model with streaming
+uv run cli run joke --input "bears"  # Run a joke chain
 ```
 
-**Advanced Features**:
+**Agent with tools / MCP**
 ```bash
-# Multi-agent workflows
-uv run multiagent project-plan --agents planner,researcher,editor
+echo "get news from atos.net web site" | uv run cli mcp-agent --server playwright --server filesystem # ReAct Agent
+uv run cli smolagents "How many seconds would it take for a leopard at full speed to run through Pont des Arts?" -t web_search  # CodeAct Agent
+```
 
-# Data processing
-uv run process pdf-to-text *.pdf --output ./text_files
-uv run process extract-tables document.pdf --format csv
+**Misc**
+```bash
+echo "artificial intelligence" | uv run cli fabric -p "create_aphorisms" --llm-id llama-70-groq # Fabric patterns
+uv run cli ocr-pdf "*.pdf" "data/*.pdf" --output-dir=./ocr_results # OCR with Mistral API
+```
 
-# System Management
-uv config set llm.default_model=gpt-4
-uv config show --all
-uv tools list --category web-search
+**Utilities**
+```bash
+uv run cli list-models  # List available models
+uv run cli config-info  # Show current configuration
+uv run cli list-mcp-tools --filter playwright  # List available MCP tools
+```
+
+## Aditional install (for some demos / components)
+**install Ollama**
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+ollama run gemma3:4b   # example LLM
+ollama pull snowflake-arctic-embed:22m  # example embeddings
+```
+**Install Chrome and Playwright**
+```bash
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+sudo apt install ./google-chrome-stable_current_amd64.deb
+uv add playwright
+playwright install --with-deps
+```
+
+**Spacy models in uv**
+```bash
+uv pip install pip
+uv run --with spacy spacy download fr_core_news_sm
+uv run --with spacy spacy download en_core_web_lg 
+```
+or 
+```bash
+make install_spacy_models
+```
+
+**Install Node (for MCP)** 
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+nvm install --lts
 ```
