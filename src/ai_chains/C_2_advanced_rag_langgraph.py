@@ -212,7 +212,7 @@ def retriever() -> BaseRetriever:
 # Node 'retrieve' to query the vector store
 
 
-def retrieve(state: GraphState) -> GraphState:
+def retrieve(state: GraphState) -:
     """Retrieves documents from vector store matching the question.
 
     Input state:
