@@ -38,12 +38,12 @@ from src.utils.config_mngr import global_config
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def mcp_agent(
-        input: str | None = None,
-        server: list[str] = [],
-        cache: str = "memory",
-        lc_verbose: Annotated[bool, Option("--verbose", "-v")] = False,
-        lc_debug: Annotated[bool, Option("--debug", "-d")] = False,
-        llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
+        input: Annotated[str | None, typer.Option(help="Input query or '-' to read from stdin")] = None,
+        server: Annotated[list[str], typer.Option(help="Server types to use (e.g. playwright/filesystem)")] = [],
+        cache: Annotated[str, typer.Option(help="Cache strategy: 'sqlite', 'memory' or 'no_cache'")] = "memory",
+        lc_verbose: Annotated[bool, Option("--verbose", "-v", help="Enable LangChain verbose mode")] = False,
+        lc_debug: Annotated[bool, Option("--debug", "-d", help="Enable LangChain debug mode")] = False,
+        llm_id: Annotated[Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")] = None,
     ) -> None:
         """
         Run a ReaAct agent connected to MCP Servers.
@@ -73,9 +73,9 @@ def register_commands(cli_app: typer.Typer) -> None:
 
     @cli_app.command()
     def smolagents(
-        prompt: str,
-        tools: Annotated[list[str], Option("--tools", "-t")] = [],
-        llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
+        prompt: Annotated[str, typer.Argument(help="The prompt for the agent to execute")],
+        tools: Annotated[list[str], Option("--tools", "-t", help="Tools to use (web_search, calculator, etc.)")] = [],
+        llm_id: Annotated[Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")] = None,
         imports: list[str] | None = None,
     ) -> None:
         """
@@ -152,12 +152,12 @@ def register_commands(cli_app: typer.Typer) -> None:
 
     @cli_app.command()
     def fabric(
-        pattern: Annotated[str, Option("--pattern", "-p")],
-        verbose: Annotated[bool, Option("--verbose", "-v")] = False,
-        debug_mode: Annotated[bool, Option("--debug", "-d")] = False,
-        stream: Annotated[bool, Option("--stream", "-s")] = False,
+        pattern: Annotated[str, Option("--pattern", "-p", help="Fabric pattern name to execute")],
+        verbose: Annotated[bool, Option("--verbose", "-v", help="Enable verbose output")] = False,
+        debug_mode: Annotated[bool, Option("--debug", "-d", help="Enable debug mode")] = False,
+        stream: Annotated[bool, Option("--stream", "-s", help="Stream output progressively")] = False,
         # temperature: float = 0.0,
-        llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
+        llm_id: Annotated[Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")] = None,
     ) -> None:
         """Run 'fabric' pattern on standard input.
 
