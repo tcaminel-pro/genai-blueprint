@@ -39,11 +39,13 @@ def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def mcp_agent(
         input: Annotated[str | None, typer.Option(help="Input query or '-' to read from stdin")] = None,
-        server: Annotated[list[str], typer.Option(help="Server types to use (e.g. playwright/filesystem)")] = [],
+        server: Annotated[list[str], typer.Option(help="MCP server names to connect to (e.g. playwright, filesystem, ..)")] = [],
         cache: Annotated[str, typer.Option(help="Cache strategy: 'sqlite', 'memory' or 'no_cache'")] = "memory",
         lc_verbose: Annotated[bool, Option("--verbose", "-v", help="Enable LangChain verbose mode")] = False,
         lc_debug: Annotated[bool, Option("--debug", "-d", help="Enable LangChain debug mode")] = False,
-        llm_id: Annotated[Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")] = None,
+        llm_id: Annotated[
+            Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
+        ] = None,
     ) -> None:
         """
         Run a ReaAct agent connected to MCP Servers.
@@ -75,7 +77,9 @@ def register_commands(cli_app: typer.Typer) -> None:
     def smolagents(
         prompt: Annotated[str, typer.Argument(help="The prompt for the agent to execute")],
         tools: Annotated[list[str], Option("--tools", "-t", help="Tools to use (web_search, calculator, etc.)")] = [],
-        llm_id: Annotated[Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")] = None,
+        llm_id: Annotated[
+            Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
+        ] = None,
         imports: list[str] | None = None,
     ) -> None:
         """
@@ -157,7 +161,9 @@ def register_commands(cli_app: typer.Typer) -> None:
         debug_mode: Annotated[bool, Option("--debug", "-d", help="Enable debug mode")] = False,
         stream: Annotated[bool, Option("--stream", "-s", help="Stream output progressively")] = False,
         # temperature: float = 0.0,
-        llm_id: Annotated[Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")] = None,
+        llm_id: Annotated[
+            Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
+        ] = None,
     ) -> None:
         """Run 'fabric' pattern on standard input.
 

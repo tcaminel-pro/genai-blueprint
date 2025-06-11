@@ -21,6 +21,11 @@ mcpServers:
     - "@playwright/mcp@latest"
     - "--headless"
 
+  playwright_ui:  # Does not seems to work in headed mode (in WSL...)
+    command: npx
+    args: 
+    - "@playwright/mcp@latest"
+
   github:
     command: npx
     args:  ["-y", "@modelcontextprotocol/server-github"]
