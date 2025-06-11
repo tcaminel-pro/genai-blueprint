@@ -293,12 +293,12 @@ async def main() -> None:
                 )
                 pdf_bytes = Path(tmpfile.name).read_bytes()
 
-            # add date and time in file_name in short form AI!
-
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M")
             st.download_button(
                 "Download PDF Report",
                 data=pdf_bytes,
-                file_name="research_report.pdf",
+                file_name=f"research_report_{timestamp}.pdf",
                 mime="application/pdf",
                 help="Download the full research report as PDF",
             )
