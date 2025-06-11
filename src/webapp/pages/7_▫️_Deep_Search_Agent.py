@@ -279,22 +279,29 @@ async def main() -> None:
                 if trace_url := sss.traces.get("web_search"):
                     stats_tab_web.write(f"trace: {trace_url}")
 
-    # Download the PDF file instead of saving it to disk AI!
     if "web_research_result" in sss:
-        filename = st.text_input("PDF file name", value="research_report.pdf")
-        if st.button("Export to PDF"):
-            if not filename.endswith(".pdf"):
-                filename += ".pdf"
-            try:
+        try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
                 md2pdf(
-                    filename,
+                    tmpfile.name,
                     md_content=sss.web_research_result,
                     base_url=None,
                     css_file_path=None,
                 )
-                st.success(f"Successfully saved PDF to {filename}")
-            except Exception as e:
-                st.error(f"Error saving PDF: {str(e)}")
+                pdf_bytes = Path(tmpfile.name).read_bytes()
+            
+            st.download_button(
+                "Download PDF Report",
+                data=pdf_bytes,
+                file_name="research_report.pdf",
+                mime="application/pdf",
+                help="Download the full research report as PDF"
+            )
+        except Exception as e:
+            st.error(f"Error generating PDF: {str(e)}")
+        finally:
+            if tmpfile.name and os.path.exists(tmpfile.name):
+                os.unlink(tmpfile.name)
 
 
 asyncio.run(main())
