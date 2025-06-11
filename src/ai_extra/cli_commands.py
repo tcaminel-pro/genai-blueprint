@@ -20,9 +20,7 @@ from typing import Annotated, Optional
 import typer
 from langchain.globals import set_debug, set_verbose
 from loguru import logger
-from smolagents import (
-    CodeAgent,
-)
+from smolagents import CodeAgent, Tool
 from smolagents.default_tools import TOOL_MAPPING
 
 # Import modules where runnables are registered
@@ -32,6 +30,7 @@ from upath import UPath
 from src.ai_core.cache import LlmCache
 from src.ai_core.llm import LlmFactory
 from src.ai_core.mcp_client import call_react_agent
+from src.ai_extra.fabric_chain import get_fabric_chain
 from src.ai_extra.mistral_ocr import process_pdf_batch
 from src.utils.config_mngr import global_config
 
@@ -47,7 +46,12 @@ def register_commands(cli_app: typer.Typer) -> None:
         llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
     ) -> None:
         """
-        MCP Server call 
+        Run a ReaAct agent connected to MCP Servers.
+
+        Example:
+
+        echo "get news from atos.net web site" | uv run cli mcp-agent --server playwright --server filesystem
+
         """
         set_debug(lc_debug)
         set_verbose(lc_verbose)
@@ -75,7 +79,9 @@ def register_commands(cli_app: typer.Typer) -> None:
         imports: list[str] | None = None,
     ) -> None:
         """
-        ex: "How many seconds would it take for a leopard at full speed to run through Pont des Arts?" -t web_search
+        Run a Smolagent agent possibly having tools.
+
+        ex: uv run cli smolagents "How many seconds would it take for a leopard at full speed to run through Pont des Arts?" -t web_search
         """
         if llm_id is not None:
             if llm_id not in LlmFactory.known_items():
@@ -158,7 +164,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         Pattern list is here: https://github.com/danielmiessler/fabric/tree/main/patterns
         Also described here : https://github.com/danielmiessler/fabric/blob/main/patterns/suggest_pattern/user.md
 
-        ex: echo "artificial intelligence" | python python/main_cli.py fabric create_aphorisms --llm-id llama-70-groq
+        ex: echo "artificial intelligence" | uv run cli fabric -p "create_aphorisms" --llm-id llama-70-groq
         """
         set_debug(debug_mode)
         set_verbose(verbose)
