@@ -52,13 +52,13 @@ def register_commands(cli_app: typer.Typer) -> None:
 
     @cli_app.command()
     def llm(
-        input: str | None = None,  # input
-        cache: str = "memory",
+        input: Annotated[str | None, typer.Option(help="Input text or '-' to read from stdin")] = None,
+        cache: Annotated[str, typer.Option(help="Cache strategy: 'sqlite', 'memory' or 'no_cache'")] = "memory",
         temperature: Annotated[float, Option("--temperature", "--temp", min=0.0, max=1.0)] = 0.0,
         stream: Annotated[bool, Option("--stream", "-s")] = False,
         lc_verbose: Annotated[bool, Option("--verbose", "-v")] = False,
         lc_debug: Annotated[bool, Option("--debug", "-d")] = False,
-        llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
+        llm_id: Annotated[Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")] = None,
     ) -> None:
         """
         Invoke an LLM.
@@ -104,15 +104,15 @@ def register_commands(cli_app: typer.Typer) -> None:
 
     @cli_app.command()
     def run(
-        runnable_name: str,  # name (description) of the Runnable
-        input: Annotated[str | None, typer.Option(help="input of the chain")] = None,
-        path: Path | None = None,  # input
+        runnable_name: Annotated[str, typer.Argument(help="Name of registered Runnable to execute")],
+        input: Annotated[str | None, typer.Option(help="Input text or '-' to read from stdin")] = None,
+        path: Annotated[Path | None, typer.Option(help="File path input for the chain")] = None,
         cache: str = "memory",
         temperature: Annotated[float, Option("--temperature", "--temp", min=0.0, max=1.0)] = 0.0,
         stream: Annotated[bool, Option("--stream", "-s")] = False,
         lc_verbose: Annotated[bool, Option("--verbose", "-v")] = False,
         lc_debug: Annotated[bool, Option("--debug", "-d")] = False,
-        llm_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
+        llm_id: Annotated[Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")] = None,
     ) -> None:
         """
         Run a Runnable or directly invoke an LLM.
@@ -176,7 +176,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             pprint(result)
 
     @cli_app.command()
-    def chain_info(name: str) -> None:
+    def chain_info(name: Annotated[str, typer.Argument(help="Name of the chain to inspect")]) -> None:
         """
         Return information on a given chain, including input and output schema.
         """
@@ -219,7 +219,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             print(f"{tab}{tab}- {vc}")
 
     @cli_app.command()
-    def llm_info_dump(file_name: Path) -> None:
+    def llm_info_dump(file_name: Annotated[Path, typer.Argument(help="Output YAML file path")]) -> None:
         """
         Write a list of LLMs in YAML format to the specified file.
         """
@@ -231,8 +231,8 @@ def register_commands(cli_app: typer.Typer) -> None:
 
     @cli_app.command()
     def embedd(
-        input: str,
-        model_id: Annotated[Optional[str], Option("--model-id", "-m")] = None,
+        input: Annotated[str, typer.Argument(help="Text to embed")],
+        model_id: Annotated[Optional[str], Option("--model-id", "-m", help="Embeddings model ID")] = None,
     ) -> None:
         """
         Invoke an embedder.
@@ -252,7 +252,7 @@ def register_commands(cli_app: typer.Typer) -> None:
 
     @cli_app.command()
     def list_mcp_tools(
-        filter: Annotated[list[str] | None, Option("--filter", "-f")] = None,
+        filter: Annotated[list[str] | None, Option("--filter", "-f", help="Filter tools by server names")] = None,
     ) -> None:
         """Display information about available MCP tools.
 
