@@ -279,14 +279,21 @@ async def main() -> None:
                 if trace_url := sss.traces.get("web_search"):
                     stats_tab_web.write(f"trace: {trace_url}")
 
-    if "web_research_result" in sss and st.button("Export to PDF"):
-        # add a file selector to select PDF output file name and path AI!
-        md2pdf(
-            "research_report.pdf",
-            md_content=sss.web_research_result,
-            base_url=None,
-            css_file_path=None,
-        )
+    if "web_research_result" in sss:
+        filename = st.text_input("PDF file name", value="research_report.pdf")
+        if st.button("Export to PDF"):
+            if not filename.endswith(".pdf"):
+                filename += ".pdf"
+            try:
+                md2pdf(
+                    filename,
+                    md_content=sss.web_research_result,
+                    base_url=None,
+                    css_file_path=None,
+                )
+                st.success(f"Successfully saved PDF to {filename}")
+            except Exception as e:
+                st.error(f"Error saving PDF: {str(e)}")
 
 
 asyncio.run(main())
