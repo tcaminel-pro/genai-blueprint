@@ -54,10 +54,10 @@ def register_commands(cli_app: typer.Typer) -> None:
     def llm(
         input: Annotated[str | None, typer.Option(help="Input text or '-' to read from stdin")] = None,
         cache: Annotated[str, typer.Option(help="Cache strategy: 'sqlite', 'memory' or 'no_cache'")] = "memory",
-        temperature: Annotated[float, Option("--temperature", "--temp", min=0.0, max=1.0)] = 0.0,
-        stream: Annotated[bool, Option("--stream", "-s")] = False,
-        lc_verbose: Annotated[bool, Option("--verbose", "-v")] = False,
-        lc_debug: Annotated[bool, Option("--debug", "-d")] = False,
+        temperature: Annotated[float, Option("--temperature", "--temp", min=0.0, max=1.0, help="Model temperature (0-1)")] = 0.0,
+        stream: Annotated[bool, Option("--stream", "-s", help="Stream output progressively")] = False,
+        lc_verbose: Annotated[bool, Option("--verbose", "-v", help="Enable LangChain verbose mode")] = False,
+        lc_debug: Annotated[bool, Option("--debug", "-d", help="Enable LangChain debug mode")] = False,
         llm_id: Annotated[
             Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
         ] = None,
