@@ -140,3 +140,44 @@ Configure LLMs via `/config/providers.yaml` after setting up API keys.
 - `CONVENTION.md`: Coding convention used by Aider-chat (a coding assistant)
 
 
+## Example CLI Commands
+The framework provides several CLI commands for interacting with AI components:
+
+**Basic LLM Interaction**
+```bash
+uv run cli llm --input "Hello world"  # Simple LLM query
+echo "Hello world" | uv run cli llm  # Pipe input
+uv run cli llm --llm-id gpt-4 --stream  # Use specific model with streaming
+```
+
+**Running Registered Chains**
+```bash 
+uv run cli run joke --input "bears"  # Run a joke chain
+```
+
+**MCP Agent Commands**
+```bash
+echo "get news from atos.net web site" | uv run cli mcp-agent --server playwright --server filesystem
+```
+
+**SmolAgents**
+```bash
+uv run cli smolagents "How many seconds would it take for a leopard at full speed to run through Pont des Arts?" -t web_search
+```
+
+**Fabric Patterns**
+```bash
+echo "artificial intelligence" | uv run cli fabric -p "create_aphorisms" --llm-id llama-70-groq
+```
+
+**PDF Processing**
+```bash
+uv run cli ocr-pdf "*.pdf" "data/*.pdf" --output-dir=./ocr_results
+```
+
+**Utilities**
+```bash
+uv run cli list-models  # List available models
+uv run cli config-info  # Show current configuration
+uv run cli list-mcp-tools --filter playwright  # List available MCP tools
+```
