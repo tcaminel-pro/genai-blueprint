@@ -169,16 +169,8 @@ def retriever() -> BaseRetriever:
 # Node 'retrieve' to query the vector store
 
 
-def retrieve(state: GraphState) -:
-    """Retrieves documents from vector store matching the question.
-
-    Input state:
-        question (str): The search query
-
-    Returns state:
-        documents (list[Document]): Retrieved documents
-        question (str): Original question (unchanged)
-    """
+# Retrieves documents relevant to the question from vector store
+def retrieve(state: GraphState) -> GraphState:
     logger.debug("---RETRIEVE---")
     question = state["question"]
 
