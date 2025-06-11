@@ -105,7 +105,7 @@ def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def run(
         runnable_name: str,  # name (description) of the Runnable
-        input: str | None = None,  # input
+        input: Annotated[str | None, typer.Option(help="input of the chain")] = None,
         path: Path | None = None,  # input
         cache: str = "memory",
         temperature: Annotated[float, Option("--temperature", "--temp", min=0.0, max=1.0)] = 0.0,
@@ -123,6 +123,8 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         The LLM can be changed using --llm-id, otherwise the default one is selected.
         'cache' is the prompt caching strategy, and it can be either 'sqlite' (default) or 'memory'.
+
+        \nex : uv run cli run joke --input "bears"
         """
 
         set_debug(lc_debug)
@@ -230,14 +232,16 @@ def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def embedd(
         input: str,
-        model_id: Annotated[Optional[str], Option("--llm-id", "-m")] = None,
+        model_id: Annotated[Optional[str], Option("--model-id", "-m")] = None,
     ) -> None:
         """
-        Invoke an embedded.
+        Invoke an embedder.
+
+        ex: uv run cli embedd "string to be embedded"
         """
         if model_id is not None:
             if model_id not in EmbeddingsFactory.known_items():
-                print(f"Error: {model_id} is unknown llm_id.\nShould be in {EmbeddingsFactory.known_items()}")
+                print(f"Error: {model_id} is unknown model id.\nShould be in {EmbeddingsFactory.known_items()}")
                 return
             global_config().set("llm.default_model", model_id)
 
