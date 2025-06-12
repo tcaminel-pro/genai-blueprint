@@ -6,6 +6,7 @@ This module provides command-line interface commands for:
 - Adding, removing, and listing users
 - Enabling or disabling authentication
 """
+
 from typing import Annotated
 
 import typer
