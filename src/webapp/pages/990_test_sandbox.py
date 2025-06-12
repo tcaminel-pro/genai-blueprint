@@ -1,28 +1,30 @@
 import streamlit as st
 from browser_use import Agent
+
 from src.ai_core.llm import get_llm
 
 # Initialize LLM
 llm = get_llm(llm_id="gpt_4o_azure")
 
 # Configure Streamlit page
-st.set_page_config(page_title="Browser Agent Controller", layout="wide")
+#st.set_page_config(page_title="Browser Agent Controller", layout="wide")
 st.title("Web Navigation Agent Control Panel")
+
 
 def main():
     # Initialize session state
-    if 'agent' not in st.session_state:
+    if "agent" not in st.session_state:
         st.session_state.agent = None
-    if 'running' not in st.session_state:
+    if "running" not in st.session_state:
         st.session_state.running = False
-    if 'page_content' not in st.session_state:
+    if "page_content" not in st.session_state:
         st.session_state.page_content = ""
 
     # Control sidebar
     with st.sidebar:
         st.header("Agent Controls")
         url = st.text_input("Enter target URL:", key="url")
-        
+
         col1, col2 = st.columns(2)
         with col1:
             if st.button("▶️ Start", disabled=st.session_state.running):
@@ -37,7 +39,7 @@ def main():
 
     # Status display
     with st.container():
-        status_col, = st.columns(1)
+        (status_col,) = st.columns(1)
         with status_col:
             if st.session_state.running:
                 st.success("✅ Agent is actively browsing")
@@ -54,15 +56,19 @@ def main():
     # Display content in iframe
     if st.session_state.page_content:
         st.markdown("### Current Page View")
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <iframe srcdoc='{st.session_state.page_content}' 
                 style="width:100%; height:600px; border:1px solid #ddd"></iframe>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
 
     # Debug section
     with st.expander("Raw Content Debug"):
         if st.session_state.page_content:
             st.code(st.session_state.page_content[:2000] + "...")  # Show first 2000 chars
+
 
 if __name__ == "__main__":
     main()
