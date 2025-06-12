@@ -1,4 +1,11 @@
-# Add module and doc comment AI!
+"""CLI commands for authentication management.
+
+This module provides command-line interface commands for:
+- Hashing passwords for authentication
+- Managing authentication configuration
+- Adding, removing, and listing users
+- Enabling or disabling authentication
+"""
 from typing import Annotated
 
 import typer
