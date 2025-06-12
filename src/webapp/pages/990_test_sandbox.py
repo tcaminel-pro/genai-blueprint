@@ -1,6 +1,6 @@
+import asyncio
 import streamlit as st
 from browser_use import Agent
-
 from src.ai_core.llm import get_llm
 
 # Initialize LLM
@@ -46,7 +46,7 @@ def main():
                 if st.session_state.agent:
                     # Run agent and get page content
                     try:
-                        st.session_state.page_content = st.session_state.agent.run()
+                        st.session_state.page_content = asyncio.run(st.session_state.agent.run())
                     except Exception as e:
                         st.error(f"Agent error: {str(e)}")
                         st.session_state.running = False
