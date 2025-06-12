@@ -1,6 +1,6 @@
 from typer.testing import CliRunner
 
-from src.main_cli import cli_app, define_other_commands
+from src.main.cli import cli_app, define_other_commands
 
 runner = CliRunner()
 
