@@ -37,12 +37,12 @@ auth_config = load_auth_config()
 # Only show login form if authentication is enabled and user is not authenticated
 if auth_config.enabled and not st.session_state.authenticated:
     st.title("Login")
-    
+
     with st.form("login_form"):
         username = st.text_input("Username")
         password = st.text_input("Password", type="password")
         submit = st.form_submit_button("Login")
-        
+
         if submit:
             if authenticate(username, password):
                 st.session_state.authenticated = True
@@ -50,7 +50,7 @@ if auth_config.enabled and not st.session_state.authenticated:
                 st.rerun()
             else:
                 st.error("Invalid username or password")
-    
+
     # Stop execution if not authenticated
     st.stop()
 

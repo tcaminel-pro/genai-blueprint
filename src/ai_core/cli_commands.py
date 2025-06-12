@@ -287,19 +287,19 @@ def register_commands(cli_app: typer.Typer) -> None:
                 print()
 
         asyncio.run(display_tools())
-        
+
     @cli_app.command()
     def hash_password(
         password: Annotated[str, typer.Argument(help="Password to hash")],
     ) -> None:
         """
         Hash a password for use in the authentication config.
-        
+
         The hashed password can be added to the auth.yaml file.
         """
         hashed = hash_password(password)
         print(f"Hashed password: {hashed}")
-        
+
     @cli_app.command()
     def auth_config(
         enable: Annotated[bool, Option("--enable", "-e", help="Enable or disable authentication")] = None,
@@ -309,7 +309,7 @@ def register_commands(cli_app: typer.Typer) -> None:
     ) -> None:
         """
         Manage authentication configuration.
-        
+
         This command allows you to:
         - Enable or disable authentication
         - Add new users
@@ -318,23 +318,23 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         # Load the current config
         auth_config = load_auth_config()
-        
+
         # Enable or disable authentication
         if enable is not None:
             auth_config.enabled = enable
             save_auth_config(auth_config)
             print(f"Authentication {'enabled' if enable else 'disabled'}")
-        
+
         # Add a new user
         if add_user:
             username = typer.prompt("Username")
             password = typer.prompt("Password", hide_input=True)
             confirm = typer.prompt("Confirm password", hide_input=True)
-            
+
             if password != confirm:
                 print("Passwords do not match")
                 return
-            
+
             # Check if user already exists
             if any(u.username == username for u in auth_config.users):
                 # Update existing user
@@ -345,20 +345,17 @@ def register_commands(cli_app: typer.Typer) -> None:
                 print(f"Updated user: {username}")
             else:
                 # Add new user
-                auth_config.users.append(User(
-                    username=username,
-                    password_hash=hash_password(password)
-                ))
+                auth_config.users.append(User(username=username, password_hash=hash_password(password)))
                 print(f"Added user: {username}")
-            
+
             save_auth_config(auth_config)
-        
+
         # Remove a user
         if remove_user:
             auth_config.users = [u for u in auth_config.users if u.username != remove_user]
             save_auth_config(auth_config)
             print(f"Removed user: {remove_user}")
-        
+
         # List all users
         if list_users:
             if not auth_config.users:
