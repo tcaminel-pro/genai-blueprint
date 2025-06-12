@@ -62,6 +62,7 @@ rebase: ## Sync local repo with remote one (changes are stashed before!)
 	git stash
 	git rebase origin/main
 
+# use ruff as linter for aider AI!
 AIDER_OPTS=--watch-files --no-auto-lint --read CONVENTIONS.md --editor "code --wait"
 
 #deepseek/deepseek-chat; 
