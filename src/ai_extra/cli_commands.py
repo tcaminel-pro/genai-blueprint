@@ -155,6 +155,29 @@ def register_commands(cli_app: typer.Typer) -> None:
         logger.info(f"OCR processing complete. Results saved to {output_dir}")
 
     @cli_app.command()
+    def browser_agent(
+        task: Annotated[str, typer.Argument(help="The task for the browser agent to execute")],
+        headless: Annotated[bool, typer.Option(help="Run browser in headless mode")] = True,
+        llm_id: Annotated[
+            Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
+        ] = None,
+    ) -> None:
+        """Launch a browser agent to complete a given task.
+
+        Example:
+            uv run cli browser-agent "Book a table for 2 at Chez Paul for tonight" --headless=False
+        """
+        if llm_id is not None and llm_id not in LlmFactory.known_items():
+            print(f"Error: unknown llm_id. \n Should be in {LlmFactory.known_items()}")
+            return
+
+        # TODO: Implement browser agent logic
+        print(f"Running browser agent with task: {task}")
+        print(f"Headless mode: {headless}")
+        if llm_id:
+            print(f"Using LLM: {llm_id}")
+
+    @cli_app.command()
     def fabric(
         pattern: Annotated[str, Option("--pattern", "-p", help="Fabric pattern name to execute")],
         verbose: Annotated[bool, Option("--verbose", "-v", help="Enable verbose output")] = False,
