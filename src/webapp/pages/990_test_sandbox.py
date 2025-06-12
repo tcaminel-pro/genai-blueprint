@@ -1,4 +1,5 @@
 import asyncio
+import html
 import streamlit as st
 from browser_use import Agent
 from src.ai_core.llm import get_llm
@@ -56,12 +57,29 @@ def main():
     # Display content in iframe
     if st.session_state.page_content:
         st.markdown("### Current Page View")
+        
+        # Escape HTML content and wrap in proper document structure
+        escaped_content = html.escape(st.session_state.page_content)
+        full_html = f"""
+        <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body {{ margin: 0; padding: 1rem; }}
+                </style>
+            </head>
+            <body>
+                {escaped_content}
+            </body>
+        </html>
+        """
+        
+        # Display in iframe with proper attributes
         st.markdown(
-            f"""
-        <iframe srcdoc='{st.session_state.page_content}' 
-                style="width:100%; height:600px; border:1px solid #ddd"></iframe>
-        """,
-            unsafe_allow_html=True,
+            f'<iframe srcdoc="{full_html}" '
+            'style="width:100%; height:600px; border:1px solid #ddd; '
+            'border-radius: 8px; margin: 1rem 0;"></iframe>',
+            unsafe_allow_html=True
         )
 
     # Debug section
