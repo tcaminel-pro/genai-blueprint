@@ -15,7 +15,6 @@ dependencies = [
     "rich[jupyter]>=13.9.4",
     "universal-pathlib>=0.2.6",
     "pip>=25.1.1",
-
 ]
 
 [project.urls]
@@ -65,8 +64,6 @@ ai_extra = [
     "st-cytoscape>=0.0.5",
     "ipycytoscape>=1.3.3",
     "fuzzysearch>=0.8.0",
-
-
 ]
 demos = [
     "bs4>=0.0.2",
@@ -87,17 +84,21 @@ demos = [
 #    "giskard>=2.15.5",
 #   "ollama-ocr>=0.1.3,<0.2",
     "langchain-kuzu>=0.3.0",
-    "playwright>=1.49.1",
-    "helium>=5.1.0,<6",
     "scikit-learn>=1.6.1",
     "streamlit-folium>=0.24.1",
     "streamlit-extras>=0.6.0",
     "kuzu>=0.7.1",
-    "playwright>=1.51.0",
     "wordcloud>=1.9.4",
-    "browser-use>=0.2.6",
-
+    "md2pdf>=1.0.1",
 ]
+
+browser_control = [
+    "playwright>=1.51.0",
+    "browser-use>=0.2.6",
+    "helium>=5.1.0,<6",
+]
+
+
 autogen = [
     "autogen-openaiext-client>=0.0.3",
     "autogen-agentchat>=0.4.3",
@@ -124,6 +125,7 @@ default-groups = [
     "ui",
     "ai_extra",
     "demos",
+    "browser_control",
 #    "autogen",
   #  "transformers",
     "dev",

@@ -5,10 +5,10 @@ GPT Researcher searches with customizable parameters and configuration managemen
 """
 
 import asyncio
-import os
 import tempfile
 import textwrap
 from collections import deque
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Final
 
@@ -63,8 +63,6 @@ loaded_config = GptrConfig.load(selected_config)
 debug(loaded_config)
 if not sss.custom_config or sss.custom_config != loaded_config.config:
     sss.custom_config = loaded_config.config.copy()  # Use copy to avoid reference issues
-
-debug(selected_config, sss.custom_config)
 
 # Main configuration area
 with st.expander("Search configuration (partial)", expanded=True):
@@ -284,29 +282,23 @@ async def main() -> None:
 
     if "web_research_result" in sss:
         try:
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
+            with tempfile.NamedTemporaryFile(suffix=".pdf") as tmpfile:
                 md2pdf(
                     tmpfile.name,
                     md_content=sss.web_research_result,
                     base_url=None,
                     css_file_path=None,
                 )
-                pdf_bytes = Path(tmpfile.name).read_bytes()
-
-            from datetime import datetime
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-            st.download_button(
-                "Download PDF Report",
-                data=pdf_bytes,
-                file_name=f"research_report_{timestamp}.pdf",
-                mime="application/pdf",
-                help="Download the full research report as PDF",
-            )
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+                st.download_button(
+                    "Download PDF Report",
+                    data=Path(tmpfile.name).read_bytes(),
+                    file_name=f"gptr_report_{timestamp}.pdf",
+                    mime="application/pdf",
+                    help="Download the full research report as PDF",
+                )
         except Exception as e:
             st.error(f"Error generating PDF: {str(e)}")
-        finally:
-            if tmpfile.name and os.path.exists(tmpfile.name):
-                os.unlink(tmpfile.name)
 
 
 asyncio.run(main())

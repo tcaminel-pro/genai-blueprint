@@ -2,7 +2,7 @@
 
 Implements a robust RAG pipeline with:
 - Dynamic query routing
-- Document relevance grading 
+- Document relevance grading
 - Answer generation with hallucination detection
 - Web search fallback
 """
@@ -54,10 +54,7 @@ class DataRoute(Enum):
 
 
 yesno_enum_parser = EnumOutputParser(enum=YesOrNo)
-
 to_lower = RunnableLambda(lambda x: x.content.lower())  # type: ignore
-
-### State
 
 
 class GraphState(TypedDict, total=False):
@@ -67,9 +64,6 @@ class GraphState(TypedDict, total=False):
     generation: str  # LLM generation
     web_search: str  # whether to add search
     documents: list[Document]  # list of documents
-
-
-# function and node to check if the question is related to content in the Vector Store
 
 
 # Routes question to either vector store or web search
@@ -119,9 +113,6 @@ def route_question(state: GraphState) -> Literal["websearch", "vectorstore"]:
         raise Exception("Bug: unknown source")
 
 
-# Node for a Web Search
-
-
 # Performs web search and stores results
 def web_search(state: GraphState) -> GraphState:
     logger.debug("---WEB SEARCH---")
@@ -166,9 +157,6 @@ def retriever() -> BaseRetriever:
     return retriever
 
 
-# Node 'retrieve' to query the vector store
-
-
 # Retrieves documents relevant to the question from vector store
 def retrieve(state: GraphState) -> GraphState:
     logger.debug("---RETRIEVE---")
@@ -177,9 +165,6 @@ def retrieve(state: GraphState) -> GraphState:
     # Retrieval
     documents = retriever().invoke(question)
     return {"documents": documents, "question": question}
-
-
-# Function and node for the generation part of the RAG
 
 
 # Generates an answer to the question using retrieved context
@@ -206,9 +191,6 @@ def generate(state: GraphState) -> GraphState:
     # RAG generation
     generation = rag_chain().invoke({"context": documents, "question": question})
     return {"documents": documents, "question": question, "generation": generation}
-
-
-# Node to assess the relevance of the retrived documents
 
 
 # Evaluates if generated answer is useful for the question

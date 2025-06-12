@@ -22,6 +22,7 @@ all: help
 
 
 CURRENT_DIR := $(shell pwd)
+SHELL := /bin/bash
 
 #cSpell: disable
 
@@ -251,9 +252,7 @@ clean_history:  ## Remove duplicate entries and common commands from .bash_histo
 		echo "Done : duplicates and common commands removed. \nRun 'history -c; history -r' in your shell to reload the cleaned history"; \
 	else \
 		echo "No .bash_history file found"; \
-	fi
-
-                                                                                                                       
+	fi                                                                                                  
 
 help:                                                                                                                                          
 	@echo "Available targets:"                                                                                                                  

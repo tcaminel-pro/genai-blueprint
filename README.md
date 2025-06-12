@@ -147,6 +147,7 @@ The framework provides several CLI commands for interacting with AI components.
 They are registered in the configuration file 
 ```bash
 uv run cli --help   # list of defined commands
+```
 
 **Basic LLM Interaction**
 ```bash

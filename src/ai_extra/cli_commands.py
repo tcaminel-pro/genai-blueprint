@@ -20,15 +20,13 @@ from typing import Annotated, Optional
 import typer
 from langchain.globals import set_debug, set_verbose
 from loguru import logger
-from smolagents import CodeAgent, Tool
-from smolagents.default_tools import TOOL_MAPPING
 
 # Import modules where runnables are registered
 from typer import Option
 from upath import UPath
 
 from src.ai_core.cache import LlmCache
-from src.ai_core.llm import LlmFactory
+from src.ai_core.llm import LlmFactory, get_llm
 from src.ai_core.mcp_client import call_react_agent
 from src.ai_extra.fabric_chain import get_fabric_chain
 from src.ai_extra.mistral_ocr import process_pdf_batch
@@ -39,7 +37,9 @@ def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def mcp_agent(
         input: Annotated[str | None, typer.Option(help="Input query or '-' to read from stdin")] = None,
-        server: Annotated[list[str], typer.Option(help="MCP server names to connect to (e.g. playwright, filesystem, ..)")] = [],
+        server: Annotated[
+            list[str], typer.Option(help="MCP server names to connect to (e.g. playwright, filesystem, ..)")
+        ] = [],
         cache: Annotated[str, typer.Option(help="Cache strategy: 'sqlite', 'memory' or 'no_cache'")] = "memory",
         lc_verbose: Annotated[bool, Option("--verbose", "-v", help="Enable LangChain verbose mode")] = False,
         lc_debug: Annotated[bool, Option("--debug", "-d", help="Enable LangChain debug mode")] = False,
@@ -87,6 +87,9 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         ex: uv run cli smolagents "How many seconds would it take for a leopard at full speed to run through Pont des Arts?" -t web_search
         """
+        from smolagents import CodeAgent, Tool
+        from smolagents.default_tools import TOOL_MAPPING
+
         if llm_id is not None:
             if llm_id not in LlmFactory.known_items():
                 print(f"Error: {llm_id} is unknown llm_id.\nShould be in {LlmFactory.known_items()}")
@@ -157,7 +160,7 @@ def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def browser_agent(
         task: Annotated[str, typer.Argument(help="The task for the browser agent to execute")],
-        headless: Annotated[bool, typer.Option(help="Run browser in headless mode")] = True,
+        headless: Annotated[bool, typer.Option(help="Run browser in headless mode")] = False,
         llm_id: Annotated[
             Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
         ] = None,
@@ -165,17 +168,27 @@ def register_commands(cli_app: typer.Typer) -> None:
         """Launch a browser agent to complete a given task.
 
         Example:
-            uv run cli browser-agent "Book a table for 2 at Chez Paul for tonight" --headless=False
+            uv run cli browser-agent "recent news on Atos" --headless
+
         """
+
+        from browser_use import Agent, BrowserSession
+
         if llm_id is not None and llm_id not in LlmFactory.known_items():
             print(f"Error: unknown llm_id. \n Should be in {LlmFactory.known_items()}")
             return
 
         # TODO: Implement browser agent logic
         print(f"Running browser agent with task: {task}")
-        print(f"Headless mode: {headless}")
-        if llm_id:
-            print(f"Using LLM: {llm_id}")
+        browser_session = BrowserSession(
+            headless=headless,
+            viewport={"width": 400, "height": 300},  # Does not work
+        )
+
+        llm = get_llm(llm_id=llm_id)
+        agent = Agent(task=task, llm=llm, browser_session=browser_session)
+        history = asyncio.run(agent.run())
+        print(history.final_result())
 
     @cli_app.command()
     def fabric(

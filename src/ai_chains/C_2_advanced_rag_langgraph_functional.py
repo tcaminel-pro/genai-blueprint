@@ -1,7 +1,7 @@
 """Advanced RAG implementation using LangGraph's Functional API.
 
-This is an adaptation of C_2_advanced_rag_langgraph.py using LangGraph's
-Functional API (@task/@entrypoint decorators) instead of the StateGraph API.
+This is an adaptation of https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_adaptive_rag.ipynb
+using LangGraph's Functional API (@task/@entrypoint decorators) instead of the StateGraph API.
 Implements the same RAG pipeline with document retrieval, grading and generation.
 """
 
@@ -164,7 +164,7 @@ def question_router(question: str) -> DataRoute:
         Instructions: {instructions} """
     prompt = def_prompt(system_prompt, user_prompt).partial(instructions=parser.get_format_instructions())
     chain = prompt | get_llm(llm_id=LLM_ID) | parser
-    return chain.invoke({"question": question}) # type: ignore
+    return chain.invoke({"question": question})  # type: ignore
 
 
 # Main workflow that orchestrates the RAG pipeline with fallback logic
