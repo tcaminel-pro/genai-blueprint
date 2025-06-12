@@ -65,7 +65,6 @@ rebase: ## Sync local repo with remote one (changes are stashed before!)
 # Configure aider to use ruff as linter
 AIDER_OPTS=--watch-files --linter ruff --read CONVENTIONS.md --editor "code --wait"
 
-#deepseek/deepseek-chat; 
 aider:  ## Call aider-chat (a coding assistant)
 	aider $(AIDER_OPTS) --model openrouter/deepseek/deepseek-chat
 aider-haiku: 
