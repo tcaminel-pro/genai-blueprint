@@ -1,4 +1,4 @@
-"""CLI commands for authentication management.
+"""CLI commands for basic authentication management.
 
 This module provides command-line interface commands for:
 - Hashing passwords for authentication
@@ -12,7 +12,7 @@ from typing import Annotated
 import typer
 from typer import Option
 
-from src.ai_core.auth import User, hash_password, load_auth_config, save_auth_config
+from src.utils.basic_auth import User, hash_password, load_auth_config, save_auth_config
 
 
 def register_commands(cli_app: typer.Typer) -> None:
@@ -87,7 +87,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         # List all users
         if list_users:
             if not auth_config.users:
-                print("No users configured")
+                print("No users configured (or config file not found )")
             else:
                 print(f"Authentication: {'enabled' if auth_config.enabled else 'disabled'}")
                 print("Configured users:")

@@ -169,7 +169,6 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         Example:
             uv run cli browser-agent "recent news on Atos" --headless
-
         """
 
         from browser_use import Agent, BrowserSession
@@ -177,12 +176,10 @@ def register_commands(cli_app: typer.Typer) -> None:
         if llm_id is not None and llm_id not in LlmFactory.known_items():
             print(f"Error: unknown llm_id. \n Should be in {LlmFactory.known_items()}")
             return
-
-        # TODO: Implement browser agent logic
         print(f"Running browser agent with task: {task}")
         browser_session = BrowserSession(
             headless=headless,
-            viewport={"width": 400, "height": 300},  # Does not work
+            window_size={"width": 800, "height": 600},
         )
 
         llm = get_llm(llm_id=llm_id)

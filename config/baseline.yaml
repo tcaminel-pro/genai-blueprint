@@ -38,10 +38,6 @@ kv_store:
 #####
 # Modules to be loaded
 ####
-commands:
-  modules:
-    - src.ai_core.cli_commands
-    - src.ai_extra.cli_commands
 
 chains:
   root: src.ai_chains

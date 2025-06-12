@@ -37,4 +37,14 @@ ui:
   app_name : GenAI Lab and Practicum
   pages_dir : ${paths.src}/webapp/pages
 
-  
+auth:
+  config_file: ${paths.config}/basic_auth.yaml
+
+#####
+# modules  with CLI commands to be loaded
+####
+commands:
+  modules:
+    - src.ai_core.cli_commands
+    - src.ai_extra.cli_commands
+    - src.webapp.cli_commands

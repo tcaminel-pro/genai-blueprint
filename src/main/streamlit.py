@@ -4,7 +4,7 @@ from pathlib import Path
 import streamlit as st
 from dotenv import load_dotenv
 
-from src.ai_core.auth import authenticate, is_authenticated, load_auth_config
+from src.utils.basic_auth import authenticate, is_authenticated, load_auth_config
 from src.utils.config_mngr import global_config
 from src.utils.logger_factory import setup_logging
 

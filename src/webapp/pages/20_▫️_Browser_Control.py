@@ -20,16 +20,16 @@ if "agent_history" not in sss:
 
 
 with st.container():
-    st.header("Agent Controls")
     task = st.text_input("Task:", key="task", value="Compare the price of gpt-4o and DeepSeek-V3")
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
+    headless = col3.checkbox("Headless", value=False)
     with col1:
         if st.button("▶️ Start", disabled=sss.running):
             if task:
                 browser_session = BrowserSession(
-                    # headless=True,
-                    viewport={"width": 400, "height": 300},  # Does not work
+                    headless=headless,
+                    window_size={"width": 800, "height": 600},
                 )
 
                 llm = get_llm(llm_id=LLM_ID)
@@ -55,11 +55,12 @@ with st.container():
                     sss.agent_history = asyncio.run(sss.agent.run())
                 except Exception as e:
                     st.error(f"Agent error: {str(e)}")
-                    sss.running = False
+                sss.running = False
         else:
             st.info("⏸️ Agent is stopped")
 
 # Display content in iframe
 if sss.agent_history:
+    sss.running = False
     st.write("### result")
     st.write(sss.agent_history.final_result())

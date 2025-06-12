@@ -1,4 +1,4 @@
-"""Authentication module for the application.
+"""Basic authentication module for the application.
 
 Provides functionality for:
 - Password hashing and verification
@@ -8,8 +8,6 @@ Provides functionality for:
 
 import hashlib
 import os
-from pathlib import Path
-from typing import Optional
 
 import yaml
 from pydantic import BaseModel
@@ -62,7 +60,7 @@ def load_auth_config() -> AuthConfig:
     Returns:
         The authentication configuration
     """
-    config_path = global_config().get_file_path("auth.config_file", check_if_exists=False)
+    config_path = global_config().get_file_path("auth.config_file", check_if_exists=True)
 
     if not config_path.exists():
         return AuthConfig(enabled=False, users=[])

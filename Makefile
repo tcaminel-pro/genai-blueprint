@@ -63,7 +63,7 @@ rebase: ## Sync local repo with remote one (changes are stashed before!)
 	git rebase origin/main
 
 # Configure aider to use ruff as linter
-AIDER_OPTS=--watch-files --linter ruff --read CONVENTIONS.md --editor "code --wait"
+AIDER_OPTS=--watch-files --lint-cmd "ruff format" --read CONVENTIONS.md --editor "code --wait"
 
 aider:  ## Call aider-chat (a coding assistant)
 	aider $(AIDER_OPTS) --model openrouter/deepseek/deepseek-chat
