@@ -268,10 +268,11 @@ test_install: .pythonpath ## Quick test install
 # export $(grep -v '^#' ~/.env | xargs)
 
 call-azure-llm:
-	@echo "Calling Azure LLM..."
+	@echo "Loading environment variables..."
 	@if [ -f ~/.env ]; then \
 		export $$(grep -v '^#' ~/.env | xargs); \
 	fi
+	@echo "Calling Azure LLM..."
 	curl -X POST "$(AZURE_OPENAI_ENDPOINT)/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-02-15-preview" \
 	-H "Content-Type: application/json" \
 	-H "Authorization: Bearer $(AZURE_OPENAI_API_KEY)" \
