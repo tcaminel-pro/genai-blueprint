@@ -267,6 +267,8 @@ test_install: .pythonpath ## Quick test install
 # Load .env file environ variable in shell
 # export $(grep -v '^#' ~/.env | xargs)
 
+# import environment variable from .env vile before calling LLM to get API keys AI!
+
 call-azure-llm:
 	@echo "Calling Azure LLM..."
 	curl -X POST "$(AZURE_OPENAI_ENDPOINT)/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-02-15-preview" \
