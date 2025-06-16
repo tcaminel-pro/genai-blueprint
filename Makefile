@@ -272,11 +272,20 @@ load_env:
 		export $$(grep -v '^#' ~/.env | xargs); \
 	fi
 
+# uncomment and (possibly update path) of following cmd to import env. variables
+# include $(HOME)/.env
+# Locate the .env file in the home directory, current directory, or any directory in between
+#print error if file not found AI!
+ENV_FILE := $(shell find $(HOME) $(CURDIR) $(CURDIR)/.. -name ".env" -print -quit)
+ifneq ($(ENV_FILE),)
+include $(ENV_FILE)
+endif
+
+env_path:
+	echo $(ENV_FILE)
+
 call-azure-llm: load_env
-	@echo "Calling Azure LLM..."
-		export $$(grep -v '^#' ~/.env | xargs); \
-	fi
-	@echo "Calling Azure LLM..."
+	export $$(grep -v '^#' ~/.env | xargs); \
 	curl -X POST "$(AZURE_OPENAI_ENDPOINT)/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-02-15-preview" \
 	-H "Content-Type: application/json" \
 	-H "Authorization: Bearer $(AZURE_OPENAI_API_KEY)" \
