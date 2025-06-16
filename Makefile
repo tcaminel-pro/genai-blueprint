@@ -11,7 +11,6 @@ APP=genai-blueprint
 STREAMLIT_ENTRY_POINT="src/main/streamlit.py"
 FASTAPI_ENTRY_POINT="src.main.fastapi_app:app"
 
-
 IMAGE_VERSION=0.2a
 REGISTRY_AZ=XXXX.azurecr.io
 REGISTRY_NAME=XXX
@@ -267,7 +266,14 @@ test_install: .pythonpath ## Quick test install
 # Load .env file environ variable in shell
 # export $(grep -v '^#' ~/.env | xargs)
 
-call-azure-llm:
+load_env:
+	@echo "Loading environment variables..."
+	@if [ -f ~/.env ]; then \
+		export $$(grep -v '^#' ~/.env | xargs); \
+	fi
+
+# Environment variable not set. Can you fix it ? AI!
+call-azure-llm: 
 	@echo "Loading environment variables..."
 	@if [ -f ~/.env ]; then \
 		export $$(grep -v '^#' ~/.env | xargs); \
@@ -278,11 +284,7 @@ call-azure-llm:
 	-H "Authorization: Bearer $(AZURE_OPENAI_API_KEY)" \
 	-d "{\"messages\":[{\"role\":\"user\",\"content\":\"Tell me a joke\"}]}"
 
-call-openrouter-llm:
-	@echo "Loading environment variables..."
-	@if [ -f ~/.env ]; then \
-		export $$(grep -v '^#' ~/.env | xargs); \
-	fi
+call-openrouter-llm: 
 	@echo "Calling OpenRouter LLM..."
 	@if [ -f ~/.env ]; then \
 		export $$(grep -v '^#' ~/.env | xargs); \
