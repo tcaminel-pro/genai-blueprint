@@ -278,6 +278,10 @@ call-azure-llm:
 	-d "{\"messages\":[{\"role\":\"user\",\"content\":\"Tell me a joke\"}]}"
 
 call-openrouter-llm:
+	@echo "Loading environment variables..."
+	@if [ -f ~/.env ]; then \
+		export $$(grep -v '^#' ~/.env | xargs); \
+	fi
 	@echo "Calling OpenRouter LLM..."
 	@if [ -f ~/.env ]; then \
 		export $$(grep -v '^#' ~/.env | xargs); \
