@@ -206,6 +206,7 @@ def advanced_rag_workflow(question: str) -> dict:
 
 
 # # Register the workflow
+# TODO : improve RunnableItem
 # register_runnable(
 #     RunnableItem(
 #         tag="Advanced RAG",

@@ -15,7 +15,7 @@ global_config().select_config("pytest")
 
 def test_default_embeddings() -> None:
     """Test that default embeddings can be created and used."""
-    embedder = get_embeddings()
+    embedder = get_embeddings(None)
     vectors = embedder.embed_documents([SENTENCE_1, SENTENCE_2])
 
     # Basic validation of embeddings

@@ -7,7 +7,6 @@ Provides functionality for:
 """
 
 import hashlib
-import os
 
 import yaml
 from pydantic import BaseModel
@@ -118,19 +117,3 @@ def is_authenticated() -> bool:
 
     # Check if the user is authenticated in the session
     return st.session_state.get("authenticated", False)
-
-
-def save_auth_config(config: AuthConfig) -> None:
-    """Save authentication configuration to the config file.
-
-    Args:
-        config: The authentication configuration to save
-    """
-    config_path = global_config().get_file_path("auth.config_file", check_if_exists=False)
-
-    # Ensure the directory exists
-    os.makedirs(config_path.parent, exist_ok=True)
-
-    # Save the config
-    with open(config_path, "w") as f:
-        yaml.dump(config.model_dump(), f)

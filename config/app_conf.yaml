@@ -31,7 +31,7 @@ merge:
 default_config: training_azure   
 
 #### 
-# UI Configuration : list of Streamlit pages, ... 
+# UI Configuration : list of Streamlit pages, authentication, ... 
 ####    
 ui:
   app_name : GenAI Lab and Practicum

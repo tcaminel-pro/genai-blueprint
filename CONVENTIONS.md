@@ -8,3 +8,4 @@
     - Don't mention types 
     - Don't mention raise ValueError 
     - Use  ``` to format code in documentation (Fenced Code Blocks)
+- use 'uv run pytest -v' to run pytest 

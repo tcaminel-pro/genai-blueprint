@@ -42,3 +42,8 @@ training_openai:
   dummy:
     bar: foo
 
+pytest:
+  llm:
+    default_model: gpt_4omini_edenai
+  embeddings:
+    default_model: ada_002_edenai

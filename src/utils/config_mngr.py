@@ -47,6 +47,7 @@ class OmegaConfig(BaseModel):
     def singleton() -> OmegaConfig:
         """Returns the singleton instance of Config."""
 
+        # TODO: Consider  using OmegaConf.to_container(conf, resolve=True, throw_on_missing=False) and return a dict
         # Load main config file
         app_conf_path = Path("config/app_conf.yaml")
         if not app_conf_path.exists():
@@ -81,7 +82,7 @@ class OmegaConfig(BaseModel):
 
         # Determine which config to use
         config_name_from_env = os.environ.get("BLUEPRINT_CONFIG")
-        config_name_from_yaml = config.get("default_config") # type: ignore
+        config_name_from_yaml = config.get("default_config")  # type: ignore
         if config_name_from_env and config_name_from_env not in config:
             logger.warning(
                 f"Configuration selected by environment variable 'BLUEPRINT_CONFIG' not found: {config_name_from_env}"
@@ -91,7 +92,7 @@ class OmegaConfig(BaseModel):
             logger.warning(f"Configuration selected by key 'default_config' not found: {config_name_from_yaml}")
             config_name_from_yaml = None
         selected_config = config_name_from_env or config_name_from_yaml or "baseline"
-        return OmegaConfig(root=config, selected_config=selected_config) # type: ignore
+        return OmegaConfig(root=config, selected_config=selected_config)  # type: ignore
 
     def select_config(self, config_name: str) -> None:
         """Select a different configuration section to override defaults."""
@@ -110,7 +111,7 @@ class OmegaConfig(BaseModel):
             The configuration value or default if not found
         """
         # Create merged config with runtime overrides first
-        merged = OmegaConf.merge(self.root, self.selected)
+        merged = OmegaConf.merge(self.root, self.selected or {})
         try:
             value = OmegaConf.select(merged, key)
             if value is None:
@@ -122,7 +123,6 @@ class OmegaConfig(BaseModel):
         except Exception as e:
             if default is not None:
                 return default
-            debug(self)
             raise ValueError(f"Configuration key '{key}' not found") from e
 
     def set(self, key: str, value: Any) -> None:

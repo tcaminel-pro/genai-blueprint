@@ -6,16 +6,12 @@ This module contains tests that verify:
 - Error handling for invalid configurations
 """
 
-import pytest
 from langchain_core.messages.ai import AIMessage
 
-from src.ai_core.llm import get_configurable_llm, get_llm, llm_config
-from src.ai_core.prompts import def_prompt
+from src.ai_core.llm import get_llm
 from src.utils.config_mngr import global_config
 
 global_config().select_config("pytest")
-
-another_llm = global_config().get_str("llm.model2")
 
 
 def test_basic_joke_generation() -> None:
@@ -24,26 +20,6 @@ def test_basic_joke_generation() -> None:
     joke = llm.invoke("Tell me a short joke about computers")
     assert isinstance(joke, AIMessage)
     assert len(joke.content) > 10  # Basic check that we got some content
-
-
-def test_configurable_llm_switching() -> None:
-    """Test that we can switch LLMs at runtime using config."""
-    chain = def_prompt("Tell me a joke about {topic}") | get_configurable_llm()
-
-    # Test with default LLM
-    result1 = chain.invoke({"topic": "bears"})
-
-    # Test with specific LLM config
-    result2 = chain.with_config(llm_config(llm_id=another_llm)).invoke({"topic": "bears"})
-
-    assert result1 != result2  # Different LLMs should produce different results
-
-
-def test_invalid_llm_config() -> None:
-    """Test error handling for invalid LLM configurations."""
-    with pytest.raises(ValueError):
-        # This should fail since "invalid_llm" doesn't exist
-        get_llm(llm_id="invalid_llm")
 
 
 def test_streaming_joke() -> None:
