@@ -275,10 +275,12 @@ load_env:
 # uncomment and (possibly update path) of following cmd to import env. variables
 # include $(HOME)/.env
 # Locate the .env file in the home directory, current directory, or any directory in between
-#print error if file not found AI!
 ENV_FILE := $(shell find $(HOME) $(CURDIR) $(CURDIR)/.. -name ".env" -print -quit)
 ifneq ($(ENV_FILE),)
 include $(ENV_FILE)
+else
+$(error .env file not found in $(HOME), $(CURDIR) or parent directory. Please create one.)
+endif
 endif
 
 env_path:
