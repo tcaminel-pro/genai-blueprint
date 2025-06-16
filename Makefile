@@ -267,10 +267,11 @@ test_install: .pythonpath ## Quick test install
 # Load .env file environ variable in shell
 # export $(grep -v '^#' ~/.env | xargs)
 
-# import environment variable from .env vile before calling LLM to get API keys AI!
-
 call-azure-llm:
 	@echo "Calling Azure LLM..."
+	@if [ -f ~/.env ]; then \
+		export $$(grep -v '^#' ~/.env | xargs); \
+	fi
 	curl -X POST "$(AZURE_OPENAI_ENDPOINT)/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-02-15-preview" \
 	-H "Content-Type: application/json" \
 	-H "Authorization: Bearer $(AZURE_OPENAI_API_KEY)" \
@@ -278,6 +279,9 @@ call-azure-llm:
 
 call-openrouter-llm:
 	@echo "Calling OpenRouter LLM..."
+	@if [ -f ~/.env ]; then \
+		export $$(grep -v '^#' ~/.env | xargs); \
+	fi
 	curl https://openrouter.ai/api/v1/chat/completions \
 	-H "Content-Type: application/json" \
 	-H "Authorization: Bearer $(OPENROUTER_API_KEY)" \
