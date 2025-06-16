@@ -272,10 +272,8 @@ load_env:
 		export $$(grep -v '^#' ~/.env | xargs); \
 	fi
 
-# Environment variable not set. Can you fix it ? AI!
-call-azure-llm: 
-	@echo "Loading environment variables..."
-	@if [ -f ~/.env ]; then \
+call-azure-llm: load_env
+	@echo "Calling Azure LLM..."
 		export $$(grep -v '^#' ~/.env | xargs); \
 	fi
 	@echo "Calling Azure LLM..."
