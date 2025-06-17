@@ -5,7 +5,7 @@
 # - Project maintenance tasks
 #
 # Usage: make [target]
-
+#cSpell: disable
 APP=genai-blueprint
 
 STREAMLIT_ENTRY_POINT="src/main/streamlit.py"
@@ -20,10 +20,17 @@ PROJECT_ID_GCP=XXX
 all: help 
 
 
-CURRENT_DIR := $(shell pwd)
 SHELL := /bin/bash
 
-#cSpell: disable
+# Locate and load the .env file in the current directory, or parent directory, or parent of parent
+ENV_FILE_RAW := $(shell find $(CURDIR) $(CURDIR)/.. $(CURDIR)/../.. -name ".env" -print -quit)
+ENV_FILE := $(shell realpath $(ENV_FILE_RAW))
+ifneq ($(ENV_FILE),)
+include $(ENV_FILE)
+else
+$(warning .env file not found in current or parent directory)
+endif
+
 
 .PHONY: .uv   .pre-commit .pythonpath
 .uv:  ## Check that uv is installed
@@ -259,6 +266,7 @@ help:
 
 
 test_install: .pythonpath ## Quick test install
+	@echo $(PYTHONPATH)
 	@echo "Call a fake LLM that returns the prompt. Here it should  display 'tell me a joke on ...'"
 	echo bears | PYTHONPATH="." uv run cli run joke -m parrot_local_fake
 
@@ -272,16 +280,6 @@ load_env:
 		export $$(grep -v '^#' ~/.env | xargs); \
 	fi
 
-# uncomment and (possibly update path) of following cmd to import env. variables
-# include $(HOME)/.env
-# Locate the .env file in the home directory, current directory, or any directory in between
-ENV_FILE := $(shell find $(HOME) $(CURDIR) $(CURDIR)/.. -name ".env" -print -quit)
-ifneq ($(ENV_FILE),)
-include $(ENV_FILE)
-else
-$(error .env file not found in $(HOME), $(CURDIR) or parent directory. Please create one.)
-endif
-endif
 
 env_path:
 	echo $(ENV_FILE)
@@ -295,9 +293,6 @@ call-azure-llm: load_env
 
 call-openrouter-llm: 
 	@echo "Calling OpenRouter LLM..."
-	@if [ -f ~/.env ]; then \
-		export $$(grep -v '^#' ~/.env | xargs); \
-	fi
 	curl https://openrouter.ai/api/v1/chat/completions \
 	-H "Content-Type: application/json" \
 	-H "Authorization: Bearer $(OPENROUTER_API_KEY)" \

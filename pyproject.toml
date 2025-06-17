@@ -45,7 +45,7 @@ ai = [
     "litellm==1.67.2",  # because of issue with next version. TBC
     "chromadb>=0.6",
     "mistralai>=1.7.0",
-    "smolagents[toolkit, mcp, openai, litellm, docker]>=1.13.0",
+    "smolagents[toolkit, mcp, openai, litellm, docker]>=1.17",
     "mcp[cli]>=1.4.1",
 
 ]

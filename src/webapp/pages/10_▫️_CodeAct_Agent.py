@@ -477,8 +477,8 @@ with select_block.form("my_form", border=False):
         label_visibility="collapsed",
     )
 
-    # Submit button with send icon
-    submitted = cf2.form_submit_button(label="", icon=":material/send:")
+    max_steps = cf2.number_input("Max steps", 1, 20, 10)
+    submitted = cf2.form_submit_button(label="", icon=":material/send:")  # Submit button with send icon
 
 if submitted:
     # Set up execution display area
@@ -518,7 +518,7 @@ if submitted:
                     tools=tools,
                     model=llm,
                     additional_authorized_imports=AUTHORIZED_IMPORTS,
-                    max_steps=10,  # for debug
+                    max_steps=max_steps,  # for debug
                 )
                 with st.spinner(text="Thinking..."):
                     result_display.write(f"query: {prompt}")

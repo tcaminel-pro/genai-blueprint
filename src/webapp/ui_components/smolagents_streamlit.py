@@ -20,8 +20,12 @@ Streamlit UI components for smolagents integration.
 Provides functions to display agent steps and stream agent outputs in Streamlit apps.
 """
 
+# Update prompt:
+# smolagents_streamlit.py is a port of gradio_ui.py to streamlit.  However, the smolagents package has evolved.
+# Modify smolagents_streamlit.py to make it works with new version
+
 import re
-from typing import Dict, Generator, List, Optional
+from typing import Dict, List, Optional
 
 import streamlit as st
 from PIL import Image
