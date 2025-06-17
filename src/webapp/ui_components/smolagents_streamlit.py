@@ -107,7 +107,7 @@ def _display_step_content(step_log: MemoryStep, display_details: bool = True) ->
         st.divider()
 
     elif isinstance(step_log, FinalAnswerStep):
-        final_answer = step_log.final_answer
+        final_answer = step_log.to_messages()
         if isinstance(final_answer, AgentText):
             st.markdown(f"**Final answer:**\n{final_answer.to_string()}\n")
         elif isinstance(final_answer, AgentImage):
