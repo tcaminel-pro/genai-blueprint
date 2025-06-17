@@ -20,32 +20,70 @@ Streamlit UI components for smolagents integration.
 Provides functions to display agent steps and stream agent outputs in Streamlit apps.
 """
 
-
-# 1 - Add a parameter 'display_details' to stream_to_streamlic and _display_step_content.
-# If display_details is False, then do not display the code and the footnote
-
 import re
-from typing import Dict, List, Optional
+from typing import Dict, Generator, List, Optional
 
 import streamlit as st
 from PIL import Image
 from smolagents.agent_types import AgentAudio, AgentImage, AgentText
 from smolagents.agents import MultiStepAgent, PlanningStep
 from smolagents.memory import ActionStep, FinalAnswerStep, MemoryStep
+from smolagents.models import ChatMessageStreamDelta
 
 from src.utils.streamlit.auto_scroll import scroll_to_here
 
 
-def _get_step_footnote(step_log: MemoryStep, step_name: str) -> str:
+def _get_step_footnote(step_log: ActionStep | PlanningStep, step_name: str) -> str:
     """Get a footnote string for a step log with duration and token information"""
     step_footnote = f"**{step_name}**"
-    if hasattr(step_log, "input_token_count") and hasattr(step_log, "output_token_count"):
-        token_str = f" | Input tokens:{step_log.input_token_count:,} | Output tokens: {step_log.output_token_count:,}"
+    if hasattr(step_log, "token_usage") and step_log.token_usage is not None:
+        token_str = f" | Input tokens: {step_log.token_usage.input_tokens:,} | Output tokens: {step_log.token_usage.output_tokens:,}"
         step_footnote += token_str
-    if hasattr(step_log, "duration"):
-        step_duration = f" | Duration: {round(float(step_log.duration), 2)}" if step_log.duration else None
+    if hasattr(step_log, "timing") and step_log.timing is not None and step_log.timing.duration:
+        step_duration = f" | Duration: {round(float(step_log.timing.duration), 2)}s"
         step_footnote += step_duration
     return step_footnote
+
+
+def _clean_model_output(model_output: str) -> str:
+    """
+    Clean up model output by removing trailing tags and extra backticks.
+
+    Args:
+        model_output: Raw model output.
+
+    Returns:
+        Cleaned model output.
+    """
+    if not model_output:
+        return ""
+    model_output = model_output.strip()
+    # Remove any trailing <end_code> and extra backticks, handling multiple possible formats
+    model_output = re.sub(r"```\s*<end_code>", "```", model_output)  # handles ```<end_code>
+    model_output = re.sub(r"<end_code>\s*```", "```", model_output)  # handles <end_code>```
+    model_output = re.sub(r"```\s*\n\s*<end_code>", "```", model_output)  # handles ```\n<end_code>
+    return model_output.strip()
+
+
+def _format_code_content(content: str) -> str:
+    """
+    Format code content as Python code block if it's not already formatted.
+
+    Args:
+        content: Code content to format.
+
+    Returns:
+        Code content formatted as a Python code block.
+    """
+    content = content.strip()
+    # Remove existing code blocks and end_code tags
+    content = re.sub(r"```.*?\n", "", content)
+    content = re.sub(r"\s*<end_code>\s*", "", content)
+    content = content.strip()
+    # Add Python code block formatting if not already present
+    if not content.startswith("```python"):
+        content = f"```python\n{content}\n```"
+    return content
 
 
 def _display_step_content(step_log: MemoryStep, display_details: bool = True) -> None:
@@ -60,23 +98,16 @@ def _display_step_content(step_log: MemoryStep, display_details: bool = True) ->
         st.markdown(f"**{step_number}**")
 
         if hasattr(step_log, "model_output") and step_log.model_output is not None:
-            model_output = step_log.model_output.strip()
-            model_output = re.sub(r"```\s*<end_code>", "```", model_output)
-            model_output = re.sub(r"<end_code>\s*```", "```", model_output)
-            model_output = re.sub(r"```\s*\n\s*<end_code>", "```", model_output)
+            model_output = _clean_model_output(step_log.model_output)
             st.markdown(model_output)
 
-        if hasattr(step_log, "tool_calls") and step_log.tool_calls is not None:
+        if hasattr(step_log, "tool_calls") and step_log.tool_calls is not None and len(step_log.tool_calls) > 0:
             first_tool_call = step_log.tool_calls[0]
             args = first_tool_call.arguments
             content = str(args.get("answer", str(args))) if isinstance(args, dict) else str(args).strip()
 
             if first_tool_call.name == "python_interpreter":
-                content = re.sub(r"```.*?\n", "", content)
-                content = re.sub(r"\s*<end_code>\s*", "", content)
-                content = content.strip()
-                if not content.startswith("```python"):
-                    content = f"```python\n{content}\n```"
+                content = _format_code_content(content)
                 if display_details:
                     with st.expander(f"🛠️ Used tool {first_tool_call.name}"):
                         st.code(content)
@@ -107,7 +138,7 @@ def _display_step_content(step_log: MemoryStep, display_details: bool = True) ->
         st.divider()
 
     elif isinstance(step_log, FinalAnswerStep):
-        final_answer = step_log.to_messages()
+        final_answer = step_log.output
         if isinstance(final_answer, AgentText):
             st.markdown(f"**Final answer:**\n{final_answer.to_string()}\n")
         elif isinstance(final_answer, AgentImage):
@@ -134,19 +165,19 @@ def stream_to_streamlit(
         task_images: Optional list of PIL images to include with the task
         reset_agent_memory: Whether to reset the agent's memory before running
         additional_args: Additional arguments to pass to the agent's run method
+        display_details: Whether to show detailed information like code and footnotes
     """
-    total_input_tokens = 0
-    total_output_tokens = 0
+    intermediate_text = ""
 
-    for step_log in agent.run(
+    for event in agent.run(
         task, images=task_images, stream=True, reset=reset_agent_memory, additional_args=additional_args
     ):
-        if getattr(agent.model, "last_input_token_count", None) is not None:
-            total_input_tokens += agent.model.last_input_token_count
-            total_output_tokens += agent.model.last_output_token_count
-            if isinstance(step_log, (ActionStep, PlanningStep)):
-                step_log.input_token_count = agent.model.last_input_token_count
-                step_log.output_token_count = agent.model.last_output_token_count
-
-        _display_step_content(step_log, display_details)
-        scroll_to_here()
+        if isinstance(event, (ActionStep, PlanningStep, FinalAnswerStep)):
+            intermediate_text = ""
+            _display_step_content(event, display_details)
+            scroll_to_here()
+        elif isinstance(event, ChatMessageStreamDelta):
+            if event.content:
+                intermediate_text += event.content
+                st.markdown(intermediate_text)
+                scroll_to_here()
