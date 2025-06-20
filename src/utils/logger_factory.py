@@ -11,7 +11,7 @@ import sys
 from loguru import logger
 
 
-def setup_logging() -> None:
+def setup_logging(level="TRACE") -> None:
     """Configure the application logger with Loguru.
 
     Sets up logging with a default format. It can be overridden by setting the LOGURU_FORMAT environment variable.
@@ -23,6 +23,7 @@ def setup_logging() -> None:
     logger.add(
         sys.stderr,
         colorize=True,
+        level=level,
         format=format_str,
         backtrace=False,
         diagnose=True,

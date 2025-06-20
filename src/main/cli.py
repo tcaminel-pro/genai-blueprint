@@ -65,12 +65,12 @@ def define_other_commands(cli_app: typer.Typer) -> None:
 def main():
     # We could fo better with Typer @cli_app.callback(), but I haven't succeded
     if "--logging" in sys.argv:
+        level = "TRACE"
         sys.argv.remove("--logging")
     else:
-        logger.remove()
-        logger.add(sys.stderr, level="ERROR")
+        level = "WARNING"
     # print(f"in main {argc=}  {argv=}")
-    setup_logging()
+    setup_logging(level)
     modules = global_config().get_list("commands.modules")
     # Import and register commands from each module
     for module in modules:

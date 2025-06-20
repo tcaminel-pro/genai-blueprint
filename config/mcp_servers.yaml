@@ -30,14 +30,14 @@ mcpServers:
     command: npx
     args:  ["-y", "@modelcontextprotocol/server-github"]
     env:
-      GITHUB_PERSONAL_ACCESS_TOKEN: ${oc.env:GITHUB_TOKEN, null}
+      GITHUB_PERSONAL_ACCESS_TOKEN: ${oc.env:GITHUB_TOKEN_, "dummy token"}
     disabled: true
 
   tavily-mcp: 
     command: npx
     args: [ "-y" ,"tavily-mcp"]
     env: 
-      TAVILY_API_KEY : ${oc.env:TAVILY_API_KEY, null}
+      TAVILY_API_KEY : ${oc.env:TAVILY_API_KEY,  "dummy key"}
   #  disabled: true
     
   ppt: 
@@ -59,3 +59,8 @@ mcpServers:
         - run 
         - weather_server.py
       disabled: false
+
+  vizro-mcp:
+    command: uvx
+    args:
+    - vizro-mcp

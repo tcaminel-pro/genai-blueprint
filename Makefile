@@ -285,7 +285,6 @@ env_path:
 	echo $(ENV_FILE)
 
 call-azure-llm: load_env
-	export $$(grep -v '^#' ~/.env | xargs); \
 	curl -X POST "$(AZURE_OPENAI_ENDPOINT)/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-02-15-preview" \
 	-H "Content-Type: application/json" \
 	-H "Authorization: Bearer $(AZURE_OPENAI_API_KEY)" \

@@ -53,3 +53,10 @@ codeact_agent_demos:
       - "What is the currrent wind force in Toulouse ? "
       - "List current directory"
       - "connect to atos.net site and get recent news"
+
+  - name: "Vizro"
+    mcp_servers: ["vizro-mcp"]
+
+    examples:
+      - "Create a Vizro dashboard with one page, a scatter chart, and a filter."
+      - "Load sample data from tool and Create a Vizro dashboard with one page, a scatter chart, and a filter based on it "

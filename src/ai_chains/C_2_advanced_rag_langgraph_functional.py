@@ -178,10 +178,13 @@ def advanced_rag_workflow(question: str) -> dict:
     else:
         # Retrieve and grade documents
         documents = retrieve_documents(question).result()
-        filtered_docs = []
-        for doc in documents:
-            if retrieval_grader(question, doc.page_content).result() == YesOrNo.YES:
-                filtered_docs.append(doc)
+        # filtered_docs = []
+        # for doc in documents:
+        #     if retrieval_grader(question, doc.page_content).result() == YesOrNo.YES:
+        #         filtered_docs.append(doc)
+        futures = [retrieval_grader(question, doc.page_content) for doc in documents]
+        is_appropriate = [f.result() for f in futures]
+        filtered_docs = [doc.page_content for (doc, ok) in zip(documents, is_appropriate, strict=True) if is_appropriate == YesOrNo.YES]
 
         if not filtered_docs:
             documents = [Document(page_content=basic_web_search(question).result())]
