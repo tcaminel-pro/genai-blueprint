@@ -50,7 +50,6 @@ from src.utils.langgraph import print_astream
 load_dotenv()
 
 
-# refactor :
 def update_server_parameters(server_config: dict) -> dict:
     """Process individual MCP server configuration dictionary.
 
@@ -93,8 +92,8 @@ def update_server_parameters(server_config: dict) -> dict:
     desc.pop("example", None)
     if not desc.get("disabled"):
         desc.pop("disabled", None)
+    _ = StdioServerParameters(**desc)  # just to test argument type
 
-    _ = StdioServerParameters(**desc)  # just to test argument types
     return desc
 
 
@@ -118,13 +117,29 @@ async def get_mcp_tools_info(filter: list[str] | None = None) -> dict:
     servers = get_mcp_servers_dict(filter)
     tools_info = {}
     for server_name, param_desc in servers.items():
-        server_params = StdioServerParameters(**param_desc)
-        async with stdio_client(server_params) as (read, write):
-            async with ClientSession(read, write) as session:
-                await session.initialize()
-                tools = await session.list_tools()
-                tools_info[server_name] = {tool.name: tool.description for tool in tools.tools}
+        if not param_desc.get("disabled", False):
+            server_params = StdioServerParameters(**param_desc)
+            async with stdio_client(server_params) as (read, write):
+                async with ClientSession(read, write) as session:
+                    await session.initialize()
+                    tools = await session.list_tools()
+                    tools_info[server_name] = {tool.name: tool.description for tool in tools.tools}
     return tools_info
+
+
+async def get_mcp_prompts(filter: list[str] | None = None) -> dict:
+    """Get all prompts  from MCP servers with their names and descriptions."""
+    servers = get_mcp_servers_dict(filter)
+    prompts_info = {}
+    for server_name, param_desc in servers.items():
+        if not param_desc.get("disabled", False):
+            server_params = StdioServerParameters(**param_desc)
+            async with stdio_client(server_params) as (read, write):
+                async with ClientSession(read, write) as session:
+                    await session.initialize()
+                    prompts = await session.list_prompts()
+                    prompts_info[server_name] = {p.name: p.description for p in prompts.prompts}
+    return prompts_info
 
 
 def get_mcp_servers_dict(filter: list[str] | None = None) -> dict:
@@ -155,6 +170,7 @@ def get_mcp_servers_dict(filter: list[str] | None = None) -> dict:
         if missing_servers:
             raise ValueError(f"Servers not found in configuration: {', '.join(missing_servers)}")
 
+    # catch possible exeption raised by update_server_parameters.  Display a warning in canse of exeption, and don't  the item in the dict AI!
     result_dict = {
         name: update_server_parameters(desc) for name, desc in servers.items() if filter is None or name in filter
     }
