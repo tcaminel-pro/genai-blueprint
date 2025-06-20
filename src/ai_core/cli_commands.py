@@ -284,12 +284,19 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         asyncio.run(display_tools())
 
-    # add doc AI!
     @cli_app.command()
     def list_mcp_prompts(
-        filter: Annotated[list[str] | None, Option("--filter", "-f", help="Filter tools by server names")] = None,
+        filter: Annotated[list[str] | None, Option("--filter", "-f", help="Filter prompts by server names")] = None,
     ) -> None:
-        """ """
+        """Display information about available MCP prompts.
+
+        Shows the list of prompts from MCP servers along with their descriptions.
+        Can be filtered by server names.
+
+        Example:
+            uv run cli list-mcp-prompts
+            uv run cli list-mcp-prompts --filter server1 server2
+        """
 
         async def display_prompts():
             prompt_info = await get_mcp_prompts(filter)
