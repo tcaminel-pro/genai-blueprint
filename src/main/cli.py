@@ -67,7 +67,8 @@ def main():
     if "--logging" in sys.argv:
         sys.argv.remove("--logging")
     else:
-        logger.disable("src")
+        logger.remove()
+        logger.add(sys.stderr, level="ERROR")
     # print(f"in main {argc=}  {argv=}")
     setup_logging()
     modules = global_config().get_list("commands.modules")
