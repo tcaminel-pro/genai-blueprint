@@ -171,6 +171,7 @@ def get_mcp_servers_dict(filter: list[str] | None = None) -> dict:
             raise ValueError(f"Servers not found in configuration: {', '.join(missing_servers)}")
 
     from loguru import logger
+
     result_dict = {}
     for name, desc in servers.items():
         if filter is None or name in filter:
