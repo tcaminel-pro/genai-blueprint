@@ -170,10 +170,14 @@ def get_mcp_servers_dict(filter: list[str] | None = None) -> dict:
         if missing_servers:
             raise ValueError(f"Servers not found in configuration: {', '.join(missing_servers)}")
 
-    # catch possible exeption raised by update_server_parameters.  Display a warning in canse of exeption, and don't  the item in the dict AI!
-    result_dict = {
-        name: update_server_parameters(desc) for name, desc in servers.items() if filter is None or name in filter
-    }
+    from loguru import logger
+    result_dict = {}
+    for name, desc in servers.items():
+        if filter is None or name in filter:
+            try:
+                result_dict[name] = update_server_parameters(desc)
+            except Exception as e:
+                logger.warning(f"Skipping MCP server {name} due to configuration error: {str(e)}")
 
     return result_dict
 
