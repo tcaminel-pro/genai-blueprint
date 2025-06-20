@@ -31,7 +31,7 @@ from src.ai_core.cache import LlmCache
 from src.ai_core.chain_registry import ChainRegistry
 from src.ai_core.embeddings import EmbeddingsFactory, get_embeddings
 from src.ai_core.llm import PROVIDER_INFO, LlmFactory
-from src.ai_core.mcp_client import get_mcp_tools_info
+from src.ai_core.mcp_client import get_mcp_prompts, get_mcp_tools_info
 from src.ai_core.vector_store import VectorStoreFactory
 from src.utils.config_mngr import global_config
 
@@ -283,3 +283,26 @@ def register_commands(cli_app: typer.Typer) -> None:
                 print()
 
         asyncio.run(display_tools())
+
+    # add doc AI!
+    @cli_app.command()
+    def list_mcp_prompts(
+        filter: Annotated[list[str] | None, Option("--filter", "-f", help="Filter tools by server names")] = None,
+    ) -> None:
+        """ """
+
+        async def display_prompts():
+            prompt_info = await get_mcp_prompts(filter)
+            if not prompt_info:
+                print("No MCP tools found.")
+                return
+
+            for server_name, prompts in prompt_info.items():
+                print(f"\nServer: {server_name}")
+                print("-" * (len(server_name) + 8))
+                for name, description in prompts.items():
+                    print(f"  {name}:")
+                    print(f"    {description}")
+                print()
+
+        asyncio.run(display_prompts())
