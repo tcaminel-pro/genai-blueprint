@@ -13,10 +13,9 @@ dependencies = [
     "omegaconf>=2.3.0",
     "fastapi>=0.115.6",
     "rich[jupyter]>=13.9.4",
+    "prompt-toolkit>=3.0.51",
     "universal-pathlib>=0.2.6",
     "pip>=25.1.1",
-    "vizro>=0.1.40",
-    "prompt-toolkit>=3.0.51",
 ]
 
 [project.urls]
@@ -44,8 +43,8 @@ ai = [
     "langchain-groq>=0.2",
     "langchain-chroma>=0.2",
     # "litellm>=1",
-    "litellm==1.67.2",  # because of issue with next version. TBC
-    "chromadb>=0.6",
+    "litellm>=1.67.2", 
+    "chromadb>=1.0",
     "mistralai>=1.7.0",
     "smolagents[toolkit, mcp, openai, litellm, docker]>=1.17",
     "mcp[cli]>=1.4.1",
@@ -92,6 +91,7 @@ demos = [
     "kuzu>=0.7.1",
     "wordcloud>=1.9.4",
     "md2pdf>=1.0.1",
+    "vizro>=0.1.40",
 ]
 
 browser_control = [

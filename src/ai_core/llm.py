@@ -43,6 +43,7 @@ from functools import cached_property, lru_cache
 from typing import Annotated, Any, cast
 
 import yaml
+from devtools import debug  # noqa: F401
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import RunnableConfig, RunnableLambda
 from loguru import logger
@@ -265,7 +266,6 @@ class LlmFactory(BaseModel):
         return result
 
     def get_smolagent_model(self):  # -> ApiModel
-        from devtools import debug
         from smolagents import AzureOpenAIServerModel, LiteLLMModel
 
         if self.provider in ["azure"]:

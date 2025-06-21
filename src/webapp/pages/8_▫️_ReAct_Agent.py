@@ -125,7 +125,6 @@ def load_demos_from_config() -> List[ReactDemo]:
 
 SAMPLES_DEMOS = load_demos_from_config()
 
-debug(type(my_custom_weather))
 local_tools = [duckduck_search_tool]
 for demo in SAMPLES_DEMOS:
     for tool_name in demo.tools:

@@ -27,7 +27,6 @@ from src.ai_core.llm import LlmFactory, get_llm
 from src.utils.config_mngr import global_config
 
 
-# don't add prompt in history when it's '/quit', '/exit', AI!
 async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str]) -> None:
     """Run an interactive shell for sending prompts to an MCP agent.
 
@@ -39,6 +38,7 @@ async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str]) -> N
         server_filter: Optional list of server names to include in the agent
     """
     from langchain_mcp_adapters.client import MultiServerMCPClient
+    from langgraph.checkpoint.memory import MemorySaver
     from langgraph.prebuilt import create_react_agent
     from prompt_toolkit import PromptSession
     from prompt_toolkit.history import FileHistory
@@ -47,21 +47,17 @@ async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str]) -> N
     from src.utils.langgraph import print_astream
 
     print(f"Starting MCP agent shell with servers: {server_filter if server_filter else 'all'}")
-    print("Type /quit to exit the shell")
-    print("Use up/down arrows to navigate prompt history")
+    print("Type /quit to exit; Use up/down arrows to navigate prompt history\n")
 
     # Initialize the model and MCP client once
     model = get_llm(llm_id=llm_id)
     client = MultiServerMCPClient(get_mcp_servers_dict(server_filter))
     tools = await client.get_tools()
-    agent = create_react_agent(model, tools)
+    agent = create_react_agent(model, tools, checkpointer=MemorySaver())
 
     # Set up prompt history
     history_file = Path(".blueprint.input.history")
     session = PromptSession(history=FileHistory(str(history_file)))
-
-    print("\nMCP agent ready. Enter your prompt:")
-
     while True:
         try:
             # Get user input with history support
@@ -72,15 +68,8 @@ async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str]) -> N
                 break
             if not user_input:
                 continue
-
-            # Only add non-command prompts to history
-            if not user_input.startswith("/"):
-                session.history.append_string(user_input)
-
-            print("\nProcessing query...")
             resp = agent.astream({"messages": user_input})
             await print_astream(resp)
-            print("\nEnter your next prompt (or /quit to exit):")
 
         except KeyboardInterrupt:
             print("\nReceived keyboard interrupt. Exiting...")
