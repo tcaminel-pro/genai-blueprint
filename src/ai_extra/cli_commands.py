@@ -27,6 +27,7 @@ from src.ai_core.llm import LlmFactory, get_llm
 from src.utils.config_mngr import global_config
 
 
+# don't add prompt in history when it's '/quit', '/exit', AI!
 async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str]) -> None:
     """Run an interactive shell for sending prompts to an MCP agent.
 
