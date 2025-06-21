@@ -92,4 +92,4 @@ class LlmCache:
             logger.debug(f"""LLM cache : {str(new_cache.__class__).split(".")[-1].rstrip("'>")}""")
 
 
-#LlmCache.set_method("default")  # Set default
+# LlmCache.set_method("default")  # Set default
