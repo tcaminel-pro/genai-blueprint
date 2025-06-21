@@ -69,12 +69,12 @@ async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str]) -> N
         try:
             # Get user input with history support
             user_input = await session.prompt_async("> ")
-            
+
             if user_input.strip().lower() in ["/quit", "/exit", "/q"]:
                 break
             if not user_input.strip():
                 continue
-                
+
             print("\nProcessing query...")
             resp = agent.astream({"messages": user_input})
             await print_astream(resp)
