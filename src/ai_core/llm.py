@@ -43,11 +43,13 @@ from functools import cached_property, lru_cache
 from typing import Annotated, Any, cast
 
 import yaml
+from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.runnables import RunnableConfig, RunnableLambda
 from loguru import logger
 from pydantic import BaseModel, Field, computed_field, field_validator
 
+from src.ai_core.cache import LlmCache
 from src.utils.config_mngr import global_config
-
 
 SEED = 42  # Arbitrary value....
 DEFAULT_MAX_RETRIES = 2
@@ -262,10 +264,9 @@ class LlmFactory(BaseModel):
 
         return result
 
-    def get_smolagent_model(self) -> ApiModel:
+    def get_smolagent_model(self):  # -> ApiModel
         from devtools import debug
         from smolagents import AzureOpenAIServerModel, LiteLLMModel
-        from smolagents.models import ApiModel
 
         if self.provider in ["azure"]:
             name, _, api_version = self.info.model.partition("/")
@@ -305,7 +306,9 @@ class LlmFactory(BaseModel):
 
     def model_factory(self) -> BaseChatModel:
         """Model factory, according to the model class."""
+        from langchain.chat_models.base import _SUPPORTED_PROVIDERS
         from langchain.globals import get_llm_cache
+
         from src.ai_core.cache import LlmCache
 
         if self.cache:
@@ -620,7 +623,7 @@ def get_print_chain(string: str = "") -> RunnableLambda:
         print(chain.invoke(1))
     ```
     """
-    from langchain_core.runnables import RunnableLambda, RunnableConfig
+    from langchain_core.runnables import RunnableConfig, RunnableLambda
 
     def fn(input: Any, config: RunnableConfig) -> Any:
         print(string, input, config)

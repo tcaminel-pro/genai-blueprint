@@ -82,7 +82,7 @@ def main():
             else:
                 logger.warning(f"no 'register_commands' found for module {module} ")
         except Exception as ex:
-            logger.warning(f"Cannot load module {module}: {ex}")
+            logger.exception(f"Cannot load module {module}: {ex}")
 
     # define_llm_related_commands(cli_app)
     # define_lca_related_commands(cli_app)

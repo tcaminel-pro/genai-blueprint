@@ -133,7 +133,7 @@ class ChainRegistry(BaseModel):
                 importlib.import_module(module)
                 logger.info(f"load module '{module}'")
             except Exception as ex:
-                logger.warning(f"Cannot load module {module}: {ex}")
+                logger.exception(f"Cannot load module {module}: {ex}")
 
     def register(self, r: RunnableItem) -> None:
         """Register a new RunnableItem in the global registry."""

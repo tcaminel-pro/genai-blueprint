@@ -37,11 +37,11 @@ async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str]) -> N
         llm_id: Optional ID of the language model to use
         server_filter: Optional list of server names to include in the agent
     """
-    from langchain.globals import set_debug, set_verbose
     from langchain_mcp_adapters.client import MultiServerMCPClient
     from langgraph.prebuilt import create_react_agent
     from prompt_toolkit import PromptSession
     from prompt_toolkit.history import FileHistory
+
     from src.ai_core.mcp_client import get_mcp_servers_dict
     from src.utils.langgraph import print_astream
 
@@ -108,6 +108,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         Use --shell to start an interactive shell where you can send multiple prompts to the agent.
         """
         from langchain.globals import set_debug, set_verbose
+
         from src.ai_core.mcp_client import call_react_agent
 
         set_debug(lc_debug)
@@ -183,6 +184,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             python -m src.ai_extra.mistral_ocr ocr_pdf "*.pdf" "data/*.pdf" --output-dir=./ocr_results
         """
         from loguru import logger
+
         from src.ai_extra.mistral_ocr import process_pdf_batch
 
         # Collect all PDF files matching the patterns
@@ -266,6 +268,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         ex: echo "artificial intelligence" | uv run cli fabric -p "create_aphorisms" --llm-id llama-70-groq
         """
         from langchain.globals import set_debug, set_verbose
+
         from src.ai_extra.fabric_chain import get_fabric_chain
 
         set_debug(debug_mode)

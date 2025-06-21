@@ -35,7 +35,6 @@ class LlmCache:
     def from_value(cls, value: str) -> Optional["BaseCache"]:
         """ """
         from langchain_community.cache import InMemoryCache, SQLiteCache
-        from langchain_core.caches import BaseCache
         from loguru import logger
 
         method = None

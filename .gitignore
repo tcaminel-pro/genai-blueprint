@@ -118,3 +118,6 @@ use_case_data/maintenance/demo.db
 test_db*/*
 test_db3/.lock
 data/generated
+src/ai_core/cli_commands.py
+.gitignore
+.blueprint.input.history
