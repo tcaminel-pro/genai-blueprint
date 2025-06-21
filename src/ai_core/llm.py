@@ -43,24 +43,10 @@ from functools import cached_property, lru_cache
 from typing import Annotated, Any, cast
 
 import yaml
-from devtools import debug
-from dotenv import load_dotenv
-from langchain.chat_models import init_chat_model
-from langchain.chat_models.base import _SUPPORTED_PROVIDERS
-from langchain.globals import get_llm_cache
-from langchain.schema.language_model import BaseLanguageModel
-from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.runnables import ConfigurableField, RunnableConfig, RunnableLambda
-from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
 from loguru import logger
 from pydantic import BaseModel, Field, computed_field, field_validator
-from smolagents import AzureOpenAIServerModel, LiteLLMModel
-from smolagents.models import ApiModel
 
-from src.ai_core.cache import LlmCache
 from src.utils.config_mngr import global_config
-
-load_dotenv(verbose=True, override=True)
 
 
 SEED = 42  # Arbitrary value....
@@ -124,6 +110,7 @@ class LlmInfo(BaseModel):
 
 def _read_llm_list_file() -> list[LlmInfo]:
     """Read the YAML file with list of LLM providers and info."""
+    import yaml
     # The name of the file is in the configuration file
     yml_file = global_config().get_file_path("llm.list")
     with open(yml_file) as f:
@@ -275,6 +262,10 @@ class LlmFactory(BaseModel):
         return result
 
     def get_smolagent_model(self) -> ApiModel:
+        from devtools import debug
+        from smolagents import AzureOpenAIServerModel, LiteLLMModel
+        from smolagents.models import ApiModel
+
         if self.provider in ["azure"]:
             name, _, api_version = self.info.model.partition("/")
             model = AzureOpenAIServerModel(
@@ -313,6 +304,9 @@ class LlmFactory(BaseModel):
 
     def model_factory(self) -> BaseChatModel:
         """Model factory, according to the model class."""
+        from langchain.globals import get_llm_cache
+        from src.ai_core.cache import LlmCache
+
         if self.cache:
             cache = LlmCache.from_value(self.cache)
         else:
@@ -436,8 +430,8 @@ class LlmFactory(BaseModel):
         return llm  # type: ignore
 
     def get_configurable(self, with_fallback: bool = False) -> BaseChatModel:
-        # Make the LLM configurable at run time
-        # see https://python.langchain.com/docs/how_to/configure/#configurable-alternatives
+        """Make the LLM configurable at run time."""
+        from langchain_core.runnables import ConfigurableField
 
         default_llm_id = self.llm_id
         if default_llm_id is None:
@@ -625,6 +619,7 @@ def get_print_chain(string: str = "") -> RunnableLambda:
         print(chain.invoke(1))
     ```
     """
+    from langchain_core.runnables import RunnableLambda, RunnableConfig
 
     def fn(input: Any, config: RunnableConfig) -> Any:
         print(string, input, config)
