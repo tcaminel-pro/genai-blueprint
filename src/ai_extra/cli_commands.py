@@ -38,45 +38,45 @@ from src.utils.config_mngr import global_config
 
 async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str]) -> None:
     """Run an interactive shell for sending prompts to an MCP agent.
-    
+
     The MCP servers are started once before entering the shell loop.
     The user can type /quit to exit the shell.
-    
+
     Args:
         llm_id: Optional ID of the language model to use
         server_filter: Optional list of server names to include in the agent
     """
     print(f"Starting MCP agent shell with servers: {server_filter if server_filter else 'all'}")
     print("Type /quit to exit the shell")
-    
+
     # Initialize the model and MCP client once
     model = get_llm(llm_id=llm_id)
     client = MultiServerMCPClient(get_mcp_servers_dict(server_filter))
     tools = await client.get_tools()
     agent = create_react_agent(model, tools)
-    
+
     print("\nMCP agent ready. Enter your prompt:")
-    
+
     while True:
         try:
             # Get user input
             user_input = input("> ")
-            
+
             # Check for quit command
             if user_input.strip().lower() in ["/quit", "/exit", "/q"]:
                 print("Exiting MCP agent shell")
                 break
-                
+
             # Skip empty inputs
             if not user_input.strip():
                 continue
-                
+
             # Process the query
             print("\nProcessing query...")
             resp = agent.astream({"messages": [HumanMessage(content=user_input)]})
             await print_astream(resp)
             print("\nEnter your next prompt (or /quit to exit):")
-            
+
         except KeyboardInterrupt:
             print("\nReceived keyboard interrupt. Exiting...")
             break
