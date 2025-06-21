@@ -16,11 +16,7 @@ Example:
 """
 
 from enum import Enum
-
-from langchain.globals import get_llm_cache, set_llm_cache
-from langchain_community.cache import InMemoryCache, SQLiteCache
-from langchain_core.caches import BaseCache
-from loguru import logger
+from typing import Optional
 
 from src.utils.config_mngr import global_config
 
@@ -36,8 +32,12 @@ class LlmCache:
     """A wrapper above LangChain 'set_llm_cache' to configure and select LLM cache method."""
 
     @classmethod
-    def from_value(cls, value: str) -> BaseCache | None:
+    def from_value(cls, value: str) -> Optional["BaseCache"]:
         """ """
+        from langchain_community.cache import InMemoryCache, SQLiteCache
+        from langchain_core.caches import BaseCache
+        from loguru import logger
+
         method = None
 
         if value == "default":
@@ -72,7 +72,7 @@ class LlmCache:
     @staticmethod
     def set_method(cache: str) -> None:
         """Define caching method. If 'None', take the one defined in configuration. \
-        Currently implemented : "memory', 'sqlite".
+        Currently implemented : "memory', 'sqlite'.
 
         Args:
             cache (str | None): The cache method to set. If None, the default from configuration is used.
@@ -80,6 +80,9 @@ class LlmCache:
         Raises:
             logger.warning: If the default cache configuration is incorrect.
         """
+        from langchain.globals import get_llm_cache, set_llm_cache
+        from loguru import logger
+
         old_cache = get_llm_cache()
 
         new_cache = LlmCache.from_value(cache)
