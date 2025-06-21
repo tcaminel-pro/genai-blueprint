@@ -19,24 +19,12 @@ from pathlib import Path
 from typing import Annotated, Optional
 
 import typer
-from langchain.globals import set_debug, set_verbose
-from langchain_mcp_adapters.client import MultiServerMCPClient
-from langgraph.prebuilt import create_react_agent
-from loguru import logger
-from prompt_toolkit import PromptSession
-from prompt_toolkit.history import FileHistory
-
-# Import modules where runnables are registered
 from typer import Option
 from upath import UPath
 
 from src.ai_core.cache import LlmCache
 from src.ai_core.llm import LlmFactory, get_llm
-from src.ai_core.mcp_client import call_react_agent, get_mcp_servers_dict
-from src.ai_extra.fabric_chain import get_fabric_chain
-from src.ai_extra.mistral_ocr import process_pdf_batch
 from src.utils.config_mngr import global_config
-from src.utils.langgraph import print_astream
 
 
 async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str]) -> None:
@@ -49,6 +37,14 @@ async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str]) -> N
         llm_id: Optional ID of the language model to use
         server_filter: Optional list of server names to include in the agent
     """
+    from langchain.globals import set_debug, set_verbose
+    from langchain_mcp_adapters.client import MultiServerMCPClient
+    from langgraph.prebuilt import create_react_agent
+    from prompt_toolkit import PromptSession
+    from prompt_toolkit.history import FileHistory
+    from src.ai_core.mcp_client import get_mcp_servers_dict
+    from src.utils.langgraph import print_astream
+
     print(f"Starting MCP agent shell with servers: {server_filter if server_filter else 'all'}")
     print("Type /quit to exit the shell")
     print("Use up/down arrows to navigate prompt history")
@@ -111,6 +107,9 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         Use --shell to start an interactive shell where you can send multiple prompts to the agent.
         """
+        from langchain.globals import set_debug, set_verbose
+        from src.ai_core.mcp_client import call_react_agent
+
         set_debug(lc_debug)
         set_verbose(lc_verbose)
         LlmCache.set_method(cache)
@@ -183,6 +182,9 @@ def register_commands(cli_app: typer.Typer) -> None:
         Example:
             python -m src.ai_extra.mistral_ocr ocr_pdf "*.pdf" "data/*.pdf" --output-dir=./ocr_results
         """
+        from loguru import logger
+        from src.ai_extra.mistral_ocr import process_pdf_batch
+
         # Collect all PDF files matching the patterns
         all_files = []
         for pattern in file_patterns:
@@ -229,7 +231,6 @@ def register_commands(cli_app: typer.Typer) -> None:
         Example:
             uv run cli browser-agent "recent news on Atos" --headless
         """
-
         from browser_use import Agent, BrowserSession
 
         if llm_id is not None and llm_id not in LlmFactory.known_items():
@@ -264,6 +265,9 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         ex: echo "artificial intelligence" | uv run cli fabric -p "create_aphorisms" --llm-id llama-70-groq
         """
+        from langchain.globals import set_debug, set_verbose
+        from src.ai_extra.fabric_chain import get_fabric_chain
+
         set_debug(debug_mode)
         set_verbose(verbose)
 
