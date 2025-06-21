@@ -19,9 +19,8 @@ from typing import Annotated, Optional
 
 import typer
 from langchain.globals import set_debug, set_verbose
-from langchain_core.messages import HumanMessage
-from langgraph.prebuilt import create_react_agent
 from langchain_mcp_adapters.client import MultiServerMCPClient
+from langgraph.prebuilt import create_react_agent
 from loguru import logger
 
 # Import modules where runnables are registered
@@ -34,6 +33,7 @@ from src.ai_core.mcp_client import call_react_agent, get_mcp_servers_dict
 from src.ai_extra.fabric_chain import get_fabric_chain
 from src.ai_extra.mistral_ocr import process_pdf_batch
 from src.utils.config_mngr import global_config
+from src.utils.langgraph import print_astream
 
 
 async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str]) -> None:
@@ -61,19 +61,12 @@ async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str]) -> N
         try:
             # Get user input
             user_input = input("> ")
-
-            # Check for quit command
             if user_input.strip().lower() in ["/quit", "/exit", "/q"]:
-                print("Exiting MCP agent shell")
                 break
-
-            # Skip empty inputs
             if not user_input.strip():
                 continue
-
-            # Process the query
             print("\nProcessing query...")
-            resp = agent.astream({"messages": [HumanMessage(content=user_input)]})
+            resp = agent.astream({"messages": user_input})
             await print_astream(resp)
             print("\nEnter your next prompt (or /quit to exit):")
 
