@@ -74,7 +74,7 @@ async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str]) -> N
                 continue
 
             # Only add non-command prompts to history
-            if not user_input.startswith('/'):
+            if not user_input.startswith("/"):
                 session.history.append_string(user_input)
 
             print("\nProcessing query...")
