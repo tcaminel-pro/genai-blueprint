@@ -20,11 +20,11 @@ from typing import Annotated, Optional
 
 import typer
 from langchain.globals import set_debug, set_verbose
-from prompt_toolkit import PromptSession
-from prompt_toolkit.history import FileHistory
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.prebuilt import create_react_agent
 from loguru import logger
+from prompt_toolkit import PromptSession
+from prompt_toolkit.history import FileHistory
 
 # Import modules where runnables are registered
 from typer import Option
