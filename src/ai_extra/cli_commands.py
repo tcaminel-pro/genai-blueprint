@@ -15,10 +15,13 @@ The commands are registered with a Typer CLI application and provide:
 
 import asyncio
 import sys
+from pathlib import Path
 from typing import Annotated, Optional
 
 import typer
 from langchain.globals import set_debug, set_verbose
+from prompt_toolkit import PromptSession
+from prompt_toolkit.history import FileHistory
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.prebuilt import create_react_agent
 from loguru import logger
@@ -48,6 +51,7 @@ async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str]) -> N
     """
     print(f"Starting MCP agent shell with servers: {server_filter if server_filter else 'all'}")
     print("Type /quit to exit the shell")
+    print("Use up/down arrows to navigate prompt history")
 
     # Initialize the model and MCP client once
     model = get_llm(llm_id=llm_id)
@@ -55,16 +59,22 @@ async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str]) -> N
     tools = await client.get_tools()
     agent = create_react_agent(model, tools)
 
+    # Set up prompt history
+    history_file = Path(".blueprint.input.history")
+    session = PromptSession(history=FileHistory(str(history_file)))
+
     print("\nMCP agent ready. Enter your prompt:")
 
     while True:
         try:
-            # Get user input
-            user_input = input("> ")
+            # Get user input with history support
+            user_input = await session.prompt_async("> ")
+            
             if user_input.strip().lower() in ["/quit", "/exit", "/q"]:
                 break
             if not user_input.strip():
                 continue
+                
             print("\nProcessing query...")
             resp = agent.astream({"messages": user_input})
             await print_astream(resp)
