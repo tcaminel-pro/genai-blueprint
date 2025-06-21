@@ -27,7 +27,7 @@ from src.ai_core.llm import LlmFactory, get_llm
 from src.utils.config_mngr import global_config
 
 
-async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str]) -> None:
+async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str] | None = None) -> None:
     """Run an interactive shell for sending prompts to an MCP agent.
 
     The MCP servers are started once before entering the shell loop.
@@ -41,7 +41,9 @@ async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str]) -> N
     from langgraph.checkpoint.memory import MemorySaver
     from langgraph.prebuilt import create_react_agent
     from prompt_toolkit import PromptSession
+    from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
     from prompt_toolkit.history import FileHistory
+    from prompt_toolkit.patch_stdout import patch_stdout
 
     from src.ai_core.mcp_client import get_mcp_servers_dict
     from src.utils.langgraph import print_astream
@@ -53,6 +55,7 @@ async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str]) -> N
     model = get_llm(llm_id=llm_id)
     client = MultiServerMCPClient(get_mcp_servers_dict(server_filter))
     tools = await client.get_tools()
+    config = {"configurable": {"thread_id": "1"}}
     agent = create_react_agent(model, tools, checkpointer=MemorySaver())
 
     # Set up prompt history
@@ -60,15 +63,15 @@ async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str]) -> N
     session = PromptSession(history=FileHistory(str(history_file)))
     while True:
         try:
-            # Get user input with history support
-            user_input = await session.prompt_async("> ")
+            with patch_stdout():
+                user_input = await session.prompt_async("> ", auto_suggest=AutoSuggestFromHistory())
 
             user_input = user_input.strip()
             if user_input.lower() in ["/quit", "/exit", "/q"]:
                 break
             if not user_input:
                 continue
-            resp = agent.astream({"messages": user_input})
+            resp = agent.astream({"messages": user_input}, config)
             await print_astream(resp)
 
         except KeyboardInterrupt:
@@ -85,6 +88,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         server: Annotated[
             list[str], typer.Option(help="MCP server names to connect to (e.g. playwright, filesystem, ..)")
         ] = [],
+        all_servers: Annotated[bool, typer.Option(help="Connect to all configured servers")] = False,
         cache: Annotated[str, typer.Option(help="Cache strategy: 'sqlite', 'memory' or 'no_cache'")] = "memory",
         lc_verbose: Annotated[bool, Option("--verbose", "-v", help="Enable LangChain verbose mode")] = False,
         lc_debug: Annotated[bool, Option("--debug", "-d", help="Enable LangChain debug mode")] = False,
@@ -117,7 +121,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             global_config().set("llm.default_model", llm_id)
 
         if shell:
-            asyncio.run(run_mcp_agent_shell(llm_id, server))
+            asyncio.run(run_mcp_agent_shell(llm_id, None if all_servers else server))
         else:
             if not input and not sys.stdin.isatty():
                 input = sys.stdin.read()
