@@ -13,26 +13,14 @@ The commands are registered with a Typer CLI application and provide:
 - Caching options
 """
 
-import asyncio
 import os
 import sys
 from pathlib import Path
-from typing import Annotated, Callable, Optional
+from typing import Annotated, Optional
 
 import typer
-import yaml
-from devtools import pprint
-from langchain.globals import set_debug, set_verbose
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import Runnable
 from typer import Option
 
-from src.ai_core.cache import LlmCache
-from src.ai_core.chain_registry import ChainRegistry
-from src.ai_core.embeddings import EmbeddingsFactory, get_embeddings
-from src.ai_core.llm import PROVIDER_INFO, LlmFactory
-from src.ai_core.mcp_client import get_mcp_prompts, get_mcp_tools_info
-from src.ai_core.vector_store import VectorStoreFactory
 from src.utils.config_mngr import global_config
 
 
@@ -42,6 +30,8 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         Display current configuration and available API keys.
         """
+        from src.ai_core.llm import PROVIDER_INFO
+        
         config = global_config()
         print(f"Selected configuration: {config.selected_config}")
 
@@ -135,6 +125,27 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         \nex : uv run cli run joke --input "bears"
         """
+        from devtools import pprint
+        from langchain.globals import set_debug, set_verbose
+        from typing import Callable
+        from langchain_core.runnables import Runnable
+
+        from src.ai_core.cache import LlmCache
+        from src.ai_core.chain_registry import ChainRegistry
+        from src.ai_core.llm import LlmFactory
+    ) -> None:
+        """
+        Run a Runnable or directly invoke an LLM.
+
+        If no runnable_name is provided, uses the default LLM to directly process the input, that
+        can be either taken from stdin (Unix pipe), or given with the --input param
+        If runnable_name is provided, runs the specified Runnable with the given input.
+
+        The LLM can be changed using --llm-id, otherwise the default one is selected.
+        'cache' is the prompt caching strategy, and it can be either 'sqlite' (default) or 'memory'.
+
+        \nex : uv run cli run joke --input "bears"
+        """
 
         set_debug(lc_debug)
         set_verbose(lc_verbose)
@@ -189,6 +200,12 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         Return information on a given chain, including input and output schema.
         """
+        from devtools import pprint
+        from typing import Callable
+        from langchain_core.runnables import Runnable
+
+        from src.ai_core.chain_registry import ChainRegistry
+
         runnable_desc = ChainRegistry.instance().find(name)
         if runnable_desc:
             r = runnable_desc.runnable
@@ -215,6 +232,10 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         List the known LLMs, embeddings models, and vector stores.
         """
+        from src.ai_core.embeddings import EmbeddingsFactory
+        from src.ai_core.llm import LlmFactory
+        from src.ai_core.vector_store import VectorStoreFactory
+
         print("factories:")
         tab = 2 * " "
         print(f"{tab}llm:")
@@ -232,6 +253,8 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         Write a list of LLMs in YAML format to the specified file.
         """
+        import yaml
+        from src.ai_core.llm import LlmFactory
 
         data = [llm.model_dump() for llm in LlmFactory.known_list()]
         with open(file_name, "w") as file:
@@ -247,6 +270,7 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         ex: uv run cli embedd "string to be embedded"
         """
+        from src.ai_core.embeddings import EmbeddingsFactory, get_embeddings
         if model_id is not None:
             if model_id not in EmbeddingsFactory.known_items():
                 print(f"Error: {model_id} is unknown model id.\nShould be in {EmbeddingsFactory.known_items()}")
@@ -267,6 +291,8 @@ def register_commands(cli_app: typer.Typer) -> None:
         Shows the list of tools from MCP servers along with their descriptions.
         Can be filtered by server names.
         """
+        import asyncio
+        from src.ai_core.mcp_client import get_mcp_tools_info
 
         async def display_tools():
             tools_info = await get_mcp_tools_info(filter)
@@ -297,6 +323,8 @@ def register_commands(cli_app: typer.Typer) -> None:
             uv run cli list-mcp-prompts
             uv run cli list-mcp-prompts --filter server1 server2
         """
+        import asyncio
+        from src.ai_core.mcp_client import get_mcp_prompts
 
         async def display_prompts():
             prompt_info = await get_mcp_prompts(filter)
