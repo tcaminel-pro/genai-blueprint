@@ -18,7 +18,7 @@ image = modal.Image.debian_slim(python_version="3.12").run_commands(
 )
 
 # Create a Modal stub
-stub = modal.App("genai-framework")
+stub = modal.Stub("genai-framework")
 
 # Define the Modal volume to persist data
 volume = modal.Volume.from_name("genai-data", create_if_missing=True)
@@ -42,7 +42,7 @@ secrets = modal.Secret.from_dict(
     image=image,
     secrets=[secrets],
     volume=volume,
-    mounts=[modal.Mount.from_local_dir(".", remote_path="/app")],
+    mounts=[modal.mount.Mount.from_local_dir(".", remote_path="/app")],
     timeout=60 * 60,  # 1 hour timeout
     gpu="any",  # Optional: Use GPU if needed
     env={"BLUEPRINT_CONFIG": "modal"},  # Use a Modal-specific config
@@ -57,7 +57,7 @@ def run_app():
 
     # Create a .env file with the secrets
     with open(".env", "w") as f:
-        for key, value in secrets.dict().items():
+        for key, value in secrets.items():
             if value:  # Only write non-empty values
                 f.write(f"{key}={value}\n")
 
