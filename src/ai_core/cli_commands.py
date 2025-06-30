@@ -321,6 +321,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             uv run cli similarity "This is a test" "This is another test" "Completely different"
         """
         from langchain_community.utils.math import cosine_similarity
+
         from src.ai_core.embeddings import EmbeddingsFactory, get_embeddings
 
         if len(sentences) < 2:
