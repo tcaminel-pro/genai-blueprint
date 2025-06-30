@@ -18,7 +18,7 @@ image = modal.Image.debian_slim(python_version="3.12").run_commands(
 )
 
 # Create a Modal stub
-stub = modal.Stub("genai-framework")
+stub = modal.App("genai-framework")
 
 # Define the Modal volume to persist data
 volume = modal.Volume.from_name("genai-data", create_if_missing=True)
