@@ -7,6 +7,10 @@ import sys
 
 import modal
 
+# Define the Modal volume to persist data
+volume = modal.Volume.from_name("genai-data", create_if_missing=True)
+VOLUME_PATH = "/data"
+
 # Define the Modal image with all dependencies
 image = modal.Image.debian_slim(python_version="3.12").run_commands(
     # Install system dependencies
@@ -15,14 +19,10 @@ image = modal.Image.debian_slim(python_version="3.12").run_commands(
     "curl -fsSL https://github.com/astral-sh/uv/releases/download/0.1.24/uv-installer.sh | bash",
     # Install Python dependencies using uv
     "cd /app && uv sync || echo 'Will install dependencies later'",
-)
+).add_local_dir(".", remote_path="/app")
 
 # Create a Modal stub
-stub = modal.App("genai-framework")
-
-# Define the Modal volume to persist data
-volume = modal.Volume.from_name("genai-data", create_if_missing=True)
-VOLUME_PATH = "/data"
+stub = modal.Stub("genai-framework")
 
 # Define the Modal secrets - add all your API keys here
 secrets = modal.Secret.from_dict(
@@ -41,15 +41,13 @@ secrets = modal.Secret.from_dict(
 @stub.function(
     image=image,
     secrets=[secrets],
-    volume=volume,
-    mounts=[modal.mount.Mount.from_local_dir(".", remote_path="/app")],
+    volumes={VOLUME_PATH: volume},
     timeout=60 * 60,  # 1 hour timeout
     gpu="any",  # Optional: Use GPU if needed
     env={"BLUEPRINT_CONFIG": "modal"},  # Use a Modal-specific config
 )
 def run_app():
     """Run the Streamlit app using Modal."""
-
     sys.path.append("/app")
 
     # Change to the app directory

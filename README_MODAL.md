@@ -123,3 +123,13 @@ To schedule periodic runs of your application:
 - If you encounter dependency issues, check the Modal logs for details.
 - For file access issues, ensure paths are correctly configured to use the Modal volume.
 - If authentication is needed, set `auth.enabled: true` in the Modal configuration.
+
+## Modal 1.0 Migration Notes
+
+This deployment has been updated to be compatible with Modal 1.0:
+
+1. Replaced `modal.Mount` with `image.add_local_dir` for better performance
+2. Updated volume mounting to use the `volumes` parameter
+3. Changed `modal.App` to `modal.Stub` for consistency
+
+For more information on Modal 1.0 changes, see the [Modal 1.0 migration guide](https://modal.com/docs/guide/modal-1-0-migration).
