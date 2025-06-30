@@ -308,6 +308,47 @@ def register_commands(cli_app: typer.Typer) -> None:
         asyncio.run(display_tools())
 
     @cli_app.command()
+    def similarity(
+        sentences: Annotated[list[str], typer.Argument(help="List of sentences to compare (first is reference)")],
+        model_id: Annotated[Optional[str], Option("--model-id", "-m", help="Embeddings model ID")] = None,
+    ) -> None:
+        """
+        Calculate semantic similarity between sentences using cosine similarity.
+        
+        The first sentence is used as reference and compared to the others.
+        
+        Example:
+            uv run cli similarity "This is a test" "This is another test" "Completely different"
+        """
+        from langchain_community.utils.math import cosine_similarity
+        from src.ai_core.embeddings import EmbeddingsFactory, get_embeddings
+
+        if len(sentences) < 2:
+            print("Error: At least 2 sentences are required")
+            return
+
+        if model_id is not None:
+            if model_id not in EmbeddingsFactory.known_items():
+                print(f"Error: {model_id} is unknown model id.\nShould be in {EmbeddingsFactory.known_items()}")
+                return
+
+        embedder = get_embeddings(embeddings_id=model_id)
+        
+        # Generate embeddings for all sentences
+        vectors = embedder.embed_documents(sentences)
+        
+        # Calculate similarity between first sentence and others
+        reference_vector = [vectors[0]]
+        other_vectors = vectors[1:]
+        
+        similarities = cosine_similarity(reference_vector, other_vectors)
+        
+        # Display results
+        print("\nSimilarity scores:")
+        for i, score in enumerate(similarities[0]):
+            print(f"  Sentence 1 vs {i+2}: {score:.3f}")
+
+    @cli_app.command()
     def list_mcp_prompts(
         filter: Annotated[list[str] | None, Option("--filter", "-f", help="Filter prompts by server names")] = None,
     ) -> None:
