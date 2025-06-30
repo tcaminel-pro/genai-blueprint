@@ -1,7 +1,7 @@
 # This Makefile provides commands for:
 # - Development environment setup
 # - Docker image building and deployment
-# - Cloud platform integration (GCP, Azure)
+# - Cloud platform integration (GCP, Azure, Modal)
 # - Project maintenance tasks
 #
 # Usage: make [target]
@@ -10,6 +10,7 @@ APP=genai-blueprint
 
 STREAMLIT_ENTRY_POINT="src/main/streamlit.py"
 FASTAPI_ENTRY_POINT="src.main.fastapi_app:app"
+MODAL_ENTRY_POINT="src/main/modal_app.py"
 
 IMAGE_VERSION=0.2a
 REGISTRY_AZ=XXXX.azurecr.io
@@ -202,6 +203,27 @@ push_az:  ## Push to a Azure registry
 
 # To be completed...
 
+
+##############
+##  MODAL  ###
+##############
+
+.PHONY: modal_install modal_login modal_deploy modal_run modal_secrets
+
+modal_install:  ## Install Modal CLI
+	uv pip install modal
+
+modal_login:  ## Login to Modal
+	modal token new
+
+modal_deploy:  ## Deploy to Modal
+	modal deploy $(MODAL_ENTRY_POINT)
+
+modal_run:  ## Run locally with Modal
+	modal run $(MODAL_ENTRY_POINT)
+
+modal_secrets:  ## Create Modal secrets from .env file
+	modal secret create genai-secrets $$(cat .env | xargs)
 
 ##############
 ##  MISC  ###

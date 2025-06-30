@@ -47,3 +47,12 @@ pytest:
     default_model: gpt_4omini_edenai
   embeddings:
     default_model: ada_002_edenai
+
+modal:
+  llm:
+    default_model: gpt_4omini_openai
+    cache: sqlite
+  embeddings:
+    default_model: ada_002_openai
+  auth:
+    enabled: false

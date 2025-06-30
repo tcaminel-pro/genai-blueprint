@@ -24,11 +24,13 @@ merge:
   - ${paths.demo_conf}/react_agent.yaml
   - ${paths.demo_conf}/graph_rag.yaml
   - ${paths.config}/components/gpt_researcher.yaml
+  # Modal-specific configuration (if exists)
+  - optional ${paths.config}/modal.yaml
 
 # Default configuration, as defined in baseline.yaml, overrides.yaml, here, or elsewhere.
 # It can be overidden by 'BLUEPRINT_CONFIG' environment variable, or in code
 
-default_config: training_openrouter  
+default_config: ${oc.env:BLUEPRINT_CONFIG,training_openrouter}
 
 #### 
 # UI Configuration : list of Streamlit pages, authentication, ... 
