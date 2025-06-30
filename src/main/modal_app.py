@@ -55,7 +55,7 @@ def run_app():
 
     # Change to the app directory
     os.chdir("/app")
-    
+
     # Set environment variable for Modal-specific config
     os.environ["BLUEPRINT_CONFIG"] = "modal"
 
