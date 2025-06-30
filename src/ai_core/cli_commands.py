@@ -288,6 +288,8 @@ def register_commands(cli_app: typer.Typer) -> None:
         Can be filtered by server names.
         """
         import asyncio
+        from rich.console import Console
+        from rich.table import Table
 
         from src.ai_core.mcp_client import get_mcp_tools_info
 
@@ -297,13 +299,17 @@ def register_commands(cli_app: typer.Typer) -> None:
                 print("No MCP tools found.")
                 return
 
+            console = Console()
             for server_name, tools in tools_info.items():
-                print(f"\nServer: {server_name}")
-                print("-" * (len(server_name) + 8))
+                table = Table(title=f"Server: {server_name}", show_header=True, header_style="bold magenta")
+                table.add_column("Tool", style="cyan", no_wrap=True)
+                table.add_column("Description", style="green")
+
                 for tool_name, description in tools.items():
-                    print(f"  {tool_name}:")
-                    print(f"    {description}")
-                print()
+                    table.add_row(tool_name, description)
+
+                console.print(table)
+                print()  # Add space between tables
 
         asyncio.run(display_tools())
 
