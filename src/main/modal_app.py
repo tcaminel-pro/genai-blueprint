@@ -26,7 +26,7 @@ image = (
 )
 
 # Create a Modal stub
-stub = modal.App("genai-framework")
+stub = modal.Stub("genai-framework")
 
 # Define the Modal secrets - add all your API keys here
 secrets = modal.Secret.from_dict(
@@ -48,7 +48,6 @@ secrets = modal.Secret.from_dict(
     volumes={VOLUME_PATH: volume},
     timeout=60 * 60,  # 1 hour timeout
     gpu="any",  # Optional: Use GPU if needed
-    env={"BLUEPRINT_CONFIG": "modal"},  # Use a Modal-specific config
 )
 def run_app():
     """Run the Streamlit app using Modal."""
@@ -56,6 +55,9 @@ def run_app():
 
     # Change to the app directory
     os.chdir("/app")
+    
+    # Set environment variable for Modal-specific config
+    os.environ["BLUEPRINT_CONFIG"] = "modal"
 
     # Create a .env file with the secrets
     with open(".env", "w") as f:
