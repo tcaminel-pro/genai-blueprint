@@ -314,9 +314,9 @@ def register_commands(cli_app: typer.Typer) -> None:
     ) -> None:
         """
         Calculate semantic similarity between sentences using cosine similarity.
-        
+
         The first sentence is used as reference and compared to the others.
-        
+
         Example:
             uv run cli similarity "This is a test" "This is another test" "Completely different"
         """
@@ -333,20 +333,20 @@ def register_commands(cli_app: typer.Typer) -> None:
                 return
 
         embedder = get_embeddings(embeddings_id=model_id)
-        
+
         # Generate embeddings for all sentences
         vectors = embedder.embed_documents(sentences)
-        
+
         # Calculate similarity between first sentence and others
         reference_vector = [vectors[0]]
         other_vectors = vectors[1:]
-        
+
         similarities = cosine_similarity(reference_vector, other_vectors)
-        
+
         # Display results
         print("\nSimilarity scores:")
         for i, score in enumerate(similarities[0]):
-            print(f"  Sentence 1 vs {i+2}: {score:.3f}")
+            print(f"  Sentence 1 vs {i + 2}: {score:.3f}")
 
     @cli_app.command()
     def list_mcp_prompts(
