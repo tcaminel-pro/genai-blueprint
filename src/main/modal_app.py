@@ -1,6 +1,7 @@
 """
 Modal deployment for GenAI Framework Streamlit application.
 """
+
 import os
 import sys
 from pathlib import Path
@@ -25,15 +26,18 @@ volume = modal.Volume.from_name("genai-data", create_if_missing=True)
 VOLUME_PATH = "/data"
 
 # Define the Modal secrets - add all your API keys here
-secrets = modal.Secret.from_dict({
-    "OPENAI_API_KEY": os.environ.get("OPENAI_API_KEY", ""),
-    "AZURE_OPENAI_API_KEY": os.environ.get("AZURE_OPENAI_API_KEY", ""),
-    "AZURE_OPENAI_ENDPOINT": os.environ.get("AZURE_OPENAI_ENDPOINT", ""),
-    "GROQ_API_KEY": os.environ.get("GROQ_API_KEY", ""),
-    "LANGCHAIN_API_KEY": os.environ.get("LANGCHAIN_API_KEY", ""),
-    "OPENROUTER_API_KEY": os.environ.get("OPENROUTER_API_KEY", ""),
-    # Add any other API keys from your .env file
-})
+secrets = modal.Secret.from_dict(
+    {
+        "OPENAI_API_KEY": os.environ.get("OPENAI_API_KEY", ""),
+        "AZURE_OPENAI_API_KEY": os.environ.get("AZURE_OPENAI_API_KEY", ""),
+        "AZURE_OPENAI_ENDPOINT": os.environ.get("AZURE_OPENAI_ENDPOINT", ""),
+        "GROQ_API_KEY": os.environ.get("GROQ_API_KEY", ""),
+        "LANGCHAIN_API_KEY": os.environ.get("LANGCHAIN_API_KEY", ""),
+        "OPENROUTER_API_KEY": os.environ.get("OPENROUTER_API_KEY", ""),
+        # Add any other API keys from your .env file
+    }
+)
+
 
 @stub.function(
     image=image,
@@ -47,28 +51,30 @@ secrets = modal.Secret.from_dict({
 def run_app():
     """Run the Streamlit app using Modal."""
     import sys
+
     sys.path.append("/app")
-    
+
     # Change to the app directory
     os.chdir("/app")
-    
+
     # Create a .env file with the secrets
     with open(".env", "w") as f:
         for key, value in secrets.dict().items():
             if value:  # Only write non-empty values
                 f.write(f"{key}={value}\n")
-    
+
     # Create data directories if they don't exist
     os.makedirs(f"{VOLUME_PATH}/llm_cache", exist_ok=True)
     os.makedirs(f"{VOLUME_PATH}/vector_store", exist_ok=True)
     os.makedirs(f"{VOLUME_PATH}/hf_models", exist_ok=True)
     os.makedirs(f"{VOLUME_PATH}/kv_store", exist_ok=True)
-    
+
     # Install dependencies if needed
     os.system("cd /app && uv sync")
-    
+
     # Run the Streamlit app
     os.system("streamlit run src/main/streamlit.py --server.port=8080 --server.address=0.0.0.0")
+
 
 @stub.local_entrypoint()
 def main():
