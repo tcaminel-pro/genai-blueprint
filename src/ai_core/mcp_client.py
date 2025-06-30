@@ -31,6 +31,7 @@ import os
 from contextlib import AsyncExitStack
 from itertools import chain
 
+from devtools import debug  # noqa: F401
 from dotenv import load_dotenv
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import HumanMessage
@@ -117,6 +118,7 @@ async def get_mcp_tools_info(filter: list[str] | None = None) -> dict:
     servers = get_mcp_servers_dict(filter)
     tools_info = {}
     for server_name, param_desc in servers.items():
+        #        debug(server_name)
         if not param_desc.get("disabled", False):
             server_params = StdioServerParameters(**param_desc)
             async with stdio_client(server_params) as (read, write):

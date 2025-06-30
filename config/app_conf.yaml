@@ -25,7 +25,7 @@ merge:
   - ${paths.demo_conf}/graph_rag.yaml
   - ${paths.config}/components/gpt_researcher.yaml
   # Modal-specific configuration (if exists)
-  - optional ${paths.config}/modal.yaml
+  #- ${paths.config}/modal.yaml
 
 # Default configuration, as defined in baseline.yaml, overrides.yaml, here, or elsewhere.
 # It can be overidden by 'BLUEPRINT_CONFIG' environment variable, or in code

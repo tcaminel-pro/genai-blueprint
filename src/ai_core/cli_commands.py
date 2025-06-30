@@ -288,6 +288,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         Can be filtered by server names.
         """
         import asyncio
+
         from rich.console import Console
         from rich.table import Table
 

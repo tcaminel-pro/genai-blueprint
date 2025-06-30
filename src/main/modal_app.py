@@ -26,7 +26,7 @@ image = (
 )
 
 # Create a Modal stub
-stub = modal.Stub("genai-framework")
+app = modal.App("genai-framework")
 
 # Define the Modal secrets - add all your API keys here
 secrets = modal.Secret.from_dict(
@@ -42,7 +42,7 @@ secrets = modal.Secret.from_dict(
 )
 
 
-@stub.function(
+@app.function(
     image=image,
     secrets=[secrets],
     volumes={VOLUME_PATH: volume},
@@ -78,7 +78,7 @@ def run_app():
     os.system("streamlit run src/main/streamlit.py --server.port=8080 --server.address=0.0.0.0")
 
 
-@stub.local_entrypoint()
+@app.local_entrypoint()
 def main():
     """Local entrypoint for Modal deployment."""
     run_app.remote()
