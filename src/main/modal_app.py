@@ -26,7 +26,7 @@ image = (
 )
 
 # Create a Modal stub
-stub = modal.Stub("genai-framework")
+stub = modal.App("genai-framework")
 
 # Define the Modal secrets - add all your API keys here
 secrets = modal.Secret.from_dict(
