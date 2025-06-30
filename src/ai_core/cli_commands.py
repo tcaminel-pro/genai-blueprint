@@ -301,7 +301,12 @@ def register_commands(cli_app: typer.Typer) -> None:
 
             console = Console()
             for server_name, tools in tools_info.items():
-                table = Table(title=f"Server: {server_name}", show_header=True, header_style="bold magenta")
+                table = Table(
+                    title=f"Server: {server_name}", 
+                    show_header=True, 
+                    header_style="bold magenta",
+                    row_styles=["", "dim"]
+                )
                 table.add_column("Tool", style="cyan", no_wrap=True)
                 table.add_column("Description", style="green")
 
