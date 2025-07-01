@@ -1,4 +1,9 @@
 # Data Analyst SmolAgents Demos Configuration
+codeact_authorized_imports:
+  - "pandas"
+  - "matplotlib.*"
+  - "sklearn.*"
+
 codeact_agent_demos:
   - name: "Classic SmolAgents"
     tools: 

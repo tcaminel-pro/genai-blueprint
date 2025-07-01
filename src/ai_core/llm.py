@@ -46,6 +46,7 @@ import yaml
 from devtools import debug  # noqa: F401
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import RunnableConfig, RunnableLambda
+from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
 from loguru import logger
 from pydantic import BaseModel, Field, computed_field, field_validator
 

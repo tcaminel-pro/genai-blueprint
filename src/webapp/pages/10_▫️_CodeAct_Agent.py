@@ -169,18 +169,14 @@ def get_historical_price(symbol: str, start_date: date, end_date: date) -> pd.Da
 # List of authorized Python packages that can be imported in the code execution environment
 AUTHORIZED_IMPORTS = [
     "pathlib",
-    "pandas",
-    "matplotlib.*",
     "numpy.*",
     "json",
     "streamlit",
     "base64",
     "tempfile",
-    "sklearn.*",
-    "folium.*",
-    "wordcloud",
 ]
 
+authorized_import = list(dict.fromkeys(AUTHORIZED_IMPORTS + global_config().get_list("codeact_authorized_imports")))
 PRINT_INFORMATION = "my_final_answer"
 
 IMAGE_INSTRUCTION = dedent_ws(
@@ -206,7 +202,7 @@ PRE_PROMPT = dedent_ws(
     Answer following request. 
 
     Instructions:
-    - You can use ONLY the following packages:  {", ".join(AUTHORIZED_IMPORTS)}.
+    - You can use ONLY the following packages:  {", ".join(authorized_import)}.
     - DO NOT USE other packages (such as os, shutils, etc).
     - Don't generate "if __name__ == "__main__"
     - Don't use st.sidebar 
@@ -517,7 +513,7 @@ if submitted:
                 agent = CodeAgent(
                     tools=tools,
                     model=llm,
-                    additional_authorized_imports=AUTHORIZED_IMPORTS,
+                    additional_authorized_imports=authorized_import,
                     max_steps=max_steps,  # for debug
                 )
                 with st.spinner(text="Thinking..."):
