@@ -229,7 +229,7 @@ class VectorStoreFactory(BaseModel):
         """Configure a retriever with a specific number of most relevant documents.
 
         .. deprecated:: 0.1.0
-           This method will be removed in a future version. 
+           This method will be removed in a future version.
 
         Args:
             top_k: Number of documents to retrieve (default 4)

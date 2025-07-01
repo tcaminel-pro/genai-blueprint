@@ -20,7 +20,6 @@ def test_singleton() -> None:
     assert config1 is config2
 
 
-
 def test_config_section_switch() -> None:
     """Verify switching between configuration sections works."""
     config = OmegaConfig.singleton()

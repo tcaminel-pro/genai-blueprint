@@ -1,34 +1,35 @@
-# Modal-specific configuration
+# Container-specific configuration
 
-# Override paths for Modal deployment
-paths:
-  data_root: /data
-  project: /app
-  src: ${paths.project}/src
-  config: ${paths.project}/config
-  demo_conf: ${paths.project}/config/demos
+# Override paths for a deployment in a container (Docker, Modal, ...)
+container_baseline: 
+  paths:
+    data_root: /data
+    project: /app
+    src: ${paths.project}/src
+    config: ${paths.project}/config
+    demo_conf: ${paths.project}/config/demos
 
-# LLM configuration
-llm:
-  default_model: gpt_4omini_openai
-  cache: sqlite
-  cache_path: ${paths.data_root}/llm_cache/langchain.db
+  # LLM configuration
+  llm:
+    default_model: gpt_4omini_openai
+    cache: sqlite
+    cache_path: ${paths.data_root}/llm_cache/langchain.db
 
-# Embeddings configuration
-embeddings:
-  default_model: ada_002_openai
-  cache: ${paths.data_root}/hf_models
+  # Embeddings configuration
+  embeddings:
+    default_model: ada_002_openai
+    cache: ${paths.data_root}/hf_models
 
-# Vector store configuration
-vector_store:
-  default: Chroma
-  path: ${paths.data_root}/vector_store
-  default_collection: "modal_collection"
+  # Vector store configuration
+  vector_store:
+    default: Chroma
+    path: ${paths.data_root}/vector_store
+    default_collection: "modal_collection"
 
-# KV store configuration
-kv_store:
-  path: ${paths.data_root}/kv_store
+  # KV store configuration
+  kv_store:
+    path: ${paths.data_root}/kv_store
 
-# Authentication can be disabled for Modal deployment if needed
-auth:
-  enabled: false
+  # Authentication can be disabled for Modal deployment if needed
+  auth:
+    enabled: false

@@ -78,7 +78,7 @@ class OmegaConfig(BaseModel):
             except Exception as e:
                 logger.warning(f"Failed to load demos configuration: {e}")
 
-        OmegaConf.resolve(config)
+        # OmegaConf.resolve(config)
 
         # Determine which config to use
         config_name_from_env = os.environ.get("BLUEPRINT_CONFIG")

@@ -184,7 +184,11 @@ def advanced_rag_workflow(question: str) -> dict:
         #         filtered_docs.append(doc)
         futures = [retrieval_grader(question, doc.page_content) for doc in documents]
         is_appropriate = [f.result() for f in futures]
-        filtered_docs = [doc.page_content for (doc, ok) in zip(documents, is_appropriate, strict=True) if is_appropriate == YesOrNo.YES]
+        filtered_docs = [
+            doc.page_content
+            for (doc, ok) in zip(documents, is_appropriate, strict=True)
+            if is_appropriate == YesOrNo.YES
+        ]
 
         if not filtered_docs:
             documents = [Document(page_content=basic_web_search(question).result())]

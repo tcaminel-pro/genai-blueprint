@@ -21,7 +21,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.runnables import Runnable, RunnableLambda
 from langgraph.graph import END, StateGraph
-from langgraph.graph.graph import CompiledGraph
+from langgraph.pregel import Pregel
 from loguru import logger
 from typing_extensions import TypedDict
 
@@ -324,7 +324,7 @@ def grade_generation_v_documents_and_question(
 #####
 ## Create Graph
 ####
-def create_graph(conf: dict) -> CompiledGraph:
+def create_graph(conf: dict) -> Pregel:
     workflow = StateGraph(GraphState)
 
     # Define the nodes

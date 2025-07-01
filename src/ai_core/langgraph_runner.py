@@ -39,8 +39,8 @@ from langchain_core.messages import AIMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import BaseTool
 from langgraph.checkpoint.base import BaseCheckpointSaver
-from langgraph.graph.graph import CompiledGraph
 from langgraph.prebuilt import create_react_agent
+from langgraph.pregel import Pregel
 from pydantic import BaseModel, ConfigDict
 
 
@@ -70,7 +70,7 @@ class LangGraphSession(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    _graph: CompiledGraph | None = None
+    _graph: Pregel | None = None
 
     def config(self, call_conf: dict) -> RunnableConfig:
         config = {"configurable": {"thread_id": self.thread_id}} | self.extra_config | call_conf
@@ -102,7 +102,7 @@ class LangGraphSession(BaseModel):
             inputs = {"messages": [("user", query)]}
             response = await self._graph.ainvoke(inputs, config=self.config(call_config))
 
-        elif isinstance(self._graph, CompiledGraph):  # NOT TESTED
+        elif isinstance(self._graph, Pregel):  # NOT TESTED
             inputs = {"messages": [("user", query)] + [("system", self.system_prompt)]}
             response = await self._graph.ainvoke(inputs, config=self.config(call_config))
         else:
@@ -125,7 +125,7 @@ class LangGraphSession(BaseModel):
         if self.prebuilt_react_agent:
             inputs = {"messages": [("user", query)]}
             return self._graph.stream(inputs, config=self.config(call_config))
-        elif isinstance(self._graph, CompiledGraph):
+        elif isinstance(self._graph, Pregel):
             inputs = {"messages": [("user", query)] + [("system", self.system_prompt)]}
             return self._graph.stream(inputs, config=self.config(call_config))
         else:
@@ -144,7 +144,7 @@ class LangGraphSession(BaseModel):
         if self.prebuilt_react_agent:
             inputs = {"messages": [("user", query)]}
             return self._graph.astream(inputs, config=self.config(call_config))
-        elif isinstance(self._graph, CompiledGraph):
+        elif isinstance(self._graph, Pregel):
             inputs = {"messages": [("user", query)] + [("system", self.system_prompt)]}
             return self._graph.astream(inputs, config=self.config(call_config))
         else:

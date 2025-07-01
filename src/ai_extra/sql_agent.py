@@ -16,7 +16,7 @@ from langchain_community.utilities import SQLDatabase
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables.config import RunnableConfig
 from langgraph.graph import START, StateGraph
-from langgraph.graph.graph import CompiledGraph
+from langgraph.pregel import Pregel
 from typing_extensions import Annotated
 
 from src.ai_core.llm import get_llm
@@ -25,7 +25,7 @@ from src.ai_core.prompts import dedent_ws, def_prompt
 
 def create_sql_querying_graph(
     llm: BaseChatModel, db: SQLDatabase, examples: list[dict[str, str]] = [], top_k: int = 10
-) -> CompiledGraph:
+) -> Pregel:
     """Create a graph for generating and executing SQL queries.
 
     Args:

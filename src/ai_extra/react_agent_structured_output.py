@@ -7,16 +7,14 @@ from typing import Literal, TypeVar
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.tools import BaseTool
 from langgraph.graph import END, MessagesState, StateGraph
-from langgraph.graph.graph import CompiledGraph
 from langgraph.prebuilt import ToolNode
+from langgraph.pregel import Pregel
 from pydantic import BaseModel
 
 T = TypeVar("T", bound=BaseModel)
 
 
-def create_react_structured_output_graph(
-    llm: BaseChatModel, tools: list[BaseTool], out_model_class: type[T]
-) -> CompiledGraph:
+def create_react_structured_output_graph(llm: BaseChatModel, tools: list[BaseTool], out_model_class: type[T]) -> Pregel:
     """Creates a compiled LangGraph graph for a ReAct agent that can generate structured output.
 
     This function sets up a state graph with an agent node, a tool node, and a respond node.

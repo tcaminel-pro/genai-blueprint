@@ -29,12 +29,12 @@ from loguru import logger  # noqa: F401
 
 from src.ai_core.llm import get_llm
 from src.ai_core.prompts import dedent_ws, dict_input_message
+from src.demos.maintenance_agent.dummy_data import dummy_database
 from src.demos.maintenance_agent.tools import (
     DATA_PATH,
     PROCEDURES,
     create_maintenance_tools,
 )
-from src.demos.maintenance_agent.dummy_data import dummy_database
 from src.utils.streamlit.clear_result import with_clear_container
 from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
 from src.webapp.ui_components.llm_config import llm_config_widget
