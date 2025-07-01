@@ -52,6 +52,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             float, Option("--temperature", "--temp", min=0.0, max=1.0, help="Model temperature (0-1)")
         ] = 0.0,
         stream: Annotated[bool, Option("--stream", "-s", help="Stream output progressively")] = False,
+        raw: Annotated[bool, Option("--raw", "-r", help="Output raw LLM response object")] = False,
         lc_verbose: Annotated[bool, Option("--verbose", "-v", help="Enable LangChain verbose mode")] = False,
         lc_debug: Annotated[bool, Option("--debug", "-d", help="Enable LangChain debug mode")] = False,
         llm_id: Annotated[
@@ -97,14 +98,22 @@ def register_commands(cli_app: typer.Typer) -> None:
             cache=cache,
             llm_params={"temperature": temperature},
         ).get()
-        chain = llm | StrOutputParser()
-        if stream:
-            for s in chain.stream(input):
-                print(s, end="", flush=True)
-            print("\n")
+        if raw:
+            if stream:
+                for chunk in llm.stream(input):
+                    pprint(chunk)
+            else:
+                result = llm.invoke(input)
+                pprint(result)
         else:
-            result = chain.invoke(input)
-            pprint(result)
+            chain = llm | StrOutputParser()
+            if stream:
+                for s in chain.stream(input):
+                    print(s, end="", flush=True)
+                print("\n")
+            else:
+                result = chain.invoke(input)
+                pprint(result)
 
     @cli_app.command()
     def run(
