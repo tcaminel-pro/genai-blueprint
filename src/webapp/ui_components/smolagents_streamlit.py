@@ -37,15 +37,12 @@ from smolagents.models import ChatMessageStreamDelta
 from src.utils.streamlit.auto_scroll import scroll_to_here
 
 
-def _get_step_footnote(step_log: ActionStep | PlanningStep, step_name: str) -> str:
+def get_step_footnote_content(step_log: ActionStep | PlanningStep, step_name: str) -> str:
     """Get a footnote string for a step log with duration and token information"""
     step_footnote = f"**{step_name}**"
-    if hasattr(step_log, "token_usage") and step_log.token_usage is not None:
-        token_str = f" | Input tokens: {step_log.token_usage.input_tokens:,} | Output tokens: {step_log.token_usage.output_tokens:,}"
-        step_footnote += token_str
-    if hasattr(step_log, "timing") and step_log.timing is not None and step_log.timing.duration:
-        step_duration = f" | Duration: {round(float(step_log.timing.duration), 2)}s"
-        step_footnote += step_duration
+    if step_log.token_usage is not None:
+        step_footnote += f" | Input tokens: {step_log.token_usage.input_tokens:,} | Output tokens: {step_log.token_usage.output_tokens:,}"
+    step_footnote += f" | Duration: {round(float(step_log.timing.duration), 2)}s" if step_log.timing.duration else ""
     return step_footnote
 
 
@@ -101,11 +98,11 @@ def _display_step_content(step_log: MemoryStep, display_details: bool = True) ->
         step_number = f"Step {step_log.step_number}" if step_log.step_number is not None else "Step"
         st.markdown(f"**{step_number}**")
 
-        if hasattr(step_log, "model_output") and step_log.model_output is not None:
+        if getattr(step_log, "model_output", ""):
             model_output = _clean_model_output(step_log.model_output)
             st.markdown(model_output)
 
-        if hasattr(step_log, "tool_calls") and step_log.tool_calls is not None and len(step_log.tool_calls) > 0:
+        if getattr(step_log, "tool_calls", []):
             first_tool_call = step_log.tool_calls[0]
             args = first_tool_call.arguments
             content = str(args.get("answer", str(args))) if isinstance(args, dict) else str(args).strip()
@@ -116,14 +113,14 @@ def _display_step_content(step_log: MemoryStep, display_details: bool = True) ->
                     with st.expander(f"🛠️ Used tool {first_tool_call.name}"):
                         st.code(content)
 
-        if hasattr(step_log, "observations") and step_log.observations is not None and step_log.observations.strip():
+        if getattr(step_log, "observations", "") and step_log.observations.strip():
             log_content = step_log.observations.strip()
             log_content = re.sub(r"^Execution logs:\s*", "", log_content)
             if display_details:
                 with st.expander("📝 Execution Logs"):
                     st.code(log_content, language="bash")
 
-        if hasattr(step_log, "error") and step_log.error is not None:
+        if getattr(step_log, "error", None):
             st.error(str(step_log.error))
 
         if getattr(step_log, "observations_images", []):
@@ -131,14 +128,14 @@ def _display_step_content(step_log: MemoryStep, display_details: bool = True) ->
                 st.image(AgentImage(image).to_raw())
 
         if display_details:
-            st.caption(_get_step_footnote(step_log, step_number))
+            st.caption(get_step_footnote_content(step_log, step_number))
         st.divider()
 
     elif isinstance(step_log, PlanningStep):
         st.markdown("**Planning step**")
         st.markdown(step_log.plan)
         if display_details:
-            st.caption(_get_step_footnote(step_log, "Planning step"))
+            st.caption(get_step_footnote_content(step_log, "Planning step"))
         st.divider()
 
     elif isinstance(step_log, FinalAnswerStep):
