@@ -24,11 +24,13 @@ IGNORED_FILES = [
     ".pytest_cache",
     "tests",
     "docs",
-    "*.md",
     "docker-compose.yml",
     ".blueprint.input.history",
     "*.tmp",
     "*.temp",
+    # Keep README.md for package build
+    "*.md",
+    "!README.md",
 ]
 
 # Define the Modal image with all dependencies
