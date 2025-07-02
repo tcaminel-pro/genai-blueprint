@@ -103,7 +103,7 @@ def run():
     # Start Streamlit server following Modal's recommended pattern
     target = shlex.quote("src/main/streamlit.py")
     cmd = f"uv run streamlit run {target} --server.port 8000 --server.enableCORS=false --server.enableXsrfProtection=false"
-    subprocess.Popen(cmd, shell=True)
+    subprocess.run(cmd, shell=True)
 
 
 @app.local_entrypoint()
