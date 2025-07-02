@@ -118,11 +118,52 @@ To schedule periodic runs of your application:
 )
 ```
 
+## Updating the Image
+
+When you make changes to your source code, you don't need to redeploy the entire application. Modal provides several ways to update just the image:
+
+### Force Image Rebuild
+
+To rebuild the image with your latest source changes:
+
+```bash
+make modal_deploy_force
+```
+or
+```bash
+modal deploy src/main/modal_app.py --force-build
+```
+
+### Clear Image Cache
+
+If you want to clear the cached image and rebuild from scratch:
+
+```bash
+modal image clear
+```
+
+Then redeploy:
+
+```bash
+modal deploy src/main/modal_app.py
+```
+
+### Development Workflow
+
+For faster iteration during development, you can use:
+
+```bash
+modal run src/main/modal_app.py --detach
+```
+
+This runs the app in detached mode and automatically picks up source changes.
+
 ## Troubleshooting
 
 - If you encounter dependency issues, check the Modal logs for details.
 - For file access issues, ensure paths are correctly configured to use the Modal volume.
 - If authentication is needed, set `auth.enabled: true` in the Modal configuration.
+- If your changes aren't reflected, try using `--force-build` to rebuild the image.
 
 ## Modal 1.0 Migration Notes
 
