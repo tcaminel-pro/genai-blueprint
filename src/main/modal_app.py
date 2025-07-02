@@ -76,7 +76,7 @@ secrets = modal.Secret.from_dict(secrets_dict)
     gpu="any",  # Optional: Use GPU if needed
     container_idle_timeout=300,  # Keep container alive for 5 minutes
 )
-@modal.web_endpoint(method="GET")
+@modal.fastapi_endpoint(method="GET")
 def web_app():
     """Serve the Streamlit app via Modal web endpoint."""
     sys.path.append("/app")
@@ -126,7 +126,7 @@ def web_app():
     time.sleep(10)
 
     # Return HTML that redirects to the Streamlit app
-    return f"""
+    return """
     <html>
         <head>
             <title>GenAI Framework</title>
