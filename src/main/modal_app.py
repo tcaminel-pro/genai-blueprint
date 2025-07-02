@@ -47,6 +47,8 @@ image = (
     .run_commands(
         # Install Python dependencies using uv after adding source
         "cd /app && uv sync",
+        # Explicitly install FastAPI for Modal web endpoints
+        "cd /app && uv add 'fastapi[standard]>=0.115.6'",
     )
 )
 
