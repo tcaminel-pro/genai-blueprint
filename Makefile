@@ -220,7 +220,8 @@ modal_deploy:  ## Deploy to Modal
 	modal deploy $(MODAL_ENTRY_POINT)
 
 modal_deploy_force:  ## Deploy to Modal with forced image rebuild
-	modal deploy $(MODAL_ENTRY_POINT) --force-build
+	modal image clear
+	modal deploy $(MODAL_ENTRY_POINT)
 
 modal_run:  ## Run locally with Modal
 	modal run $(MODAL_ENTRY_POINT)

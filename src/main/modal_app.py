@@ -47,6 +47,8 @@ image = (
     .run_commands(
         # Install Python dependencies using uv after adding source
         "cd /app && uv sync",
+        # Install FastAPI for web endpoints
+        "cd /app && uv add 'fastapi[standard]'",
     )
 )
 
@@ -76,7 +78,7 @@ secrets = modal.Secret.from_dict(secrets_dict)
     gpu="any",  # Optional: Use GPU if needed
     container_idle_timeout=300,  # Keep container alive for 5 minutes
 )
-@modal.fastapi_endpoint(method="GET")
+@modal.web_endpoint(method="GET")
 def web_app():
     """Serve the Streamlit app via Modal web endpoint."""
     sys.path.append("/app")
