@@ -74,7 +74,7 @@ secrets = modal.Secret.from_dict(secrets_dict)
     volumes={VOLUME_PATH: volume},
     timeout=60 * 60,  # 1 hour timeout
     gpu="any",  # Optional: Use GPU if needed
-    container_idle_timeout=300,  # Keep container alive for 5 minutes
+    scaledown_window=300,  # Keep container alive for 5 minutes
 )
 @modal.web_server(8000)
 def run():
@@ -109,4 +109,5 @@ def run():
 @app.local_entrypoint()
 def main():
     """Local entrypoint for Modal deployment."""
-    run.remote()
+    print("Streamlit app deployed! Access it at:")
+    print("https://tcaminel--genai-framework-run-dev.modal.run")
