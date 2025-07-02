@@ -6,7 +6,9 @@ import os
 import sys
 
 import modal
+from dotenv import load_dotenv
 
+load_dotenv()
 # Define the Modal volume to persist data
 volume = modal.Volume.from_name("genai-data", create_if_missing=True)
 VOLUME_PATH = "/data"
@@ -45,7 +47,7 @@ image = (
     .add_local_dir(".", remote_path="/app", ignore=IGNORED_FILES, copy=True)
     .run_commands(
         # Install Python dependencies using uv after adding source
-        "cd /app && uv sync",
+        "cd /app && uv sync && uv add dotenv",
     )
 )
 
@@ -86,7 +88,7 @@ def run():
     os.chdir("/app")
 
     # Set environment variables
-    os.environ["BLUEPRINT_CONFIG"] = "modal"
+    os.environ["BLUEPRINT_CONFIG"] = "container"
     os.environ["PYTHONPATH"] = "."
 
     # Create a .env file with the secrets
