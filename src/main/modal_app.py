@@ -55,18 +55,24 @@ image = (
 # Create a Modal stub
 app = modal.App("genai-framework")
 
-# Define the Modal secrets - add all your API keys here
-secrets_dict = {
-    "OPENAI_API_KEY": os.environ.get("OPENAI_API_KEY", ""),
-    "AZURE_OPENAI_API_KEY": os.environ.get("AZURE_OPENAI_API_KEY", ""),
-    "AZURE_OPENAI_ENDPOINT": os.environ.get("AZURE_OPENAI_ENDPOINT", ""),
-    "GROQ_API_KEY": os.environ.get("GROQ_API_KEY", ""),
-    "LANGCHAIN_API_KEY": os.environ.get("LANGCHAIN_API_KEY", ""),
-    "OPENROUTER_API_KEY": os.environ.get("OPENROUTER_API_KEY", ""),
-    # Add any other API keys from your .env file
-}
+def get_secrets_dict():
+    """Get secrets dictionary after dotenv is loaded."""
+    return {
+        "OPENAI_API_KEY": os.environ.get("OPENAI_API_KEY", ""),
+        "AZURE_OPENAI_API_KEY": os.environ.get("AZURE_OPENAI_API_KEY", ""),
+        "AZURE_OPENAI_ENDPOINT": os.environ.get("AZURE_OPENAI_ENDPOINT", ""),
+        "GROQ_API_KEY": os.environ.get("GROQ_API_KEY", ""),
+        "LANGCHAIN_API_KEY": os.environ.get("LANGCHAIN_API_KEY", ""),
+        "OPENROUTER_API_KEY": os.environ.get("OPENROUTER_API_KEY", ""),
+        # Add any other API keys from your .env file
+    }
 
-secrets = modal.Secret.from_dict(secrets_dict)
+# Load dotenv first to get environment variables
+from dotenv import load_dotenv
+load_dotenv()
+
+# Now create secrets with loaded environment variables
+secrets = modal.Secret.from_dict(get_secrets_dict())
 
 
 @app.function(
@@ -83,9 +89,7 @@ def run():
     """Serve the Streamlit app via Modal web server."""
     import shlex
     import subprocess
-    from dotenv import load_dotenv
 
-    load_dotenv()
     sys.path.append("/app")
     os.chdir("/app")
 
@@ -94,6 +98,7 @@ def run():
     os.environ["PYTHONPATH"] = "."
 
     # Create a .env file with the secrets
+    secrets_dict = get_secrets_dict()
     with open(".env", "w") as f:
         for key, value in secrets_dict.items():
             if value:  # Only write non-empty values
