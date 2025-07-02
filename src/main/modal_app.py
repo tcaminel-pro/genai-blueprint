@@ -47,8 +47,6 @@ image = (
     .run_commands(
         # Install Python dependencies using uv after adding source
         "cd /app && uv sync",
-        # Explicitly install FastAPI for Modal web endpoints
-        "cd /app && uv add 'fastapi[standard]>=0.115.6'",
     )
 )
 
@@ -78,9 +76,12 @@ secrets = modal.Secret.from_dict(secrets_dict)
     gpu="any",  # Optional: Use GPU if needed
     container_idle_timeout=300,  # Keep container alive for 5 minutes
 )
-@modal.fastapi_endpoint(method="GET")
-def web_app():
-    """Serve the Streamlit app via Modal web endpoint."""
+@modal.web_server(8000)
+def run():
+    """Serve the Streamlit app via Modal web server."""
+    import shlex
+    import subprocess
+    
     sys.path.append("/app")
     os.chdir("/app")
 
@@ -99,51 +100,13 @@ def web_app():
     os.makedirs(f"{VOLUME_PATH}/hf_models", exist_ok=True)
     os.makedirs(f"{VOLUME_PATH}/kv_store", exist_ok=True)
 
-    # Start Streamlit and return a redirect response
-    import subprocess
-    import time
-    from threading import Thread
-
-    # Start Streamlit server in background
-    def start_streamlit():
-        subprocess.run(
-            [
-                "uv",
-                "run",
-                "streamlit",
-                "run",
-                "src/main/streamlit.py",
-                "--server.port=8501",
-                "--server.address=0.0.0.0",
-                "--server.headless=true",
-                "--server.enableCORS=false",
-            ]
-        )
-
-    streamlit_thread = Thread(target=start_streamlit)
-    streamlit_thread.daemon = True
-    streamlit_thread.start()
-
-    # Wait for Streamlit to start
-    time.sleep(10)
-
-    # Return HTML that redirects to the Streamlit app
-    return """
-    <html>
-        <head>
-            <title>GenAI Framework</title>
-            <meta http-equiv="refresh" content="0; url=http://localhost:8501">
-        </head>
-        <body>
-            <h1>GenAI Framework</h1>
-            <p>Redirecting to Streamlit app...</p>
-            <p>If not redirected automatically, <a href="http://localhost:8501">click here</a></p>
-        </body>
-    </html>
-    """
+    # Start Streamlit server following Modal's recommended pattern
+    target = shlex.quote("src/main/streamlit.py")
+    cmd = f"uv run streamlit run {target} --server.port 8000 --server.enableCORS=false --server.enableXsrfProtection=false"
+    subprocess.Popen(cmd, shell=True)
 
 
 @app.local_entrypoint()
 def main():
     """Local entrypoint for Modal deployment."""
-    run_app.remote()
+    run.remote()
