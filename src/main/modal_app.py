@@ -6,9 +6,6 @@ import os
 import sys
 
 import modal
-from dotenv import load_dotenv
-
-load_dotenv()
 # Define the Modal volume to persist data
 volume = modal.Volume.from_name("genai-data", create_if_missing=True)
 VOLUME_PATH = "/data"
@@ -85,7 +82,9 @@ def run():
     """Serve the Streamlit app via Modal web server."""
     import shlex
     import subprocess
+    from dotenv import load_dotenv
 
+    load_dotenv()
     sys.path.append("/app")
     os.chdir("/app")
 
