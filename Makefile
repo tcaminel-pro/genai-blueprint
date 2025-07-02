@@ -219,6 +219,9 @@ modal_login:  ## Login to Modal
 modal_deploy:  ## Deploy to Modal
 	modal deploy $(MODAL_ENTRY_POINT)
 
+modal_serve: 
+	modal serve $(MODAL_ENTRY_POINT)
+
 modal_deploy_force:  ## Deploy to Modal with forced image rebuild
 	modal image clear
 	modal deploy $(MODAL_ENTRY_POINT)

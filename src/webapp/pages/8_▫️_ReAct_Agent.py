@@ -125,7 +125,7 @@ def load_demos_from_config() -> List[ReactDemo]:
 
 SAMPLES_DEMOS = load_demos_from_config()
 
-local_tools = [duckduck_search_tool]
+local_tools = []
 for demo in SAMPLES_DEMOS:
     for tool_name in demo.tools:
         if tool_name in globals() and callable(globals()[tool_name]):

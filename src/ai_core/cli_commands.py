@@ -21,7 +21,6 @@ from typing import Annotated, Optional
 import typer
 from langchain.globals import set_debug, set_verbose
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import Runnable
 from typer import Option
 
 from src.utils.config_mngr import global_config
@@ -197,38 +196,6 @@ def register_commands(cli_app: typer.Typer) -> None:
         else:
             result = chain.invoke(input)
             pprint(result)
-
-    @cli_app.command()
-    def chain_info(name: Annotated[str, typer.Argument(help="Name of the chain to inspect")]) -> None:
-        """
-        Return information on a given chain, including input and output schema.
-        """
-        from typing import Callable
-
-        from devtools import pprint
-
-        from src.ai_core.chain_registry import ChainRegistry
-
-        runnable_desc = ChainRegistry.instance().find(name)
-        if runnable_desc:
-            r = runnable_desc.runnable
-            if isinstance(r, Runnable):
-                runnable = r
-            elif isinstance(r, Callable):
-                runnable = r({"llm": None})
-            else:
-                raise Exception()
-
-            print("type: ", type(runnable))
-            try:
-                runnable.get_graph().print_ascii()
-                print("input type:", runnable.InputType)
-                print("output type:", runnable.OutputType)
-                print("input schema: ", runnable.input_schema().schema())
-                print("output schema: ")
-                pprint(runnable.output_schema().schema())
-            except Exception:
-                pass
 
     @cli_app.command()
     def list_models() -> None:

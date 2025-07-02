@@ -28,7 +28,6 @@ IGNORED_FILES = [
     ".blueprint.input.history",
     "*.tmp",
     "*.temp",
-    # Exclude specific markdown files but keep README.md for package build
     "README_MODAL.md",
     "CONVENTIONS.md",
 ]
@@ -76,6 +75,7 @@ secrets = modal.Secret.from_dict(secrets_dict)
     gpu="any",  # Optional: Use GPU if needed
     scaledown_window=300,  # Keep container alive for 5 minutes
 )
+@modal.concurrent(max_inputs=5)
 @modal.web_server(8000)
 def run():
     """Serve the Streamlit app via Modal web server."""
@@ -103,21 +103,21 @@ def run():
     # Start Streamlit server following Modal's recommended pattern
     target = shlex.quote("src/main/streamlit.py")
     cmd = f"uv run streamlit run {target} --server.port 8000 --server.enableCORS=false --server.enableXsrfProtection=false"
-    subprocess.run(cmd, shell=True)
+    subprocess.Popen(cmd, shell=True)
 
 
-@app.local_entrypoint()
-def main():
-    """Local entrypoint for Modal deployment."""
-    import time
+# @app.local_entrypoint()
+# def main():
+#     """Local entrypoint for Modal deployment."""
+#     import time
 
-    print("Streamlit app deployed! Access it at:")
-    print("https://tcaminel--genai-framework-run-dev.modal.run")
-    print("Press Ctrl+C to stop the app")
+#     print("Streamlit app deployed! Access it at:")
+#     print("https://tcaminel--genai-framework-run-dev.modal.run")
+#     print("Press Ctrl+C to stop the app")
 
-    try:
-        # Keep the app running indefinitely
-        while True:
-            time.sleep(60)
-    except KeyboardInterrupt:
-        print("\nStopping app...")
+#     try:
+#         # Keep the app running indefinitely
+#         while True:
+#             time.sleep(60)
+#     except KeyboardInterrupt:
+#         print("\nStopping app...")

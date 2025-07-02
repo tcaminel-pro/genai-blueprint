@@ -44,6 +44,8 @@ from typing import Annotated, Any, cast
 
 import yaml
 from devtools import debug  # noqa: F401
+from langchain.chat_models.base import init_chat_model
+from langchain_core.language_models.base import BaseLanguageModel
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import RunnableConfig, RunnableLambda
 from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider

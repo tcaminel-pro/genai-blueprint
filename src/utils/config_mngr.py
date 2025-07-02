@@ -68,16 +68,6 @@ class OmegaConfig(BaseModel):
             merge_config = OmegaConf.load(merge_path)
             config = OmegaConf.merge(config, merge_config)
 
-        # Try to load demos configuration if it exists
-        demos_path = Path("demos/data_analyst_smolagents_demos.yaml")
-        if demos_path.exists():
-            try:
-                demos_config = OmegaConf.load(demos_path)
-                config = OmegaConf.merge(config, demos_config)
-                logger.info(f"Loaded demos configuration from {demos_path}")
-            except Exception as e:
-                logger.warning(f"Failed to load demos configuration: {e}")
-
         # OmegaConf.resolve(config)
 
         # Determine which config to use
