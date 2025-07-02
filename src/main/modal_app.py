@@ -52,38 +52,16 @@ image = (
 )
 
 
-# Create a Modal stub
+# Create a Modal app
 app = modal.App("genai-framework")
-
-
-def get_secrets_dict():
-    """Get secrets dictionary after dotenv is loaded."""
-    return {
-        "OPENAI_API_KEY": os.environ.get("OPENAI_API_KEY", ""),
-        "AZURE_OPENAI_API_KEY": os.environ.get("AZURE_OPENAI_API_KEY", ""),
-        "AZURE_OPENAI_ENDPOINT": os.environ.get("AZURE_OPENAI_ENDPOINT", ""),
-        "GROQ_API_KEY": os.environ.get("GROQ_API_KEY", ""),
-        "LANGCHAIN_API_KEY": os.environ.get("LANGCHAIN_API_KEY", ""),
-        "OPENROUTER_API_KEY": os.environ.get("OPENROUTER_API_KEY", ""),
-        # Add any other API keys from your .env file
-    }
-
-
-# Load dotenv first to get environment variables
-from dotenv import load_dotenv
-
-load_dotenv()
-
-# Now create secrets with loaded environment variables
-secrets = modal.Secret.from_dict(get_secrets_dict())
 
 
 @app.function(
     image=image,
-    secrets=[secrets],
+    secrets=[modal.Secret.from_dotenv()],
     volumes={VOLUME_PATH: volume},
     timeout=60 * 60,  # 1 hour timeout
-    gpu="any",  # Optional: Use GPU if needed
+    gpu=None,  # Optional: Use GPU if needed
     scaledown_window=300,  # Keep container alive for 5 minutes
 )
 @modal.concurrent(max_inputs=5)
@@ -99,13 +77,6 @@ def run():
     # Set environment variables
     os.environ["BLUEPRINT_CONFIG"] = "container"
     os.environ["PYTHONPATH"] = "."
-
-    # Create a .env file with the secrets
-    secrets_dict = get_secrets_dict()
-    with open(".env", "w") as f:
-        for key, value in secrets_dict.items():
-            if value:  # Only write non-empty values
-                f.write(f"{key}={value}\n")
 
     # Create data directories if they don't exist
     os.makedirs(f"{VOLUME_PATH}/llm_cache", exist_ok=True)

@@ -56,7 +56,7 @@ container:
     config: ${paths.project}/config
     demo_conf: ${paths.project}/config/demos
   llm:
-    default_model: gpt_4omini_openrouter
+    default_model: gpt_41mini_openrouter
     cache: sqlite
     cache_path: ${paths.data_root}/llm_cache/langchain.db
   embeddings:
