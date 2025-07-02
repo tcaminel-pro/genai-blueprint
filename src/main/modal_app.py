@@ -74,14 +74,14 @@ secrets = modal.Secret.from_dict(secrets_dict)
     volumes={VOLUME_PATH: volume},
     timeout=60 * 60,  # 1 hour timeout
     gpu="any",  # Optional: Use GPU if needed
+    container_idle_timeout=300,  # Keep container alive for 5 minutes
 )
-def run_app():
-    """Run the Streamlit app using Modal."""
+@modal.web_endpoint(method="GET")
+def web_app():
+    """Serve the Streamlit app via Modal web endpoint."""
     sys.path.append("/app")
-
-    # Change to the app directory
     os.chdir("/app")
-
+    
     # Set environment variable for Modal-specific config
     os.environ["BLUEPRINT_CONFIG"] = "modal"
 
@@ -97,8 +97,42 @@ def run_app():
     os.makedirs(f"{VOLUME_PATH}/hf_models", exist_ok=True)
     os.makedirs(f"{VOLUME_PATH}/kv_store", exist_ok=True)
 
-    # Run the Streamlit app using uv run
-    os.system("uv run streamlit run src/main/streamlit.py --server.port=8080 --server.address=0.0.0.0")
+    # Start Streamlit and return a redirect response
+    import subprocess
+    import time
+    from threading import Thread
+    
+    # Start Streamlit server in background
+    def start_streamlit():
+        subprocess.run([
+            "uv", "run", "streamlit", "run", "src/main/streamlit.py",
+            "--server.port=8501",
+            "--server.address=0.0.0.0",
+            "--server.headless=true",
+            "--server.enableCORS=false"
+        ])
+    
+    streamlit_thread = Thread(target=start_streamlit)
+    streamlit_thread.daemon = True
+    streamlit_thread.start()
+    
+    # Wait for Streamlit to start
+    time.sleep(10)
+    
+    # Return HTML that redirects to the Streamlit app
+    return f"""
+    <html>
+        <head>
+            <title>GenAI Framework</title>
+            <meta http-equiv="refresh" content="0; url=http://localhost:8501">
+        </head>
+        <body>
+            <h1>GenAI Framework</h1>
+            <p>Redirecting to Streamlit app...</p>
+            <p>If not redirected automatically, <a href="http://localhost:8501">click here</a></p>
+        </body>
+    </html>
+    """
 
 
 @app.local_entrypoint()
