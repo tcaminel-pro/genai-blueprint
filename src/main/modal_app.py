@@ -81,7 +81,7 @@ def run():
     """Serve the Streamlit app via Modal web server."""
     import shlex
     import subprocess
-    
+
     sys.path.append("/app")
     os.chdir("/app")
 
