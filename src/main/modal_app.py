@@ -47,8 +47,6 @@ image = (
     .run_commands(
         # Install Python dependencies using uv after adding source
         "cd /app && uv sync",
-        # Install FastAPI for web endpoints
-        "cd /app && uv add 'fastapi[standard]'",
     )
 )
 
