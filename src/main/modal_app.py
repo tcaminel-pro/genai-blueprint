@@ -81,7 +81,7 @@ def web_app():
     """Serve the Streamlit app via Modal web endpoint."""
     sys.path.append("/app")
     os.chdir("/app")
-    
+
     # Set environment variable for Modal-specific config
     os.environ["BLUEPRINT_CONFIG"] = "modal"
 
@@ -101,24 +101,30 @@ def web_app():
     import subprocess
     import time
     from threading import Thread
-    
+
     # Start Streamlit server in background
     def start_streamlit():
-        subprocess.run([
-            "uv", "run", "streamlit", "run", "src/main/streamlit.py",
-            "--server.port=8501",
-            "--server.address=0.0.0.0",
-            "--server.headless=true",
-            "--server.enableCORS=false"
-        ])
-    
+        subprocess.run(
+            [
+                "uv",
+                "run",
+                "streamlit",
+                "run",
+                "src/main/streamlit.py",
+                "--server.port=8501",
+                "--server.address=0.0.0.0",
+                "--server.headless=true",
+                "--server.enableCORS=false",
+            ]
+        )
+
     streamlit_thread = Thread(target=start_streamlit)
     streamlit_thread.daemon = True
     streamlit_thread.start()
-    
+
     # Wait for Streamlit to start
     time.sleep(10)
-    
+
     # Return HTML that redirects to the Streamlit app
     return f"""
     <html>
