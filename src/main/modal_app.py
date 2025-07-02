@@ -28,9 +28,9 @@ IGNORED_FILES = [
     ".blueprint.input.history",
     "*.tmp",
     "*.temp",
-    # Keep README.md for package build
-    "*.md",
-    "!README.md",
+    # Exclude specific markdown files but keep README.md for package build
+    "README_MODAL.md",
+    "CONVENTIONS.md",
 ]
 
 # Define the Modal image with all dependencies
