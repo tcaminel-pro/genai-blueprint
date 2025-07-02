@@ -47,7 +47,9 @@ image = (
     .add_local_dir(".", remote_path="/app", ignore=IGNORED_FILES, copy=True)
     .run_commands(
         # Install Python dependencies using uv after adding source
-        "cd /app && uv sync && uv add dotenv",
+        "cd /app && uv sync",
+        # Install python-dotenv separately
+        "cd /app && uv add python-dotenv",
     )
 )
 
