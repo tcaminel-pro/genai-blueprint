@@ -11,6 +11,26 @@ import modal
 volume = modal.Volume.from_name("genai-data", create_if_missing=True)
 VOLUME_PATH = "/data"
 
+IGNORED_FILES = [
+    ".aider*",
+    "*.aider*",
+    ".git",
+    "__pycache__",
+    "*.pyc",
+    ".venv",
+    ".env",
+    ".ruff_cache",
+    ".mypy_cache",
+    ".pytest_cache",
+    "tests",
+    "docs",
+    "*.md",
+    "docker-compose.yml",
+    ".blueprint.input.history",
+    "*.tmp",
+    "*.temp",
+]
+
 # Define the Modal image with all dependencies
 image = (
     modal.Image.debian_slim(python_version="3.12")
@@ -21,12 +41,13 @@ image = (
         "curl -fsSL https://github.com/astral-sh/uv/releases/download/0.1.24/uv-installer.sh | bash",
     )
     # Add source code - this layer will be rebuilt when source changes
-    .add_local_dir(".", remote_path="/app")
+    .add_local_dir(".", remote_path="/app", ignore=IGNORED_FILES)
     .run_commands(
         # Install Python dependencies using uv after adding source
         "cd /app && uv sync",
     )
 )
+
 
 # Create a Modal stub
 app = modal.App("genai-framework")
