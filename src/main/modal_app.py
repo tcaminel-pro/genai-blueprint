@@ -41,7 +41,7 @@ image = (
         "curl -fsSL https://github.com/astral-sh/uv/releases/download/0.1.24/uv-installer.sh | bash",
     )
     # Add source code - this layer will be rebuilt when source changes
-    .add_local_dir(".", remote_path="/app", ignore=IGNORED_FILES)
+    .add_local_dir(".", remote_path="/app", ignore=IGNORED_FILES, copy=True)
     .run_commands(
         # Install Python dependencies using uv after adding source
         "cd /app && uv sync",

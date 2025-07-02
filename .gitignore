@@ -108,16 +108,17 @@ dmypy.json
 cython_debug/
 
 # Project specific
-.env
 .env.example
 test_graph.png
 use_case_data/maintenance/demo.db
 .langchain.db
-.env
 .aider*
 test_db*/*
 test_db3/.lock
 data/generated
-src/ai_core/cli_commands.py
-.gitignore
 .blueprint.input.history
+
+# Modal/Docker build artifacts
+*.tmp
+*.temp
+.build/
