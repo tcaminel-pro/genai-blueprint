@@ -97,11 +97,8 @@ def run_app():
     os.makedirs(f"{VOLUME_PATH}/hf_models", exist_ok=True)
     os.makedirs(f"{VOLUME_PATH}/kv_store", exist_ok=True)
 
-    # Install dependencies if needed
-    os.system("cd /app && uv sync")
-
-    # Run the Streamlit app
-    os.system("streamlit run src/main/streamlit.py --server.port=8080 --server.address=0.0.0.0")
+    # Run the Streamlit app using uv run
+    os.system("uv run streamlit run src/main/streamlit.py --server.port=8080 --server.address=0.0.0.0")
 
 
 @app.local_entrypoint()
