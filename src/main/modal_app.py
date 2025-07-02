@@ -55,6 +55,7 @@ image = (
 # Create a Modal stub
 app = modal.App("genai-framework")
 
+
 def get_secrets_dict():
     """Get secrets dictionary after dotenv is loaded."""
     return {
@@ -67,8 +68,10 @@ def get_secrets_dict():
         # Add any other API keys from your .env file
     }
 
+
 # Load dotenv first to get environment variables
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # Now create secrets with loaded environment variables
