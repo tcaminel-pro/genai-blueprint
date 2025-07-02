@@ -85,8 +85,9 @@ def run():
     sys.path.append("/app")
     os.chdir("/app")
 
-    # Set environment variable for Modal-specific config
+    # Set environment variables
     os.environ["BLUEPRINT_CONFIG"] = "modal"
+    os.environ["PYTHONPATH"] = "."
 
     # Create a .env file with the secrets
     with open(".env", "w") as f:
