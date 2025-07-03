@@ -8,14 +8,9 @@ FROM python:3.12-bookworm  as builder
 
 RUN apt-get update && apt-get install -y git curl
 
-# Project specific install 
-RUN apt-get install -y graphviz-dev
-
-# Install and configure uv
-# RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-# ENV PATH="/root/.cargo/bin:$PATH"
-
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+# Install system dependencies and clean up
+RUN apt-get install -y graphviz-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 # A directory to have app data 
 WORKDIR /app
@@ -34,14 +29,16 @@ COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 
 # Secrets will be mounted at runtime via Docker secrets
 
-ENV BASIC_AUTHENTICATION=1
-ENV CONFIGURATION="container"
+ENV BASIC_AUTHENTICATION=1 \
+    BLUEPRINT_CONFIG="container" \
+    PYTHONPATH=".:/app"
 
 COPY use_case_data ./use_case_data
-COPY python ./python 
+COPY src ./src
 COPY static ./static 
 COPY app_conf.yaml ./app_conf.yaml  
-COPY .streamlit ./.streamlit   
+COPY .streamlit ./.streamlit
+COPY pyproject.toml uv.lock ./
 
 
 EXPOSE 8501
@@ -50,4 +47,8 @@ EXPOSE 8501
 
 ENV PYTHONPATH="${PYTHONPATH}:/src"
 
-ENTRYPOINT ["streamlit", "run", "python/GenAI_Lab.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["streamlit", "run", "src/main/streamlit.py", \
+            "--server.port=8501", \
+            "--server.address=0.0.0.0", \
+            "--server.enableCORS=false", \
+            "--server.enableXsrfProtection=false"]
