@@ -3,8 +3,6 @@
 
 # use: docker build --pull --rm -f "Dockerfile" -t xxx:latest "."  --build-arg OPENAI_API=$OPENAI_API_KEY
 
-
-
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm AS builder                                         
                                                                                                  
 RUN apt-get update && apt-get install -y git curl                                                
@@ -27,7 +25,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked   
 
 # The runtime image, used to just run the code provided its virtual environment                  
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim  AS runtime                                   
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim  AS runtime       
+
+WORKDIR /app    
                                                                                                                                
 ENV VIRTUAL_ENV=/app/.venv \                                                                     
     PATH="/app/.venv/bin:$PATH"                                                                  
@@ -44,17 +44,10 @@ COPY --from=builder /app/pyproject.toml ./
 # Secrets will be mounted at runtime via Docker secrets                                          
 ENV BASIC_AUTHENTICATION=1 \                                                                     
     BLUEPRINT_CONFIG="container" \                                                               
-    PYTHONPATH=".:/app"        
-
-
-
+    PYTHONPATH="/app:/app/src"          
 EXPOSE 8501
 
-#HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
-
-ENV PYTHONPATH="${PYTHONPATH}:/src"
-
-ENTRYPOINT ["streamlit", "run", "src/main/streamlit.py", \
+ENTRYPOINT ["streamlit", "run", "/app/src/main/streamlit.py", \
             "--server.port=8501", \
             "--server.address=0.0.0.0", \
             "--server.enableCORS=false", \
