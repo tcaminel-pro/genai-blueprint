@@ -4,7 +4,7 @@
 # use: docker build --pull --rm -f "Dockerfile" -t xxx:latest "."  --build-arg OPENAI_API=$OPENAI_API_KEY
 
 
-FROM python:3.12-bookworm  as builder
+FROM python:3.12-bookworm  AS builder
 
 RUN apt-get update && apt-get install -y git curl
 
@@ -20,7 +20,7 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-cache --no-group dev
 
 # The runtime image, used to just run the code provided its virtual environment
-FROM python:3.12-slim-bookworm  as runtime
+FROM python:3.12-slim-bookworm  AS runtime
 
 ENV VIRTUAL_ENV=/app/.venv \
     PATH="/app/.venv/bin:$PATH"
