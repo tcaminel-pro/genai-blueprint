@@ -24,11 +24,16 @@ check: ## Check if the image is built
 sync_time:  # Needed because WSL loose time after hibernation, and that can cause issues when pushing 
 	sudo hwclock -s 
 
-build: ## Build the docker image with all environment variables
-	docker build --pull --rm -f "Dockerfile" -t $(APP):$(IMAGE_VERSION) "." $(ENV_VARS)
+build: ## Build the docker image
+	docker build --pull --rm -f "Dockerfile" -t $(APP):$(IMAGE_VERSION) "."
 
-run: ## execute the image locally
-	docker run -it  -p 8000:8000 -p 8501:8501 $(APP):$(IMAGE_VERSION)
+run: ## Execute the image with secret mounts
+	docker run -it -p 8000:8000 -p 8501:8501 \
+		--mount type=secret,id=OPENAI_API_KEY \
+		--mount type=secret,id=AZURE_OPENAI_API_KEY \
+		--mount type=secret,id=GROQ_API_KEY \
+		--mount type=secret,id=LANGCHAIN_API_KEY \
+		$(APP):$(IMAGE_VERSION)
 
 save:  # Create a zipped version of the image
 	docker save $(APP):$(IMAGE_VERSION)| gzip > /tmp/$(APP)_$(IMAGE_VERSION).tar.gz
