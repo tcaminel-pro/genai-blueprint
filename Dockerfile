@@ -16,6 +16,8 @@ RUN apt-get install -y graphviz-dev && \
 WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
+COPY --from=ghcr.io/astral-sh/uv:latest /usr/local/bin/uv /usr/local/bin/uv
+ENV PATH="/usr/local/bin:${PATH}"
 
 RUN uv pip install -r requirements.txt --no-deps
 
