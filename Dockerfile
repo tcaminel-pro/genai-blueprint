@@ -34,8 +34,7 @@ ENV BASIC_AUTHENTICATION=1 \
     PYTHONPATH=".:/app"
 
 COPY use_case_data ./use_case_data
-COPY src ./src
-COPY static ./static 
+COPY src ./src 
 COPY config ./config
 COPY .streamlit ./.streamlit
 COPY pyproject.toml uv.lock ./
