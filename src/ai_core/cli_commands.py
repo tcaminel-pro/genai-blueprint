@@ -339,15 +339,11 @@ def register_commands(cli_app: typer.Typer) -> None:
         console = Console()
         table = Table(title="Semantic Similarity", show_header=True, header_style="bold blue")
         table.add_column("Reference Sentence", style="cyan")
-        table.add_column("Comparison Sentence", style="green") 
+        table.add_column("Comparison Sentence", style="green")
         table.add_column("Score", style="magenta", justify="right")
 
         for i, score in enumerate(similarities[0]):
-            table.add_row(
-                sentences[0],
-                sentences[i+1],
-                f"{score:.3f}"
-            )
+            table.add_row(sentences[0], sentences[i + 1], f"{score:.3f}")
 
         console.print(table)
 
