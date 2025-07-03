@@ -332,10 +332,24 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         similarities = cosine_similarity(reference_vector, other_vectors)
 
-        # Display results
-        print("\nSimilarity scores:")
+        # Display results in table format
+        from rich.console import Console
+        from rich.table import Table
+
+        console = Console()
+        table = Table(title="Semantic Similarity", show_header=True, header_style="bold blue")
+        table.add_column("Reference Sentence", style="cyan")
+        table.add_column("Comparison Sentence", style="green") 
+        table.add_column("Score", style="magenta", justify="right")
+
         for i, score in enumerate(similarities[0]):
-            print(f"  Sentence 1 vs {i + 2}: {score:.3f}")
+            table.add_row(
+                sentences[0],
+                sentences[i+1],
+                f"{score:.3f}"
+            )
+
+        console.print(table)
 
     @cli_app.command()
     def list_mcp_prompts(
