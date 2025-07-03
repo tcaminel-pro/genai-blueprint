@@ -152,11 +152,8 @@ check: ## Check if the image is built
 sync_time:  # Needed because WSL loose time after hibernation, and that can cause issues when pushing 
 	sudo hwclock -s 
 
-build: ## build the docker image
-	docker build --pull --rm -f "Dockerfile" -t $(APP):$(IMAGE_VERSION) "." \
-      --build-arg OPENAI_API_KEY=$(OPENAI_API_KEY) \
-	  --build-arg GROQ_API_KEY=$(GROQ_API_KEY) \
-	  --build-arg LANGCHAIN_API_KEY=$(LANGCHAIN_API_KEY) 
+build: ## Build the docker image with all environment variables
+	docker build --pull --rm -f "Dockerfile" -t $(APP):$(IMAGE_VERSION) "." $(ENV_VARS)
 
 run: ## execute the image locally
 	docker run -it  -p 8000:8000 -p 8501:8501 $(APP):$(IMAGE_VERSION)
