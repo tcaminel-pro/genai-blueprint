@@ -1,45 +1,51 @@
 # inspired by https://medium.com/@albertazzir/blazing-fast-python-docker-builds-with-poetry-a78a66f5aed0 
-# and (for uv): https://blog.west-webworld.fr/python-de-poetry-a-uv-il-ny-a-quun-pas/ 
+# and (for uv):https://docs.astral.sh/uv/guides/integration/docker/
 
 # use: docker build --pull --rm -f "Dockerfile" -t xxx:latest "."  --build-arg OPENAI_API=$OPENAI_API_KEY
 
 
-FROM python:3.12-bookworm  AS builder
 
-RUN apt-get update && apt-get install -y git curl
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm AS builder                                         
+                                                                                                 
+RUN apt-get update && apt-get install -y git curl                                                
+                                                                                                 
+# Install system dependencies and clean up                                                       
+RUN apt-get install -y graphviz-dev && \                                                         
+    rm -rf /var/lib/apt/lists/*                                                                  
+                                                                                                 
+# A directory to have app data                                                                   
+WORKDIR /app                                                                                     
+                                                                                                 
+# Install dependencies first (for better caching)                                                
+COPY pyproject.toml uv.lock ./                                                                   
+RUN --mount=type=cache,target=/root/.cache/uv \                                                  
+    uv sync --locked --no-install-project                                                        
+                                                                                                 
+# Copy the project and install it                                                                
+COPY . .                                                                                         
+RUN --mount=type=cache,target=/root/.cache/uv \                                                  
+    uv sync --locked   
 
-# Install system dependencies and clean up
-RUN apt-get install -y graphviz-dev && \
-    rm -rf /var/lib/apt/lists/*
+# The runtime image, used to just run the code provided its virtual environment                  
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim  AS runtime                                   
+                                                                                                                               
+ENV VIRTUAL_ENV=/app/.venv \                                                                     
+    PATH="/app/.venv/bin:$PATH"                                                                  
+                                                                                                 
+COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}                                                
+                                                                                                 
+# Copy application files                                                                         
+COPY --from=builder /app/use_case_data ./use_case_data                                           
+COPY --from=builder /app/src ./src                                                               
+COPY --from=builder /app/config ./config                                                         
+COPY --from=builder /app/.streamlit ./.streamlit                                                 
+COPY --from=builder /app/pyproject.toml ./                                                       
+                                                                                                 
+# Secrets will be mounted at runtime via Docker secrets                                          
+ENV BASIC_AUTHENTICATION=1 \                                                                     
+    BLUEPRINT_CONFIG="container" \                                                               
+    PYTHONPATH=".:/app"        
 
-# A directory to have app data 
-WORKDIR /app
-
-COPY pyproject.toml uv.lock ./
-COPY --from=ghcr.io/astral-sh/uv:latest /usr/local/bin/uv /usr/local/bin/uv
-ENV PATH="/usr/local/bin:${PATH}"
-
-RUN uv pip install -r requirements.txt --no-deps
-
-# The runtime image, used to just run the code provided its virtual environment
-FROM python:3.12-slim-bookworm  AS runtime
-
-ENV VIRTUAL_ENV=/app/.venv \
-    PATH="/app/.venv/bin:$PATH"
-
-COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
-
-# Secrets will be mounted at runtime via Docker secrets
-
-ENV BASIC_AUTHENTICATION=1 \
-    BLUEPRINT_CONFIG="container" \
-    PYTHONPATH=".:/app"
-
-COPY use_case_data ./use_case_data
-COPY src ./src 
-COPY config ./config
-COPY .streamlit ./.streamlit
-COPY pyproject.toml uv.lock ./
 
 
 EXPOSE 8501
