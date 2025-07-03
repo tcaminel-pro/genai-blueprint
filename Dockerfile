@@ -17,7 +17,7 @@ WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
 
-RUN uv sync --frozen --no-cache --no-group dev
+RUN uv pip install -r requirements.txt --no-deps
 
 # The runtime image, used to just run the code provided its virtual environment
 FROM python:3.12-slim-bookworm  AS runtime
