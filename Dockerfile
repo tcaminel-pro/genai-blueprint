@@ -36,7 +36,7 @@ ENV BASIC_AUTHENTICATION=1 \
 COPY use_case_data ./use_case_data
 COPY src ./src
 COPY static ./static 
-COPY app_conf.yaml ./app_conf.yaml  
+COPY config/app_conf.yaml ./app_conf.yaml
 COPY .streamlit ./.streamlit
 COPY pyproject.toml uv.lock ./
 
