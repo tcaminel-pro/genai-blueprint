@@ -35,7 +35,7 @@ COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 # Secrets will be mounted at runtime via Docker secrets
 
 ENV BASIC_AUTHENTICATION=1
-ENV CONFIGURATION="cloud_openai"
+ENV CONFIGURATION="container"
 
 COPY use_case_data ./use_case_data
 COPY python ./python 
@@ -48,6 +48,6 @@ EXPOSE 8501
 
 #HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 
-ENV PYTHONPATH "${PYTHONPATH}:/python"
+ENV PYTHONPATH="${PYTHONPATH}:/src"
 
 ENTRYPOINT ["streamlit", "run", "python/GenAI_Lab.py", "--server.port=8501", "--server.address=0.0.0.0"]
