@@ -15,6 +15,9 @@ PROJECT_ID_GCP=XXX
 ##############################
 #WARNING : Put the API key into the docker image. NOT RECOMMANDED IN PRODUCTION
 
+test1:
+	echo $(OPENAI_API_KEY)
+
 .PHONY: build run save sync_time check # Docker build and deployment 
 
 
