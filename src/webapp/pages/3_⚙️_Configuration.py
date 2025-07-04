@@ -93,8 +93,6 @@ def mcp_servers_section() -> None:
     st.subheader("MCP Servers & Tools")
 
     import asyncio
-    from rich.console import Console
-    from rich.table import Table
     from src.ai_core.mcp_client import get_mcp_tools_info
 
     async def display_tools():
@@ -105,21 +103,9 @@ def mcp_servers_section() -> None:
 
         for server_name, tools in tools_info.items():
             with st.expander(f"Server: {server_name}", expanded=False):
-                table = Table(
-                    show_header=True,
-                    header_style="bold magenta",
-                    row_styles=["", "dim"],
-                )
-                table.add_column("Tool", style="cyan", no_wrap=True)
-                table.add_column("Description", style="green")
-
-                for tool_name, description in tools.items():
-                    table.add_row(tool_name, description)
-
-                console = Console()
-                with console.capture() as capture:
-                    console.print(table)
-                st.text(capture.get())
+                # Convert tools dict to list of dicts for st.table
+                table_data = [{"Tool": tool, "Description": desc} for tool, desc in tools.items()]
+                st.table(table_data)
 
     asyncio.run(display_tools())
 
