@@ -60,7 +60,7 @@ container:
     cache: sqlite
     cache_path: ${paths.data_root}/llm_cache/langchain.db
   embeddings:
-    default_model: ada_002_openai
+    default_model: bge_m3_deepinfra
     cache: ${paths.data_root}/hf_models
   vector_store:
     default: Chroma

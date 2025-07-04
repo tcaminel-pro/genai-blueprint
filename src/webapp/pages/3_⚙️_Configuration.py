@@ -56,13 +56,6 @@ def display_config_info() -> None:
     except Exception:
         config_data.append({"Setting": "LLM Cache Method", "Value": "Not available"})
 
-    # Monitoring configuration
-    try:
-        monitoring = config.get_str("monitoring.default", "Not set")
-        config_data.append({"Setting": "Monitoring Default", "Value": monitoring})
-    except Exception:
-        config_data.append({"Setting": "Monitoring Default", "Value": "Not available"})
-
     if config_data:
         st.table(config_data)
 
@@ -148,9 +141,7 @@ def mcp_servers_section() -> None:
         for server_name, tools in tools_info.items():
             with st.expander(f"Server: {server_name}", expanded=False):
                 # Convert tools dict to list of dicts for dataframe display
-                from devtools import debug
 
-                debug(tools.items())
                 table_data = [{"Tool": tool, "Description": desc} for tool, desc in tools.items()]
                 st.dataframe(
                     table_data,
