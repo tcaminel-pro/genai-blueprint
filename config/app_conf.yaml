@@ -40,6 +40,7 @@ ui:
     settings:
       - 0_welcome.py
       - 1_runnable_playground.py
+      - 3_⚙️_Configuration.py
     demos:
       - 2_maintenance_agent.py
       - 5_mon_master.py
