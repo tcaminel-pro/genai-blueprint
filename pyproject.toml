@@ -4,7 +4,6 @@ version = "0.1.2"
 description = ""
 authors = [{ name = "Thierry Caminel", email = "thierry.caminel@eviden.com" }]
 requires-python = ">=3.12,<3.13"
-readme = "README.md"
 dependencies = [
     "pydantic>=2.7.0,<3",
     "devtools>=0.12.2",
