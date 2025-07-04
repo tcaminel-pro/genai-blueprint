@@ -93,6 +93,7 @@ def mcp_servers_section() -> None:
     st.subheader("MCP Servers & Tools")
 
     import asyncio
+
     from src.ai_core.mcp_client import get_mcp_tools_info
 
     async def display_tools():
@@ -108,8 +109,8 @@ def mcp_servers_section() -> None:
                 st.dataframe(
                     table_data,
                     column_config={
-                        "Tool": st.column_config.Column(width="large"),
-                        "Description": st.column_config.Column(width="medium"),
+                        "Tool": st.column_config.Column(width=None),
+                        "Description": st.column_config.Column(width="large"),
                     },
                     hide_index=True,
                     use_container_width=True,
