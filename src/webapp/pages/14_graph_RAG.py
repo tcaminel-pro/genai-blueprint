@@ -20,7 +20,6 @@ from streamlit import session_state as sss
 from src.ai_core.llm import get_llm
 from src.utils.config_mngr import global_config
 from src.webapp.ui_components.cypher_graph_display import get_cytoscape_json, get_cytoscape_style
-from src.webapp.ui_components.llm_config import llm_config_widget
 
 
 # Define demo class

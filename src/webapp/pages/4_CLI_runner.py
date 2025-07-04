@@ -10,7 +10,6 @@ import importlib
 import shlex
 
 import streamlit as st
-from devtools import debug
 from loguru import logger
 from typer.testing import CliRunner
 
@@ -18,6 +17,7 @@ from src.main.cli import cli_app, define_other_commands
 from src.utils.config_mngr import global_config
 
 
+@st.cache_resource()
 def get_cli_runner() -> CliRunner:
     runner = CliRunner()
 
@@ -44,26 +44,22 @@ def run_typer_command(command: str) -> str:
 
     if result.exit_code != 0:
         return f"Error: {result.exception}\n{result.output}"
-    debug(result.output)
     return result.output
 
 
 def main() -> None:
     """Main Streamlit page layout and interaction."""
-    st.title("Typer CLI Runner")
+    st.title("Command Line Interface Runner")
 
     # Input for CLI command
-    command = st.text_input("Enter CLI command", "echo Hello World")
+    command = st.text_input("Enter CLI command", """echo "Hello World" """)
 
     # Execute button
     if st.button("Run Command"):
-        print(command)
         with st.spinner("Executing command..."):
             try:
                 output = run_typer_command(command)
                 st.code(output, language="text")
-                print("out")
-                print(output)
             except Exception as e:
                 st.error(f"Command failed: {str(e)}")
                 print(f"error: {e}")

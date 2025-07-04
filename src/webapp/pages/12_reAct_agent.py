@@ -29,7 +29,6 @@ from src.ai_core.mcp_client import get_mcp_servers_dict
 from src.ai_core.prompts import dedent_ws, dict_input_message
 from src.utils.config_mngr import global_config
 from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
-from src.webapp.ui_components.llm_config import llm_config_widget
 from src.webapp.ui_components.streamlit_chat import StreamlitStatusCallbackHandler, display_messages
 
 load_dotenv()

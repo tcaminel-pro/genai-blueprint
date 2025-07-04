@@ -22,7 +22,6 @@ from pydantic import BaseModel
 
 from src.ai_core.chain_registry import ChainRegistry
 from src.utils.config_mngr import global_config
-from src.webapp.ui_components.llm_config import llm_config_widget
 
 st.title("💬 Runnable Playground")
 
@@ -48,7 +47,6 @@ if not selection:
 runnable_desc = chain_registry.find(selection[1])
 if not runnable_desc:
     st.stop()
-
 
 
 # Get the first example from the runnable description to use as default values

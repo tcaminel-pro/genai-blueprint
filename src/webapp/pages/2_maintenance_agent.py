@@ -37,7 +37,6 @@ from src.demos.maintenance_agent.tools import (
 )
 from src.utils.streamlit.clear_result import with_clear_container
 from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
-from src.webapp.ui_components.llm_config import llm_config_widget
 from src.webapp.ui_components.streamlit_chat import StreamlitStatusCallbackHandler, display_messages
 
 # fmt:off
@@ -64,7 +63,6 @@ SAMPLE_PROMPTS = {
 # fmt:on
 
 LLM_ID = None
-
 
 
 ################################

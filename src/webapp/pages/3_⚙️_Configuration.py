@@ -106,6 +106,9 @@ def mcp_servers_section() -> None:
         for server_name, tools in tools_info.items():
             with st.expander(f"Server: {server_name}", expanded=False):
                 # Convert tools dict to list of dicts for dataframe display
+                from devtools import debug
+
+                debug(tools.items())
                 table_data = [{"Tool": tool, "Description": desc} for tool, desc in tools.items()]
                 st.dataframe(
                     table_data,
@@ -118,7 +121,6 @@ def mcp_servers_section() -> None:
                     },
                     hide_index=True,
                     use_container_width=True,
-                    height=(len(table_data) + 1) * 60,  # Increased height for unwrapped text
                 )
 
     asyncio.run(display_tools())
