@@ -121,7 +121,13 @@ class OmegaConfig(BaseModel):
             key: Configuration key in dot notation (e.g., "llm.default_model")
             value: Value to set
         """
-        OmegaConf.update(self.selected, key, value, merge=True)
+        # Ensure the selected config section exists
+        if self.selected_config not in self.root:
+            self.root[self.selected_config] = OmegaConf.create({})
+        
+        # Get the selected config section (now guaranteed to exist)
+        selected_section = self.root[self.selected_config]
+        OmegaConf.update(selected_section, key, value, merge=True)
 
     def get_str(self, key: str, default: Optional[str] = None) -> str:
         """Get a string configuration value."""
