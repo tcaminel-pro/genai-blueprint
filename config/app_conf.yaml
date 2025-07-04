@@ -36,6 +36,11 @@ default_config: ${oc.env:BLUEPRINT_CONFIG,training_openrouter}
 ui:
   app_name : GenAI Lab and Practicum
   pages_dir : ${paths.src}/webapp/pages
+  navigation:
+    playground:
+      - "1_▫️_Runnable_Playground.py"
+    demos:
+      - "2_▫️_Maintenance_Agent.py"
 
 auth:
   config_file: ${paths.config}/basic_auth.yaml

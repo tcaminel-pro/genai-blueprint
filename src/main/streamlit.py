@@ -61,10 +61,29 @@ st.logo(logo, size="medium")
 
 # Get Streamlit pages to display from config
 pages_dir = config().get_dir_path("ui.pages_dir")
-# Sort files by the number at the beginning of their name
-pages_fn = sorted(
-    pages_dir.glob("*.py"), key=lambda f: int(f.name.split("_")[0]) if f.name.split("_")[0].isdigit() else 0
-)
-pages = [st.Page(f.absolute()) for f in pages_fn if f.name != "__init__.py"]
-pg = st.navigation(pages)
+
+# Get navigation structure from config
+nav_config = config().get("ui.navigation", {})
+
+# Build pages dictionary with sections
+pages = {}
+
+if nav_config:
+    # Use explicit navigation structure from config
+    for section_name, page_files in nav_config.items():
+        section_pages = []
+        for page_file in page_files:
+            page_path = pages_dir / page_file
+            if page_path.exists():
+                section_pages.append(st.Page(page_path.absolute()))
+        if section_pages:
+            pages[section_name.title()] = section_pages
+else:
+    # Fallback: Sort files by the number at the beginning of their name
+    pages_fn = sorted(
+        pages_dir.glob("*.py"), key=lambda f: int(f.name.split("_")[0]) if f.name.split("_")[0].isdigit() else 0
+    )
+    pages = [st.Page(f.absolute()) for f in pages_fn if f.name != "__init__.py"]
+
+pg = st.navigation(pages, position="top")
 pg.run()
