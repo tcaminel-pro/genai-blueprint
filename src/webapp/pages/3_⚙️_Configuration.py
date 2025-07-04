@@ -97,10 +97,11 @@ def mcp_servers_section() -> None:
     from src.ai_core.mcp_client import get_mcp_tools_info
 
     async def display_tools():
-        tools_info = await get_mcp_tools_info()
-        if not tools_info:
-            st.info("No MCP servers found.")
-            return
+        with st.spinner("Loading MCP servers and tools..."):
+            tools_info = await get_mcp_tools_info()
+            if not tools_info:
+                st.info("No MCP servers found.")
+                return
 
         for server_name, tools in tools_info.items():
             with st.expander(f"Server: {server_name}", expanded=False):
