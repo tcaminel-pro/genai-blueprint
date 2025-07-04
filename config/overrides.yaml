@@ -66,8 +66,8 @@ container:
     default: Chroma
     path: ${paths.data_root}/vector_store
     default_collection: "default_collection"
-
-  # Authentication can be disabled for Modal deployment if needed
   auth:
     enabled: false
+  monitoring: 
+    default:  langsmith
 

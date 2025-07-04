@@ -130,6 +130,13 @@ class OmegaConfig(BaseModel):
             raise ValueError(f"Configuration value for '{key}' is not a string (its a {type(value)})")
         return value
 
+    def get_bool(self, key: str, default: Optional[bool] = None) -> bool:
+        """Get a boolean configuration value."""
+        value = self.get(key, default)
+        if not isinstance(value, bool):
+            raise ValueError(f"Configuration value for '{key}' is not a boolean (its a {type(value)})")
+        return value
+
     def get_list(self, key: str, default: Optional[list] = None) -> list:
         """Get a list configuration value."""
         value = self.get(key, default)
@@ -137,7 +144,7 @@ class OmegaConfig(BaseModel):
             raise ValueError(f"Configuration value for '{key}' is not a list (its a {type(value)})")
         return list(value)
 
-    def get_dict(self, key: str, expected_keys: list | None = None) -> dict:
+    def get_dict(self, key: str, expected_keys: list | None = None) -> dict[str, str]:
         """Get a dictionary configuration value.
 
         Args:

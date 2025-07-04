@@ -29,7 +29,7 @@ vector_store:
 documents:
   base: ./use_case_data
 monitoring: 
-  default:  none
+  langsmith : true
   project: GenAI_demo
 
 kv_store:

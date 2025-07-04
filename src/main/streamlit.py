@@ -3,8 +3,9 @@ from pathlib import Path
 
 import streamlit as st
 from dotenv import load_dotenv
+from loguru import logger
 
-from src.utils.basic_auth import authenticate, is_authenticated, load_auth_config
+from src.utils.basic_auth import authenticate, load_auth_config
 from src.utils.config_mngr import global_config
 from src.utils.logger_factory import setup_logging
 
@@ -12,11 +13,6 @@ load_dotenv(verbose=True)
 
 setup_logging()
 # print("Starting Web Application...")
-
-
-@st.cache_resource()
-def config():
-    return global_config()
 
 
 # Configure Streamlit page settings
@@ -60,30 +56,35 @@ logo = str(Path.cwd() / "src/webapp/static" / LOGO)
 st.logo(logo, size="medium")
 
 # Get Streamlit pages to display from config
-pages_dir = config().get_dir_path("ui.pages_dir")
+pages_dir = global_config().get_dir_path("ui.pages_dir")
 
 # Get navigation structure from config
-nav_config = config().get("ui.navigation", {})
+nav_config = global_config().get("ui.navigation", {})
 
 # Build pages dictionary with sections
 pages = {}
 
-if nav_config:
-    # Use explicit navigation structure from config
-    for section_name, page_files in nav_config.items():
-        section_pages = []
-        for page_file in page_files:
-            page_path = pages_dir / page_file
-            if page_path.exists():
-                section_pages.append(st.Page(page_path.absolute()))
-        if section_pages:
-            pages[section_name.title()] = section_pages
-else:
-    # Fallback: Sort files by the number at the beginning of their name
-    pages_fn = sorted(
-        pages_dir.glob("*.py"), key=lambda f: int(f.name.split("_")[0]) if f.name.split("_")[0].isdigit() else 0
-    )
-    pages = [st.Page(f.absolute()) for f in pages_fn if f.name != "__init__.py"]
+
+def file_name_to_page_name(file_name: str) -> str:
+    try:
+        string_without_number = file_name.split("_", 1)[1]
+        string_without_extension = string_without_number.rsplit(".", 1)[0]
+        transformed_string = "_".join(word.capitalize() for word in string_without_extension.split("_"))
+        return transformed_string
+    except Exception:
+        return file_name
+
+
+for section_name, page_files in nav_config.items():
+    section_pages = []
+    for page_file_name in page_files:
+        page_path = pages_dir / page_file_name
+        if page_path.exists():
+            section_pages.append(st.Page(page=page_path, title=file_name_to_page_name(page_file_name)))
+        else:
+            logger.warning(f"page not found: {page_path} ")
+    if section_pages:
+        pages[section_name.title()] = section_pages
 
 pg = st.navigation(pages, position="top")
 pg.run()

@@ -89,7 +89,7 @@ def load_demos_from_config() -> List[GraphRagDemo]:
 # Load demos from config
 SAMPLE_DEMOS = load_demos_from_config()
 
-llm_config_widget(st.sidebar, False)
+
 llm = get_llm(llm_id=None)
 st.title("Graph RAG with Kuzu")
 

@@ -60,7 +60,7 @@ selected_config = st.selectbox(
     on_change=lambda: sss.update({"custom_config": GptrConfig.load(st.session_state.selected_config).config}),
 )
 loaded_config = GptrConfig.load(selected_config)
-debug(loaded_config)
+# debug(loaded_config)
 if not sss.custom_config or sss.custom_config != loaded_config.config:
     sss.custom_config = loaded_config.config.copy()  # Use copy to avoid reference issues
 

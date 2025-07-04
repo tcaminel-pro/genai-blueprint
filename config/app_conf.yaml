@@ -41,11 +41,13 @@ ui:
       - 0_welcome.py
       - 1_runnable_playground.py
       - 3_⚙️_Configuration.py
+      - 4_CLI_runner.py
     demos:
       - 2_maintenance_agent.py
       - 5_mon_master.py
       - 7_deep_search_agent.py
       - 12_reAct_agent.py
+      - 10_codeAct_agent.py
       - 14_graph_RAG.py
       - 18_residio_anonymization.py
 

@@ -24,12 +24,12 @@ def display_config_info() -> None:
     st.subheader("Current Configuration")
     st.info(f"**Selected configuration:** {config.selected_config}")
 
-    st.subheader("Available API Keys")
+    st.subheader("Available LLM API Keys")
 
     # Create a table showing API key status
     api_key_data = []
     for provider, (_, key_name) in PROVIDER_INFO.items():
-        if key_name:
+        if key_name and key_name in os.environ:
             is_set = key_name in os.environ
             status = "✅ Set" if is_set else "❌ Not set"
             api_key_data.append({"Provider": provider, "Environment Variable": key_name, "Status": status})
@@ -100,7 +100,7 @@ def monitoring_configuration_section() -> None:
             "Use Lunary.ai for monitoring", value=False, disabled=True, help="Lunary monitoring (currently disabled)"
         )
         if lunary_enabled:
-            global_config().set("monitoring.default", "lunary")
+            global_config().set("monitoring.lunary", "true")
         monitoring_options.append("Lunary.ai detected")
 
     # Check for LangSmith
@@ -110,13 +110,13 @@ def monitoring_configuration_section() -> None:
         )
 
         if langsmith_enabled:
-            global_config().set("monitoring.default", "langsmith")
+            global_config().set("monitoring.langsmith", "true")
             os.environ["LANGCHAIN_TRACING_V2"] = "true"
             os.environ["LANGCHAIN_PROJECT"] = global_config().get_str("monitoring.project")
             os.environ["LANGCHAIN_TRACING_SAMPLING_RATE"] = "1.0"
         else:
             os.environ["LANGCHAIN_TRACING_V2"] = "false"
-            global_config().set("monitoring.default", "none")
+            global_config().set("monitoring.langsmith", "false")
 
         monitoring_options.append("LangSmith detected")
 
@@ -132,7 +132,7 @@ def main() -> None:
     st.markdown("Configure your GenAI Lab settings and view current configuration status.")
 
     # Configuration Information Section
-    with st.expander("📋 Configuration Information", expanded=True):
+    with st.expander("📋 Configuration Information", expanded=False):
         display_config_info()
 
     # LLM Configuration Section

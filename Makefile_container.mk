@@ -17,6 +17,7 @@ PROJECT_ID_GCP=XXX
 
 test1:
 	echo $(OPENAI_API_KEY)
+	echo $(ENV_FILE)
 
 .PHONY: build run save sync_time check # Docker build and deployment 
 
@@ -32,7 +33,7 @@ build: ## Build the docker image
 
 run: ## Execute the image with environment variables
 	docker run -it -p 8000:8000 -p 8501:8501 \
-		--env-file .env \
+		--env-file $(ENV_FILE) \
 		$(APP):$(IMAGE_VERSION)
 
 save:  # Create a zipped version of the image

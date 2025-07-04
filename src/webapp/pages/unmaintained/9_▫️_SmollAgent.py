@@ -7,7 +7,6 @@ from smolagents import (
 )
 
 from src.ai_core.llm import LlmFactory
-from src.webapp.ui_components.llm_config import llm_config_widget
 from src.webapp.ui_components.smolagents_streamlit import stream_to_streamlit
 
 # MODEL_ID = "gpt_4o_azure"
@@ -21,9 +20,6 @@ SAMPLE_PROMPTS = [
     "If the US keeps its 2024 growth rate, how many years will it take for the GDP to double?",
     "Which Dutch player scored an open-play goal in the 2022 Netherlands vs Argentina game in the men’s FIFA World Cup?",
 ]
-
-
-llm_config_widget(st.sidebar)
 
 
 model_name = LlmFactory(llm_id=MODEL_ID).get_litellm_model_name()

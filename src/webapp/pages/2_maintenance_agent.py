@@ -66,11 +66,6 @@ SAMPLE_PROMPTS = {
 LLM_ID = None
 
 
-# if not st.session_state.get("authenticated"):
-#     st.write("not authenticated")
-#     st.stop()
-
-llm_config_widget(st.sidebar)
 
 ################################
 #  UI

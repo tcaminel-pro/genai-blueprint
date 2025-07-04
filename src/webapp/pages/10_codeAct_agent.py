@@ -291,9 +291,6 @@ SAMPLES_DEMOS = load_demos_from_config()
 #  UI
 ##########################
 
-# Add LLM configuration widget to the sidebar
-llm_config_widget(st.sidebar)  # Allows users to configure model parameters
-
 
 @st.cache_data(show_spinner=True)
 def get_cache_dataframe(file_or_filename: Path | UploadedFile, **kwargs) -> pd.DataFrame:

@@ -49,8 +49,7 @@ runnable_desc = chain_registry.find(selection[1])
 if not runnable_desc:
     st.stop()
 
-# Configure and display the sidebar with settings and options
-llm_config_widget(st.sidebar, False)
+
 
 # Get the first example from the runnable description to use as default values
 first_example = runnable_desc.examples[0]
@@ -104,7 +103,7 @@ with st.form("my_form"):
     # print(config)
     if submitted:
         chain = runnable_desc.get().with_config(configurable=config)
-        if global_config().get_str("monitoring.default") == "langsmith":
+        if global_config().get_bool("monitoring.langsmith", False):
             # use Langsmith context manager to get the UTL to the trace
             with tracing_v2_enabled() as cb:
                 result = chain.invoke(input)

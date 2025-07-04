@@ -34,8 +34,6 @@ from src.webapp.ui_components.streamlit_chat import StreamlitStatusCallbackHandl
 
 load_dotenv()
 
-llm_config_widget(st.sidebar, False)
-
 from langchain_community.tools import DuckDuckGoSearchRun  # noqa: E402
 
 duckduck_search_tool = DuckDuckGoSearchRun()
