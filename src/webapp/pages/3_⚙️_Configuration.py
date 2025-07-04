@@ -110,7 +110,7 @@ def mcp_servers_section() -> None:
                 st.dataframe(
                     table_data,
                     column_config={
-                        "Tool": st.column_config.Column(width=None),
+                        "Tool": st.column_config.Column(width="small"),
                         "Description": st.column_config.TextColumn(
                             width="large",
                             help="Description of the tool",
@@ -118,7 +118,7 @@ def mcp_servers_section() -> None:
                     },
                     hide_index=True,
                     use_container_width=True,
-                    height=(len(table_data) + 1) * 40,  # Adjust height based on number of rows
+                    height=(len(table_data) + 1) * 60,  # Increased height for unwrapped text
                 )
 
     asyncio.run(display_tools())
