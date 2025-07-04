@@ -32,13 +32,7 @@ build: ## Build the docker image
 
 run: ## Execute the image with environment variables
 	docker run -it -p 8000:8000 -p 8501:8501 \
-		-e OPENAI_API_KEY \
-		-e AZURE_OPENAI_API_KEY \
-		-e GROQ_API_KEY \
-		-e LANGCHAIN_API_KEY \
-		-e ANTHROPIC_API_KEY \
-		-e COHERE_API_KEY \
-		-e OPENROUTER_API_KEY \
+		--env-file .env \
 		$(APP):$(IMAGE_VERSION)
 
 save:  # Create a zipped version of the image
