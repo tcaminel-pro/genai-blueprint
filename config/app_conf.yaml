@@ -37,10 +37,18 @@ ui:
   app_name : GenAI Lab and Practicum
   pages_dir : ${paths.src}/webapp/pages
   navigation:
-    playground:
-      - "1_▫️_Runnable_Playground.py"
+    settings:
+      - 0_welcome.py
+      - 1_runnable_playground.py
     demos:
-      - "2_▫️_Maintenance_Agent.py"
+      - 2_maintenance_agent.py
+      - 5_mon_master.py
+      - 7_deep_search_agent.py
+      - 12_reAct_agent.py
+      - 14_graph_RAG.py
+      - 18_residio_anonymization.py
+
+
 
 auth:
   config_file: ${paths.config}/basic_auth.yaml
