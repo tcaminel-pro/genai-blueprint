@@ -88,6 +88,41 @@ def llm_configuration_section() -> None:
         set_verbose(verbose_mode)
 
 
+def mcp_servers_section() -> None:
+    """Display information about available MCP servers and their tools."""
+    st.subheader("MCP Servers & Tools")
+    
+    import asyncio
+    from rich.console import Console
+    from rich.table import Table
+    from src.ai_core.mcp_client import get_mcp_tools_info
+
+    async def display_tools():
+        tools_info = await get_mcp_tools_info()
+        if not tools_info:
+            st.info("No MCP servers found.")
+            return
+
+        for server_name, tools in tools_info.items():
+            with st.expander(f"Server: {server_name}", expanded=False):
+                table = Table(
+                    show_header=True,
+                    header_style="bold magenta",
+                    row_styles=["", "dim"],
+                )
+                table.add_column("Tool", style="cyan", no_wrap=True)
+                table.add_column("Description", style="green")
+
+                for tool_name, description in tools.items():
+                    table.add_row(tool_name, description)
+
+                console = Console()
+                with console.capture() as capture:
+                    console.print(table)
+                st.text(capture.get())
+
+    asyncio.run(display_tools())
+
 def monitoring_configuration_section() -> None:
     """Monitoring configuration controls."""
     st.subheader("Monitoring Configuration")
@@ -138,6 +173,10 @@ def main() -> None:
     # LLM Configuration Section
     with st.expander("🤖 LLM Settings", expanded=True):
         llm_configuration_section()
+
+    # MCP Servers Section
+    with st.expander("🛠️ MCP Servers & Tools", expanded=False):
+        mcp_servers_section()
 
     # Monitoring Configuration Section
     with st.expander("📊 Monitoring Settings", expanded=False):
