@@ -33,7 +33,8 @@ build: ## Build the docker image
 
 run: ## Execute the image with environment variables
 	docker run -it -p 8000:8000 -p 8501:8501 \
-		--env-file $(ENV_FILE) \
+		-e OPENROUTER_API_KEY=$(OPENROUTER_API_KEY) \
+		-e DEEPSEEK_API_KEY=$(DEEPSEEK_API_KEY) \
 		$(APP):$(IMAGE_VERSION)
 
 save:  # Create a zipped version of the image
