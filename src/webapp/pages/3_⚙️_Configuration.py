@@ -91,7 +91,7 @@ def llm_configuration_section() -> None:
 def mcp_servers_section() -> None:
     """Display information about available MCP servers and their tools."""
     st.subheader("MCP Servers & Tools")
-    
+
     import asyncio
     from rich.console import Console
     from rich.table import Table
@@ -122,6 +122,7 @@ def mcp_servers_section() -> None:
                 st.text(capture.get())
 
     asyncio.run(display_tools())
+
 
 def monitoring_configuration_section() -> None:
     """Monitoring configuration controls."""
