@@ -5,8 +5,14 @@
 
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm AS builder                                         
                                                                                                  
-RUN apt-get update && apt-get install -y git curl                                                
-                                                                                                 
+RUN apt-get update && apt-get install -y git curl build-essential libssl-dev \
+    && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash \
+    && export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")" \
+    && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" \
+    && nvm install --lts \
+    && nvm alias default node \
+    && nvm use default
+
 # Install system dependencies and clean up                                                       
 RUN apt-get install -y graphviz-dev && \                                                         
     rm -rf /var/lib/apt/lists/*                                                                  
