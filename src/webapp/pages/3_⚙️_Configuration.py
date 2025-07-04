@@ -177,6 +177,27 @@ def main() -> None:
     with st.expander("🤖 LLM Settings", expanded=True):
         llm_configuration_section()
 
+        # LLM Test Section
+        st.subheader("Test LLM")
+        test_input = st.text_area(
+            "Test Input",
+            value="Hello, how are you?",
+            help="Enter text to test the currently configured LLM"
+        )
+        
+        if st.button("Run Test"):
+            from src.ai_core.llm import get_llm
+            from langchain_core.messages import HumanMessage
+            
+            with st.spinner("Running LLM test..."):
+                try:
+                    llm = get_llm()
+                    response = llm.invoke([HumanMessage(content=test_input)])
+                    st.success("LLM Response:")
+                    st.write(response.content)
+                except Exception as e:
+                    st.error(f"Error running LLM test: {str(e)}")
+
     # MCP Servers Section
     with st.expander("🛠️ MCP Servers & Tools", expanded=False):
         mcp_servers_section()
