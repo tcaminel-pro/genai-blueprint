@@ -7,6 +7,7 @@ Provides a simple interface to:
 """
 
 import importlib
+import shlex
 
 import streamlit as st
 from devtools import debug
@@ -38,7 +39,7 @@ def get_cli_runner() -> CliRunner:
 
 
 def run_typer_command(command: str) -> str:
-    args = command.split()
+    args = shlex.split(command)
     result = get_cli_runner().invoke(cli_app, args)
 
     if result.exit_code != 0:
