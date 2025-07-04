@@ -23,6 +23,48 @@ def display_config_info() -> None:
 
     st.subheader("Current Configuration")
     st.info(f"**Selected configuration:** {config.selected_config}")
+    
+    # Display key configuration values
+    st.markdown("**Key Configuration Values:**")
+    config_data = []
+    
+    # LLM configuration
+    try:
+        llm_model = config.get_str("llm.default_model", "Not set")
+        config_data.append({"Setting": "LLM Default Model", "Value": llm_model})
+    except Exception:
+        config_data.append({"Setting": "LLM Default Model", "Value": "Not available"})
+    
+    # Embeddings configuration
+    try:
+        embeddings_model = config.get_str("embeddings.default_model", "Not set")
+        config_data.append({"Setting": "Embeddings Default Model", "Value": embeddings_model})
+    except Exception:
+        config_data.append({"Setting": "Embeddings Default Model", "Value": "Not available"})
+    
+    # Vector store configuration
+    try:
+        vector_store = config.get_str("vector_store.default", "Not set")
+        config_data.append({"Setting": "Vector Store Default", "Value": vector_store})
+    except Exception:
+        config_data.append({"Setting": "Vector Store Default", "Value": "Not available"})
+    
+    # Cache configuration
+    try:
+        cache_method = config.get_str("llm.cache", "Not set")
+        config_data.append({"Setting": "LLM Cache Method", "Value": cache_method})
+    except Exception:
+        config_data.append({"Setting": "LLM Cache Method", "Value": "Not available"})
+    
+    # Monitoring configuration
+    try:
+        monitoring = config.get_str("monitoring.default", "Not set")
+        config_data.append({"Setting": "Monitoring Default", "Value": monitoring})
+    except Exception:
+        config_data.append({"Setting": "Monitoring Default", "Value": "Not available"})
+    
+    if config_data:
+        st.table(config_data)
 
     st.subheader("Available LLM API Keys")
 
