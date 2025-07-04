@@ -109,10 +109,10 @@ def mcp_servers_section() -> None:
                     table_data,
                     column_config={
                         "Tool": st.column_config.Column(width="large"),
-                        "Description": st.column_config.Column(width="medium")
+                        "Description": st.column_config.Column(width="medium"),
                     },
                     hide_index=True,
-                    use_container_width=True
+                    use_container_width=True,
                 )
 
     asyncio.run(display_tools())
