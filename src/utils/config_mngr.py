@@ -124,7 +124,7 @@ class OmegaConfig(BaseModel):
         # Ensure the selected config section exists
         if self.selected_config not in self.root:
             self.root[self.selected_config] = OmegaConf.create({})
-        
+
         # Get the selected config section (now guaranteed to exist)
         selected_section = self.root[self.selected_config]
         OmegaConf.update(selected_section, key, value, merge=True)
