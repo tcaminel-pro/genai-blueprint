@@ -103,9 +103,17 @@ def mcp_servers_section() -> None:
 
         for server_name, tools in tools_info.items():
             with st.expander(f"Server: {server_name}", expanded=False):
-                # Convert tools dict to list of dicts for st.table
+                # Convert tools dict to list of dicts for dataframe display
                 table_data = [{"Tool": tool, "Description": desc} for tool, desc in tools.items()]
-                st.table(table_data)
+                st.dataframe(
+                    table_data,
+                    column_config={
+                        "Tool": st.column_config.Column(width="large"),
+                        "Description": st.column_config.Column(width="medium")
+                    },
+                    hide_index=True,
+                    use_container_width=True
+                )
 
     asyncio.run(display_tools())
 
