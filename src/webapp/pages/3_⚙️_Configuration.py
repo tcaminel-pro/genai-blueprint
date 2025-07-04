@@ -110,10 +110,9 @@ def mcp_servers_section() -> None:
                     table_data,
                     column_config={
                         "Tool": st.column_config.Column(width=None),
-                        "Description": st.column_config.Column(
+                        "Description": st.column_config.TextColumn(
                             width="large",
                             help="Description of the tool",
-                            max_chars=0,  # Show all text
                         ),
                     },
                     hide_index=True,
