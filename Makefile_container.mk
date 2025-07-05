@@ -8,6 +8,10 @@ REGISTRY_AZ=XXXX.azurecr.io
 REGISTRY_NAME=XXX
 LOCATION=europe-west4
 PROJECT_ID_GCP=XXX
+AWS_REGION=us-east-1
+AWS_ACCOUNT_ID=123456789012
+AWS_SUBNET=subnet-xxxxxxxxx
+AWS_SECURITY_GROUP=sg-xxxxxxxxx
 
 
 ##############################
