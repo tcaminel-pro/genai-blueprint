@@ -164,6 +164,43 @@ get_aws_ecs_url: ## Get the public IP/URL of the deployed ECS service
 		echo "Check service status with: aws ecs describe-services --cluster $(APP)-cluster --services $(APP)-service --region $(AWS_REGION)"; \
 	fi
 
+debug_aws_ecs: ## Debug ECS deployment issues
+	@echo "=== ECS Service Events ==="
+	@aws ecs describe-services \
+		--cluster $(APP)-cluster \
+		--services $(APP)-service \
+		--region $(AWS_REGION) \
+		--query 'services[0].events[0:5]' \
+		--output table
+	@echo ""
+	@echo "=== Task Definition Details ==="
+	@aws ecs describe-task-definition \
+		--task-definition $(APP)-task \
+		--region $(AWS_REGION) \
+		--query 'taskDefinition.{Family:family,Revision:revision,Status:status,Cpu:cpu,Memory:memory,ExecutionRoleArn:executionRoleArn}' \
+		--output table
+	@echo ""
+	@echo "=== All Tasks (including stopped) ==="
+	@aws ecs list-tasks \
+		--cluster $(APP)-cluster \
+		--service-name $(APP)-service \
+		--region $(AWS_REGION) \
+		--desired-status STOPPED \
+		--query 'taskArns' \
+		--output text | head -1 | xargs -I {} aws ecs describe-tasks \
+		--cluster $(APP)-cluster \
+		--tasks {} \
+		--region $(AWS_REGION) \
+		--query 'tasks[0].{TaskArn:taskArn,LastStatus:lastStatus,StoppedReason:stoppedReason,StoppedAt:stoppedAt}' \
+		--output table 2>/dev/null || echo "No stopped tasks found"
+	@echo ""
+	@echo "=== Security Group Check ==="
+	@aws ec2 describe-security-groups \
+		--group-ids $(AWS_SECURITY_GROUP) \
+		--region $(AWS_REGION) \
+		--query 'SecurityGroups[0].IpPermissions[?FromPort==`8501`]' \
+		--output table || echo "Security group not found or no port 8501 rule"
+
 ##############
 ##  MODAL  ###
 ##############
