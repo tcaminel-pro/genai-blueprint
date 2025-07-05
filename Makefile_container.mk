@@ -130,7 +130,7 @@ deploy_aws_ecs: ## Deploy to AWS ECS Fargate
 		--container-definitions '[{"name":"$(APP)-container","image":"$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)","portMappings":[{"containerPort":8501,"hostPort":8501}],"essential":true}]' \
 		--region $(AWS_REGION)
 	
-	@echo "Creating ECS service..."
+	@echo "Creating or updating ECS service..."
 	aws ecs create-service \
 		--cluster $(APP)-cluster \
 		--service-name $(APP)-service \
@@ -138,6 +138,12 @@ deploy_aws_ecs: ## Deploy to AWS ECS Fargate
 		--desired-count 1 \
 		--launch-type "FARGATE" \
 		--network-configuration "awsvpcConfiguration={subnets=[$(AWS_SUBNET)],securityGroups=[$(AWS_SECURITY_GROUP)],assignPublicIp=ENABLED}" \
+		--region $(AWS_REGION) || \
+	aws ecs update-service \
+		--cluster $(APP)-cluster \
+		--service $(APP)-service \
+		--task-definition $(APP)-task \
+		--desired-count 1 \
 		--region $(AWS_REGION)
 	
 	@echo "Application deployed! It may take a few minutes to become available."
