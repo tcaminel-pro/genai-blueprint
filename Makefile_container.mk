@@ -104,6 +104,21 @@ deploy_aws_ecs: ## Deploy to AWS ECS Fargate
 	@echo "Creating ECS cluster..."
 	aws ecs create-cluster --cluster-name $(APP)-cluster --region $(AWS_REGION) || true
 	
+	@echo "Creating IAM role for ECS task execution..."
+	aws iam create-role \
+		--role-name ecsTaskExecutionRole \
+		--assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"ecs-tasks.amazonaws.com"},"Action":"sts:AssumeRole"}]}' \
+		--region $(AWS_REGION) || true
+	
+	@echo "Attaching policy to execution role..."
+	aws iam attach-role-policy \
+		--role-name ecsTaskExecutionRole \
+		--policy-arn arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy \
+		--region $(AWS_REGION) || true
+	
+	@echo "Waiting for role to be available..."
+	sleep 10
+	
 	@echo "Creating task definition..."
 	aws ecs register-task-definition \
 		--family $(APP)-task \
@@ -111,7 +126,7 @@ deploy_aws_ecs: ## Deploy to AWS ECS Fargate
 		--cpu "256" \
 		--memory "512" \
 		--requires-compatibilities "FARGATE" \
-		--execution-role-arn ecsTaskExecutionRole \
+		--execution-role-arn arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskExecutionRole \
 		--container-definitions '[{"name":"$(APP)-container","image":"$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)","portMappings":[{"containerPort":8501,"hostPort":8501}],"essential":true}]' \
 		--region $(AWS_REGION)
 	
