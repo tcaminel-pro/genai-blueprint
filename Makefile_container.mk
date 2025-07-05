@@ -81,6 +81,54 @@ push_az:  ## Push to a Azure registry
 
 
 ##############
+##  AWS  ###
+##############
+.PHONY: login_aws push_aws deploy_aws_ecs
+
+login_aws:
+	aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
+
+push_aws: ## Push to AWS ECR
+	aws ecr create-repository --repository-name $(APP) --region $(AWS_REGION) || true
+	docker tag $(APP):$(IMAGE_VERSION) $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)
+	docker push $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)
+
+deploy_aws_ecs: ## Deploy to AWS ECS Fargate
+	@echo "Creating ECS cluster..."
+	aws ecs create-cluster --cluster-name $(APP)-cluster --region $(AWS_REGION) || true
+	
+	@echo "Creating task definition..."
+	aws ecs register-task-definition \
+		--family $(APP)-task \
+		--network-mode awsvpc \
+		--cpu "256" \
+		--memory "512" \
+		--requires-compatibilities "FARGATE" \
+		--execution-role-arn ecsTaskExecutionRole \
+		--container-definitions '[{
+			"name": "$(APP)-container",
+			"image": "$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)",
+			"portMappings": [{
+				"containerPort": 8501,
+				"hostPort": 8501
+			}],
+			"essential": true
+		}]' \
+		--region $(AWS_REGION)
+	
+	@echo "Creating ECS service..."
+	aws ecs create-service \
+		--cluster $(APP)-cluster \
+		--service-name $(APP)-service \
+		--task-definition $(APP)-task \
+		--desired-count 1 \
+		--launch-type "FARGATE" \
+		--network-configuration "awsvpcConfiguration={subnets=[$(AWS_SUBNET)],securityGroups=[$(AWS_SECURITY_GROUP)],assignPublicIp=ENABLED}" \
+		--region $(AWS_REGION)
+	
+	@echo "Application deployed! It may take a few minutes to become available."
+
+##############
 ##  MODAL  ###
 ##############
 
