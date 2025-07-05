@@ -112,15 +112,7 @@ deploy_aws_ecs: ## Deploy to AWS ECS Fargate
 		--memory "512" \
 		--requires-compatibilities "FARGATE" \
 		--execution-role-arn ecsTaskExecutionRole \
-		--container-definitions '[{
-			"name": "$(APP)-container",
-			"image": "$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)",
-			"portMappings": [{
-				"containerPort": 8501,
-				"hostPort": 8501
-			}],
-			"essential": true
-		}]' \
+		--container-definitions '[{"name":"$(APP)-container","image":"$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)","portMappings":[{"containerPort":8501,"hostPort":8501}],"essential":true}]' \
 		--region $(AWS_REGION)
 	
 	@echo "Creating ECS service..."
