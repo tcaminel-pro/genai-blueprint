@@ -23,7 +23,10 @@ else
 $(warning .env file not found in current or parent directory)
 endif
 
-include Makefile_container.mk
+
+include deploy/docker.mk
+include deploy/aws.mk
+include deploy/modal.mk
 
 .PHONY: .uv   .pre-commit .pythonpath
 .uv:  ## Check that uv is installed
@@ -66,13 +69,13 @@ AIDER_OPTS=--watch-files --lint-cmd "ruff format" --read CONVENTIONS.md --editor
 
 aider:  ## Call aider-chat (a coding assistant)
 	aider $(AIDER_OPTS) --model openrouter/deepseek/deepseek-chat
-aider-haiku: 
+aider_haiku: 
 	aider $(AIDER_OPTS) --cache-prompts --model openrouter/anthropic/claude-3-5-haiku;   
-aider-sonnet: 
+aider_sonnet: 
 	aider $(AIDER_OPTS) --cache-prompts --model openrouter/anthropic/claude-sonnet-4;   
-aider-r1:
+aider_r1:
 	aider $(AIDER_OPTS) --model openrouter/deepseek/deepseek-r1
-aider-o3:
+aider_o3:
 	aider $(AIDER_OPTS) --model o3-mini; 
 
 
@@ -84,7 +87,7 @@ lint: ## Run Ruff an all Python files to format fix imports
 quality: ## Run Ruff an all Python files to check quality
 	find . -path "./src/wip" -prune -o -path "./.venv" -prune -o -type f -name '*.py' | xargs ruff check --fix 
 
-clean-notebooks:  ## Clean Jupyter notebook outputs. 
+clean_notebooks:  ## Clean Jupyter notebook outputs. 
 	@find . -name "*.ipynb" | while read -r notebook; do \
 		echo "Cleaning outputs from: $$notebook"; \
 		uvx jupyter nbconvert --clear-output --inplace "$$notebook"; \
@@ -149,7 +152,7 @@ backup: ## rsync project and shared files to $(ONEDRIVE)
 	cp ~/.env ~/.bashrc ~/.bash_aliases $(ONEDRIVE)/backup/wsl/tcl/
 	cp ~/install.sh  $(ONEDRIVE)/backup/wsl/tcl/
 
-backup-sync: 
+backup_sync: 
 	rsync -av \
 	--exclude='.git/' --exclude='.ruf_cache/' --exclude='__pycache__/'  \
 	--include='*/' \
@@ -211,13 +214,13 @@ load_env:
 env_path:
 	echo $(ENV_FILE)
 
-call-azure-llm: load_env
+curl_azure_llm: 
 	curl -X POST "$(AZURE_OPENAI_ENDPOINT)/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-02-15-preview" \
 	-H "Content-Type: application/json" \
 	-H "Authorization: Bearer $(AZURE_OPENAI_API_KEY)" \
 	-d "{\"messages\":[{\"role\":\"user\",\"content\":\"Tell me a joke\"}]}"
 
-call-openrouter-llm: 
+curl_openrouter_llm: 
 	@echo "Calling OpenRouter LLM..."
 	curl https://openrouter.ai/api/v1/chat/completions \
 	-H "Content-Type: application/json" \
