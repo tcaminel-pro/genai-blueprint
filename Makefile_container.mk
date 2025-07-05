@@ -128,30 +128,41 @@ deploy_aws_ecs: ## Deploy to AWS ECS Fargate
 	@echo "Application deployed! It may take a few minutes to become available."
 
 get_aws_ecs_url: ## Get the public IP/URL of the deployed ECS service
-	@echo "Getting ECS service details..."
+	@echo "Getting ECS service status..."
 	@aws ecs describe-services \
 		--cluster $(APP)-cluster \
 		--services $(APP)-service \
 		--region $(AWS_REGION) \
-		--query 'services[0].taskDefinition' \
-		--output text
+		--query 'services[0].{Status:status,Running:runningCount,Desired:desiredCount}' \
+		--output table
 	@echo "Getting running tasks..."
-	@aws ecs list-tasks \
+	@TASK_ARN=$$(aws ecs list-tasks \
 		--cluster $(APP)-cluster \
 		--service-name $(APP)-service \
 		--region $(AWS_REGION) \
 		--query 'taskArns[0]' \
-		--output text | xargs -I {} aws ecs describe-tasks \
-		--cluster $(APP)-cluster \
-		--tasks {} \
-		--region $(AWS_REGION) \
-		--query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' \
-		--output text | xargs -I {} aws ec2 describe-network-interfaces \
-		--network-interface-ids {} \
-		--region $(AWS_REGION) \
-		--query 'NetworkInterfaces[0].Association.PublicIp' \
-		--output text
-	@echo "Your application should be available at: http://<PUBLIC_IP>:8501"
+		--output text); \
+	if [ "$$TASK_ARN" != "None" ] && [ "$$TASK_ARN" != "" ]; then \
+		echo "Found task: $$TASK_ARN"; \
+		PUBLIC_IP=$$(aws ecs describe-tasks \
+			--cluster $(APP)-cluster \
+			--tasks $$TASK_ARN \
+			--region $(AWS_REGION) \
+			--query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' \
+			--output text | xargs -I {} aws ec2 describe-network-interfaces \
+			--network-interface-ids {} \
+			--region $(AWS_REGION) \
+			--query 'NetworkInterfaces[0].Association.PublicIp' \
+			--output text); \
+		if [ "$$PUBLIC_IP" != "None" ] && [ "$$PUBLIC_IP" != "" ]; then \
+			echo "Your application is available at: http://$$PUBLIC_IP:8501"; \
+		else \
+			echo "No public IP found. The task might still be starting."; \
+		fi; \
+	else \
+		echo "No running tasks found. The service might still be starting."; \
+		echo "Check service status with: aws ecs describe-services --cluster $(APP)-cluster --services $(APP)-service --region $(AWS_REGION)"; \
+	fi
 
 ##############
 ##  MODAL  ###
