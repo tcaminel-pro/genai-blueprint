@@ -238,8 +238,13 @@ def register_commands(cli_app: typer.Typer) -> None:
         from src.ai_extra.gpt_researcher_chain import GptrConfig, run_gpt_researcher
 
         try:
+            from src.ai_extra.gpt_researcher_chain import GptrConfVariables
+            
             # Load configuration from yaml
             gptr_config_obj = GptrConfig.load(config_name)
+            
+            # Create GptrConfVariables from the loaded config
+            gptr_conf_vars = GptrConfVariables(**gptr_config_obj.config)
 
             # Override llm_id if provided
             if llm_id is not None:
@@ -247,15 +252,15 @@ def register_commands(cli_app: typer.Typer) -> None:
                     print(f"Error: {llm_id} is unknown llm_id.\nShould be in {LlmFactory.known_items()}")
                     return
                 # Update the config with the provided llm_id
-                gptr_config_obj.config.fast_llm_id = llm_id
-                gptr_config_obj.config.smart_llm_id = llm_id
-                gptr_config_obj.config.strategic_llm_id = llm_id
+                gptr_conf_vars.fast_llm_id = llm_id
+                gptr_conf_vars.smart_llm_id = llm_id
+                gptr_conf_vars.strategic_llm_id = llm_id
 
             print(f"Running GPT Researcher with config: {config_name}")
             print(f"Query: {query}")
 
             # Run the research
-            result = asyncio.run(run_gpt_researcher(query=query, gptr_config=gptr_config_obj.config, verbose=verbose))
+            result = asyncio.run(run_gpt_researcher(query=query, gptr_config=gptr_conf_vars, verbose=verbose))
 
             print("\n" + "=" * 80)
             print("RESEARCH REPORT")
