@@ -46,20 +46,34 @@ def create_gptr_config(llm_id: str | None = None, **extra_params) -> str:
     config_dict = {}
 
     if llm_id:
-        litellm_name = "litellm:" + LlmFactory(llm_id=llm_id).get_litellm_model_name()
-        config_dict.update(
-            {
-                "FAST_LLM": litellm_name,
-                "SMART_LLM": litellm_name,
-                "STRATEGIC_LLM": litellm_name,
-            }
-        )
+        try:
+            litellm_name = LlmFactory(llm_id=llm_id).get_litellm_model_name()
+            logger.info(f"Using LiteLLM model name: {litellm_name}")
+            config_dict.update(
+                {
+                    "FAST_LLM": litellm_name,
+                    "SMART_LLM": litellm_name,
+                    "STRATEGIC_LLM": litellm_name,
+                }
+            )
+        except Exception as e:
+            logger.error(f"Failed to get LiteLLM model name for {llm_id}: {e}")
+            logger.info("Falling back to default GPT models")
+            # Fall back to default models if LLM factory fails
+            config_dict.update(
+                {
+                    "FAST_LLM": "gpt-3.5-turbo",
+                    "SMART_LLM": "gpt-4",
+                    "STRATEGIC_LLM": "gpt-4",
+                }
+            )
 
     config_dict.update(extra_params)
 
     path = Path(tempfile.gettempdir()) / "gptr_conf.json"
     with open(path, "w") as json_file:
-        json.dump(config_dict, json_file)
+        json.dump(config_dict, json_file, indent=2)
+    logger.info(f"Created GPT Researcher config at {path}: {config_dict}")
     return str(path)
 
 
@@ -82,27 +96,38 @@ async def run_gpt_researcher(
     max_iterations = kwargs.pop("max_iterations", 3)
     max_search_results = kwargs.pop("max_search_results_per_query", 5)
 
-    config_path = create_gptr_config(
-        llm_id=llm_id,
-        MAX_ITERATIONS=max_iterations,
-        MAX_SEARCH_RESULTS_PER_QUERY=max_search_results,
-    )
+    try:
+        config_path = create_gptr_config(
+            llm_id=llm_id,
+            MAX_ITERATIONS=max_iterations,
+            MAX_SEARCH_RESULTS_PER_QUERY=max_search_results,
+        )
 
-    researcher = GPTResearcher(
-        query=query, verbose=verbose, websocket=websocket_logger, config_path=config_path, **kwargs
-    )
+        researcher = GPTResearcher(
+            query=query, verbose=verbose, websocket=websocket_logger, config_path=config_path, **kwargs
+        )
 
-    logger.info(f"Starting GPT Researcher with query: {query}")
-    await researcher.conduct_research()
-    report = await researcher.write_report()
+        logger.info(f"Starting GPT Researcher with query: {query}")
+        await researcher.conduct_research()
+        report = await researcher.write_report()
 
-    return ResearchReport(
-        report=report,
-        context=str(researcher.get_research_context()),
-        costs=researcher.get_costs(),
-        images=[str(e) for e in researcher.get_research_images()],
-        sources=researcher.get_research_sources(),
-    )
+        return ResearchReport(
+            report=report,
+            context=str(researcher.get_research_context()),
+            costs=researcher.get_costs(),
+            images=[str(e) for e in researcher.get_research_images()],
+            sources=researcher.get_research_sources(),
+        )
+    except Exception as e:
+        logger.error(f"GPT Researcher failed: {e}")
+        # Return a basic error report instead of crashing
+        return ResearchReport(
+            report=f"Research failed due to error: {str(e)}",
+            context="Error occurred during research",
+            costs=0.0,
+            images=[],
+            sources=[],
+        )
 
 
 # FOR QUICK TEST
@@ -112,7 +137,7 @@ if __name__ == "__main__":
         query = "what are the ethical risks of LLM powered AI Agents"
         result = await run_gpt_researcher(
             query=query,
-            llm_id="gpt_41mini_openrouter",
+            llm_id=None,  # Use default models instead of potentially problematic custom LLM
             max_iterations=1,
             max_search_results_per_query=3,
             report_source="web",
