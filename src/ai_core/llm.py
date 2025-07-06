@@ -258,7 +258,9 @@ class LlmFactory(BaseModel):
         if self.provider in ["openai"]:
             result = f"{self.info.model}"
         else:
-            result = f"{self.provider}/{self.info.model}"
+            # Replace first / with separator
+            parts = f"{self.provider}/{self.info.model}".split("/", 1)
+            result = separator.join(parts)
 
         try:
             get_llm_provider(result)
