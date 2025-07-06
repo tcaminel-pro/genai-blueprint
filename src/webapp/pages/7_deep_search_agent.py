@@ -17,7 +17,7 @@ import streamlit as st
 from md2pdf import md2pdf
 from streamlit import session_state as sss
 
-from src.ai_extra.gpt_researcher_chain import ResearchReport, run_gpt_researcher
+from src.ai_extra.gpt_researcher_chain import run_gpt_researcher
 from src.utils.streamlit.auto_scroll import scroll_to_here
 
 st.title("GPT Researcher Playground")
@@ -42,7 +42,7 @@ with st.expander("Search Configuration", expanded=True):
     with col1:
         max_iterations = st.number_input("Max Iterations", 1, 5, value=3)
         max_search_results = st.number_input("Max search per query", 1, 10, value=5)
-        llm_id = st.text_input("LLM ID", value="gpt_4omini_openrouter")
+        llm_id = st.text_input("LLM ID", value="gpt_41mini_openrouter")
 
     with col2:
         report_type = st.selectbox(
@@ -130,6 +130,10 @@ async def main() -> None:
 
             if custom_prompt:
                 research_params["custom_prompt"] = custom_prompt
+
+            from devtools import debug
+
+            debug(research_params)
 
             with st.spinner("GPT Researcher running..."):
                 try:

@@ -46,27 +46,15 @@ def create_gptr_config(llm_id: str | None = None, **extra_params) -> str:
     config_dict = {}
 
     if llm_id:
-        try:
-            litellm_name = LlmFactory(llm_id=llm_id).get_litellm_model_name()
-            logger.info(f"Using LiteLLM model name: {litellm_name}")
-            config_dict.update(
-                {
-                    "FAST_LLM": litellm_name,
-                    "SMART_LLM": litellm_name,
-                    "STRATEGIC_LLM": litellm_name,
-                }
-            )
-        except Exception as e:
-            logger.error(f"Failed to get LiteLLM model name for {llm_id}: {e}")
-            logger.info("Falling back to default GPT models")
-            # Fall back to default models if LLM factory fails
-            config_dict.update(
-                {
-                    "FAST_LLM": "gpt-3.5-turbo",
-                    "SMART_LLM": "gpt-4",
-                    "STRATEGIC_LLM": "gpt-4",
-                }
-            )
+        litellm_name = LlmFactory(llm_id=llm_id).get_litellm_model_name(separator=":")
+        logger.info(f"Using LiteLLM model name: {litellm_name}")
+        config_dict.update(
+            {
+                "FAST_LLM": litellm_name,
+                "SMART_LLM": litellm_name,
+                "STRATEGIC_LLM": litellm_name,
+            }
+        )
 
     config_dict.update(extra_params)
 
@@ -137,7 +125,8 @@ if __name__ == "__main__":
         query = "what are the ethical risks of LLM powered AI Agents"
         result = await run_gpt_researcher(
             query=query,
-            llm_id=None,  # Use default models instead of potentially problematic custom LLM
+            #llm_id=None,  # Use default models instead of potentially problematic custom LLM
+            llm_id="gpt_41mini_openrouter",
             max_iterations=1,
             max_search_results_per_query=3,
             report_source="web",
