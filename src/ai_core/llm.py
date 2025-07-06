@@ -248,8 +248,6 @@ class LlmFactory(BaseModel):
     def short_name(self) -> str:
         """Return the model ID without the provider (everything before the last underscore)."""
         return self.info.id.rsplit("_", maxsplit=1)[0]
-
-    # replace first / by separator before returning AI!
     def get_litellm_model_name(self, separator: str = "/") -> str:
         """Return the LiteLLM id string from our llm_id  (best effort).
 
@@ -258,10 +256,7 @@ class LlmFactory(BaseModel):
         if self.provider in ["openai"]:
             result = f"{self.info.model}"
         else:
-            # Replace first / with separator
-            parts = f"{self.provider}/{self.info.model}".split("/", 1)
-            result = separator.join(parts)
-
+            result = f"{self.provider}/{self.info.model}"
         try:
             get_llm_provider(result)
             # Note: LiteLLM mentions a 'get_valid_models' call, but not seems present
@@ -269,6 +264,7 @@ class LlmFactory(BaseModel):
         except Exception as ex:
             raise ValueError(f"Incorrect or unknown LiteLLM provider for: '{result}'") from ex
 
+        # replace the first slash with the separator parameter AI!
         return result
 
     def get_smolagent_model(self):  # -> ApiModel
