@@ -239,10 +239,10 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         try:
             from src.ai_extra.gpt_researcher_chain import GptrConfVariables
-            
+
             # Load configuration from yaml
             gptr_config_obj = GptrConfig.load(config_name)
-            
+
             # Create GptrConfVariables from the loaded config
             gptr_conf_vars = GptrConfVariables(**gptr_config_obj.config)
 
