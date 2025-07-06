@@ -35,26 +35,28 @@ class ResearchReport(BaseModel):
 
 def create_gptr_config(llm_id: str | None = None, **extra_params) -> str:
     """Create a temporary configuration file for GPT Researcher.
-    
+
     Args:
         llm_id: LLM identifier to use for all models
         **extra_params: Additional configuration parameters
-        
+
     Returns:
         Path to the temporary configuration file
     """
     config_dict = {}
-    
+
     if llm_id:
         litellm_name = "litellm:" + LlmFactory(llm_id=llm_id).get_litellm_model_name()
-        config_dict.update({
-            "FAST_LLM": litellm_name,
-            "SMART_LLM": litellm_name,
-            "STRATEGIC_LLM": litellm_name,
-        })
-    
+        config_dict.update(
+            {
+                "FAST_LLM": litellm_name,
+                "SMART_LLM": litellm_name,
+                "STRATEGIC_LLM": litellm_name,
+            }
+        )
+
     config_dict.update(extra_params)
-    
+
     path = Path(tempfile.gettempdir()) / "gptr_conf.json"
     with open(path, "w") as json_file:
         json.dump(config_dict, json_file)
@@ -62,42 +64,34 @@ def create_gptr_config(llm_id: str | None = None, **extra_params) -> str:
 
 
 async def run_gpt_researcher(
-    query: str,
-    llm_id: str | None = None,
-    verbose: bool = True,
-    websocket_logger: Any | None = None,
-    **kwargs
+    query: str, llm_id: str | None = None, verbose: bool = True, websocket_logger: Any | None = None, **kwargs
 ) -> ResearchReport:
     """Execute a GPT Researcher task with configurable parameters.
-    
+
     Args:
         query: Research query
         llm_id: LLM identifier to use
         verbose: Enable verbose output
         websocket_logger: Optional websocket logger
         **kwargs: Additional parameters for GPT Researcher
-        
+
     Returns:
         ResearchReport: Container with research results and metadata
     """
     # Extract config parameters
     max_iterations = kwargs.pop("max_iterations", 3)
     max_search_results = kwargs.pop("max_search_results_per_query", 5)
-    
+
     config_path = create_gptr_config(
         llm_id=llm_id,
         MAX_ITERATIONS=max_iterations,
         MAX_SEARCH_RESULTS_PER_QUERY=max_search_results,
     )
-    
+
     researcher = GPTResearcher(
-        query=query,
-        verbose=verbose,
-        websocket=websocket_logger,
-        config_path=config_path,
-        **kwargs
+        query=query, verbose=verbose, websocket=websocket_logger, config_path=config_path, **kwargs
     )
-    
+
     logger.info(f"Starting GPT Researcher with query: {query}")
     await researcher.conduct_research()
     report = await researcher.write_report()
@@ -122,7 +116,7 @@ if __name__ == "__main__":
             max_iterations=1,
             max_search_results_per_query=3,
             report_source="web",
-            tone="Objective"
+            tone="Objective",
         )
         return result
 

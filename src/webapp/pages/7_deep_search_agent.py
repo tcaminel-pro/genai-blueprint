@@ -38,24 +38,20 @@ if "research_full_report" not in sss:
 # Configuration area
 with st.expander("Search Configuration", expanded=True):
     col1, col2 = st.columns(2)
-    
+
     with col1:
         max_iterations = st.number_input("Max Iterations", 1, 5, value=3)
         max_search_results = st.number_input("Max search per query", 1, 10, value=5)
         llm_id = st.text_input("LLM ID", value="gpt_4omini_openrouter")
-    
+
     with col2:
         report_type = st.selectbox(
-            "Report Type",
-            ["research_report", "detailed_report", "outline_report", "custom_report"],
-            index=0
+            "Report Type", ["research_report", "detailed_report", "outline_report", "custom_report"], index=0
         )
         tone = st.selectbox(
-            "Tone",
-            ["Objective", "Analytical", "Informative", "Formal", "Explanatory", "Descriptive"],
-            index=0
+            "Tone", ["Objective", "Analytical", "Informative", "Formal", "Explanatory", "Descriptive"], index=0
         )
-        
+
     # Custom prompt for custom report type
     custom_prompt = ""
     if report_type == "custom_report":
@@ -102,13 +98,13 @@ async def main() -> None:
 
     with st.form("search_form"):
         search_input = st.text_area(
-            "Your query", 
-            height=70, 
-            placeholder="Enter your research query here...", 
-            value=sample_search, 
-            label_visibility="collapsed"
+            "Your query",
+            height=70,
+            placeholder="Enter your research query here...",
+            value=sample_search,
+            label_visibility="collapsed",
         )
-        
+
         col1, col2 = st.columns([1, 4])
         use_cache = col1.checkbox("Use cache", value=True, help="Use cached results if available")
         submitted = col2.form_submit_button("Start Research", disabled=not search_input, use_container_width=True)
@@ -117,7 +113,7 @@ async def main() -> None:
             log_tab, report_tab, context_tab, image_tab, sources_tab, stats_tab = st.tabs(
                 ["Log", "**Report**", "Context", "Images", "Sources", "Stats"]
             )
-            
+
             log_handler = CustomLogsHandler(log_tab, 200)
 
             # Prepare research parameters
@@ -131,7 +127,7 @@ async def main() -> None:
                 "report_type": report_type,
                 "websocket_logger": log_handler,
             }
-            
+
             if custom_prompt:
                 research_params["custom_prompt"] = custom_prompt
 
@@ -148,7 +144,7 @@ async def main() -> None:
                 # Report tab
                 sss.web_research_result = research_full_report.report
                 report_tab.markdown(sss.web_research_result)
-                
+
                 # Context tab
                 context_tab.markdown(research_full_report.context)
 
