@@ -249,7 +249,8 @@ class LlmFactory(BaseModel):
         """Return the model ID without the provider (everything before the last underscore)."""
         return self.info.id.rsplit("_", maxsplit=1)[0]
 
-    def get_litellm_model_name(self) -> str:
+    # replace first / by separator before returning AI!
+    def get_litellm_model_name(self, separator: str = "/") -> str:
         """Return the LiteLLM id string from our llm_id  (best effort).
 
         Not all cases covered.
