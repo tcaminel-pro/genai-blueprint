@@ -112,7 +112,7 @@ if __name__ == "__main__":
         query = "what are the ethical risks of LLM powered AI Agents"
         result = await run_gpt_researcher(
             query=query,
-            llm_id="gpt_4omini_openrouter",
+            llm_id="gpt_41mini_openrouter",
             max_iterations=1,
             max_search_results_per_query=3,
             report_source="web",
