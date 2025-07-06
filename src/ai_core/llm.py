@@ -264,7 +264,10 @@ class LlmFactory(BaseModel):
         except Exception as ex:
             raise ValueError(f"Incorrect or unknown LiteLLM provider for: '{result}'") from ex
 
-        # replace the first slash with the separator parameter AI!
+        # Replace first slash with separator if it exists
+        if "/" in result:
+            parts = result.split("/", 1)
+            return f"{parts[0]}{separator}{parts[1]}"
         return result
 
     def get_smolagent_model(self):  # -> ApiModel
