@@ -222,10 +222,10 @@ def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def gpt_researcher(
         query: Annotated[str, typer.Argument(help="Research query to investigate")],
-        config_name: Annotated[str, typer.Option("--config", "-c", help="Configuration name from gpt_researcher.yaml")] = "default",
-        llm_id: Annotated[
-            Optional[str], Option("--llm-id", "-m", help="LLM model ID (overrides config)")
-        ] = None,
+        config_name: Annotated[
+            str, typer.Option("--config", "-c", help="Configuration name from gpt_researcher.yaml")
+        ] = "default",
+        llm_id: Annotated[Optional[str], Option("--llm-id", "-m", help="LLM model ID (overrides config)")] = None,
         verbose: Annotated[bool, Option("--verbose", "-v", help="Enable verbose output")] = False,
     ) -> None:
         """
@@ -240,7 +240,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         try:
             # Load configuration from yaml
             gptr_config_obj = GptrConfig.load(config_name)
-            
+
             # Override llm_id if provided
             if llm_id is not None:
                 if llm_id not in LlmFactory.known_items():
@@ -253,23 +253,20 @@ def register_commands(cli_app: typer.Typer) -> None:
 
             print(f"Running GPT Researcher with config: {config_name}")
             print(f"Query: {query}")
-            
+
             # Run the research
-            result = asyncio.run(run_gpt_researcher(
-                query=query,
-                gptr_config=gptr_config_obj.config,
-                verbose=verbose
-            ))
-            
-            print("\n" + "="*80)
+            result = asyncio.run(run_gpt_researcher(query=query, gptr_config=gptr_config_obj.config, verbose=verbose))
+
+            print("\n" + "=" * 80)
             print("RESEARCH REPORT")
-            print("="*80)
+            print("=" * 80)
             print(result.content)
-            
+
         except Exception as e:
             print(f"Error running GPT Researcher: {str(e)}")
             if verbose:
                 import traceback
+
                 traceback.print_exc()
 
     @cli_app.command()
