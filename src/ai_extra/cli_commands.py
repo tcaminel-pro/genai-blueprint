@@ -220,6 +220,59 @@ def register_commands(cli_app: typer.Typer) -> None:
         logger.info(f"OCR processing complete. Results saved to {output_dir}")
 
     @cli_app.command()
+    def gpt_researcher(
+        query: Annotated[str, typer.Argument(help="Research query to investigate")],
+        config_name: Annotated[str, typer.Option("--config", "-c", help="Configuration name from gpt_researcher.yaml")] = "default",
+        llm_id: Annotated[
+            Optional[str], Option("--llm-id", "-m", help="LLM model ID (overrides config)")
+        ] = None,
+        verbose: Annotated[bool, Option("--verbose", "-v", help="Enable verbose output")] = False,
+    ) -> None:
+        """
+        Run GPT Researcher with configuration from gpt_researcher.yaml.
+
+        Example:
+            uv run cli gpt-researcher "Latest developments in AI" --config detailed
+            uv run cli gpt-researcher "Climate change impacts" --llm-id gpt-4o
+        """
+        from src.ai_extra.gpt_researcher_chain import GptrConfig, run_gpt_researcher
+
+        try:
+            # Load configuration from yaml
+            gptr_config_obj = GptrConfig.load(config_name)
+            
+            # Override llm_id if provided
+            if llm_id is not None:
+                if llm_id not in LlmFactory.known_items():
+                    print(f"Error: {llm_id} is unknown llm_id.\nShould be in {LlmFactory.known_items()}")
+                    return
+                # Update the config with the provided llm_id
+                gptr_config_obj.config.fast_llm_id = llm_id
+                gptr_config_obj.config.smart_llm_id = llm_id
+                gptr_config_obj.config.strategic_llm_id = llm_id
+
+            print(f"Running GPT Researcher with config: {config_name}")
+            print(f"Query: {query}")
+            
+            # Run the research
+            result = asyncio.run(run_gpt_researcher(
+                query=query,
+                gptr_config=gptr_config_obj.config,
+                verbose=verbose
+            ))
+            
+            print("\n" + "="*80)
+            print("RESEARCH REPORT")
+            print("="*80)
+            print(result.content)
+            
+        except Exception as e:
+            print(f"Error running GPT Researcher: {str(e)}")
+            if verbose:
+                import traceback
+                traceback.print_exc()
+
+    @cli_app.command()
     def browser_agent(
         task: Annotated[str, typer.Argument(help="The task for the browser agent to execute")],
         headless: Annotated[bool, typer.Option(help="Run browser in headless mode")] = False,
