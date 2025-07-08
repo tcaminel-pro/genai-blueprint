@@ -18,25 +18,26 @@ Built on LangChain with extensions for enterprise use cases.
 **Foundation**:
 - `LangChain` - AI orchestration
 - `LangGraph` - Agent workflows  
-- `Pydantic` - Data validation
+- `Pydantic` - Data modelisation & validation
 - `FastAPI` - REST endpoints
 - `Streamlit` - Web interfaces
 - `Typer` - CLI framework
+- `OmegaConf` - Configuration Management
+
 
 **Key Integrations**:
-- `LlamaIndex` - Advanced RAG
 - `Tavily` - Web search
 - `GPT Researcher` - Autonomous research
-- `MCP` - Model coordination
+- `MCP` - Model Context Protocol
 - `AutoGen` - Multi-agent systems
-- `Weaviate` - Vector database
+- `pgvector` - Vector database
 
 ## Documentation
 
 For an overview of the code structure and patterns:
 [Tutorial: genai-blueprint](https://code2tutorial.com/tutorial/d4f58807-1657-41e1-92b8-15a3a10cb162/index.md) 
 
-Note: The tutorial is automatocally generated and may be slightly outdated - refer to the code for current implementations.
+Note: The tutorial is automatically generated and may be slightly outdated - refer to the code for current implementations.
 
 ## Getting Started
 
