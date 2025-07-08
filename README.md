@@ -92,12 +92,27 @@ Configure LLMs via `/config/providers/llm.yaml` after setting up API keys.
 #### Demos and Examples
 - `src/demos/`: Various demonstration implementations
   - `maintenance_agent/`: Maintenance planning demo with dummy data
+  - `mon_master_search/`: Hybrid search demo
+  - `todo/`: Task management demos
+    - `agent.py`: Basic todo agent
+    - `human-in-loop-agent.py`: Human-in-the-loop agent
+
 - `src/webapp/`: Streamlit web application
   - `pages/`: Streamlit page implementations
+    - `5_mon_master.py`: Hybrid search UI
+    - `7_deep_search_agent.py`: Research agent with logging
+    - `10_codeAct_agent.py`: CodeAct agent implementation
+    - `12_reAct_agent.py`: ReAct agent implementation  
+    - `14_graph_RAG.py`: Graph-based RAG demo
     - `18_residio_anonymization.py`: Anonymization demo
+    - `ui_components/smolagents_streamlit.py`: SmolAgents UI components
     - `unmaintained/`: Archived pages
+      - `3_▫️_Stock_Price.py`: Stock analysis agent
+      - `4_▫️_Dataframe_Agent.py`: DataFrame analysis agent
       - `12_▫️_Crew_AI.py`: CrewAI demonstration
+      - `13_▫️_OCR_Ollama.py`: OCR with Ollama demo
       - `99_▫️_Folium_Map_State.py`: Folium map demo
+      - `991_test_scroll.py`: UI testing
 
 #### Utilities
 - `src/utils/`: Utility functions and helpers
