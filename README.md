@@ -92,10 +92,6 @@ Configure LLMs via `/config/providers/llm.yaml` after setting up API keys.
 #### Demos and Examples
 - `src/demos/`: Various demonstration implementations
   - `maintenance_agent/`: Maintenance planning demo with dummy data
-  - `todo/`: Task management demos
-    - `agent.py`: Basic todo agent
-    - `azure_gpt4o.py`: Azure GPT-4 demo
-    - `human-in-loop-agent.py`: Human-in-the-loop agent
 - `src/webapp/`: Streamlit web application
   - `pages/`: Streamlit page implementations
     - `18_residio_anonymization.py`: Anonymization demo
