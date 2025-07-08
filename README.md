@@ -91,8 +91,15 @@ Configure LLMs via `/config/providers/llm.yaml` after setting up API keys.
 
 #### Reusable AI Components
 - `src/ai_extra/`: Generic and reusable AI components
+  - `autogen_utils.py`: AutoGen model utilities and integrations
   - `bm25s_retriever.py`: Fast BM25 retriever without Elasticsearch
-  - `react_agent_structured_output.py`: ReAct agent with structured output
+  - `cli_commands.py`: Additional CLI commands for AI components
+  - `custom_react_agent.py`: Custom ReAct agent implementation using Functional API
+  - `fabric_chain.py`: Fabric pattern integration and content fetching
+  - `gpt_researcher_chain.py`: GPT Researcher integration for autonomous research
+  - `mistral_ocr.py`: OCR functionality using Mistral API with batch processing
+  - `react_agent_structured_output.py`: ReAct agent with structured output capabilities
+  - `sql_agent.py`: SQL querying agent with database integration
 
 #### Demos and Examples
 - `src/demos/`: Various demonstration implementations
