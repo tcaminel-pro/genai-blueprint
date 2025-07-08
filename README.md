@@ -1,6 +1,6 @@
 # GenAI Framework
 
-A production-ready framework for building and deploying Generative AI applications with the following features:
+A framework for building and deploying Generative AI/ Agentic AI applications with the following features:
 
 - **Core Components**: Factories for LLMs, Embeddings, Vector Stores and Runnables
 - **Modular Architecture**: Plug-and-play components for AI workflows
@@ -11,7 +11,8 @@ A production-ready framework for building and deploying Generative AI applicatio
   - Research and data analysis agents
   - Multi-agent coordination (CrewAI, MCP, AutoGen)
 
-Built on LangChain with extensions for enterprise use cases.
+- Built on LangChain with extensions for enterprise use cases.
+- Extensive use of 'factory' and 'inversion of control' patterns to improve extendibility
 
 ## Core Stack
 
@@ -22,7 +23,7 @@ Built on LangChain with extensions for enterprise use cases.
 - `FastAPI` - REST endpoints
 - `Streamlit` - Web interfaces
 - `Typer` - CLI framework
-- `OmegaConf` - Configuration Management
+- `OmegaConf` - Configuration management
 
 
 **Key Integrations**:
@@ -37,13 +38,16 @@ Built on LangChain with extensions for enterprise use cases.
 For an overview of the code structure and patterns:
 [Tutorial: genai-blueprint](https://code2tutorial.com/tutorial/d4f58807-1657-41e1-92b8-15a3a10cb162/index.md) 
 
-Note: The tutorial is automatically generated and may be slightly outdated - refer to the code for current implementations.
+Note: The tutorial was automatically generated and may be slightly outdated - refer to the code for current implementations.
 
 ## Getting Started
 
 **Prerequisites**:
-- Python 12 (installed automatically via `uv`)
-- `make` and `uv` for dependency management
+- Python 12 (installed automatically via `uv`). The code should however work with Python 11 or 13. 
+- `uv` for dependency management
+- `make` for build commands
+
+It has been tested on Linux, WSL/Ubuntu and MacOS.
 
 **Installation**:
 ```bash
@@ -138,10 +142,16 @@ Configure LLMs via `/config/providers/llm.yaml` after setting up API keys.
     - `aws.mk`
 
 
+## Streamlit Demos Configuration
+- The Streamit App can be somewhat configured in `app_conf.yaml`  (key: `ui`).
+- Demos can usualy be configured in `config/demos`
+
 
 ## CLI Usage Examples
-The framework provides several CLI commands for interacting with AI components.
-They are registered in the configuration file 
+- The framework provides several CLI commands, typically for interacting with AI components. 
+- They are implemented in `cli_command.py` files, and registered in `app_conf.yaml`  (key: `commands/modules`)
+
+
 ```bash
 uv run cli --help   # list of defined commands
 ```
@@ -200,7 +210,7 @@ or
 make install_spacy_models
 ```
 
-**Install Node (for MCP)** 
+**Install Node (for some MCP servers)** 
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
 nvm install --lts
