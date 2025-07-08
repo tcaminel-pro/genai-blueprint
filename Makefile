@@ -149,7 +149,7 @@ clean:  ## Clean Python bytecode and cache files
 
 backup: ## rsync project and shared files to $(ONEDRIVE)
 # (created as: ln -s '/mnt/c/Users/a184094/OneDrive - Eviden'  ~/to_onedrive )
-	cp ~/.env ~/.bashrc ~/.bash_aliases $(ONEDRIVE)/backup/wsl/tcl/
+	cp -r ~/.env ~/.aws  ~/.bashrc ~/.bash_aliases ~/.modal.toml $(ONEDRIVE)/backup/wsl/tcl/
 	cp ~/install.sh  $(ONEDRIVE)/backup/wsl/tcl/
 
 backup_sync: 

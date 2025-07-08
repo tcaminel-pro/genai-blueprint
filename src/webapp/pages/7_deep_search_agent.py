@@ -131,10 +131,6 @@ async def main() -> None:
             if custom_prompt:
                 research_params["custom_prompt"] = custom_prompt
 
-            from devtools import debug
-
-            debug(research_params)
-
             with st.spinner("GPT Researcher running..."):
                 try:
                     sss.research_full_report = await run_gpt_researcher(**research_params)

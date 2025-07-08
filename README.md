@@ -65,6 +65,7 @@ make install
 ```bash
 make test_install  # Verifies basic functionality
 make test         # Runs test suite (some parallel tests may need adjustment)
+make webapp       # lauch the Streamlit app
 ```
 Configure LLMs via `/config/providers/llm.yaml` after setting up API keys.
 
@@ -127,17 +128,15 @@ Configure LLMs via `/config/providers/llm.yaml` after setting up API keys.
 #### Testing and Development
 - `tests/`: Unit and integration tests
 - `src/wip/`: Work in progress
-- `Makefile`: Common development tasks
-- `Dockerfile`: Optimized dockerfile
+- `Makefile`: Common development and deployment tasks
 - `CONVENTION.md`: Coding convention used by Aider-chat (a coding assistant)
 
 #### Deployment
-- `deploy/`: Deployment scripts and configurations
-  - `Makefile`: Deployment automation
-  - `docker-compose.yml`: Container orchestration
-  - `kubernetes/`: Kubernetes manifests
-  - `terraform/`: Infrastructure as code
-  - `ansible/`: Configuration management
+  - `Dockerfile`: Optimized dockerfile
+  - `deploy/`: Deployment scripts and configurations
+    - `docker.mk`
+    - `aws.mk`
+
 
 
 ## CLI Usage Examples
@@ -157,6 +156,7 @@ uv run cli run joke --input "bears"  # Run a joke chain
 
 **Agent with tools / MCP**
 ```bash
+uv run cli mcp-agent --server filesystem --shell # start interactive shell
 echo "get news from atos.net web site" | uv run cli mcp-agent --server playwright --server filesystem # ReAct Agent
 uv run cli smolagents "How many seconds would it take for a leopard at full speed to run through Pont des Arts?" -t web_search  # CodeAct Agent
 ```

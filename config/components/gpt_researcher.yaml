@@ -7,6 +7,7 @@ gdpr_configs:
   search_engine: tavily
   tone: Objective
   description: Default configuration for GPT Researcher
+  
 - name: detailed
   max_iterations : 5
   report_type: detailed_report
