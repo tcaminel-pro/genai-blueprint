@@ -1,6 +1,6 @@
 # GenAI Framework
 
-A production-ready framework for building and deploying Generative AI applications with:
+A production-ready framework for building and deploying Generative AI applications with the following features:
 
 - **Core Components**: Factories for LLMs, Embeddings, Vector Stores and Runnables
 - **Modular Architecture**: Plug-and-play components for AI workflows
@@ -128,8 +128,16 @@ Configure LLMs via `/config/providers/llm.yaml` after setting up API keys.
 - `tests/`: Unit and integration tests
 - `src/wip/`: Work in progress
 - `Makefile`: Common development tasks
-- `Dockerfile`: optimized dockerfile 
+- `Dockerfile`: Optimized dockerfile
 - `CONVENTION.md`: Coding convention used by Aider-chat (a coding assistant)
+
+#### Deployment
+- `deploy/`: Deployment scripts and configurations
+  - `Makefile`: Deployment automation
+  - `docker-compose.yml`: Container orchestration
+  - `kubernetes/`: Kubernetes manifests
+  - `terraform/`: Infrastructure as code
+  - `ansible/`: Configuration management
 
 
 ## CLI Usage Examples
