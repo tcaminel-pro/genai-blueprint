@@ -105,14 +105,10 @@ Configure LLMs via `/config/providers/llm.yaml` after setting up API keys.
     - `12_reAct_agent.py`: ReAct agent implementation  
     - `14_graph_RAG.py`: Graph-based RAG demo
     - `18_residio_anonymization.py`: Anonymization demo
-    - `ui_components/smolagents_streamlit.py`: SmolAgents UI components
-    - `unmaintained/`: Archived pages
-      - `3_▫️_Stock_Price.py`: Stock analysis agent
-      - `4_▫️_Dataframe_Agent.py`: DataFrame analysis agent
-      - `12_▫️_Crew_AI.py`: CrewAI demonstration
-      - `13_▫️_OCR_Ollama.py`: OCR with Ollama demo
-      - `99_▫️_Folium_Map_State.py`: Folium map demo
-      - `991_test_scroll.py`: UI testing
+  - `ui_components` : reusable streamlit components
+    -`smolagents_streamlit.py`: SmolAgents UI components
+    - `streamlit_chat.py` : helper to display LangGraph chat in streamlit
+
 
 #### Utilities
 - `src/utils/`: Utility functions and helpers
@@ -130,10 +126,7 @@ Configure LLMs via `/config/providers/llm.yaml` after setting up API keys.
 
 #### Testing and Development
 - `tests/`: Unit and integration tests
-  - `test_singleton.py`: Singleton pattern tests
 - `src/wip/`: Work in progress
-  - `instrumentation.py`: Telemetry implementation
-  - `modal_test1.py`: Modal cloud testing
 - `Makefile`: Common development tasks
 - `Dockerfile`: optimized dockerfile 
 - `CONVENTION.md`: Coding convention used by Aider-chat (a coding assistant)
