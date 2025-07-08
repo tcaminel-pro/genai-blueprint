@@ -103,11 +103,6 @@ Configure LLMs via `/config/providers/llm.yaml` after setting up API keys.
 
 #### Demos and Examples
 - `src/demos/`: Various demonstration implementations
-  - `maintenance_agent/`: Maintenance planning demo with dummy data
-  - `mon_master_search/`: Hybrid search demo
-  - `todo/`: Task management demos
-    - `agent.py`: Basic todo agent
-    - `human-in-loop-agent.py`: Human-in-the-loop agent
 
 - `src/webapp/`: Streamlit web application
   - `pages/`: Streamlit page implementations
@@ -145,13 +140,15 @@ Configure LLMs via `/config/providers/llm.yaml` after setting up API keys.
 #### Deployment
   - `Dockerfile`: Optimized dockerfile
   - `deploy/`: Deployment scripts and configurations
-    - `docker.mk`
-    - `aws.mk`
+    - `docker.mk` : build and run a container locally
+    - `aws.mk` : deploy in AWS
+    - `azure.mk` : deploy in Azure
+    - `modal.mk` : deploy in Modal
 
 
 ## Streamlit Demos Configuration
-- The Streamit App can be somewhat configured in `app_conf.yaml`  (key: `ui`).
-- Demos can usualy be configured in `config/demos`
+- The `Streamit` app can be somewhat configured in `app_conf.yaml`  (key: `ui`).
+- Most Demos can be configured with YAML file in `config/demos`
 
 
 ## CLI Usage Examples
