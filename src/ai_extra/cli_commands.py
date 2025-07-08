@@ -225,7 +225,6 @@ def register_commands(cli_app: typer.Typer) -> None:
         config_name: Annotated[
             str, typer.Option("--config", "-c", help="Configuration name from gpt_researcher.yaml")
         ] = "default",
-        llm_id: Annotated[Optional[str], Option("--llm-id", "-m", help="LLM model ID (overrides config)")] = None,
         verbose: Annotated[bool, Option("--verbose", "-v", help="Enable verbose output")] = False,
     ) -> None:
         """
@@ -238,13 +237,6 @@ def register_commands(cli_app: typer.Typer) -> None:
         from src.ai_extra.gpt_researcher_chain import run_gpt_researcher
 
         try:
-            # Override llm_id if provided
-            if llm_id is not None:
-                if llm_id not in LlmFactory.known_items():
-                    print(f"Error: {llm_id} is unknown llm_id.\nShould be in {LlmFactory.known_items()}")
-                    return
-                global_config().set("llm.default_model", llm_id)
-
             print(f"Running GPT Researcher with config: {config_name}")
             print(f"Query: {query}")
 

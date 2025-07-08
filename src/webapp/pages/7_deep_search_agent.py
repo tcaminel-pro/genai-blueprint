@@ -18,6 +18,7 @@ from md2pdf import md2pdf
 from streamlit import session_state as sss
 
 from src.ai_extra.gpt_researcher_chain import run_gpt_researcher
+from src.utils.config_mngr import global_config
 from src.utils.streamlit.auto_scroll import scroll_to_here
 
 st.title("GPT Researcher Playground")
@@ -37,25 +38,12 @@ if "research_full_report" not in sss:
 
 # Configuration area
 with st.expander("Search Configuration", expanded=True):
-    col1, col2 = st.columns(2)
-
-    with col1:
-        max_iterations = st.number_input("Max Iterations", 1, 5, value=3)
-        max_search_results = st.number_input("Max search per query", 1, 10, value=5)
-        llm_id = st.text_input("LLM ID", value="gpt_41mini_openrouter")
-
-    with col2:
-        report_type = st.selectbox(
-            "Report Type", ["research_report", "detailed_report", "outline_report", "custom_report"], index=0
-        )
-        tone = st.selectbox(
-            "Tone", ["Objective", "Analytical", "Informative", "Formal", "Explanatory", "Descriptive"], index=0
-        )
-
-    # Custom prompt for custom report type
-    custom_prompt = ""
-    if report_type == "custom_report":
-        custom_prompt = st.text_area("Custom prompt:", height=100)
+    config_name = st.selectbox(
+        "Research Configuration",
+        options=global_config().get_list("gpt_researcher.available_configs"),
+        index=0,
+        help="Select a preconfigured research profile",
+    )
 
 # How it works popover
 with st.popover("How it works", use_container_width=False):
@@ -119,17 +107,9 @@ async def main() -> None:
             # Prepare research parameters
             research_params = {
                 "query": search_input,
-                "llm_id": llm_id,
-                "max_iterations": max_iterations,
-                "max_search_results_per_query": max_search_results,
-                "report_source": "web",
-                "tone": tone,
-                "report_type": report_type,
+                "config_name": config_name,
                 "websocket_logger": log_handler,
             }
-
-            if custom_prompt:
-                research_params["custom_prompt"] = custom_prompt
 
             with st.spinner("GPT Researcher running..."):
                 try:

@@ -10,6 +10,9 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from src.ai_core.llm import LlmFactory
+from src.utils.config_mngr import global_config
+
 try:
     from gpt_researcher import GPTResearcher
 except ImportError as ex:
@@ -19,8 +22,6 @@ except ImportError as ex:
 
 from loguru import logger
 from pydantic import BaseModel, Field
-
-from src.ai_core.llm import LlmFactory
 
 
 class ResearchReport(BaseModel):
@@ -33,40 +34,34 @@ class ResearchReport(BaseModel):
     sources: list[dict] = Field(default_factory=list)
 
 
-def create_gptr_config(llm_id: str | None = None, **extra_params) -> str:
-    """Create a temporary configuration file for GPT Researcher.
+def create_gptr_config(config_name: str) -> str:
+    """Get GPT Researcher config from our global configuration.
 
     Args:
-        llm_id: LLM identifier to use for all models
-        **extra_params: Additional configuration parameters
+        config_name: Name of the config section to use
 
     Returns:
-        Path to the temporary configuration file
+        Path to the temporary configuration file with selected config
     """
-    config_dict = {}
-
-    if llm_id:
-        litellm_name = LlmFactory(llm_id=llm_id).get_litellm_model_name(separator=":")
-        logger.info(f"Using LiteLLM model name: {litellm_name}")
-        config_dict.update(
-            {
-                "FAST_LLM": litellm_name,
-                "SMART_LLM": litellm_name,
-                "STRATEGIC_LLM": litellm_name,
-            }
-        )
-
-    config_dict.update(extra_params)
+    config_dict = global_config().get_dict(
+        f"gpt_researcher.{config_name}",
+        # expected_keys=["fast_llm"],
+    )
+    for llm in ["smart_llm", "fast_llm", "strategic_llm"]:
+        if llm_id := config_dict.get(llm):
+            litellm_name = LlmFactory(llm_id=llm_id).get_litellm_model_name(separator=":")
+            config_dict[llm] = litellm_name
+            logger.info(f"Using LiteLLM model name for {llm}: {litellm_name}")
 
     path = Path(tempfile.gettempdir()) / "gptr_conf.json"
     with open(path, "w") as json_file:
         json.dump(config_dict, json_file, indent=2)
-    logger.info(f"Created GPT Researcher config at {path}: {config_dict}")
+    logger.info(f"Using GPT Researcher config '{config_name}': {config_dict}")
     return str(path)
 
 
 async def run_gpt_researcher(
-    query: str, llm_id: str | None = None, verbose: bool = True, websocket_logger: Any | None = None, **kwargs
+    query: str, config_name: str = "default", verbose: bool = True, websocket_logger: Any | None = None, **kwargs
 ) -> ResearchReport:
     """Execute a GPT Researcher task with configurable parameters.
 
@@ -80,16 +75,9 @@ async def run_gpt_researcher(
     Returns:
         ResearchReport: Container with research results and metadata
     """
-    # Extract config parameters
-    max_iterations = kwargs.pop("max_iterations", 3)
-    max_search_results = kwargs.pop("max_search_results_per_query", 5)
 
     try:
-        config_path = create_gptr_config(
-            llm_id=llm_id,
-            MAX_ITERATIONS=max_iterations,
-            MAX_SEARCH_RESULTS_PER_QUERY=max_search_results,
-        )
+        config_path = create_gptr_config(config_name)
 
         researcher = GPTResearcher(
             query=query, verbose=verbose, websocket=websocket_logger, config_path=config_path, **kwargs
@@ -125,12 +113,6 @@ if __name__ == "__main__":
         query = "what are the ethical risks of LLM powered AI Agents"
         result = await run_gpt_researcher(
             query=query,
-            #llm_id=None,  # Use default models instead of potentially problematic custom LLM
-            llm_id="gpt_41mini_openrouter",
-            max_iterations=1,
-            max_search_results_per_query=3,
-            report_source="web",
-            tone="Objective",
         )
         return result
 

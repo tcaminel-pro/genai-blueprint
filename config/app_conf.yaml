@@ -23,6 +23,7 @@ merge:
   - ${paths.demo_conf}/codeact_agent.yaml
   - ${paths.demo_conf}/react_agent.yaml
   - ${paths.demo_conf}/graph_rag.yaml
+  # components configurations   
   - ${paths.config}/components/gpt_researcher.yaml
 
 # Default configuration, as defined in baseline.yaml, overrides.yaml, here, or elsewhere.
