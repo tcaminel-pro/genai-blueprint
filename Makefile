@@ -26,7 +26,7 @@ endif
 
 include deploy/docker.mk
 include deploy/aws.mk
-#include deploy/github.mk
+include deploy/github.mk
 include deploy/modal.mk
 
 .PHONY: .uv   .pre-commit .pythonpath
