@@ -38,18 +38,19 @@ IGNORED_FILES = [
     "CONVENTIONS.md",
 ]
 
+
 def get_image() -> modal.Image:
     """Get the Modal image based on deployment mode."""
     if DEPLOYMENT_MODE == "dockerfile":
         if not os.path.exists(DOCKERFILE_PATH):
             raise FileNotFoundError(f"Dockerfile not found at {DOCKERFILE_PATH}")
         return modal.Image.from_dockerfile(DOCKERFILE_PATH)
-    
+
     elif DEPLOYMENT_MODE == "aws_image":
         if not AWS_IMAGE_URI:
             raise ValueError("AWS_IMAGE_URI must be set when using aws_image deployment mode")
         return modal.Image.from_registry(AWS_IMAGE_URI, add_python="3.12")
-    
+
     elif DEPLOYMENT_MODE == "code":
         # Original code-based image definition
         return (
@@ -69,7 +70,7 @@ def get_image() -> modal.Image:
                 "cd /app && uv add python-dotenv",
             )
         )
-    
+
     else:
         raise ValueError(f"Invalid deployment mode: {DEPLOYMENT_MODE}. Must be 'code', 'dockerfile', or 'aws_image'")
 
