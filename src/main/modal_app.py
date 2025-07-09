@@ -7,10 +7,12 @@ import sys
 
 import modal
 
+from src.utils.config_mngr import global_config
+
 # Deployment mode configuration
 # Options: "code", "dockerfile", "aws_image"
 DEPLOYMENT_MODE = os.environ.get("MODAL_DEPLOYMENT_MODE", "code")
-DOCKERFILE_PATH = os.environ.get("MODAL_DOCKERFILE_PATH", "Dockerfile")
+DOCKERFILE_PATH = global_config().get_dir_path("paths.project") / "deploy" / "Dockerfile"
 AWS_IMAGE_URI = os.environ.get("MODAL_AWS_IMAGE_URI", "")
 
 # Define the Modal volume to persist data
