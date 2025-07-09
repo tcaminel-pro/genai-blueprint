@@ -20,6 +20,8 @@ modal_deploy_dockerfile:  ## Deploy to Modal using Dockerfile
 modal_deploy_aws:  ## Deploy to Modal using AWS image (set MODAL_AWS_IMAGE_URI)
 	MODAL_DEPLOYMENT_MODE=aws_image modal deploy $(MODAL_ENTRY_POINT)
 
+modal_deploy_github:  ## Deploy to Modal using GitHub registry image                                                       
+    MODAL_DEPLOYMENT_MODE=aws_image MODAL_AWS_IMAGE_URI=ghcr.io/$(shell git config user.name | tr '[:upper:]' '[:lower:]')/$(basename `git rev-parse --show-toplevel` | tr '[:upper:]' '[:lower:]'):latest modal deploy $(MODAL_ENTRY_POINT)
 modal_serve: 
 	MODAL_DEPLOYMENT_MODE=code modal serve $(MODAL_ENTRY_POINT)
 
