@@ -105,6 +105,16 @@ aws_get_ecs_url: ## Get the public IP/URL of the deployed ECS service
 		echo "Check service status with: aws ecs describe-services --cluster $(APP)-cluster --services $(APP)-service --region $(AWS_REGION)"; \
 	fi
 
+aws_fix_security_group: ## Fix security group to allow port 8501 access
+	@echo "Adding inbound rule for port 8501..."
+	@aws ec2 authorize-security-group-ingress \
+		--group-id $(AWS_SECURITY_GROUP) \
+		--protocol tcp \
+		--port 8501 \
+		--cidr 0.0.0.0/0 \
+		--region $(AWS_REGION) || echo "Rule might already exist"
+	@echo "Security group updated!"
+
 aws_debug_ecs: ## Debug ECS deployment issues
 	@echo "=== ECS Service Events ==="
 	@aws ecs describe-services \
@@ -121,7 +131,23 @@ aws_debug_ecs: ## Debug ECS deployment issues
 		--query 'taskDefinition.{Family:family,Revision:revision,Status:status,Cpu:cpu,Memory:memory,ExecutionRoleArn:executionRoleArn}' \
 		--output table
 	@echo ""
-	@echo "=== All Tasks (including stopped) ==="
+	@echo "=== Running Tasks Details ==="
+	@TASK_ARN=$$(aws ecs list-tasks \
+		--cluster $(APP)-cluster \
+		--service-name $(APP)-service \
+		--region $(AWS_REGION) \
+		--query 'taskArns[0]' \
+		--output text); \
+	if [ "$$TASK_ARN" != "None" ] && [ "$$TASK_ARN" != "" ]; then \
+		aws ecs describe-tasks \
+			--cluster $(APP)-cluster \
+			--tasks $$TASK_ARN \
+			--region $(AWS_REGION) \
+			--query 'tasks[0].{TaskArn:taskArn,LastStatus:lastStatus,HealthStatus:healthStatus,CreatedAt:createdAt}' \
+			--output table; \
+	fi
+	@echo ""
+	@echo "=== Stopped Tasks (if any) ==="
 	@aws ecs list-tasks \
 		--cluster $(APP)-cluster \
 		--service-name $(APP)-service \
@@ -139,5 +165,12 @@ aws_debug_ecs: ## Debug ECS deployment issues
 	@aws ec2 describe-security-groups \
 		--group-ids $(AWS_SECURITY_GROUP) \
 		--region $(AWS_REGION) \
+		--query 'SecurityGroups[0].IpPermissions' \
+		--output table || echo "Security group not found"
+	@echo ""
+	@echo "=== Port 8501 Specific Rules ==="
+	@aws ec2 describe-security-groups \
+		--group-ids $(AWS_SECURITY_GROUP) \
+		--region $(AWS_REGION) \
 		--query 'SecurityGroups[0].IpPermissions[?FromPort==`8501`]' \
-		--output table || echo "Security group not found or no port 8501 rule"
+		--output table || echo "No port 8501 rules found"
