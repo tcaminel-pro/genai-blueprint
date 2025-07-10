@@ -349,12 +349,12 @@ aws_logs: ## Get application logs from CloudWatch
 		echo "Task ID: $$TASK_ID"; \
 		echo "Log Stream: $$LOG_STREAM"; \
 		echo ""; \
-		echo "=== Recent Logs (last 50 events) ==="; \
+		echo "=== Recent Logs (last 200 events) ==="; \
 		aws logs get-log-events \
 			--log-group-name "/ecs/$(APP)-task" \
 			--log-stream-name "$$LOG_STREAM" \
 			--region $(AWS_REGION) \
-			--query 'events[-50:].{Time:timestamp,Message:message}' \
+			--query 'events[-:].{Time:timestamp,Message:message}' \
 			--output table 2>/dev/null || echo "No logs found. Log group or stream might not exist yet."; \
 	else \
 		echo "No running tasks found"; \
