@@ -49,7 +49,7 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 		--memory "512" \
 		--requires-compatibilities "FARGATE" \
 		--execution-role-arn arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskExecutionRole \
-		--container-definitions '[{"name":"$(APP)-container","image":"$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)","portMappings":[{"containerPort":8501,"hostPort":8501}],"essential":true}]' \
+		--container-definitions '[{"name":"$(APP)-container","image":"$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)","portMappings":[{"containerPort":443,"hostPort":443},{"containerPort":8501,"hostPort":8501}],"essential":true}]' \
 		--region $(AWS_REGION)
 	
 	@echo "Creating or updating ECS service..."
@@ -98,10 +98,12 @@ aws_get_ecs_url: ## Get the public IP/URL of the deployed ECS service
 			--query 'NetworkInterfaces[0].Association.PublicIp' \
 			--output text); \
 		if [ "$$PUBLIC_IP" != "None" ] && [ "$$PUBLIC_IP" != "" ]; then \
-			echo "Your application is available at: http://$$PUBLIC_IP:8501"; \
+			echo "Your application is available at:"; \
+			echo "  HTTPS: https://$$PUBLIC_IP:443 (SSL/TLS enabled)"; \
+			echo "  HTTP:  http://$$PUBLIC_IP:8501 (fallback)"; \
 			echo ""; \
-			echo "⚠️  IMPORTANT: Use HTTP only (not HTTPS)"; \
-			echo "   The application does not support SSL/TLS encryption"; \
+			echo "ℹ️  Note: HTTPS uses self-signed certificates"; \
+			echo "   Your browser will show a security warning - this is normal"; \
 		else \
 			echo "No public IP found. The task might still be starting."; \
 		fi; \
@@ -110,12 +112,19 @@ aws_get_ecs_url: ## Get the public IP/URL of the deployed ECS service
 		echo "Check service status with: aws ecs describe-services --cluster $(APP)-cluster --services $(APP)-service --region $(AWS_REGION)"; \
 	fi
 
-aws_fix_security_group: ## Fix security group to allow port 8501 access
+aws_fix_security_group: ## Fix security group to allow port 8501 and 443 access
 	@echo "Adding inbound rule for port 8501..."
 	@aws ec2 authorize-security-group-ingress \
 		--group-id $(AWS_SECURITY_GROUP) \
 		--protocol tcp \
 		--port 8501 \
+		--cidr 0.0.0.0/0 \
+		--region $(AWS_REGION) || echo "Rule might already exist"
+	@echo "Adding inbound rule for port 443 (HTTPS)..."
+	@aws ec2 authorize-security-group-ingress \
+		--group-id $(AWS_SECURITY_GROUP) \
+		--protocol tcp \
+		--port 443 \
 		--cidr 0.0.0.0/0 \
 		--region $(AWS_REGION) || echo "Rule might already exist"
 	@echo "Security group updated!"
@@ -179,3 +188,10 @@ aws_debug_ecs: ## Debug ECS deployment issues
 		--region $(AWS_REGION) \
 		--query 'SecurityGroups[0].IpPermissions[?FromPort==`8501`]' \
 		--output table || echo "No port 8501 rules found"
+	@echo ""
+	@echo "=== Port 443 (HTTPS) Specific Rules ==="
+	@aws ec2 describe-security-groups \
+		--group-ids $(AWS_SECURITY_GROUP) \
+		--region $(AWS_REGION) \
+		--query 'SecurityGroups[0].IpPermissions[?FromPort==`443`]' \
+		--output table || echo "No port 443 rules found"

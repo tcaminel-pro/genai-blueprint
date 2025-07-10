@@ -27,7 +27,7 @@ docker_build: ## Build the docker image
 	docker build --pull --rm -f "deploy/Dockerfile" -t $(APP):$(IMAGE_VERSION) "."
 
 docker_run: ## Execute the image with environment variables
-	docker run -it -p 8000:8000 -p 8501:8501 \
+	docker run -it -p 8000:8000 -p 8501:8501 -p 443:443 \
 		-e OPENROUTER_API_KEY=$(OPENROUTER_API_KEY) \
 		-e DEEPSEEK_API_KEY=$(DEEPSEEK_API_KEY) \
 		$(APP):$(IMAGE_VERSION)

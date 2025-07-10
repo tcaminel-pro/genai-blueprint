@@ -57,10 +57,7 @@ COPY --from=builder /app/pyproject.toml ./
 ENV BASIC_AUTHENTICATION=1 \                                                                     
     BLUEPRINT_CONFIG="container" \                                                               
     PYTHONPATH="/app:/app/src"          
-EXPOSE 8501
+EXPOSE 8501 443
 
-ENTRYPOINT ["streamlit", "run", "/app/src/main/streamlit.py", \
-            "--server.port=8501", \
-            "--server.address=0.0.0.0", \
-            "--server.enableCORS=false", \
-            "--server.enableXsrfProtection=false"]
+# Generate SSL certificates and start Streamlit
+ENTRYPOINT ["/bin/bash", "-c", "./generate_ssl.sh && streamlit run /app/src/main/streamlit.py --server.port=443 --server.address=0.0.0.0"]
