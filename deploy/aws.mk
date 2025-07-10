@@ -1,3 +1,5 @@
+# Script to deploy to AWS
+# Created by Claude Sonnet-4
 
 #cSpell: disable
 AWS_REGION=eu-west-1
