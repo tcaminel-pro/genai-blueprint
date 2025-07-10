@@ -252,6 +252,14 @@ aws_debug_connectivity: ## Debug connectivity issues with the deployed applicati
 			--output text); \
 		echo "Public IP: $$PUBLIC_IP"; \
 		echo ""; \
+		echo "=== Task Status ==="; \
+		aws ecs describe-tasks \
+			--cluster $(APP)-cluster \
+			--tasks $$TASK_ARN \
+			--region $(AWS_REGION) \
+			--query 'tasks[0].{LastStatus:lastStatus,DesiredStatus:desiredStatus,HealthStatus:healthStatus,StoppedReason:stoppedReason}' \
+			--output table; \
+		echo ""; \
 		echo "Testing connectivity..."; \
 		echo "Port 8501 (HTTP):"; \
 		timeout 10 nc -zv $$PUBLIC_IP 8501 2>&1 || echo "❌ Port 8501 not accessible"; \
@@ -277,13 +285,22 @@ aws_debug_connectivity: ## Debug connectivity issues with the deployed applicati
 		--output text); \
 	if [ "$$TASK_ARN" != "None" ] && [ "$$TASK_ARN" != "" ]; then \
 		echo "Getting recent logs for task $$TASK_ARN..."; \
+		TASK_ID=$$(echo $$TASK_ARN | cut -d'/' -f3); \
+		echo "Checking all possible log streams..."; \
+		aws logs describe-log-streams \
+			--log-group-name "/ecs/$(APP)-task" \
+			--region $(AWS_REGION) \
+			--query 'logStreams[].logStreamName' \
+			--output text 2>/dev/null || echo "No log streams found"; \
+		echo ""; \
+		echo "Trying to get logs from stream: ecs/$(APP)-container/$$TASK_ID"; \
 		aws logs get-log-events \
 			--log-group-name "/ecs/$(APP)-task" \
-			--log-stream-name "ecs/$(APP)-container/$$(echo $$TASK_ARN | cut -d'/' -f3)" \
-			--start-time $$(date -d '10 minutes ago' +%s)000 \
+			--log-stream-name "ecs/$(APP)-container/$$TASK_ID" \
+			--start-time $$(date -d '30 minutes ago' +%s)000 \
 			--region $(AWS_REGION) \
 			--query 'events[].message' \
-			--output text 2>/dev/null || echo "No logs found or log group doesn't exist"; \
+			--output text 2>/dev/null || echo "No logs found in this stream"; \
 	fi
 
 aws_store_secrets: ## Store all environment variables from .env file in AWS Systems Manager Parameter Store
@@ -354,7 +371,8 @@ aws_logs: ## Get application logs from CloudWatch
 			--log-group-name "/ecs/$(APP)-task" \
 			--log-stream-name "$$LOG_STREAM" \
 			--region $(AWS_REGION) \
-			--query 'events[-:].{Time:timestamp,Message:message}' \
+			--start-time $$(date -d '30 minutes ago' +%s)000 \
+			--query 'events[].{Time:timestamp,Message:message}' \
 			--output table 2>/dev/null || echo "No logs found. Log group or stream might not exist yet."; \
 	else \
 		echo "No running tasks found"; \
@@ -389,6 +407,28 @@ aws_logs_all: ## Get all log streams for the application
 		--region $(AWS_REGION) \
 		--query 'logStreams[].{StreamName:logStreamName,CreationTime:creationTime,LastEvent:lastEventTime}' \
 		--output table 2>/dev/null || echo "No log streams found"
+
+aws_debug_failed_tasks: ## Check for failed/stopped tasks and their reasons
+	@echo "=== Failed/Stopped Tasks Analysis ==="
+	@echo "Getting stopped tasks..."
+	@aws ecs list-tasks \
+		--cluster $(APP)-cluster \
+		--service-name $(APP)-service \
+		--region $(AWS_REGION) \
+		--desired-status STOPPED \
+		--query 'taskArns[0:5]' \
+		--output text | tr '\t' '\n' | while read task; do \
+		if [ "$$task" != "None" ] && [ -n "$$task" ]; then \
+			echo ""; \
+			echo "=== Task: $$task ==="; \
+			aws ecs describe-tasks \
+				--cluster $(APP)-cluster \
+				--tasks $$task \
+				--region $(AWS_REGION) \
+				--query 'tasks[0].{StoppedReason:stoppedReason,StoppedAt:stoppedAt,LastStatus:lastStatus,Containers:containers[0].{Name:name,ExitCode:exitCode,Reason:reason}}' \
+				--output table; \
+		fi; \
+	done || echo "No stopped tasks found"
 
 aws_store_secrets_manual: ## Store specific API keys manually (legacy method)
 	@echo "Storing API keys in SSM Parameter Store..."
