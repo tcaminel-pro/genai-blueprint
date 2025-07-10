@@ -9,8 +9,9 @@ AWS_ACCOUNT_ID=$3
 DOT_ENV=".env"
 
 if [ ! -f $DOT_ENV ]; then
-    echo "Error: .env file not found" >&2
-    exit 1
+    echo "Warning: .env file not found, generating empty secrets array" >&2
+    echo "[]"
+    exit 0
 fi
 
 echo -n "["

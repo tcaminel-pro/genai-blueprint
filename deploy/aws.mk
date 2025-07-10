@@ -56,7 +56,7 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 	
 	@echo "Creating task definition..."
 	@chmod +x deploy/generate_container_secrets.sh
-	@SECRETS_JSON=$$(./deploy/generate_container_secrets.sh $(APP) $(AWS_REGION) $(AWS_ACCOUNT_ID)); \
+	@SECRETS_JSON=$$(./deploy/generate_container_secrets.sh $(APP) $(AWS_REGION) $(AWS_ACCOUNT_ID) 2>/dev/null || echo "[]"); \
 	aws ecs register-task-definition \
 		--family $(APP)-task \
 		--network-mode awsvpc \
