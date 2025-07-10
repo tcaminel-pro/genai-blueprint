@@ -58,6 +58,13 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 		--policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["logs:CreateLogStream","logs:PutLogEvents"],"Resource":"arn:aws:logs:$(AWS_REGION):$(AWS_ACCOUNT_ID):log-group:/ecs/$(APP)-task:*"}]}' \
 		--region $(AWS_REGION) || true
 	
+	@echo "Adding SSM parameter access to execution role (needed for secrets)..."
+	aws iam put-role-policy \
+		--role-name ecsTaskExecutionRole \
+		--policy-name SSMParameterAccessExecution \
+		--policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["ssm:GetParameter","ssm:GetParameters"],"Resource":"arn:aws:ssm:$(AWS_REGION):$(AWS_ACCOUNT_ID):parameter/$(APP)/*"}]}' \
+		--region $(AWS_REGION) || true
+	
 	@echo "Waiting for role to be available..."
 	sleep 10
 	
@@ -81,7 +88,7 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 		--requires-compatibilities "FARGATE" \
 		--execution-role-arn arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskExecutionRole \
 		--task-role-arn arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskRole \
-		--container-definitions "[{\"name\":\"$(APP)-container\",\"image\":\"$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)\",\"portMappings\":[{\"containerPort\":443,\"hostPort\":443},{\"containerPort\":8501,\"hostPort\":8501}],\"essential\":true,\"secrets\":$$SECRETS_JSON,\"logConfiguration\":{\"logDriver\":\"awslogs\",\"options\":{\"awslogs-group\":\"/ecs/$(APP)-task\",\"awslogs-region\":\"$(AWS_REGION)\",\"awslogs-stream-prefix\":\"ecs\"}}}]" \
+		--container-definitions "[{\"name\":\"$(APP)-container\",\"image\":\"$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)\",\"portMappings\":[{\"containerPort\":443,\"hostPort\":443},{\"containerPort\":8501,\"hostPort\":8501}],\"essential\":true,\"environment\":[{\"name\":\"DEBUG_ENV\",\"value\":\"true\"}],\"secrets\":$$SECRETS_JSON,\"logConfiguration\":{\"logDriver\":\"awslogs\",\"options\":{\"awslogs-group\":\"/ecs/$(APP)-task\",\"awslogs-region\":\"$(AWS_REGION)\",\"awslogs-stream-prefix\":\"ecs\"}}}]" \
 		--region $(AWS_REGION)
 	
 	@echo "Creating or updating ECS service..."
@@ -429,6 +436,36 @@ aws_debug_failed_tasks: ## Check for failed/stopped tasks and their reasons
 				--output table; \
 		fi; \
 	done || echo "No stopped tasks found"
+
+aws_test_env_vars: ## Test if environment variables are available in the running container
+	@echo "=== Testing Environment Variables in Container ==="
+	@TASK_ARN=$$(aws ecs list-tasks \
+		--cluster $(APP)-cluster \
+		--service-name $(APP)-service \
+		--region $(AWS_REGION) \
+		--query 'taskArns[0]' \
+		--output text); \
+	if [ "$$TASK_ARN" != "None" ] && [ "$$TASK_ARN" != "" ]; then \
+		echo "Running environment variable test in container..."; \
+		aws ecs execute-command \
+			--cluster $(APP)-cluster \
+			--task $$TASK_ARN \
+			--container $(APP)-container \
+			--interactive \
+			--command "env | grep -E '(OPENAI_API_KEY|ANTHROPIC_API_KEY|GROQ_API_KEY)'" \
+			--region $(AWS_REGION) 2>/dev/null || echo "Could not execute command in container. ECS Exec might not be enabled."; \
+	else \
+		echo "No running tasks found"; \
+	fi
+
+aws_enable_exec: ## Enable ECS Exec for debugging (allows running commands in containers)
+	@echo "Enabling ECS Exec for the service..."
+	@aws ecs update-service \
+		--cluster $(APP)-cluster \
+		--service $(APP)-service \
+		--enable-execute-command \
+		--region $(AWS_REGION)
+	@echo "ECS Exec enabled. You may need to restart the service for this to take effect."
 
 aws_store_secrets_manual: ## Store specific API keys manually (legacy method)
 	@echo "Storing API keys in SSM Parameter Store..."
