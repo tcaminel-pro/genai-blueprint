@@ -51,12 +51,25 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 		--policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["ssm:GetParameter","ssm:GetParameters"],"Resource":"arn:aws:ssm:$(AWS_REGION):$(AWS_ACCOUNT_ID):parameter/$(APP)/*"}]}' \
 		--region $(AWS_REGION) || true
 	
+	@echo "Adding CloudWatch Logs permissions to execution role..."
+	aws iam put-role-policy \
+		--role-name ecsTaskExecutionRole \
+		--policy-name CloudWatchLogsAccess \
+		--policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["logs:CreateLogStream","logs:PutLogEvents"],"Resource":"arn:aws:logs:$(AWS_REGION):$(AWS_ACCOUNT_ID):log-group:/ecs/$(APP)-task:*"}]}' \
+		--region $(AWS_REGION) || true
+	
 	@echo "Waiting for role to be available..."
 	sleep 10
+	
+	@echo "Creating CloudWatch log group..."
+	@aws logs create-log-group \
+		--log-group-name "/ecs/$(APP)-task" \
+		--region $(AWS_REGION) || true
 	
 	@echo "Creating task definition..."
 	@chmod +x deploy/generate_container_secrets.sh
 	@SECRETS_JSON=$$(./deploy/generate_container_secrets.sh $(APP) $(AWS_REGION) $(AWS_ACCOUNT_ID) 2>/dev/null || echo "[]"); \
+	echo "Generated secrets JSON: $$SECRETS_JSON"; \
 	aws ecs register-task-definition \
 		--family $(APP)-task \
 		--network-mode awsvpc \
@@ -65,7 +78,7 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 		--requires-compatibilities "FARGATE" \
 		--execution-role-arn arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskExecutionRole \
 		--task-role-arn arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskRole \
-		--container-definitions "[{\"name\":\"$(APP)-container\",\"image\":\"$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)\",\"portMappings\":[{\"containerPort\":443,\"hostPort\":443},{\"containerPort\":8501,\"hostPort\":8501}],\"essential\":true,\"secrets\":$$SECRETS_JSON}]" \
+		--container-definitions "[{\"name\":\"$(APP)-container\",\"image\":\"$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)\",\"portMappings\":[{\"containerPort\":443,\"hostPort\":443},{\"containerPort\":8501,\"hostPort\":8501}],\"essential\":true,\"secrets\":$$SECRETS_JSON,\"logConfiguration\":{\"logDriver\":\"awslogs\",\"options\":{\"awslogs-group\":\"/ecs/$(APP)-task\",\"awslogs-region\":\"$(AWS_REGION)\",\"awslogs-stream-prefix\":\"ecs\"}}}]" \
 		--region $(AWS_REGION)
 	
 	@echo "Creating or updating ECS service..."
@@ -297,6 +310,27 @@ aws_list_secrets: ## List all stored secrets in AWS SSM Parameter Store
 		--region $(AWS_REGION) \
 		--query 'Parameters[].{Name:Name,Type:Type,LastModified:LastModifiedDate}' \
 		--output table
+
+aws_check_secrets: ## Check if secrets are accessible and properly configured
+	@echo "Checking if secrets are properly stored and accessible..."
+	@echo "=== SSM Parameters for $(APP) ==="
+	@aws ssm describe-parameters \
+		--parameter-filters "Key=Name,Option=BeginsWith,Values=/$(APP)/" \
+		--region $(AWS_REGION) \
+		--query 'Parameters[].Name' \
+		--output text || echo "No parameters found"
+	@echo ""
+	@echo "=== Testing parameter access ==="
+	@aws ssm get-parameters \
+		--names $$(aws ssm describe-parameters \
+			--parameter-filters "Key=Name,Option=BeginsWith,Values=/$(APP)/" \
+			--region $(AWS_REGION) \
+			--query 'Parameters[].Name' \
+			--output text | tr '\t' ' ') \
+		--with-decryption \
+		--region $(AWS_REGION) \
+		--query 'Parameters[].{Name:Name,Value:Value}' \
+		--output table 2>/dev/null || echo "Failed to retrieve parameters - check IAM permissions"
 
 aws_store_secrets_manual: ## Store specific API keys manually (legacy method)
 	@echo "Storing API keys in SSM Parameter Store..."
