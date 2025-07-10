@@ -68,7 +68,10 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 	
 	@echo "Creating task definition..."
 	@chmod +x deploy/generate_container_secrets.sh
-	@SECRETS_JSON=$$(./deploy/generate_container_secrets.sh $(APP) $(AWS_REGION) $(AWS_ACCOUNT_ID) 2>/dev/null || echo "[]"); \
+	@echo "Debug: Checking for .env file..."
+	@ls -la $(ENV_FILE) || echo ".env file not found at $(ENV_FILE)"
+	@echo "Debug: ENV_FILE variable is: $(ENV_FILE)"
+	@SECRETS_JSON=$$(./deploy/generate_container_secrets.sh $(APP) $(AWS_REGION) $(AWS_ACCOUNT_ID) $(ENV_FILE)); \
 	echo "Generated secrets JSON: $$SECRETS_JSON"; \
 	aws ecs register-task-definition \
 		--family $(APP)-task \

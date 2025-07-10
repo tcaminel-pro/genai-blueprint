@@ -1,15 +1,20 @@
 #!/bin/bash
 
 # Generate secrets array for ECS container definition from .env file
-# Usage: ./generate_container_secrets.sh <app-name> <aws-region> <aws-account-id>
+# Usage: ./generate_container_secrets.sh <app-name> <aws-region> <aws-account-id> [env-file-path]
 
 APP=$1
 AWS_REGION=$2
 AWS_ACCOUNT_ID=$3
-DOT_ENV=".env"
+DOT_ENV=${4:-.env}
 
-if [ ! -f $DOT_ENV ]; then
-    echo "Warning: .env file not found, generating empty secrets array" >&2
+# Debug: Show current directory and check for .env file
+echo "Debug: Current directory: $(pwd)" >&2
+echo "Debug: Looking for .env file at: $DOT_ENV" >&2
+echo "Debug: .env file exists: $(test -f $DOT_ENV && echo 'YES' || echo 'NO')" >&2
+
+if [ ! -f "$DOT_ENV" ]; then
+    echo "Warning: .env file not found at $DOT_ENV, generating empty secrets array" >&2
     echo "[]"
     exit 0
 fi
