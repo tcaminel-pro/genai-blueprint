@@ -120,6 +120,9 @@ aws_get_ecs_url: ## Get the public IP/URL of the deployed ECS service
 			echo ""; \
 			echo "ℹ️  Note: HTTPS uses self-signed certificates"; \
 			echo "   Your browser will show a security warning - this is normal"; \
+			echo ""; \
+			echo "🔍 Troubleshooting:"; \
+			echo "   If the URL is not accessible, run: make aws_debug_connectivity"; \
 		else \
 			echo "No public IP found. The task might still be starting."; \
 		fi; \
@@ -211,6 +214,61 @@ aws_debug_ecs: ## Debug ECS deployment issues
 		--region $(AWS_REGION) \
 		--query 'SecurityGroups[0].IpPermissions[?FromPort==`443`]' \
 		--output table || echo "No port 443 rules found"
+
+aws_debug_connectivity: ## Debug connectivity issues with the deployed application
+	@echo "=== Connectivity Troubleshooting ==="
+	@TASK_ARN=$$(aws ecs list-tasks \
+		--cluster $(APP)-cluster \
+		--service-name $(APP)-service \
+		--region $(AWS_REGION) \
+		--query 'taskArns[0]' \
+		--output text); \
+	if [ "$$TASK_ARN" != "None" ] && [ "$$TASK_ARN" != "" ]; then \
+		PUBLIC_IP=$$(aws ecs describe-tasks \
+			--cluster $(APP)-cluster \
+			--tasks $$TASK_ARN \
+			--region $(AWS_REGION) \
+			--query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' \
+			--output text | xargs -I {} aws ec2 describe-network-interfaces \
+			--network-interface-ids {} \
+			--region $(AWS_REGION) \
+			--query 'NetworkInterfaces[0].Association.PublicIp' \
+			--output text); \
+		echo "Public IP: $$PUBLIC_IP"; \
+		echo ""; \
+		echo "Testing connectivity..."; \
+		echo "Port 8501 (HTTP):"; \
+		timeout 10 nc -zv $$PUBLIC_IP 8501 2>&1 || echo "❌ Port 8501 not accessible"; \
+		echo "Port 443 (HTTPS):"; \
+		timeout 10 nc -zv $$PUBLIC_IP 443 2>&1 || echo "❌ Port 443 not accessible"; \
+		echo ""; \
+		echo "Checking if ports are open in security group..."; \
+		aws ec2 describe-security-groups \
+			--group-ids $(AWS_SECURITY_GROUP) \
+			--region $(AWS_REGION) \
+			--query 'SecurityGroups[0].IpPermissions[?FromPort==`8501` || FromPort==`443`].{Port:FromPort,Protocol:IpProtocol,Source:IpRanges[0].CidrIp}' \
+			--output table; \
+	else \
+		echo "No running tasks found"; \
+	fi
+	@echo ""
+	@echo "=== Container Logs ==="
+	@TASK_ARN=$$(aws ecs list-tasks \
+		--cluster $(APP)-cluster \
+		--service-name $(APP)-service \
+		--region $(AWS_REGION) \
+		--query 'taskArns[0]' \
+		--output text); \
+	if [ "$$TASK_ARN" != "None" ] && [ "$$TASK_ARN" != "" ]; then \
+		echo "Getting recent logs for task $$TASK_ARN..."; \
+		aws logs get-log-events \
+			--log-group-name "/ecs/$(APP)-task" \
+			--log-stream-name "ecs/$(APP)-container/$$(echo $$TASK_ARN | cut -d'/' -f3)" \
+			--start-time $$(date -d '10 minutes ago' +%s)000 \
+			--region $(AWS_REGION) \
+			--query 'events[].message' \
+			--output text 2>/dev/null || echo "No logs found or log group doesn't exist"; \
+	fi
 
 aws_store_secrets: ## Store all environment variables from .env file in AWS Systems Manager Parameter Store
 	@echo "Storing environment variables from .env file in SSM Parameter Store..."
