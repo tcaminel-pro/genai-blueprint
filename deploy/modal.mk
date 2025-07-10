@@ -1,3 +1,8 @@
+# Script to deploy to Modal
+# Created by Claude Sonnet-4
+
+# WIP - DOES NOT FULLY WORK (yet?) 
+
 
 ##############
 ##  MODAL  ###

@@ -1,13 +1,13 @@
 """
 Modal deployment for GenAI Framework Streamlit application.
+
+Still WIP
 """
 
 import os
 import sys
 
 import modal
-
-from src.utils.config_mngr import global_config
 
 # Deployment mode configuration
 # Options: "code", "dockerfile", "aws_image"
