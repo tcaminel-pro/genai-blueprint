@@ -11,7 +11,7 @@ AWS_SECURITY_GROUP=sg-0f9ae86b1de2e3956
 ##############
 ##  AWS  ###
 ##############
-.PHONY: login_aws push_aws deploy_aws_ecs
+.PHONY: login_aws push_aws deploy_aws_ecs aws_store_secrets
 
 awd_login:
 	aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
@@ -38,6 +38,19 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 		--policy-arn arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy \
 		--region $(AWS_REGION) || true
 	
+	@echo "Creating IAM role for ECS task..."
+	aws iam create-role \
+		--role-name ecsTaskRole \
+		--assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"ecs-tasks.amazonaws.com"},"Action":"sts:AssumeRole"}]}' \
+		--region $(AWS_REGION) || true
+	
+	@echo "Creating policy for SSM parameter access..."
+	aws iam put-role-policy \
+		--role-name ecsTaskRole \
+		--policy-name SSMParameterAccess \
+		--policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["ssm:GetParameter","ssm:GetParameters"],"Resource":"arn:aws:ssm:$(AWS_REGION):$(AWS_ACCOUNT_ID):parameter/$(APP)/*"}]}' \
+		--region $(AWS_REGION) || true
+	
 	@echo "Waiting for role to be available..."
 	sleep 10
 	
@@ -49,7 +62,8 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 		--memory "512" \
 		--requires-compatibilities "FARGATE" \
 		--execution-role-arn arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskExecutionRole \
-		--container-definitions '[{"name":"$(APP)-container","image":"$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)","portMappings":[{"containerPort":443,"hostPort":443},{"containerPort":8501,"hostPort":8501}],"essential":true}]' \
+		--task-role-arn arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskRole \
+		--container-definitions '[{"name":"$(APP)-container","image":"$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)","portMappings":[{"containerPort":443,"hostPort":443},{"containerPort":8501,"hostPort":8501}],"essential":true,"secrets":[{"name":"OPENROUTER_API_KEY","valueFrom":"arn:aws:ssm:$(AWS_REGION):$(AWS_ACCOUNT_ID):parameter/$(APP)/OPENROUTER_API_KEY"},{"name":"DEEPSEEK_API_KEY","valueFrom":"arn:aws:ssm:$(AWS_REGION):$(AWS_ACCOUNT_ID):parameter/$(APP)/DEEPSEEK_API_KEY"}]}]' \
 		--region $(AWS_REGION)
 	
 	@echo "Creating or updating ECS service..."
@@ -195,3 +209,27 @@ aws_debug_ecs: ## Debug ECS deployment issues
 		--region $(AWS_REGION) \
 		--query 'SecurityGroups[0].IpPermissions[?FromPort==`443`]' \
 		--output table || echo "No port 443 rules found"
+
+aws_store_secrets: ## Store API keys in AWS Systems Manager Parameter Store
+	@echo "Storing API keys in SSM Parameter Store..."
+	@if [ -z "$(OPENROUTER_API_KEY)" ]; then \
+		echo "Error: OPENROUTER_API_KEY environment variable is not set"; \
+		exit 1; \
+	fi
+	@if [ -z "$(DEEPSEEK_API_KEY)" ]; then \
+		echo "Error: DEEPSEEK_API_KEY environment variable is not set"; \
+		exit 1; \
+	fi
+	aws ssm put-parameter \
+		--name "/$(APP)/OPENROUTER_API_KEY" \
+		--value "$(OPENROUTER_API_KEY)" \
+		--type "SecureString" \
+		--region $(AWS_REGION) \
+		--overwrite || true
+	aws ssm put-parameter \
+		--name "/$(APP)/DEEPSEEK_API_KEY" \
+		--value "$(DEEPSEEK_API_KEY)" \
+		--type "SecureString" \
+		--region $(AWS_REGION) \
+		--overwrite || true
+	@echo "API keys stored successfully in SSM Parameter Store"
