@@ -214,12 +214,12 @@ aws_debug_ecs: ## Debug ECS deployment issues
 
 aws_store_secrets: ## Store all environment variables from .env file in AWS Systems Manager Parameter Store
 	@echo "Storing environment variables from .env file in SSM Parameter Store..."
-	@if [ ! -f .env ]; then \
-		echo "Error: .env file not found in current directory"; \
+	@if [ ! -f $(ENV_FILE) ]; then \
+		echo "Error: .env file not found"; \
 		exit 1; \
 	fi
 	@echo "Reading .env file and uploading to SSM..."
-	@grep -v '^#' .env | grep -v '^$$' | while IFS='=' read -r key value; do \
+	@grep -v '^#' $(ENV_FILE)| grep -v '^$$' | while IFS='=' read -r key value; do \
 		if [ -n "$$key" ] && [ -n "$$value" ]; then \
 			echo "Uploading $$key..."; \
 			aws ssm put-parameter \

@@ -6,8 +6,9 @@
 APP=$1
 AWS_REGION=$2
 AWS_ACCOUNT_ID=$3
+DOT_ENV=".env"
 
-if [ ! -f .env ]; then
+if [ ! -f $DOT_ENV ]; then
     echo "Error: .env file not found" >&2
     exit 1
 fi
@@ -27,5 +28,5 @@ while IFS='=' read -r key value; do
     fi
     
     echo -n "{\"name\":\"$key\",\"valueFrom\":\"arn:aws:ssm:$AWS_REGION:$AWS_ACCOUNT_ID:parameter/$APP/$key\"}"
-done < .env
+done < $DOT_ENV
 echo "]"
