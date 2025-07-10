@@ -55,6 +55,8 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 	sleep 10
 	
 	@echo "Creating task definition..."
+	@chmod +x deploy/generate_container_secrets.sh
+	@SECRETS_JSON=$$(./deploy/generate_container_secrets.sh $(APP) $(AWS_REGION) $(AWS_ACCOUNT_ID)); \
 	aws ecs register-task-definition \
 		--family $(APP)-task \
 		--network-mode awsvpc \
@@ -63,7 +65,7 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 		--requires-compatibilities "FARGATE" \
 		--execution-role-arn arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskExecutionRole \
 		--task-role-arn arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskRole \
-		--container-definitions '[{"name":"$(APP)-container","image":"$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)","portMappings":[{"containerPort":443,"hostPort":443},{"containerPort":8501,"hostPort":8501}],"essential":true,"secrets":[{"name":"OPENROUTER_API_KEY","valueFrom":"arn:aws:ssm:$(AWS_REGION):$(AWS_ACCOUNT_ID):parameter/$(APP)/OPENROUTER_API_KEY"},{"name":"DEEPSEEK_API_KEY","valueFrom":"arn:aws:ssm:$(AWS_REGION):$(AWS_ACCOUNT_ID):parameter/$(APP)/DEEPSEEK_API_KEY"}]}]' \
+		--container-definitions "[{\"name\":\"$(APP)-container\",\"image\":\"$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)\",\"portMappings\":[{\"containerPort\":443,\"hostPort\":443},{\"containerPort\":8501,\"hostPort\":8501}],\"essential\":true,\"secrets\":$$SECRETS_JSON}]" \
 		--region $(AWS_REGION)
 	
 	@echo "Creating or updating ECS service..."
@@ -210,7 +212,35 @@ aws_debug_ecs: ## Debug ECS deployment issues
 		--query 'SecurityGroups[0].IpPermissions[?FromPort==`443`]' \
 		--output table || echo "No port 443 rules found"
 
-aws_store_secrets: ## Store API keys in AWS Systems Manager Parameter Store
+aws_store_secrets: ## Store all environment variables from .env file in AWS Systems Manager Parameter Store
+	@echo "Storing environment variables from .env file in SSM Parameter Store..."
+	@if [ ! -f .env ]; then \
+		echo "Error: .env file not found in current directory"; \
+		exit 1; \
+	fi
+	@echo "Reading .env file and uploading to SSM..."
+	@grep -v '^#' .env | grep -v '^$$' | while IFS='=' read -r key value; do \
+		if [ -n "$$key" ] && [ -n "$$value" ]; then \
+			echo "Uploading $$key..."; \
+			aws ssm put-parameter \
+				--name "/$(APP)/$$key" \
+				--value "$$value" \
+				--type "SecureString" \
+				--region $(AWS_REGION) \
+				--overwrite || echo "Failed to upload $$key"; \
+		fi; \
+	done
+	@echo "Environment variables stored successfully in SSM Parameter Store"
+
+aws_list_secrets: ## List all stored secrets in AWS SSM Parameter Store
+	@echo "Listing stored secrets for $(APP)..."
+	@aws ssm describe-parameters \
+		--parameter-filters "Key=Name,Option=BeginsWith,Values=/$(APP)/" \
+		--region $(AWS_REGION) \
+		--query 'Parameters[].{Name:Name,Type:Type,LastModified:LastModifiedDate}' \
+		--output table
+
+aws_store_secrets_manual: ## Store specific API keys manually (legacy method)
 	@echo "Storing API keys in SSM Parameter Store..."
 	@if [ -z "$(OPENROUTER_API_KEY)" ]; then \
 		echo "Error: OPENROUTER_API_KEY environment variable is not set"; \
