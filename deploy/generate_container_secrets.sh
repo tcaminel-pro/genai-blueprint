@@ -29,5 +29,6 @@ while IFS='=' read -r key value; do
     fi
     
     echo -n "{\"name\":\"$key\",\"valueFrom\":\"arn:aws:ssm:$AWS_REGION:$AWS_ACCOUNT_ID:parameter/$APP/$key\"}"
-done < $DOT_ENV
+done < "$DOT_ENV"
 echo "]"
+echo "Debug: Generated secrets for keys: $(grep -v '^#' "$DOT_ENV" | grep -v '^$' | cut -d'=' -f1 | tr '\n' ' ')" >&2
