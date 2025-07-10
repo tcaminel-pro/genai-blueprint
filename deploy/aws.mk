@@ -335,6 +335,61 @@ aws_check_secrets: ## Check if secrets are accessible and properly configured
 		--query 'Parameters[].{Name:Name,Value:Value}' \
 		--output table 2>/dev/null || echo "Failed to retrieve parameters - check IAM permissions"
 
+aws_logs: ## Get application logs from CloudWatch
+	@echo "=== Getting Application Logs ==="
+	@TASK_ARN=$$(aws ecs list-tasks \
+		--cluster $(APP)-cluster \
+		--service-name $(APP)-service \
+		--region $(AWS_REGION) \
+		--query 'taskArns[0]' \
+		--output text); \
+	if [ "$$TASK_ARN" != "None" ] && [ "$$TASK_ARN" != "" ]; then \
+		TASK_ID=$$(echo $$TASK_ARN | cut -d'/' -f3); \
+		LOG_STREAM="ecs/$(APP)-container/$$TASK_ID"; \
+		echo "Task ID: $$TASK_ID"; \
+		echo "Log Stream: $$LOG_STREAM"; \
+		echo ""; \
+		echo "=== Recent Logs (last 50 events) ==="; \
+		aws logs get-log-events \
+			--log-group-name "/ecs/$(APP)-task" \
+			--log-stream-name "$$LOG_STREAM" \
+			--region $(AWS_REGION) \
+			--query 'events[-50:].{Time:timestamp,Message:message}' \
+			--output table 2>/dev/null || echo "No logs found. Log group or stream might not exist yet."; \
+	else \
+		echo "No running tasks found"; \
+	fi
+
+aws_logs_tail: ## Tail application logs in real-time
+	@echo "=== Tailing Application Logs ==="
+	@TASK_ARN=$$(aws ecs list-tasks \
+		--cluster $(APP)-cluster \
+		--service-name $(APP)-service \
+		--region $(AWS_REGION) \
+		--query 'taskArns[0]' \
+		--output text); \
+	if [ "$$TASK_ARN" != "None" ] && [ "$$TASK_ARN" != "" ]; then \
+		TASK_ID=$$(echo $$TASK_ARN | cut -d'/' -f3); \
+		LOG_STREAM="ecs/$(APP)-container/$$TASK_ID"; \
+		echo "Tailing logs for task: $$TASK_ID"; \
+		echo "Press Ctrl+C to stop"; \
+		echo ""; \
+		aws logs tail "/ecs/$(APP)-task" \
+			--log-stream-names "$$LOG_STREAM" \
+			--follow \
+			--region $(AWS_REGION) 2>/dev/null || echo "Failed to tail logs. Make sure the log stream exists."; \
+	else \
+		echo "No running tasks found"; \
+	fi
+
+aws_logs_all: ## Get all log streams for the application
+	@echo "=== All Log Streams ==="
+	@aws logs describe-log-streams \
+		--log-group-name "/ecs/$(APP)-task" \
+		--region $(AWS_REGION) \
+		--query 'logStreams[].{StreamName:logStreamName,CreationTime:creationTime,LastEvent:lastEventTime}' \
+		--output table 2>/dev/null || echo "No log streams found"
+
 aws_store_secrets_manual: ## Store specific API keys manually (legacy method)
 	@echo "Storing API keys in SSM Parameter Store..."
 	@if [ -z "$(OPENROUTER_API_KEY)" ]; then \
