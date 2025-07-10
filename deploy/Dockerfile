@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y git curl build-essential libssl-dev \
     && nvm use default
 
 # Install system dependencies and clean up                                                       
-RUN apt-get install -y graphviz-dev && \                                                         
+RUN apt-get install -y graphviz-dev openssl && \                                                         
     rm -rf /var/lib/apt/lists/*                                                                  
                                                                                                  
 # A directory to have app data                                                                   
@@ -51,7 +51,9 @@ COPY --from=builder /app/use_case_data ./use_case_data
 COPY --from=builder /app/src ./src                                                               
 COPY --from=builder /app/config ./config                                                         
 COPY --from=builder /app/.streamlit ./.streamlit                                                 
-COPY --from=builder /app/pyproject.toml ./                                                       
+COPY --from=builder /app/pyproject.toml ./
+COPY deploy/generate_ssl.sh ./generate_ssl.sh
+RUN chmod +x ./generate_ssl.sh
                                                                                                  
 # Secrets will be mounted at runtime via Docker secrets                                          
 ENV BASIC_AUTHENTICATION=1 \                                                                     
