@@ -40,7 +40,7 @@ import functools
 import importlib.util
 import os
 from functools import cached_property, lru_cache
-from typing import Annotated, Any, cast, Optional
+from typing import Annotated, Any, cast
 
 import yaml
 from devtools import debug  # noqa: F401
@@ -50,7 +50,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import RunnableConfig, RunnableLambda
 from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
 from loguru import logger
-from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
+from pydantic import BaseModel, Field, SecretStr, computed_field, field_validator
 
 from src.ai_core.cache import LlmCache
 from src.utils.config_mngr import global_config
@@ -287,7 +287,7 @@ class LlmFactory(BaseModel):
         debug(model)
         return model
 
-    def _get_api_key(self, env_var: str) -> Optional[str]:
+    def _get_api_key(self, env_var: str) -> str | None:
         """Get and clean API key from environment variable.
 
         Args:
@@ -319,8 +319,7 @@ class LlmFactory(BaseModel):
             joke = llm.invoke("Tell me a joke about AI")
             ```
         """
-        api_key = self._get_api_key(self.info.key)
-        if api_key is None and self.info.key != "":
+        if self.info.key not in os.environ and self.info.key != "":
             raise EnvironmentError(f"No known API key for : {self.llm_id}")
         llm = self.model_factory()
         return llm
@@ -345,6 +344,7 @@ class LlmFactory(BaseModel):
             "streaming": self.streaming,
         }
 
+        api_key = SecretStr(self._get_api_key(self.info.key))  # type: ignore
         llm_params = common_params | self.llm_params
         if self.json_mode:
             llm_params |= {"response_format": {"type": "json_object"}}
@@ -366,7 +366,7 @@ class LlmFactory(BaseModel):
 
             llm = ChatDeepInfra(
                 name=self.info.model,
-                deepinfra_api_token=api_key,
+                deepinfra_api_token=str(api_key),
                 **llm_params,
             )
         elif self.info.provider == "edenai":
@@ -425,7 +425,7 @@ class LlmFactory(BaseModel):
             # NOT WELL TESTED
             # Also consider : https://huggingface.co/blog/inference-providers
             # see https://huggingface.co/blog/langchain
-            from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
+            from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint  # type: ignore
 
             llm = HuggingFaceEndpoint(
                 repo_id=self.info.model,
@@ -438,8 +438,8 @@ class LlmFactory(BaseModel):
 
             _ = llm_params.pop("seed")
             llm = ChatMistralAI(
-                model=self.info.model,
-                mistral_api_key=api_key,
+                name=self.info.model,
+                api_key=api_key,
                 **llm_params,
             )
 

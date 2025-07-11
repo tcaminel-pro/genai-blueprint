@@ -38,7 +38,7 @@ from langchain.embeddings import CacheBackedEmbeddings
 from langchain.embeddings.base import Embeddings
 from langchain.storage import LocalFileStore
 from loguru import logger
-from pydantic import BaseModel, Field, computed_field, field_validator
+from pydantic import BaseModel, Field, SecretStr, computed_field, field_validator
 
 from src.utils.config_mngr import global_config
 
@@ -65,10 +65,10 @@ class EmbeddingsInfo(BaseModel):
     key: str | None = None
     prefix: str = ""
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.id)
 
-    def get_key(self):
+    def get_key(self) -> str:
         """Retrieve the API key from environment variables.
 
         Returns:
@@ -84,9 +84,6 @@ class EmbeddingsInfo(BaseModel):
             return key
         else:
             return ""
-
-    def __hash__(self):
-        return hash(self.id)
 
 
 def _read_embeddings_list_file() -> list[EmbeddingsInfo]:
@@ -220,7 +217,7 @@ class EmbeddingsFactory(BaseModel):
 
             emb = GoogleGenerativeAIEmbeddings(model=self.info.model)  # type: ignore
         elif self.info.provider == "huggingface":
-            from langchain_huggingface import HuggingFaceEmbeddings
+            from langchain_huggingface import HuggingFaceEmbeddings  # type: ignore
 
             cache = global_config().get_str("embeddings.cache")
             emb = HuggingFaceEmbeddings(
@@ -233,7 +230,7 @@ class EmbeddingsFactory(BaseModel):
             from langchain_community.embeddings.edenai import EdenAiEmbeddings
 
             provider, _, model = self.info.model.partition("/")
-            edenai_api_key = os.environ["EDENAI_API_KEY"]
+            edenai_api_key = SecretStr(os.environ["EDENAI_API_KEY"])
             emb = EdenAiEmbeddings(model=model, provider=provider, edenai_api_key=edenai_api_key)
         elif self.info.provider == "azure":
             from langchain_openai import AzureOpenAIEmbeddings
