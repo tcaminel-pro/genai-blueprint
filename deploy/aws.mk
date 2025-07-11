@@ -65,6 +65,13 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 		--policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["ssm:GetParameter","ssm:GetParameters"],"Resource":"arn:aws:ssm:$(AWS_REGION):$(AWS_ACCOUNT_ID):parameter/$(APP)/*"}]}' \
 		--region $(AWS_REGION) || true
 	
+	@echo "Adding ECS Exec permissions to task role..."
+	aws iam put-role-policy \
+		--role-name ecsTaskRole \
+		--policy-name ECSExecAccess \
+		--policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["ssmmessages:CreateControlChannel","ssmmessages:CreateDataChannel","ssmmessages:OpenControlChannel","ssmmessages:OpenDataChannel"],"Resource":"*"}]}' \
+		--region $(AWS_REGION) || true
+	
 	@echo "Waiting for role to be available..."
 	sleep 10
 	
@@ -98,6 +105,7 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 		--task-definition $(APP)-task \
 		--desired-count 1 \
 		--launch-type "FARGATE" \
+		--enable-execute-command \
 		--network-configuration "awsvpcConfiguration={subnets=[$(AWS_SUBNET)],securityGroups=[$(AWS_SECURITY_GROUP)],assignPublicIp=ENABLED}" \
 		--region $(AWS_REGION) || \
 	aws ecs update-service \
@@ -105,6 +113,7 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 		--service $(APP)-service \
 		--task-definition $(APP)-task \
 		--desired-count 1 \
+		--enable-execute-command \
 		--region $(AWS_REGION)
 	
 	@echo "Application deployed! It may take a few minutes to become available."
