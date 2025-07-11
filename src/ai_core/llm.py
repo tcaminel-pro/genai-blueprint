@@ -289,17 +289,17 @@ class LlmFactory(BaseModel):
 
     def _get_api_key(self, env_var: str) -> Optional[str]:
         """Get and clean API key from environment variable.
-        
+
         Args:
             env_var: Environment variable name to get the API key from
-            
+
         Returns:
             Cleaned API key value or None if not found
         """
         if env_var not in os.environ:
             return None
         # Strip any surrounding quotes and whitespace
-        return os.environ[env_var].strip('"\' \t\n\r')
+        return os.environ[env_var].strip("\"' \t\n\r")
 
     def get(self) -> BaseChatModel:
         """Create an LLM model.
@@ -358,10 +358,7 @@ class LlmFactory(BaseModel):
                 seed = llm_params.pop("seed")
                 llm_params |= {"model_kwargs": {"seed": seed}}
             llm = init_chat_model(
-                model=self.info.model, 
-                model_provider=self.info.provider,
-                api_key=api_key,
-                **llm_params
+                model=self.info.model, model_provider=self.info.provider, api_key=api_key, **llm_params
             )
 
         elif self.info.provider == "deepinfra":
