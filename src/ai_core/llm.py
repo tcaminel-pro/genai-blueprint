@@ -40,7 +40,7 @@ import functools
 import importlib.util
 import os
 from functools import cached_property, lru_cache
-from typing import Annotated, Any, cast
+from typing import Annotated, Any, cast, Optional
 
 import yaml
 from devtools import debug  # noqa: F401
@@ -50,7 +50,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import RunnableConfig, RunnableLambda
 from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
 from loguru import logger
-from pydantic import BaseModel, Field, computed_field, field_validator
+from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
 from src.ai_core.cache import LlmCache
 from src.utils.config_mngr import global_config
@@ -287,6 +287,20 @@ class LlmFactory(BaseModel):
         debug(model)
         return model
 
+    def _get_api_key(self, env_var: str) -> Optional[str]:
+        """Get and clean API key from environment variable.
+        
+        Args:
+            env_var: Environment variable name to get the API key from
+            
+        Returns:
+            Cleaned API key value or None if not found
+        """
+        if env_var not in os.environ:
+            return None
+        # Strip any surrounding quotes and whitespace
+        return os.environ[env_var].strip('"\' \t\n\r')
+
     def get(self) -> BaseChatModel:
         """Create an LLM model.
         'model' is our internal name for the model and its provider. If None, take the default one.
@@ -305,7 +319,8 @@ class LlmFactory(BaseModel):
             joke = llm.invoke("Tell me a joke about AI")
             ```
         """
-        if self.info.key not in os.environ and self.info.key != "":
+        api_key = self._get_api_key(self.info.key)
+        if api_key is None and self.info.key != "":
             raise EnvironmentError(f"No known API key for : {self.llm_id}")
         llm = self.model_factory()
         return llm
@@ -342,13 +357,19 @@ class LlmFactory(BaseModel):
             if self.info.provider in ["groq"]:
                 seed = llm_params.pop("seed")
                 llm_params |= {"model_kwargs": {"seed": seed}}
-            llm = init_chat_model(model=self.info.model, model_provider=self.info.provider, **llm_params)
+            llm = init_chat_model(
+                model=self.info.model, 
+                model_provider=self.info.provider,
+                api_key=api_key,
+                **llm_params
+            )
 
         elif self.info.provider == "deepinfra":
             from langchain_community.chat_models.deepinfra import ChatDeepInfra
 
             llm = ChatDeepInfra(
                 name=self.info.model,
+                deepinfra_api_token=api_key,
                 **llm_params,
             )
         elif self.info.provider == "edenai":
@@ -362,7 +383,7 @@ class LlmFactory(BaseModel):
             llm = ChatEdenAI(
                 provider=provider,
                 model=model,
-                edenai_api_key=None,  # set in env. variable
+                edenai_api_key=api_key,
                 **llm_params,
             )
 
@@ -386,6 +407,7 @@ class LlmFactory(BaseModel):
                 azure_deployment=name,
                 model=name,  # Not sure it's needed
                 api_version=api_version,
+                api_key=api_key,
                 **llm_params,
             )
             if self.json_mode:
@@ -399,7 +421,7 @@ class LlmFactory(BaseModel):
             llm = ChatOpenAI(
                 base_url=OPENROUTER_API_BASE,
                 model=self.info.model,
-                api_key=os.environ["OPENROUTER_API_KEY"],  # type: ignore
+                api_key=api_key,
                 **llm_params,
             )
         elif self.info.provider == "huggingface":
@@ -420,6 +442,7 @@ class LlmFactory(BaseModel):
             _ = llm_params.pop("seed")
             llm = ChatMistralAI(
                 model=self.info.model,
+                mistral_api_key=api_key,
                 **llm_params,
             )
 
