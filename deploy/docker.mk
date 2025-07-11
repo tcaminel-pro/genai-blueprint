@@ -35,3 +35,42 @@ docker_run: ## Execute the image with environment variables
 docker_save:  # Create a zipped version of the image
 	docker save $(APP):$(IMAGE_VERSION)| gzip > /tmp/$(APP)_$(IMAGE_VERSION).tar.gz
 
+docker_shell: ## Open a shell in the running Docker container
+	@echo "Opening shell in running container..."
+	@CONTAINER_ID=$$(docker ps --filter "ancestor=$(APP):$(IMAGE_VERSION)" --format "{{.ID}}" | head -1); \
+	if [ -n "$$CONTAINER_ID" ]; then \
+		echo "Found running container: $$CONTAINER_ID"; \
+		docker exec -it $$CONTAINER_ID /bin/bash; \
+	else \
+		echo "No running container found. Starting a new one with shell..."; \
+		docker run -it --rm \
+			-e OPENROUTER_API_KEY=$(OPENROUTER_API_KEY) \
+			-e DEEPSEEK_API_KEY=$(DEEPSEEK_API_KEY) \
+			$(APP):$(IMAGE_VERSION) /bin/bash; \
+	fi
+
+docker_shell_new: ## Start a new container with shell access
+	@echo "Starting new container with shell..."
+	docker run -it --rm \
+		-e OPENROUTER_API_KEY=$(OPENROUTER_API_KEY) \
+		-e DEEPSEEK_API_KEY=$(DEEPSEEK_API_KEY) \
+		$(APP):$(IMAGE_VERSION) /bin/bash
+
+docker_debug: ## Debug the Docker container environment
+	@echo "=== Docker Container Debug ==="
+	@CONTAINER_ID=$$(docker ps --filter "ancestor=$(APP):$(IMAGE_VERSION)" --format "{{.ID}}" | head -1); \
+	if [ -n "$$CONTAINER_ID" ]; then \
+		echo "Container ID: $$CONTAINER_ID"; \
+		echo ""; \
+		echo "=== Environment Variables ==="; \
+		docker exec $$CONTAINER_ID env | grep -E "(API_KEY|TOKEN)" | sort; \
+		echo ""; \
+		echo "=== Running Processes ==="; \
+		docker exec $$CONTAINER_ID ps aux; \
+		echo ""; \
+		echo "=== Network Ports ==="; \
+		docker exec $$CONTAINER_ID netstat -tlnp 2>/dev/null || echo "netstat not available"; \
+	else \
+		echo "No running container found"; \
+	fi
+

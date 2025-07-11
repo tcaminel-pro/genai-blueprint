@@ -467,6 +467,66 @@ aws_enable_exec: ## Enable ECS Exec for debugging (allows running commands in co
 		--region $(AWS_REGION)
 	@echo "ECS Exec enabled. You may need to restart the service for this to take effect."
 
+aws_shell: ## Open a shell in the running ECS container
+	@echo "=== Opening Shell in ECS Container ==="
+	@TASK_ARN=$$(aws ecs list-tasks \
+		--cluster $(APP)-cluster \
+		--service-name $(APP)-service \
+		--region $(AWS_REGION) \
+		--query 'taskArns[0]' \
+		--output text); \
+	if [ "$$TASK_ARN" != "None" ] && [ "$$TASK_ARN" != "" ]; then \
+		echo "Connecting to task: $$TASK_ARN"; \
+		echo "Note: ECS Exec must be enabled for this to work"; \
+		aws ecs execute-command \
+			--cluster $(APP)-cluster \
+			--task $$TASK_ARN \
+			--container $(APP)-container \
+			--interactive \
+			--command "/bin/bash" \
+			--region $(AWS_REGION); \
+	else \
+		echo "No running tasks found"; \
+	fi
+
+aws_shell_env: ## Check environment variables in the ECS container
+	@echo "=== Checking Environment Variables in ECS Container ==="
+	@TASK_ARN=$$(aws ecs list-tasks \
+		--cluster $(APP)-cluster \
+		--service-name $(APP)-service \
+		--region $(AWS_REGION) \
+		--query 'taskArns[0]' \
+		--output text); \
+	if [ "$$TASK_ARN" != "None" ] && [ "$$TASK_ARN" != "" ]; then \
+		echo "Checking environment in task: $$TASK_ARN"; \
+		echo "=== All Environment Variables ==="; \
+		aws ecs execute-command \
+			--cluster $(APP)-cluster \
+			--task $$TASK_ARN \
+			--container $(APP)-container \
+			--command "env | sort" \
+			--region $(AWS_REGION) 2>/dev/null || echo "Could not execute command"; \
+		echo ""; \
+		echo "=== API Keys (should show if secrets are working) ==="; \
+		aws ecs execute-command \
+			--cluster $(APP)-cluster \
+			--task $$TASK_ARN \
+			--container $(APP)-container \
+			--command "env | grep -E '(API_KEY|TOKEN)' | wc -l" \
+			--region $(AWS_REGION) 2>/dev/null || echo "Could not execute command"; \
+	else \
+		echo "No running tasks found"; \
+	fi
+
+aws_restart_service: ## Restart the ECS service to pick up new task definition
+	@echo "Restarting ECS service..."
+	@aws ecs update-service \
+		--cluster $(APP)-cluster \
+		--service $(APP)-service \
+		--force-new-deployment \
+		--region $(AWS_REGION)
+	@echo "Service restart initiated. It may take a few minutes for the new task to start."
+
 aws_store_secrets_manual: ## Store specific API keys manually (legacy method)
 	@echo "Storing API keys in SSM Parameter Store..."
 	@if [ -z "$(OPENROUTER_API_KEY)" ]; then \
