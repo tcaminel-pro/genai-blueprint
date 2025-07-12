@@ -139,14 +139,14 @@ class OmegaConfig(BaseModel):
     def get_bool(self, key: str, default: Optional[bool] = None) -> bool:
         """Get a boolean configuration value.
 
-        Handles both native boolean values and string representations ('true', 'false', '1', '0').
+        Handles both native boolean values and string representations ('true', 'false', '1', '0', ...).
         """
         value = self.get(key, default)
         if isinstance(value, str):
             value = value.lower().strip()
             if value in ("true", "1", "yes"):
                 return True
-            if value in ("false", "0", "no"):
+            if value in ("false", "0", "no", "[]"):
                 return False
             raise ValueError(f"Cannot convert string '{value}' to boolean for key '{key}'")
         if not isinstance(value, bool):
@@ -179,7 +179,7 @@ class OmegaConfig(BaseModel):
             missing_keys = [k for k in expected_keys if k not in result]
             if missing_keys:
                 raise ValueError(f"Missing required keys '{key}': {', '.join(missing_keys)}")
-        return result
+        return result  # type: ignore
 
     def get_dir_path(self, key: str, create_if_not_exists: bool = False) -> UPath:
         """Get a directory path. Can be local or remote  (https, S3, webdav, sftp,...)

@@ -42,7 +42,6 @@ Example:
 import os
 from collections.abc import Iterable
 from functools import cached_property
-from pathlib import Path
 from typing import Annotated, Literal, get_args
 
 from langchain.indexes import IndexingResult, SQLRecordManager, index
@@ -54,6 +53,7 @@ from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_core.vectorstores.base import VectorStoreRetriever
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
+from upath import UPath
 
 from src.ai_core.embeddings import EmbeddingsFactory
 from src.utils.config_mngr import global_config
@@ -185,7 +185,7 @@ class VectorStoreFactory(BaseModel):
         store_path = get_vector_vector_store_path()
 
         if self.id == "Chroma":
-            Path(store_path).mkdir(parents=True, exist_ok=True)
+            UPath(store_path).mkdir(parents=True, exist_ok=True)
 
             vector_store = Chroma(
                 embedding_function=embeddings,

@@ -3,10 +3,11 @@ Implement 'once', a decorator that ensures the wrapped function is called once a
 It's typically used for thread-safe singleton instance creation.
 
 It's inspired by the 'once' keyword in the Eiffel Programming language.
-It's simpler and arguably clearer than most usual approach to create singletons, such as inheriting a metaclass, overriding __init__(), etc.
+It's simpler and arguably clearer than most usual approach to create singletons, such as inheriting a metaclass, 
+overriding __init__(), etc.
 
-Purists might say it's not a 'real' Singleton class (as defined by the GoF), we can argue that it actually enforce reusability,
-since the class has not to be specialized to become a singleton.
+Purists might say it's not a 'real' Singleton class (as defined by the GoF), but  we can argue that 
+it actually enforce reusability, since the class has not to be specialized to become a singleton.
 
 """
 
@@ -65,16 +66,16 @@ def once(func: Callable[..., R]) -> Callable[..., R]:
     return wrapped
 
 
-def once_fn() -> Callable[[Callable[..., R]], Callable[..., R]]:
+def once_fn() -> Callable:
     """Factory function that returns a decorator for once functionality."""
 
-    def decorator(func: Callable[..., R]) -> Callable[..., R]:
+    def decorator(func: Callable):
         """The actual decorator that implements the once functionality."""
         decorator._cached_results = {}  # type: ignore # Store instance and lock as decorator attributes
         decorator._lock = Lock()  # type: ignore
 
         @wraps(func)
-        def wrapper(*args, **kwargs) -> R:
+        def wrapper(*args, **kwargs):
             # Create a stable cache key that handles:
             # - Multiple arguments
             # - Mutable types (lists, dicts)

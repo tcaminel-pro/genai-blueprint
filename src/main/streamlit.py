@@ -78,17 +78,12 @@ def file_name_to_page_name(file_name: str) -> str:
         '04_myTool.py' -> 'MyTool'
     """
     try:
-        # Remove leading number and extension
         name_without_number = file_name.split("_", 1)[1]
         name_without_ext = name_without_number.rsplit(".", 1)[0]
-
-        # Split into words and process each word
         words = name_without_ext.split("_")
         formatted_words = []
         for word in words:
-            # Preserve existing capitalization patterns
             if any(c.isupper() for c in word[1:]):  # Mixed case (e.g. ReAct)
-                # Capitalize first letter while preserving rest
                 formatted_words.append(word[0].upper() + word[1:])
             elif word == word.upper():  # All caps (e.g. API)
                 formatted_words.append(word)
