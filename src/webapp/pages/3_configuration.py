@@ -231,6 +231,7 @@ def main() -> None:
                     st.error(f"Error running LLM test: {str(e)}")
                     with st.expander("Show full error details"):
                         import traceback
+
                         st.text(traceback.format_exc())
 
     # MCP Servers Section
