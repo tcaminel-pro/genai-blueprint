@@ -69,23 +69,26 @@ def file_name_to_page_name(file_name: str) -> str:
     """Convert a file name to a formatted page name.
 
     Removes the leading number and underscores, converts to title case,
-    and preserves existing capitalization in acronyms.
+    preserves existing capitalization in acronyms and mixed case words.
 
     Examples:
         '01_CLI_command.py' -> 'CLI Command'
         '02_reAct_demo.py' -> 'ReAct Demo'
+        '03_API_demo.py' -> 'API Demo'
+        '04_myTool.py' -> 'MyTool'
     """
     try:
         # Remove leading number and extension
         name_without_number = file_name.split("_", 1)[1]
         name_without_ext = name_without_number.rsplit(".", 1)[0]
 
-        # Split into words, capitalize each word, and join with spaces
+        # Split into words and process each word
         words = name_without_ext.split("_")
         formatted_words = []
         for word in words:
-            # Preserve existing capitalization in acronyms
-            if word == word.upper():
+            # Preserve existing capitalization patterns
+            if (any(c.isupper() for c in word[1:]) or  # Mixed case (e.g. ReAct)
+                word == word.upper()):                 # All caps (e.g. API)
                 formatted_words.append(word)
             else:
                 formatted_words.append(word.capitalize())
