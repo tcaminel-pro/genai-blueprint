@@ -64,4 +64,4 @@ ENV BASIC_AUTHENTICATION=1 \
 EXPOSE 8501 443
 
 # Generate SSL certificates and start Streamlit
-ENTRYPOINT ["/bin/bash", "-c", "mkdir -p /app/ssl && ./generate_ssl.sh && streamlit run /app/src/main/streamlit.py --server.port=443 --server.address=0.0.0.0"]
+ENTRYPOINT ["/bin/bash", "-c", "mkdir -p /app/ssl && ./generate_ssl.sh && streamlit run /app/src/main/streamlit.py --server.port=443 --server.address=0.0.0.0 --server.sslCertFile=/app/ssl/cert.pem --server.sslKeyFile=/app/ssl/key.pem"]
