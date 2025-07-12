@@ -87,8 +87,10 @@ def file_name_to_page_name(file_name: str) -> str:
         formatted_words = []
         for word in words:
             # Preserve existing capitalization patterns
-            if (any(c.isupper() for c in word[1:]) or  # Mixed case (e.g. ReAct)
-                word == word.upper()):                 # All caps (e.g. API)
+            if (
+                any(c.isupper() for c in word[1:])  # Mixed case (e.g. ReAct)
+                or word == word.upper()
+            ):  # All caps (e.g. API)
                 formatted_words.append(word)
             else:
                 formatted_words.append(word.capitalize())
