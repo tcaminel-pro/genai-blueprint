@@ -65,6 +65,8 @@ nav_config = global_config().get("ui.navigation", {})
 pages = {}
 
 
+# improve to 1/ remove _ in file names 2/ Keep upercases (ex: 'CLI_command' should becore 'CLI Command', 
+# # and 'reAct_demo' should become 'ReAct Demo") AI!
 def file_name_to_page_name(file_name: str) -> str:
     try:
         string_without_number = file_name.split("_", 1)[1]
