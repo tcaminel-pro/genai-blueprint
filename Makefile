@@ -53,7 +53,7 @@ langserve: ## Lauch langserve app
 	python src/main/langserve_app.py
 
 webapp: ## Lauch Streamlit app
-	uv run streamlit run $(STREAMLIT_ENTRY_POINT)
+	SSL_CERT_FILE="" SSL_KEY_FILE="" uv run streamlit run $(STREAMLIT_ENTRY_POINT)
 
 
 ##############################
