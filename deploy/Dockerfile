@@ -58,8 +58,10 @@ RUN chmod +x ./generate_ssl.sh
 # Secrets will be mounted at runtime via Docker secrets                                          
 ENV BASIC_AUTHENTICATION=1 \                                                                     
     BLUEPRINT_CONFIG="container" \                                                               
-    PYTHONPATH="/app:/app/src"          
+    PYTHONPATH="/app:/app/src" \
+    SSL_CERT_FILE="/app/ssl/cert.pem" \
+    SSL_KEY_FILE="/app/ssl/key.pem"
 EXPOSE 8501 443
 
 # Generate SSL certificates and start Streamlit
-ENTRYPOINT ["/bin/bash", "-c", "./generate_ssl.sh && streamlit run /app/src/main/streamlit.py --server.port=443 --server.address=0.0.0.0"]
+ENTRYPOINT ["/bin/bash", "-c", "mkdir -p /app/ssl && ./generate_ssl.sh && streamlit run /app/src/main/streamlit.py --server.port=443 --server.address=0.0.0.0"]
