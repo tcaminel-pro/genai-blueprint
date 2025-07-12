@@ -228,8 +228,10 @@ def main() -> None:
                     st.success("LLM Response:")
                     st.write(response.content)
                 except Exception as e:
-                    # add an expander widget with the fill exception trace AI!
                     st.error(f"Error running LLM test: {str(e)}")
+                    with st.expander("Show full error details"):
+                        import traceback
+                        st.text(traceback.format_exc())
 
     # MCP Servers Section
     with st.expander("🛠️ MCP Servers & Tools", expanded=False):
