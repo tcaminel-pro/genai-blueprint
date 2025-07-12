@@ -65,14 +65,31 @@ nav_config = global_config().get("ui.navigation", {})
 pages = {}
 
 
-# improve to 1/ remove _ in file names 2/ Keep upercases (ex: 'CLI_command' should becore 'CLI Command', 
-# # and 'reAct_demo' should become 'ReAct Demo") AI!
 def file_name_to_page_name(file_name: str) -> str:
+    """Convert a file name to a formatted page name.
+
+    Removes the leading number and underscores, converts to title case,
+    and preserves existing capitalization in acronyms.
+
+    Examples:
+        '01_CLI_command.py' -> 'CLI Command'
+        '02_reAct_demo.py' -> 'ReAct Demo'
+    """
     try:
-        string_without_number = file_name.split("_", 1)[1]
-        string_without_extension = string_without_number.rsplit(".", 1)[0]
-        transformed_string = "_".join(word.capitalize() for word in string_without_extension.split("_"))
-        return transformed_string
+        # Remove leading number and extension
+        name_without_number = file_name.split("_", 1)[1]
+        name_without_ext = name_without_number.rsplit(".", 1)[0]
+        
+        # Split into words, capitalize each word, and join with spaces
+        words = name_without_ext.split("_")
+        formatted_words = []
+        for word in words:
+            # Preserve existing capitalization in acronyms
+            if word == word.upper():
+                formatted_words.append(word)
+            else:
+                formatted_words.append(word.capitalize())
+        return " ".join(formatted_words)
     except Exception:
         return file_name
 
