@@ -79,7 +79,7 @@ def file_name_to_page_name(file_name: str) -> str:
         # Remove leading number and extension
         name_without_number = file_name.split("_", 1)[1]
         name_without_ext = name_without_number.rsplit(".", 1)[0]
-        
+
         # Split into words, capitalize each word, and join with spaces
         words = name_without_ext.split("_")
         formatted_words = []
