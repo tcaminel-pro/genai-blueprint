@@ -45,7 +45,8 @@ COPY --from=builder /root/.nvm /root/.nvm
 # Create symlinks for node, npm, and npx to make them available globally                         
 RUN ln -sf /root/.nvm/versions/node/$(ls /root/.nvm/versions/node | head -1)/bin/node /usr/local/bin/node && \                                                                         
     ln -sf /root/.nvm/versions/node/$(ls /root/.nvm/versions/node | head -1)/bin/npm /usr/local/bin/npm && \                                                                          
-    ln -sf /root/.nvm/versions/node/$(ls /root/.nvm/versions/node | head -1)/bin/npx /usr/local/bin/npx  
+    ln -sf /root/.nvm/versions/node/$(ls /root/.nvm/versions/node | head -1)/bin/npx /usr/local/bin/npx && \
+    ln -sf /usr/bin/curl /usr/local/bin/curl
                                                                                                  
 # Copy application files                                                                         
 COPY --from=builder /app/use_case_data ./use_case_data                                           
