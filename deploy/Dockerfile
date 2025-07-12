@@ -1,3 +1,4 @@
+# check=skip=SecretsUsedInArgOrEnv
 # inspired by https://medium.com/@albertazzir/blazing-fast-python-docker-builds-with-poetry-a78a66f5aed0 
 # and (for uv):https://docs.astral.sh/uv/guides/integration/docker/
 
@@ -56,7 +57,7 @@ COPY deploy/generate_ssl.sh ./generate_ssl.sh
 RUN chmod +x ./generate_ssl.sh
                                                                                                  
 # Secrets will be mounted at runtime via Docker secrets                                          
-ENV BASIC_AUTHENTICATION=1 \                                                                     
+ENV BASIC_AUTH_ENABLED=1 \                                                                     
     BLUEPRINT_CONFIG="container" \                                                               
     PYTHONPATH="/app:/app/src" \
     SSL_CERT_FILE="/app/ssl/cert.pem" \
