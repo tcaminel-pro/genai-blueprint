@@ -59,6 +59,7 @@ def load_auth_config() -> AuthConfig:
     Returns:
         The authentication configuration
     """
+    enabled = global_config().get_bool("auth.enabled")
     config_path = global_config().get_file_path("auth.config_file", check_if_exists=True)
 
     if not config_path.exists():
@@ -70,6 +71,8 @@ def load_auth_config() -> AuthConfig:
 
         if not config_data:
             return AuthConfig(enabled=False, users=[])
+        
+        # add field "enabled" AI!
 
         return AuthConfig(**config_data)
     except Exception:
