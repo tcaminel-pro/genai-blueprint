@@ -131,7 +131,7 @@ if __name__ == "__main__":
             return TestClass1(a=1)
 
         @once
-        def singleton2(a: int, b: int) -> TestClass1: # type: ignore
+        def singleton2(a: int, b: int) -> TestClass1:  # type: ignore
             """Returns a singleton instance of the class"""
             return TestClass1(a=a, b=b)
 
