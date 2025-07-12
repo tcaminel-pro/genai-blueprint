@@ -139,6 +139,7 @@ class OmegaConfig(BaseModel):
     def get_bool(self, key: str, default: Optional[bool] = None) -> bool:
         """Get a boolean configuration value."""
         value = self.get(key, default)
+        # allow a string that is a valid bool  (ex: 'True', 'false', '0', '1' ) AI!
         if not isinstance(value, bool):
             raise ValueError(f"Configuration value for '{key}' is not a boolean (its a {type(value)})")
         return value
