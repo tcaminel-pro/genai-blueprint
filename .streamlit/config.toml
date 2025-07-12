@@ -27,8 +27,8 @@ gatherUsageStats = false
 runOnSave = true
 enableCORS = false
 enableXsrfProtection = false
-sslCertFile = "/app/ssl/cert.pem"
-sslKeyFile = "/app/ssl/key.pem"
+# sslCertFile = "/app/ssl/cert.pem"
+# sslKeyFile = "/app/ssl/key.pem"
 
 [client]
 showErrorDetails = true
