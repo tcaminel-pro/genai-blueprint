@@ -72,7 +72,9 @@ def load_auth_config() -> AuthConfig:
         if not config_data:
             return AuthConfig(enabled=False, users=[])
         
-        # add field "enabled" AI!
+        # Ensure 'enabled' field exists in config data
+        if 'enabled' not in config_data:
+            config_data['enabled'] = True  # Default to enabled if not specified
 
         return AuthConfig(**config_data)
     except Exception:
