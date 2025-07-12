@@ -66,10 +66,10 @@ def once(func: Callable[..., R]) -> Callable[..., R]:
 
 
 def once_fn() -> Callable[[Callable[..., R]], Callable[..., R]]:
-    """ """
+    """Factory function that returns a decorator for once functionality."""
 
-    # add annotation AI!
-    def decorator(func):
+    def decorator(func: Callable[..., R]) -> Callable[..., R]:
+        """The actual decorator that implements the once functionality."""
         decorator._cached_results = {}  # type: ignore # Store instance and lock as decorator attributes
         decorator._lock = Lock()  # type: ignore
 
