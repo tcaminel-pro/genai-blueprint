@@ -57,11 +57,18 @@ def once(func: Callable[..., R]) -> Callable[..., R]:
     if isinstance(func, staticmethod):
         # If already a staticmethod, apply once_fn() to the underlying function
         inner_func = func.__func__
-        wrapped = staticmethod(once_fn()(inner_func))
+        wrapper = once_fn()(inner_func)
+        wrapped = staticmethod(wrapper)
+        # Forward the invalidate method to the staticmethod
+        wrapped.invalidate = wrapper.invalidate
+        wrapped.__wrapped__ = inner_func  # For testing and introspection
     else:
         # Otherwise create a new staticmethod with once_fn() applied
-        inner_func = func
-        wrapped = staticmethod(once_fn()(func))
+        wrapper = once_fn()(func)
+        wrapped = staticmethod(wrapper)
+        # Expose the invalidate method directly
+        wrapped.invalidate = wrapper.invalidate
+        wrapped.__wrapped__ = func  # For testing and introspection
 
     # Preserve the original function's documentation and attributes  (DOES NOT SEEMS TO WORK...)
     wrapped.__doc__ = original_doc
