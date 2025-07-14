@@ -32,11 +32,16 @@ ui:
   app_name : GenAI Lab and Practicum
   pages_dir : ${paths.src}/webapp/pages
   navigation:
+
     settings:
       - 0_welcome.py
-      - 1_runnable_playground.py
       - 3_configuration.py
-      - 4_CLI_runner.py
+      - 4_MCP_conf.py
+
+    training:
+        - 1_runnable_playground.py
+        - 4_CLI_runner.py
+
     demos:
       - 2_maintenance_agent.py
       - 5_mon_master.py

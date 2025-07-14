@@ -1,27 +1,35 @@
-# Example CLI commands organized by category
+# Example CLI commands 
 
 
 cli_commands:
+
+  - name: Calculate an embedding vector
+    command: embedd "hello world"
+
+  - name: Similarity matching
+    command: similarity "This is a test" "This is another test" "Ceci est un test" "How are you ?"
+
   - name: Simple LLM query
-    command: llm --input "Explain quantum computing in simple terms"
+    command: llm --input "Tell me a joke on managers" --raw
   
   - name: "Run a joke chain"
     command: run joke --input "bears" 
 
-  - name: "List available models"
+  # - name: List MCP server tools
+  #   command: list-mcp-tools --filter filesystem
+
+  # - name: Agent with MCP server
+  #   command: mcp-agent --input "list configuration file in local dir" --server filesystem 
+
+  # - name: Agent with Browser
+  #   command: mcp-agent --input" get news from atos.net web site" --server playwright --server filesystem
+    
+  # - name: CodeAct Agent with internet
+  #   command: smolagents "How many seconds would it take for a leopard at full speed to run through Pont des Arts?" -t web_search 
+
+  - name: List available models
     command: list-models 
 
-  - name: "MCP Agent shell"
-    command: mcp-agent --shell 
+  # - name: Fabric pattern
+  #   command: fabric --pattern "create_aphorisms" 
 
-  - name: "GPT Researcher"
-    command: gpt-researcher "Latest developments in AI" 
-
-  - name: "Browser agent"
-    command: browser-agent "recent news on AI" --headless 
-
-  - name: "Fabric pattern"
-    command: fabric --pattern "create_aphorisms" 
-
-  - name: "OCR PDF files"
-    command: ocr-pdf "*.pdf" --output-dir=./ocr_results 
