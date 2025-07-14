@@ -2,7 +2,7 @@
 
 Provides a simple interface to:
 - Select from example CLI commands
-- Edit and execute them using Typer's CliRunner 
+- Edit and execute them using Typer's CliRunner
 - Display command output
 """
 
@@ -17,6 +17,7 @@ from typer.testing import CliRunner
 
 from src.main.cli import cli_app, define_other_commands
 from src.utils.config_mngr import global_config
+
 
 def load_cli_examples() -> list[dict]:
     """Load CLI command examples from YAML config."""
@@ -59,14 +60,14 @@ def run_typer_command(command: str) -> str:
 def main() -> None:
     """Main Streamlit page layout and interaction."""
     st.title("Command Line Interface Runner")
-    
+
     # Load command examples
     examples = load_cli_examples()
     categories = sorted({cmd["category"] for cmd in examples})
-    
+
     # Command selection UI
     col1, col2 = st.columns([1, 3])
-    
+
     with col1:
         selected_category = st.selectbox("Category", categories)
         category_commands = [cmd for cmd in examples if cmd["category"] == selected_category]
@@ -75,14 +76,11 @@ def main() -> None:
             options=[cmd["name"] for cmd in category_commands],
             format_func=lambda x: x,
         )
-        
+
     with col2:
         # Get the selected command text
-        command_text = next(
-            cmd["command"] for cmd in category_commands 
-            if cmd["name"] == selected_command
-        )
-        
+        command_text = next(cmd["command"] for cmd in category_commands if cmd["name"] == selected_command)
+
         # Command editor
         command = st.text_area(
             "Command to execute",
