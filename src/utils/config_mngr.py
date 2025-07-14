@@ -20,7 +20,7 @@ from typing import Any, Optional
 from dotenv import load_dotenv
 from loguru import logger
 from omegaconf import DictConfig, ListConfig, OmegaConf
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 from upath import UPath
 
 from src.utils.singleton import once
@@ -33,8 +33,6 @@ os.environ["PWD"] = os.getcwd()  # Hack because PWD is sometime set to a Windows
 
 class OmegaConfig(BaseModel):
     """Application configuration manager using OmegaConf."""
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     root: DictConfig
     selected_config: str
