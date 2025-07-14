@@ -54,8 +54,6 @@ COPY --from=builder /app/src ./src
 COPY --from=builder /app/config ./config                                                         
 COPY --from=builder /app/.streamlit ./.streamlit                                                 
 COPY --from=builder /app/pyproject.toml ./
-COPY deploy/generate_ssl.sh ./generate_ssl.sh
-RUN chmod +x ./generate_ssl.sh
                                                                                                  
 # Secrets will be mounted at runtime via Docker secrets                                          
 ENV BASIC_AUTH_ENABLED=1 \                                                                     
