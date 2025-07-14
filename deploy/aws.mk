@@ -79,7 +79,7 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 	@aws logs create-log-group \
 		--log-group-name "/ecs/$(APP)-task" \
 		--region $(AWS_REGION) || true
-	
+
 	@echo "Creating task definition..."
 	@chmod +x deploy/generate_container_secrets.sh
 	@echo "Debug: Checking for .env file..."
@@ -95,9 +95,9 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 		--requires-compatibilities "FARGATE" \
 		--execution-role-arn arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskExecutionRole \
 		--task-role-arn arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskRole \
-		--container-definitions "[{\"name\":\"$(APP)-container\",\"image\":\"$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)\",\"portMappings\":[{\"containerPort\":443,\"hostPort\":443},{\"containerPort\":8501,\"hostPort\":8501}],\"essential\":true,\"environment\":[{\"name\":\"DEBUG_ENV\",\"value\":\"true\"}],\"secrets\":$$SECRETS_JSON,\"logConfiguration\":{\"logDriver\":\"awslogs\",\"options\":{\"awslogs-group\":\"/ecs/$(APP)-task\",\"awslogs-region\":\"$(AWS_REGION)\",\"awslogs-stream-prefix\":\"ecs\"}}}]" \
+		--container-definitions "[{\"name\":\"$(APP)-container\",\"image\":\"$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)\",\"portMappings\":[{\"containerPort\":443,\"hostPort\":443},{\"containerPort\":8501,\"hostPort\":8501}],\"essential\":true,\"environment\":[{\"name\":\"DEBUG_ENV\",\"value\":\"true\"},{\"name\":\"PYTHONHTTPSVERIFY\",\"value\":\"1\"},{\"name\":\"REQUESTS_CA_BUNDLE\",\"value\":\"/etc/ssl/certs/ca-certificates.crt\"},{\"name\":\"SSL_CERT_FILE\",\"value\":\"/etc/ssl/certs/ca-certificates.crt\"},{\"name\":\"CURL_CA_BUNDLE\",\"value\":\"/etc/ssl/certs/ca-certificates.crt\"}],\"secrets\":$$SECRETS_JSON,\"logConfiguration\":{\"logDriver\":\"awslogs\",\"options\":{\"awslogs-group\":\"/ecs/$(APP)-task\",\"awslogs-region\":\"$(AWS_REGION)\",\"awslogs-stream-prefix\":\"ecs\"}}}]" \
 		--region $(AWS_REGION)
-	
+
 	@echo "Creating or updating ECS service..."
 	aws ecs create-service \
 		--cluster $(APP)-cluster \
@@ -498,6 +498,27 @@ aws_shell: ## Open a shell in the running ECS container
 		echo "No running tasks found"; \
 	fi
 
+
+aws_fix_ssl: ## Update CA certificates in the running container
+	@echo "=== Fixing SSL Certificates in ECS Container ==="
+	@TASK_ARN=$$(aws ecs list-tasks \
+		--cluster $(APP)-cluster \
+		--service-name $(APP)-service \
+		--region $(AWS_REGION) \
+		--query 'taskArns[0]' \
+		--output text); \
+	if [ "$$TASK_ARN" != "None" ] && [ "$$TASK_ARN" != "" ]; then \
+		echo "Updating CA certificates in task: $$TASK_ARN"; \
+		aws ecs execute-command \
+			--cluster $(APP)-cluster \
+			--task $$TASK_ARN \
+			--container $(APP)-container \
+			--command "apt-get update && apt-get install -y ca-certificates && update-ca-certificates" \
+			--region $(AWS_REGION) 2>/dev/null || echo "Failed to update CA certificates"; \
+	else \
+		echo "No running tasks found"; \
+	fi
+
 aws_shell_env: ## Check environment variables in the ECS container
 	@echo "=== Checking Environment Variables in ECS Container ==="
 	@TASK_ARN=$$(aws ecs list-tasks \
@@ -522,6 +543,14 @@ aws_shell_env: ## Check environment variables in the ECS container
 			--task $$TASK_ARN \
 			--container $(APP)-container \
 			--command "env | grep -E '(API_KEY|TOKEN)' | wc -l" \
+			--region $(AWS_REGION) 2>/dev/null || echo "Could not execute command"; \
+		echo ""; \
+		echo "=== SSL Environment Variables ==="; \
+		aws ecs execute-command \
+			--cluster $(APP)-cluster \
+			--task $$TASK_ARN \
+			--container $(APP)-container \
+			--command "env | grep -E '(SSL_|REQUESTS_CA|CURL_CA|PYTHONHTTPS)'" \
 			--region $(AWS_REGION) 2>/dev/null || echo "Could not execute command"; \
 	else \
 		echo "No running tasks found"; \
@@ -559,3 +588,40 @@ aws_store_secrets_manual: ## Store specific API keys manually (legacy method)
 		--region $(AWS_REGION) \
 		--overwrite || true
 	@echo "API keys stored successfully in SSM Parameter Store"
+
+aws_test_ssl: ## Test SSL connectivity from the ECS container
+	@echo "=== Testing SSL Connectivity in ECS Container ==="
+	@TASK_ARN=$$(aws ecs list-tasks \
+		--cluster $(APP)-cluster \
+		--service-name $(APP)-service \
+		--region $(AWS_REGION) \
+		--query 'taskArns[0]' \
+		--output text); \
+	if [ "$$TASK_ARN" != "None" ] && [ "$$TASK_ARN" != "" ]; then \
+		echo "Testing SSL connectivity in task: $$TASK_ARN"; \
+		echo "=== Checking SSL certificate bundle ==="; \
+		aws ecs execute-command \
+			--cluster $(APP)-cluster \
+			--task $$TASK_ARN \
+			--container $(APP)-container \
+			--command "ls -la /etc/ssl/certs/ca-certificates.crt" \
+			--region $(AWS_REGION) 2>/dev/null || echo "CA bundle not found"; \
+		echo ""; \
+		echo "=== Testing HTTPS connection to OpenAI ==="; \
+		aws ecs execute-command \
+			--cluster $(APP)-cluster \
+			--task $$TASK_ARN \
+			--container $(APP)-container \
+			--command "curl -v https://api.openai.com/v1/models --max-time 10" \
+			--region $(AWS_REGION) 2>/dev/null || echo "HTTPS test failed"; \
+		echo ""; \
+		echo "=== Testing Python SSL ==="; \
+		aws ecs execute-command \
+			--cluster $(APP)-cluster \
+			--task $$TASK_ARN \
+			--container $(APP)-container \
+			--command "python3 -c \"import ssl; print('SSL context created successfully'); import requests; print('Requests can import SSL')\"" \
+			--region $(AWS_REGION) 2>/dev/null || echo "Python SSL test failed"; \
+	else \
+		echo "No running tasks found"; \
+	fi/
