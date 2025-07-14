@@ -92,7 +92,7 @@ class OmegaConfig(BaseModel):
 
     def merge_with(self, file_path: str | Path) -> OmegaConfig:
         """Merge additional YAML configuration file into the current config.
-        
+
         Args:
             file_path: Path to YAML file to merge
         Returns:
@@ -104,7 +104,7 @@ class OmegaConfig(BaseModel):
         path = Path(file_path)
         if not path.exists():
             raise FileNotFoundError(f"Config file to merge not found: {file_path}")
-            
+
         new_conf = OmegaConf.load(path)
         self.root = OmegaConf.merge(self.root, new_conf)
         logger.info(f"Merged configuration from {file_path}")
