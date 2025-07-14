@@ -90,6 +90,26 @@ class OmegaConfig(BaseModel):
         logger.info(f"Switching to configuration section: {config_name}")
         self.selected_config = config_name
 
+    def merge_with(self, file_path: str | Path) -> OmegaConfig:
+        """Merge additional YAML configuration file into the current config.
+        
+        Args:
+            file_path: Path to YAML file to merge
+        Returns:
+            self for method chaining
+        Raises:
+            FileNotFoundError: If specified file doesn't exist
+            ValueError: If file can't be parsed as YAML
+        """
+        path = Path(file_path)
+        if not path.exists():
+            raise FileNotFoundError(f"Config file to merge not found: {file_path}")
+            
+        new_conf = OmegaConf.load(path)
+        self.root = OmegaConf.merge(self.root, new_conf)
+        logger.info(f"Merged configuration from {file_path}")
+        return self
+
     def get(self, key: str, default: Optional[Any] = None) -> Any:
         """Get a configuration value using dot notation.
         Args:
