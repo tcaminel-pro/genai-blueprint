@@ -147,8 +147,7 @@ aws_get_ecs_url: ## Get the public IP/URL of the deployed ECS service
 			--output text); \
 		if [ "$$PUBLIC_IP" != "None" ] && [ "$$PUBLIC_IP" != "" ]; then \
 			echo "Your application is available at:"; \
-			echo "  HTTPS: https://$$PUBLIC_IP:443 (SSL/TLS enabled)"; \
-			echo "  HTTP:  http://$$PUBLIC_IP:8501"; \
+			echo "  HTTP: http://$$PUBLIC_IP:8501"; \
 			echo ""; \
 			echo "🔍 Troubleshooting:"; \
 		else \
