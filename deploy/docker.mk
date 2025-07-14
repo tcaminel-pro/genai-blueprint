@@ -8,10 +8,13 @@ docker_build: ## Build the docker image
 	docker build --pull --rm -f "deploy/Dockerfile" -t $(APP):$(IMAGE_VERSION) "."
 
 docker_run: ## Run the container with environment variables
-	echo "Loading environment variables from .env file"; \
+	@echo "Loading environment variables from .env file"; \
 	docker run -it -p 8501:8501 \
 		--env-file $(ENV_FILE) \
-		$(APP):$(IMAGE_VERSION); \
+		-e REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
+		-e SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt \
+		-e CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
+		$(APP):$(IMAGE_VERSION)
 
 docker_shell: ## Open a shell in the container
 	@CONTAINER_ID=$$(docker ps --filter "ancestor=$(APP):$(IMAGE_VERSION)" --format "{{.ID}}" | head -1); \

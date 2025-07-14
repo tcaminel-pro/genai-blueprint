@@ -59,11 +59,12 @@ COPY --from=builder /app/.streamlit ./.streamlit
 COPY --from=builder /app/pyproject.toml ./
                                                                                                  
 # Secrets will be mounted at runtime via Docker secrets                                          
-ENV BASIC_AUTH_ENABLED=1 \                                                                     
-    BLUEPRINT_CONFIG="container" \                                                               
+ENV BASIC_AUTH_ENABLED=1 \
+    BLUEPRINT_CONFIG="container" \
     PYTHONPATH="/app:/app/src" \
-    SSL_CERT_FILE="/app/ssl/cert.pem" \
-    SSL_KEY_FILE="/app/ssl/key.pem"
+    REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
+    SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt \
+    CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 EXPOSE 8501 443
 
 # Start Streamlit
