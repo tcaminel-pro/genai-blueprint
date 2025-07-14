@@ -607,6 +607,14 @@ aws_test_ssl: ## Test SSL connectivity from the ECS container
 			--command "ls -la /etc/ssl/certs/ca-certificates.crt" \
 			--region $(AWS_REGION) 2>/dev/null || echo "CA bundle not found"; \
 		echo ""; \
+		echo "=== Checking SSL environment variables ==="; \
+		aws ecs execute-command \
+			--cluster $(APP)-cluster \
+			--task $$TASK_ARN \
+			--container $(APP)-container \
+			--command "env | grep -E '(SSL_|REQUESTS_CA|CURL_CA)'" \
+			--region $(AWS_REGION) 2>/dev/null || echo "SSL env vars not found"; \
+		echo ""; \
 		echo "=== Testing HTTPS connection to OpenAI ==="; \
 		aws ecs execute-command \
 			--cluster $(APP)-cluster \
@@ -620,8 +628,16 @@ aws_test_ssl: ## Test SSL connectivity from the ECS container
 			--cluster $(APP)-cluster \
 			--task $$TASK_ARN \
 			--container $(APP)-container \
-			--command "python3 -c \"import ssl; print('SSL context created successfully'); import requests; print('Requests can import SSL')\"" \
+			--command "python3 -c 'import ssl; print(\"SSL context created successfully\"); import requests; print(\"Requests can import SSL\")'" \
 			--region $(AWS_REGION) 2>/dev/null || echo "Python SSL test failed"; \
+		echo ""; \
+		echo "=== Testing Python HTTPS request ==="; \
+		aws ecs execute-command \
+			--cluster $(APP)-cluster \
+			--task $$TASK_ARN \
+			--container $(APP)-container \
+			--command "python3 -c 'import requests; r = requests.get(\"https://httpbin.org/get\", timeout=10); print(\"HTTPS request successful:\", r.status_code)'" \
+			--region $(AWS_REGION) 2>/dev/null || echo "Python HTTPS test failed"; \
 	else \
 		echo "No running tasks found"; \
-	fi/
+	fi
