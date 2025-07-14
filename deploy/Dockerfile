@@ -14,9 +14,12 @@ RUN apt-get update && apt-get install -y git curl build-essential libssl-dev \
     && nvm alias default node \
     && nvm use default
 
-# Install system dependencies and clean up                                                       
-RUN apt-get install -y graphviz-dev openssl && \                                                         
-    rm -rf /var/lib/apt/lists/*                                                                  
+# Install system dependencies and clean up
+RUN apt-get update && apt-get install -y \
+    graphviz-dev \
+    ca-certificates \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
                                                                                                  
 # A directory to have app data                                                                   
 WORKDIR /app                                                                                     
