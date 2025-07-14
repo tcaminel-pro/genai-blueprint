@@ -24,6 +24,6 @@ logo = str(Path.cwd() / "src/webapp/static" / LOGO)
 title_col2.image(logo, width=250)
 title_col1.markdown(
     """
-    ### 🤖 🤖 Select a demo or a Playground! 
+    ### ☝️ ☝️ Select a demo or a Playground! 
     """
 )
