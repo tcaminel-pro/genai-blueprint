@@ -63,5 +63,5 @@ ENV BASIC_AUTH_ENABLED=1 \
     SSL_KEY_FILE="/app/ssl/key.pem"
 EXPOSE 8501 443
 
-# Generate SSL certificates and start Streamlit
-ENTRYPOINT ["/bin/bash", "-c", "mkdir -p /app/ssl && ./generate_ssl.sh && exec streamlit run /app/src/main/streamlit.py --server.port=443 --server.address=0.0.0.0 --server.sslCertFile=/app/ssl/cert.pem --server.sslKeyFile=/app/ssl/key.pem --server.headless=true --server.runOnSave=false"]
+# Start Streamlit
+ENTRYPOINT ["streamlit", "run", "/app/src/main/streamlit.py", "--server.port=8501", "--server.address=0.0.0.0"]
