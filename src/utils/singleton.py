@@ -68,11 +68,15 @@ def once(func: Callable[..., R]) -> Callable[..., R]:
         # Expose the invalidate method directly
         wrapped.invalidate = wrapper.invalidate
 
-    # Preserve the original function's documentation and attributes  (DOES NOT SEEMS TO WORK...)
+    # Preserve the original function's documentation and attributes
     wrapped.__doc__ = original_doc
     wrapped.__annotations__ = original_annotations
-    wrapped.__name__ = inner_func.__name__
-    wrapped.__module__ = inner_func.__module__
+    if isinstance(func, staticmethod):
+        wrapped.__name__ = inner_func.__name__
+        wrapped.__module__ = inner_func.__module__
+    else:
+        wrapped.__name__ = func.__name__
+        wrapped.__module__ = func.__module__
 
     return wrapped
 
