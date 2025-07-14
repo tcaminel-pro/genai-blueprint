@@ -20,12 +20,14 @@ from typing import Any, Optional
 from dotenv import load_dotenv
 from loguru import logger
 from omegaconf import DictConfig, ListConfig, OmegaConf
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from upath import UPath
 
 from src.utils.singleton import once
 
 load_dotenv()
+
+APPLICATION_CONFIG_FILE: str = "config/app_conf.yaml"
 
 # Ensure PWD is set correctly
 os.environ["PWD"] = os.getcwd()  # Hack because PWD is sometime set to a Windows path in WSL
@@ -37,6 +39,8 @@ class OmegaConfig(BaseModel):
     root: DictConfig
     selected_config: str
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)  # to make pydantic happy
+
     @property
     def selected(self) -> DictConfig:
         return self.root.get(self.selected_config)
@@ -45,9 +49,8 @@ class OmegaConfig(BaseModel):
     def singleton() -> OmegaConfig:
         """Returns the singleton instance of Config."""
 
-        # TODO: Consider  using OmegaConf.to_container(conf, resolve=True, throw_on_missing=False) and return a dict
         # Load main config file
-        app_conf_path = Path("config/app_conf.yaml")
+        app_conf_path = Path(APPLICATION_CONFIG_FILE)
         if not app_conf_path.exists():
             app_conf_path = Path("config/app_conf.yaml").absolute()
         assert app_conf_path.exists(), f"cannot find config file: '{app_conf_path}'"
@@ -65,8 +68,6 @@ class OmegaConfig(BaseModel):
 
             merge_config = OmegaConf.load(merge_path)
             config = OmegaConf.merge(config, merge_config)
-
-        # OmegaConf.resolve(config)
 
         # Determine which config to use
         config_name_from_env = os.environ.get("BLUEPRINT_CONFIG")
@@ -90,24 +91,21 @@ class OmegaConfig(BaseModel):
         logger.info(f"Switching to configuration section: {config_name}")
         self.selected_config = config_name
 
-    def merge_with(self, file_path: str | Path) -> OmegaConfig:
+    def merge_with(self, file_path: str | UPath) -> OmegaConfig:
         """Merge additional YAML configuration file into the current config.
 
         Args:
             file_path: Path to YAML file to merge
         Returns:
             self for method chaining
-        Raises:
-            FileNotFoundError: If specified file doesn't exist
-            ValueError: If file can't be parsed as YAML
         """
-        path = Path(file_path)
+        path = UPath(file_path)
         if not path.exists():
             raise FileNotFoundError(f"Config file to merge not found: {file_path}")
 
         new_conf = OmegaConf.load(path)
-        self.root = OmegaConf.merge(self.root, new_conf)
-        logger.info(f"Merged configuration from {file_path}")
+        assert isinstance(new_conf, DictConfig), f"Added conf not a Dict : type{new_conf}"
+        self.root = OmegaConf.merge(self.root, new_conf)  # type: ignore
         return self
 
     def get(self, key: str, default: Optional[Any] = None) -> Any:
@@ -151,7 +149,7 @@ class OmegaConfig(BaseModel):
         """Get a string configuration value."""
         value = self.get(key, default)
         if not isinstance(value, str):
-            raise ValueError(f"Configuration value for '{key}' is not a string (its a {type(value)})")
+            raise TypeError(f"Configuration value for '{key}' is not a string (its a {type(value)})")
         return value
 
     def get_bool(self, key: str, default: Optional[bool] = None) -> bool:
@@ -166,16 +164,16 @@ class OmegaConfig(BaseModel):
                 return True
             if value in ("false", "0", "no", "[]"):
                 return False
-            raise ValueError(f"Cannot convert string '{value}' to boolean for key '{key}'")
+            raise TypeError(f"Cannot convert string '{value}' to boolean for key '{key}'")
         if not isinstance(value, bool):
-            raise ValueError(f"Configuration value for '{key}' is not a boolean (its a {type(value)})")
+            raise TypeError(f"Configuration value for '{key}' is not a boolean (its a {type(value)})")
         return value
 
     def get_list(self, key: str, default: Optional[list] = None) -> list:
         """Get a list configuration value."""
         value = self.get(key, default)
         if not isinstance(value, ListConfig):
-            raise ValueError(f"Configuration value for '{key}' is not a list (its a {type(value)})")
+            raise TypeError(f"Configuration value for '{key}' is not a list (its a {type(value)})")
         return list(value)
 
     def get_dict(self, key: str, expected_keys: list | None = None) -> dict[str, str]:
@@ -191,12 +189,12 @@ class OmegaConfig(BaseModel):
         """
         value = self.get(key)
         if not isinstance(value, DictConfig):
-            raise ValueError(f"Configuration value for '{key}' is not a dict (its a {type(value)})")
+            raise TypeError(f"Configuration value for '{key}' is not a dict (its a {type(value)})")
         result = dict(value)
         if expected_keys is not None:
             missing_keys = [k for k in expected_keys if k not in result]
             if missing_keys:
-                raise ValueError(f"Missing required keys '{key}': {', '.join(missing_keys)}")
+                raise KeyError(f"Missing required keys '{key}': {', '.join(missing_keys)}")
         return result  # type: ignore
 
     def get_dir_path(self, key: str, create_if_not_exists: bool = False) -> UPath:
@@ -216,16 +214,16 @@ class OmegaConfig(BaseModel):
                 logger.warning(f"Creating missing directory: {path}")
                 path.mkdir(parents=True, exist_ok=True)
             else:
-                raise ValueError(f"Directory path for '{key}' does not exist: '{path}'")
+                raise FileNotFoundError(f"Directory path for '{key}' does not exist: '{path}'")
         if not path.is_dir():
-            raise ValueError(f"Path for '{key}' is not a directory: '{path}'")
+            raise FileNotFoundError(f"Path for '{key}' is not a directory: '{path}'")
         return path
 
     def get_file_path(self, key: str, check_if_exists: bool = True) -> UPath:
         """Get a file path. Can be local or remote  (https, S3, webdav, sftp,...)"""
         path = UPath(self.get_str(key))
         if not path.exists() and check_if_exists:
-            raise ValueError(f"File path for '{key}' does not exist: '{path}'")
+            raise FileNotFoundError(f"File path for '{key}' does not exist: '{path}'")
         return path
 
 

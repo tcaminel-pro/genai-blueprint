@@ -14,17 +14,11 @@ paths:
   demo_conf: ${paths.project}/config/demos
 
 
-# Other config files merged to this one
+# Other config files merged to this one at launch time
 merge:
   - ${paths.config}/baseline.yaml
   - ${paths.config}/overrides.yaml
   - ${paths.config}/mcp_servers.yaml
-  # demos configurations   
-  - ${paths.demo_conf}/codeact_agent.yaml
-  - ${paths.demo_conf}/react_agent.yaml
-  - ${paths.demo_conf}/graph_rag.yaml
-  # components configurations   
-  - ${paths.config}/components/gpt_researcher.yaml
 
 # Default configuration, as defined in baseline.yaml, overrides.yaml, here, or elsewhere.
 # It can be overidden by 'BLUEPRINT_CONFIG' environment variable, or in code

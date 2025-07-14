@@ -36,6 +36,8 @@ def add_field_to_obj(obj: BaseModel, field_name: str, value: Any) -> BaseModel:
 
 
 def test() -> None:
+    from devtools import debug
+
     class Car(BaseModel):
         brand: str
         model: str
@@ -44,7 +46,7 @@ def test() -> None:
     car_with_color = add_field_to_class(Car, "color", str, required=True)
     my_car = car_with_color(brand="Toyota", model="Camry", year=2022, color="Red")
     new_car = add_field_to_obj(my_car, "id", "12345")
-    print(new_car)
+    debug(new_car)
 
 
 if __name__ == "__main__":

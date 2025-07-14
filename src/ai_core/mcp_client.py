@@ -165,7 +165,7 @@ def get_mcp_servers_dict(filter: list[str] | None = None) -> dict:
     # {'pubmed': {'command': 'uv', 'args': ['tool', 'run', 'pubmedmcp@0.1.3'], ...}}
     ```
     """
-    servers = global_config().get_dict("mcpServers")
+    servers = global_config().merge_with("config/demos/graph_rag.yaml").get_dict("mcpServers")
 
     if filter is not None:
         missing_servers = [name for name in filter if name not in servers]

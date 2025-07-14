@@ -11,13 +11,13 @@ import sys
 from loguru import logger
 
 
-def setup_logging(level="TRACE") -> None:
+def setup_logging(level: str = "TRACE") -> None:
     """Configure the application logger with Loguru.
 
     Sets up logging with a default format. It can be overridden by setting the LOGURU_FORMAT environment variable.
     """
     LOGURU_FORMAT = "<cyan>{time:HH:mm:ss}</cyan>-<level>{level: <7}</level> | <magenta>{file.name}</magenta>:<green>{line} <italic>{function}</italic></green>- <level>{message}</level>"
-    # Workaround "LOGURU_FORMAT" does not seems to be taken into account
+    # Workaround "LOGURU_FORMAT" does not seems to be taken into account - TODO
     format_str = os.environ.get("LOGURU_FORMAT") or LOGURU_FORMAT
     logger.remove()
     logger.add(

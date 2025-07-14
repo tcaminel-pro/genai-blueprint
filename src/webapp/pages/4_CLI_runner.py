@@ -8,10 +8,8 @@ Provides a simple interface to:
 
 import importlib
 import shlex
-from pathlib import Path
 
 import streamlit as st
-import yaml
 from loguru import logger
 from typer.testing import CliRunner
 
@@ -21,10 +19,7 @@ from src.utils.config_mngr import global_config
 
 def load_cli_examples() -> list[dict]:
     """Load CLI command examples from YAML config."""
-    examples_file = Path(__file__).parent.parent.parent / "config" / "cli_examples.yaml"
-    with open(examples_file) as f:
-        data = yaml.safe_load(f)
-    return data["commands"]
+    return global_config().merge_with("config/demos/cli_examples.yaml").get_list("cli_commands")
 
 
 @st.cache_resource()
@@ -63,23 +58,20 @@ def main() -> None:
 
     # Load command examples
     examples = load_cli_examples()
-    categories = sorted({cmd["category"] for cmd in examples})
 
     # Command selection UI
     col1, col2 = st.columns([1, 3])
 
     with col1:
-        selected_category = st.selectbox("Category", categories)
-        category_commands = [cmd for cmd in examples if cmd["category"] == selected_category]
         selected_command = st.selectbox(
             "Example Command",
-            options=[cmd["name"] for cmd in category_commands],
+            options=[cmd["name"] for cmd in examples],
             format_func=lambda x: x,
         )
 
     with col2:
         # Get the selected command text
-        command_text = next(cmd["command"] for cmd in category_commands if cmd["name"] == selected_command)
+        command_text = next(cmd["command"] for cmd in examples if cmd["name"] == selected_command)
 
         # Command editor
         command = st.text_area(

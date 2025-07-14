@@ -239,7 +239,7 @@ def load_demos_from_config() -> List[CodeactDemo]:
         "VisitWebpageTool": VisitWebpageTool,
     }
     try:
-        demos_config = global_config().get_list("codeact_agent_demos")
+        demos_config = global_config().merge_with("config/demos/codeact_agent.yaml").get_list("codeact_agent_demos")
         result = []
         # Create Demo objects from the configuration
         for demo_config in demos_config:

@@ -7,7 +7,6 @@ Supports custom tools, MCP servers integration, and demo presets.
 
 import asyncio
 import uuid
-from json import tool
 from typing import List, Tuple, cast
 
 import streamlit as st
@@ -96,7 +95,7 @@ def load_demos_from_config() -> List[ReactDemo]:
         Exception: If config loading fails
     """
     try:
-        demos_config = global_config().get_list("react_agent_demos")
+        demos_config = global_config().merge_with("config/demos/react_agent.yaml").get_list("react_agent_demos")
         result = []
         # Create Demo objects from the configuration
         for demo_config in demos_config:
