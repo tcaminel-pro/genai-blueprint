@@ -38,11 +38,17 @@ def once(func: Callable[..., R]) -> Callable[..., R]:
 
         my_class_singleton = MyClass.singleton()
 
+        # Invalidate the singleton
+        MyClass.singleton.invalidate()
+        new_instance = MyClass.singleton()  # Creates a new instance
+
     # work for functions, too:
         @once
         def get_my_class_singleton():
             return MyClass()
-            ...
+        
+        # Invalidate function-based singleton
+        get_my_class_singleton.invalidate()
     ```
     """
     # Preserve the original function's docstring and attributes
@@ -110,6 +116,13 @@ def once_fn() -> Callable:
                         decorator._cached_results[cache_key] = result  # type: ignore
             return decorator._cached_results[cache_key]  # type: ignore
 
+        # Add invalidation method
+        def invalidate() -> None:
+            with decorator._lock:  # type: ignore
+                decorator._cached_results.clear()  # type: ignore
+
+        wrapper.invalidate = invalidate
+
         return wrapper
 
     return decorator  # type: ignore
@@ -176,6 +189,18 @@ if __name__ == "__main__":
     assert obj8 is not obj10  # Different args - different instance
     assert obj8.a == 3
     assert obj10.a == 3  # Same sum but different args
+
+    # Test invalidation
+    obj14 = TestClass1.singleton()
+    TestClass1.singleton.invalidate()
+    obj15 = TestClass1.singleton()
+    assert obj14 is not obj15
+
+    # Test function-based invalidation
+    obj16 = get_my_class_singleton()
+    get_my_class_singleton.invalidate()
+    obj17 = get_my_class_singleton()
+    assert obj16 is not obj17
 
     obj11 = TestClass1.singleton2(a=1, b=2)
     obj12 = TestClass1.singleton2(a=1, b=2)
