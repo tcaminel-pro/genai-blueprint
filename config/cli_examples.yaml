@@ -1,0 +1,37 @@
+# Example CLI commands organized by category
+commands:
+  - name: "Simple LLM query"
+    command: """llm --input "Explain quantum computing in simple terms" """
+    category: "LLM"
+  
+  - name: "LLM with streaming"
+    command: """llm --input "Tell me a joke about AI" --stream """
+    category: "LLM"
+
+  - name: "Run a joke chain"
+    command: """run joke --input "bears" """
+    category: "Chains"
+
+  - name: "List available models"
+    command: """list-models """
+    category: "Info"
+
+  - name: "MCP Agent shell"
+    command: """mcp-agent --shell """
+    category: "Agents"
+
+  - name: "GPT Researcher"
+    command: """gpt-researcher "Latest developments in AI" """
+    category: "Research"
+
+  - name: "Browser agent"
+    command: """browser-agent "recent news on AI" --headless """
+    category: "Agents"
+
+  - name: "Fabric pattern"
+    command: """fabric --pattern "create_aphorisms" """
+    category: "Patterns"
+
+  - name: "OCR PDF files"
+    command: """ocr-pdf "*.pdf" --output-dir=./ocr_results """
+    category: "Documents"

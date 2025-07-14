@@ -1,20 +1,29 @@
 """Streamlit page to interact with Typer CLI commands.
 
 Provides a simple interface to:
-- Enter CLI commands
-- Execute them using Typer's CliRunner
+- Select from example CLI commands
+- Edit and execute them using Typer's CliRunner 
 - Display command output
 """
 
 import importlib
 import shlex
+from pathlib import Path
 
 import streamlit as st
+import yaml
 from loguru import logger
 from typer.testing import CliRunner
 
 from src.main.cli import cli_app, define_other_commands
 from src.utils.config_mngr import global_config
+
+def load_cli_examples() -> list[dict]:
+    """Load CLI command examples from YAML config."""
+    examples_file = Path(__file__).parent.parent.parent / "config" / "cli_examples.yaml"
+    with open(examples_file) as f:
+        data = yaml.safe_load(f)
+    return data["commands"]
 
 
 @st.cache_resource()
@@ -50,9 +59,36 @@ def run_typer_command(command: str) -> str:
 def main() -> None:
     """Main Streamlit page layout and interaction."""
     st.title("Command Line Interface Runner")
-
-    # Input for CLI command
-    command = st.text_input("Enter CLI command", """echo "Hello World" """)
+    
+    # Load command examples
+    examples = load_cli_examples()
+    categories = sorted({cmd["category"] for cmd in examples})
+    
+    # Command selection UI
+    col1, col2 = st.columns([1, 3])
+    
+    with col1:
+        selected_category = st.selectbox("Category", categories)
+        category_commands = [cmd for cmd in examples if cmd["category"] == selected_category]
+        selected_command = st.selectbox(
+            "Example Command",
+            options=[cmd["name"] for cmd in category_commands],
+            format_func=lambda x: x,
+        )
+        
+    with col2:
+        # Get the selected command text
+        command_text = next(
+            cmd["command"] for cmd in category_commands 
+            if cmd["name"] == selected_command
+        )
+        
+        # Command editor
+        command = st.text_area(
+            "Command to execute",
+            value=command_text,
+            height=100,
+        )
 
     # Execute button
     if st.button("Run Command"):
@@ -62,7 +98,7 @@ def main() -> None:
                 st.code(output, language="text")
             except Exception as e:
                 st.error(f"Command failed: {str(e)}")
-                print(f"error: {e}")
+                logger.error(f"Command execution error: {e}")
 
 
 if __name__ == "__main__":
