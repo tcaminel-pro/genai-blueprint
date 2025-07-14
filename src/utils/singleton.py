@@ -3,10 +3,10 @@ Implement 'once', a decorator that ensures the wrapped function is called once a
 It's typically used for thread-safe singleton instance creation.
 
 It's inspired by the 'once' keyword in the Eiffel Programming language.
-It's simpler and arguably clearer than most usual approach to create singletons, such as inheriting a metaclass, 
+It's simpler and arguably clearer than most usual approach to create singletons, such as inheriting a metaclass,
 overriding __init__(), etc.
 
-Purists might say it's not a 'real' Singleton class (as defined by the GoF), but  we can argue that 
+Purists might say it's not a 'real' Singleton class (as defined by the GoF), but  we can argue that
 it actually enforce reusability, since the class has not to be specialized to become a singleton.
 
 """
@@ -46,7 +46,7 @@ def once(func: Callable[..., R]) -> Callable[..., R]:
         @once
         def get_my_class_singleton():
             return MyClass()
-        
+
         # Invalidate function-based singleton
         get_my_class_singleton.invalidate()
     ```
