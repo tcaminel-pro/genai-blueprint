@@ -61,14 +61,12 @@ def once(func: Callable[..., R]) -> Callable[..., R]:
         wrapped = staticmethod(wrapper)
         # Forward the invalidate method to the staticmethod
         wrapped.invalidate = wrapper.invalidate
-        wrapped.__wrapped__ = inner_func  # For testing and introspection
     else:
         # Otherwise create a new staticmethod with once_fn() applied
         wrapper = once_fn()(func)
         wrapped = staticmethod(wrapper)
         # Expose the invalidate method directly
         wrapped.invalidate = wrapper.invalidate
-        wrapped.__wrapped__ = func  # For testing and introspection
 
     # Preserve the original function's documentation and attributes  (DOES NOT SEEMS TO WORK...)
     wrapped.__doc__ = original_doc
