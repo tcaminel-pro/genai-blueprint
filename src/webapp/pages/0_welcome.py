@@ -22,9 +22,8 @@ title_col1.title("Welcome ! ")
 LOGO = "New Atos logo white.png"
 logo = str(Path.cwd() / "src/webapp/static" / LOGO)
 title_col2.image(logo, width=250)
-# replace ☜ by something showing up direction AI!
 title_col1.markdown(
     """
-    ### ☜ ☜ Select a demo or a Playground! 
+    ### 🤖 🤖 Select a demo or a Playground! 
     """
 )
