@@ -79,6 +79,10 @@ aws_shell: ## Open a shell in the running ECS container
 	fi
 
 aws_redeploy: ## Force a new deployment and wait for it to stabilize
+	@if [ -z "$(APP)" ]; then \
+		echo "Error: APP variable not set. Usage: make aws_redeploy APP=<your-app-name>"; \
+		exit 1; \
+	fi
 	@echo "=== Forcing new deployment ==="
 	aws --no-cli-pager ecs update-service \
 		--cluster $(APP)-cluster \
