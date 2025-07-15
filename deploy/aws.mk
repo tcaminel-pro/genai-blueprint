@@ -142,6 +142,28 @@ aws_get_ecs_url: ## Get the public IP/URL of the deployed ECS service
 		echo "Check service status with: aws ecs describe-services --cluster $(APP)-cluster --services $(APP)-service --region $(AWS_REGION)"; \
 	fi
 
+aws_fix_security_group: ## Fix security group rules for port 8501
+	@echo "Checking and fixing security group rules..."
+	@echo "Current security group rules:"
+	@aws ec2 describe-security-groups \
+		--group-ids $(AWS_SECURITY_GROUP) \
+		--region $(AWS_REGION) \
+		--query 'SecurityGroups[0].IpPermissions[?FromPort==`8501`]' \
+		--output table || true
+	@echo "Adding rule for port 8501 if not exists..."
+	@aws ec2 authorize-security-group-ingress \
+		--group-id $(AWS_SECURITY_GROUP) \
+		--protocol tcp \
+		--port 8501 \
+		--cidr 0.0.0.0/0 \
+		--region $(AWS_REGION) 2>/dev/null && echo "✅ Rule added successfully" || echo "ℹ️  Rule already exists or failed to add"
+	@echo "Updated security group rules:"
+	@aws ec2 describe-security-groups \
+		--group-ids $(AWS_SECURITY_GROUP) \
+		--region $(AWS_REGION) \
+		--query 'SecurityGroups[0].IpPermissions[?FromPort==`8501`]' \
+		--output table
+
 aws_debug: ## Debug ECS deployment issues
 	@echo "=== ECS Task Health Check ==="
 	@TASK_ARN=$$(aws ecs list-tasks \
