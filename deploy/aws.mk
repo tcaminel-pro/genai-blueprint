@@ -3,7 +3,7 @@ AWS_ACCOUNT_ID=909658914353
 AWS_SUBNET=subnet-09ea60865f6ded152
 AWS_SECURITY_GROUP=sg-0f9ae86b1de2e3956
 
-.PHONY: aws_push aws_deploy aws_shell aws_logs aws_debug aws_fix_security_group aws_test_connection aws_check_container
+.PHONY: aws_push aws_deploy aws_shell aws_logs aws_debug aws_fix_security_group aws_test_connection aws_check_container aws_redeploy
 
 aws_push: ## Push Docker image to AWS ECR
 	aws ecr create-repository --repository-name $(APP) --region $(AWS_REGION) || true
@@ -14,6 +14,11 @@ aws_push: ## Push Docker image to AWS ECR
 aws_deploy: ## Deploy to AWS ECS Fargate
 	@echo "Creating ECS cluster..."
 	aws --no-cli-pager ecs create-cluster --cluster-name $(APP)-cluster --region $(AWS_REGION) || true
+	
+	@echo "Creating CloudWatch log group..."
+	aws --no-cli-pager logs create-log-group \
+		--log-group-name "/ecs/$(APP)-task" \
+		--region $(AWS_REGION) || true
 	
 	@echo "Updating security group to allow HTTP traffic..."
 	aws --no-cli-pager ec2 authorize-security-group-ingress \
@@ -74,6 +79,22 @@ aws_shell: ## Open a shell in the running ECS container
 	else \
 		echo "No running tasks found"; \
 	fi
+
+aws_redeploy: ## Force a new deployment and wait for it to stabilize
+	@echo "=== Forcing new deployment ==="
+	aws ecs update-service \
+		--cluster $(APP)-cluster \
+		--service $(APP)-service \
+		--force-new-deployment \
+		--region $(AWS_REGION)
+	@echo "Waiting for deployment to stabilize..."
+	aws ecs wait services-stable \
+		--cluster $(APP)-cluster \
+		--services $(APP)-service \
+		--region $(AWS_REGION)
+	@echo "✅ Deployment completed"
+	@echo ""
+	@$(MAKE) aws_get_ecs_url
 
 aws_check_container: ## Check container configuration and Dockerfile
 	@echo "=== Checking Container Configuration ==="
