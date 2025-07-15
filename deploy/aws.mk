@@ -85,11 +85,11 @@ aws_redeploy: ## Force a new deployment and wait for it to stabilize
 		--service $(APP)-service \
 		--force-new-deployment \
 		--region $(AWS_REGION)
-	@echo "Waiting for deployment to stabilize..."
-	aws ecs wait services-stable \
+	@echo "Waiting for deployment to stabilize (timeout: 10 minutes)..."
+	timeout 600 aws ecs wait services-stable \
 		--cluster $(APP)-cluster \
 		--services $(APP)-service \
-		--region $(AWS_REGION)
+		--region $(AWS_REGION) || echo "⚠️  Warning: Service stabilization timed out - check manually"
 	@echo "✅ Deployment completed"
 	@echo ""
 	@$(MAKE) aws_get_ecs_url
@@ -255,10 +255,12 @@ aws_fix_security_group: ## Fix security group rules for port 8501
 	@echo "Adding rule for port 8501 if not exists..."
 	@aws --no-cli-pager ec2 authorize-security-group-ingress \
 		--group-id $(AWS_SECURITY_GROUP) \
-		--protocol tcp \
-		--port 8501 \
-		--cidr 0.0.0.0/0 \
-		--region $(AWS_REGION) 2>/dev/null && echo "✅ Rule added successfully" || echo "ℹ️  Rule already exists or failed to add"
+		--ip-permissions '[{"IpProtocol": "tcp", "FromPort": 8501, "ToPort": 8501, "IpRanges": [{"CidrIp": "0.0.0.0/0"}]}]' \
+		--region $(AWS_REGION) 2>/dev/null && echo "✅ Inbound rule added successfully" || echo "ℹ️  Inbound rule already exists or failed to add"
+	@aws --no-cli-pager ec2 authorize-security-group-egress \
+		--group-id $(AWS_SECURITY_GROUP) \
+		--ip-permissions '[{"IpProtocol": "-1", "IpRanges": [{"CidrIp": "0.0.0.0/0"}]}]' \
+		--region $(AWS_REGION) 2>/dev/null && echo "✅ Outbound rule added successfully" || echo "ℹ️  Outbound rule already exists or failed to add"
 	@echo "Updated security group rules:"
 	@aws --no-cli-pager ec2 describe-security-groups \
 		--group-ids $(AWS_SECURITY_GROUP) \
