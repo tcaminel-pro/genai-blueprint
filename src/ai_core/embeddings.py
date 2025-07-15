@@ -213,7 +213,7 @@ class EmbeddingsFactory(BaseModel):
 
         debug(self.info)
         api_key = get_provider_api_key(self.info.provider)
-        
+
         if self.info.provider == "openai":
             from langchain_openai import OpenAIEmbeddings
 
@@ -222,8 +222,7 @@ class EmbeddingsFactory(BaseModel):
             from langchain_google_genai import GoogleGenerativeAIEmbeddings  # type: ignore  # noqa: I001
 
             emb = GoogleGenerativeAIEmbeddings(
-                model=self.info.model,
-                google_api_key=api_key.get_secret_value() if api_key else None
+                model=self.info.model, google_api_key=api_key.get_secret_value() if api_key else None
             )  # type: ignore
         elif self.info.provider == "huggingface":
             from langchain_huggingface import HuggingFaceEmbeddings  # type: ignore
@@ -239,11 +238,7 @@ class EmbeddingsFactory(BaseModel):
             from langchain_community.embeddings.edenai import EdenAiEmbeddings
 
             provider, _, model = self.info.model.partition("/")
-            emb = EdenAiEmbeddings(
-                model=model,
-                provider=provider,
-                edenai_api_key=api_key
-            )
+            emb = EdenAiEmbeddings(model=model, provider=provider, edenai_api_key=api_key)
         elif self.info.provider == "azure":
             from langchain_openai import AzureOpenAIEmbeddings
 
@@ -252,7 +247,7 @@ class EmbeddingsFactory(BaseModel):
                 azure_deployment=name,
                 model=name,
                 api_version=api_version,
-                api_key=api_key.get_secret_value() if api_key else None
+                api_key=api_key.get_secret_value() if api_key else None,
             )
         elif self.info.provider == "ollama":
             from langchain_ollama import OllamaEmbeddings
@@ -262,8 +257,7 @@ class EmbeddingsFactory(BaseModel):
             from langchain_community.embeddings import DeepInfraEmbeddings
 
             emb = DeepInfraEmbeddings(
-                model_id=self.info.model,
-                deepinfra_api_token=api_key.get_secret_value() if api_key else None
+                model_id=self.info.model, deepinfra_api_token=api_key.get_secret_value() if api_key else None
             )
         else:
             raise ValueError(f"unsupported Embeddings class {self.info.provider}")
