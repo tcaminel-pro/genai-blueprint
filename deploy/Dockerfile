@@ -53,7 +53,7 @@ RUN ln -sf /root/.nvm/versions/node/$(ls /root/.nvm/versions/node | head -1)/bin
                                                                                                  
 # Create data directory and copy external training data
 RUN mkdir -p /data/external
-COPY $ONEDRIVE_ongoing/training\ GenAI /data/external
+
 
 # Copy application files                                                                         
 COPY --from=builder /app/use_case_data ./use_case_data                                           
