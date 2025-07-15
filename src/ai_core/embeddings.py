@@ -226,7 +226,7 @@ class EmbeddingsFactory(BaseModel):
             from langchain_openai import OpenAIEmbeddings
 
             api_key = SecretStr(self._get_api_key(self.info.key))  # type: ignore
-            emb = OpenAIEmbeddings(openai_api_key=api_key)
+            emb = OpenAIEmbeddings(api_key=api_key)
         elif self.info.provider == "google_genai":
             from langchain_google_genai import GoogleGenerativeAIEmbeddings  # type: ignore  # noqa: I001
 
