@@ -38,10 +38,13 @@ title_col2.image(logo_eviden, width=250)
 # Check if spacy is available
 try:
     import spacy
+
     spacy_available = True
 except ImportError:
     spacy_available = False
-    st.warning("Spacy is not installed. Keyword and Hybrid search modes are disabled. Please install spacy to enable these features.")
+    st.warning(
+        "Spacy is not installed. Keyword and Hybrid search modes are disabled. Please install spacy to enable these features."
+    )
 
 # filter1, filter2, filter3 = st.columns(3)
 # filter1.multiselect("licence", LICENCES_CONSEILLEES)
