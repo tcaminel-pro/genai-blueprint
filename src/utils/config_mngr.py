@@ -232,6 +232,11 @@ def global_config() -> OmegaConfig:
     return OmegaConfig.singleton()
 
 
+def global_config_reload():
+    """Invalidate the global config singleton value to make it reload from file"""
+    OmegaConfig.singleton.invalidate()  # type: ignore
+
+
 ## for quick test ##
 if __name__ == "__main__":
     # Get a config value

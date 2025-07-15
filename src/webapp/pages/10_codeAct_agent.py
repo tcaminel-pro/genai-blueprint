@@ -53,6 +53,7 @@ MODEL_ID = "gpt_41mini_openrouter"
 # MODEL_ID = "qwen_qwq32_openrouter"
 
 DATA_PATH = Path.cwd() / "use_case_data/other"
+CONF_YAML_FILE = "config/demos/codeact_agent.yaml"
 
 # Initialize session state variables for managing agent output and display
 if "agent_output" not in sss:
@@ -175,7 +176,11 @@ AUTHORIZED_IMPORTS = [
     "tempfile",
 ]
 
-authorized_import = list(dict.fromkeys(AUTHORIZED_IMPORTS + global_config().get_list("codeact_authorized_imports")))
+authorized_import = list(
+    dict.fromkeys(
+        AUTHORIZED_IMPORTS + global_config().merge_with(CONF_YAML_FILE).get_list("codeact_authorized_imports")
+    )
+)
 PRINT_INFORMATION = "my_final_answer"
 
 IMAGE_INSTRUCTION = dedent_ws(
@@ -239,7 +244,7 @@ def load_demos_from_config() -> List[CodeactDemo]:
         "VisitWebpageTool": VisitWebpageTool,
     }
     try:
-        demos_config = global_config().merge_with("config/demos/codeact_agent.yaml").get_list("codeact_agent_demos")
+        demos_config = global_config().merge_with(CONF_YAML_FILE).get_list("codeact_agent_demos")
         result = []
         # Create Demo objects from the configuration
         for demo_config in demos_config:

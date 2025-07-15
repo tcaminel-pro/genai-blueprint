@@ -1,8 +1,3 @@
-#!/bin/bash
-
-# Generate secrets array for ECS container definition from .env file
-# Usage: ./generate_container_secrets.sh <app-name> <aws-region> <aws-account-id> [env-file-path]
-
 APP=$1
 AWS_REGION=$2
 AWS_ACCOUNT_ID=$3

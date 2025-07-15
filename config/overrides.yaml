@@ -16,7 +16,6 @@ training_edenai:
     cache : memory
   embeddings:
     default_model: ada_002_edenai
-  onedrive_data: ${oc.env:ONEDRIVE, null}/_ongoing/training GenAI
 
 training_openrouter:
   llm:
@@ -24,14 +23,12 @@ training_openrouter:
     cache : memory
   embeddings:
     default_model: bge_m3_deepinfra
-  onedrive_data: ${oc.env:ONEDRIVE, null}/_ongoing/training GenAI
 
 training_azure:
   llm:
     default_model: gpt_4omini_azure
   embeddings:
     default_model: ada_002_azure
-  onedrive_data: ${oc.env:ONEDRIVE, null}/_ongoing/training GenAI
 
 
 training_openai:
@@ -68,4 +65,5 @@ container:
     default_collection: "default_collection"
   monitoring: 
     default:  langsmith
+  external_data: ${paths.data_root}/external
 

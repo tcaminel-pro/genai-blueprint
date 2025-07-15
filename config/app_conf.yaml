@@ -36,7 +36,7 @@ ui:
     settings:
       - 0_welcome.py
       - 3_configuration.py
-      - 4_MCP_conf.py
+      - 4_MCP_servers.py
 
     training:
         - 1_runnable_playground.py

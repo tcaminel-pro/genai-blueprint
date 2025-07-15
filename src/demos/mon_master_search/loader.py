@@ -151,7 +151,7 @@ class offre_formation_loader(BaseLoader):
                 yield from process_json(str(member.name), parcours)
 
 
-REPO = global_config().get_dir_path("onedrive_data", create_if_not_exists=False)
+REPO = global_config().get_dir_path("external_data", create_if_not_exists=False)
 FILES = REPO / "synthesis_v2.json"
 assert FILES.exists()
 
