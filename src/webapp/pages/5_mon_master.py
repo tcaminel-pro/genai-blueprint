@@ -13,6 +13,7 @@ from langchain_core.runnables import Runnable
 import src.demos.mon_master_search.search as master_search
 from src.demos.mon_master_search.loader import add_accronym
 from src.demos.mon_master_search.model_subset import EXAMPLE_QUERIES
+from src.utils.config_mngr import global_config
 
 LLM = "gemini_pro_google"
 
@@ -43,16 +44,21 @@ with st.sidebar:
     if search_method == "Hybrid":
         ratio_spinner = st.slider("Keyword  / Vector ratio", min_value=0.0, max_value=1.0, value=0.5, step=0.1)
 
+    default_embeddings = global_config().get_str("embeddings.default_model")
+    from devtools import debug
+
+    debug(default_embeddings)
     embeddings_model = st.radio(
         "Embedding Model:",
         options=[
-            # "minilm_multilingual_local",
+            default_embeddings,
             "mistral_1024_edenai",
             "ada_002_edenai",
             "camembert_large_local",
             "solon_large_local",
         ],
         captions=[
+            "Default model",
             "Mistral 1024",
             "OpenAI Ada 002",
             "Large model for French",
