@@ -51,7 +51,8 @@ RUN ln -sf /root/.nvm/versions/node/$(ls /root/.nvm/versions/node | head -1)/bin
     ln -sf /root/.nvm/versions/node/$(ls /root/.nvm/versions/node | head -1)/bin/npx /usr/local/bin/npx && \
     ln -sf /usr/bin/curl /usr/local/bin/curl
                                                                                                  
-# Create data directory (training data will be mounted at runtime)
+
+    # Create data directory (training data will be mounted at runtime)
 RUN mkdir -p /data/external
 
 # Copy application files                                                                         
@@ -68,7 +69,10 @@ ENV BASIC_AUTH_ENABLED=1 \
     REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
     SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt \
     CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
-EXPOSE 8501 443
+EXPOSE 8501 
 
 # Start Streamlit
-ENTRYPOINT ["streamlit", "run", "/app/src/webapp/main.py", "--server.port=8501", "--server.address=0.0.0.0"]
+#ENTRYPOINT
+ENTRYPOINT ["streamlit", "run"]
+CMD ["/app/src/main/streamlit.py", "--server.port=8501", "--server.address=0.0.0.0"]
+

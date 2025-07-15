@@ -69,7 +69,7 @@ aws_shell: ## Open a shell in the running ECS container
 		--query 'taskArns[0]' \
 		--output text); \
 	if [ "$$TASK_ARN" != "None" ]; then \
-		aws ecs execute-command \
+		aws --no-cli-pager ecs execute-command \
 			--cluster $(APP)-cluster \
 			--task $$TASK_ARN \
 			--container $(APP)-container \
@@ -82,7 +82,7 @@ aws_shell: ## Open a shell in the running ECS container
 
 aws_redeploy: ## Force a new deployment and wait for it to stabilize
 	@echo "=== Forcing new deployment ==="
-	aws ecs update-service \
+	aws --no-cli-pager ecs update-service \
 		--cluster $(APP)-cluster \
 		--service $(APP)-service \
 		--force-new-deployment \
@@ -202,7 +202,7 @@ aws_logs: ## Get application logs from CloudWatch
 
 aws_get_ecs_url: ## Get the public IP/URL of the deployed ECS service
 	@echo "Getting ECS service status..."
-	@aws ecs describe-services \
+	@aws --no-cli-pager ecs describe-services \
 		--cluster $(APP)-cluster \
 		--services $(APP)-service \
 		--region $(AWS_REGION) \
@@ -249,20 +249,20 @@ aws_get_ecs_url: ## Get the public IP/URL of the deployed ECS service
 aws_fix_security_group: ## Fix security group rules for port 8501
 	@echo "Checking and fixing security group rules..."
 	@echo "Current security group rules:"
-	@aws ec2 describe-security-groups \
+	@aws --no-cli-pager ec2 describe-security-groups \
 		--group-ids $(AWS_SECURITY_GROUP) \
 		--region $(AWS_REGION) \
 		--query 'SecurityGroups[0].IpPermissions[?FromPort==`8501`]' \
 		--output table || true
 	@echo "Adding rule for port 8501 if not exists..."
-	@aws ec2 authorize-security-group-ingress \
+	@aws --no-cli-pager ec2 authorize-security-group-ingress \
 		--group-id $(AWS_SECURITY_GROUP) \
 		--protocol tcp \
 		--port 8501 \
 		--cidr 0.0.0.0/0 \
 		--region $(AWS_REGION) 2>/dev/null && echo "✅ Rule added successfully" || echo "ℹ️  Rule already exists or failed to add"
 	@echo "Updated security group rules:"
-	@aws ec2 describe-security-groups \
+	@aws --no-cli-pager ec2 describe-security-groups \
 		--group-ids $(AWS_SECURITY_GROUP) \
 		--region $(AWS_REGION) \
 		--query 'SecurityGroups[0].IpPermissions[?FromPort==`8501`]' \
@@ -280,7 +280,7 @@ aws_debug: ## Debug ECS deployment issues
 		echo "Task ARN: $$TASK_ARN"; \
 		echo ""; \
 		echo "=== Task Status ==="; \
-		aws ecs describe-tasks \
+		aws ecs --no-cli-pager describe-tasks \
 			--cluster $(APP)-cluster \
 			--tasks $$TASK_ARN \
 			--region $(AWS_REGION) \
@@ -288,7 +288,7 @@ aws_debug: ## Debug ECS deployment issues
 			--output table; \
 		echo ""; \
 		echo "=== Container Status ==="; \
-		aws ecs describe-tasks \
+		aws ecs --no-cli-pager describe-tasks \
 			--cluster $(APP)-cluster \
 			--tasks $$TASK_ARN \
 			--region $(AWS_REGION) \
@@ -304,7 +304,7 @@ aws_debug: ## Debug ECS deployment issues
 			--output text); \
 		if [ "$$ENI_ID" != "" ]; then \
 			echo "Network Interface: $$ENI_ID"; \
-			aws ec2 describe-network-interfaces \
+			aws --no-cli-pager ec2 describe-network-interfaces \
 				--network-interface-ids $$ENI_ID \
 				--region $(AWS_REGION) \
 				--query 'NetworkInterfaces[0].{PublicIp:Association.PublicIp,PrivateIp:PrivateIpAddress,SecurityGroups:Groups[].GroupId}' \
