@@ -85,11 +85,14 @@ aws_check_container: ## Check container configuration and Dockerfile
 		--output table
 	@echo ""
 	@echo "=== Dockerfile Check ==="
-	@if [ -f "Dockerfile" ]; then \
-		echo "Dockerfile exists. Checking EXPOSE and CMD:"; \
+	@if [ -f "deploy/Dockerfile" ]; then \
+		echo "Dockerfile exists at deploy/Dockerfile. Checking EXPOSE and CMD:"; \
+		grep -n "EXPOSE\|CMD\|ENTRYPOINT" deploy/Dockerfile || echo "No EXPOSE/CMD/ENTRYPOINT found"; \
+	elif [ -f "Dockerfile" ]; then \
+		echo "Dockerfile exists in root. Checking EXPOSE and CMD:"; \
 		grep -n "EXPOSE\|CMD\|ENTRYPOINT" Dockerfile || echo "No EXPOSE/CMD/ENTRYPOINT found"; \
 	else \
-		echo "❌ No Dockerfile found in current directory"; \
+		echo "❌ No Dockerfile found in current directory or deploy/ directory"; \
 	fi
 	@echo ""
 	@echo "=== Streamlit Configuration Suggestions ==="
