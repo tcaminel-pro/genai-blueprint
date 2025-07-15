@@ -1,6 +1,5 @@
 
-APP=genai-blueprint
-IMAGE_VERSION=0.2a
+# APP and IMAGE_VERSION are defined in main Makefile
 
 .PHONY: docker_build docker_run docker_shell
 
