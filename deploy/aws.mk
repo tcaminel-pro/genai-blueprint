@@ -3,7 +3,7 @@ AWS_ACCOUNT_ID=909658914353
 AWS_SUBNET=subnet-09ea60865f6ded152
 AWS_SECURITY_GROUP=sg-0f9ae86b1de2e3956
 
-.PHONY: aws_push aws_deploy aws_shell aws_logs aws_debug aws_fix_security_group
+.PHONY: aws_push aws_deploy aws_shell aws_logs aws_debug aws_fix_security_group aws_test_connection
 
 aws_push: ## Push Docker image to AWS ECR
 	aws ecr create-repository --repository-name $(APP) --region $(AWS_REGION) || true
@@ -71,6 +71,43 @@ aws_shell: ## Open a shell in the running ECS container
 			--interactive \
 			--command "/bin/bash" \
 			--region $(AWS_REGION); \
+	else \
+		echo "No running tasks found"; \
+	fi
+
+aws_test_connection: ## Test connection to the deployed application
+	@echo "=== Testing Connection to ECS Application ==="
+	@TASK_ARN=$$(aws ecs list-tasks \
+		--cluster $(APP)-cluster \
+		--service-name $(APP)-service \
+		--region $(AWS_REGION) \
+		--query 'taskArns[0]' \
+		--output text); \
+	if [ "$$TASK_ARN" != "None" ] && [ "$$TASK_ARN" != "" ]; then \
+		PUBLIC_IP=$$(aws ecs describe-tasks \
+			--cluster $(APP)-cluster \
+			--tasks $$TASK_ARN \
+			--region $(AWS_REGION) \
+			--query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' \
+			--output text | xargs -I {} aws ec2 describe-network-interfaces \
+			--network-interface-ids {} \
+			--region $(AWS_REGION) \
+			--query 'NetworkInterfaces[0].Association.PublicIp' \
+			--output text); \
+		if [ "$$PUBLIC_IP" != "None" ] && [ "$$PUBLIC_IP" != "" ]; then \
+			echo "Testing connection to: http://$$PUBLIC_IP:8501"; \
+			echo ""; \
+			echo "=== Basic connectivity test ==="; \
+			timeout 5 nc -zv $$PUBLIC_IP 8501 2>&1 || echo "Port 8501 is not reachable"; \
+			echo ""; \
+			echo "=== HTTP response test ==="; \
+			timeout 10 curl -v "http://$$PUBLIC_IP:8501" 2>&1 || echo "HTTP request failed"; \
+			echo ""; \
+			echo "=== Testing health endpoint ==="; \
+			timeout 10 curl -v "http://$$PUBLIC_IP:8501/_stcore/health" 2>&1 || echo "Health endpoint failed"; \
+		else \
+			echo "No public IP found"; \
+		fi; \
 	else \
 		echo "No running tasks found"; \
 	fi
@@ -209,13 +246,30 @@ aws_debug: ## Debug ECS deployment issues
 		echo ""; \
 		echo "=== Recent Logs (last 20 lines) ==="; \
 		TASK_ID=$$(echo $$TASK_ARN | cut -d'/' -f3); \
+		echo "Checking log group: /ecs/$(APP)-task"; \
+		echo "Checking log stream: ecs/$(APP)-container/$$TASK_ID"; \
+		aws logs describe-log-groups \
+			--log-group-name-prefix "/ecs/$(APP)-task" \
+			--region $(AWS_REGION) \
+			--query 'logGroups[0].logGroupName' \
+			--output text 2>/dev/null || echo "Log group not found - creating it..."; \
+		aws logs create-log-group \
+			--log-group-name "/ecs/$(APP)-task" \
+			--region $(AWS_REGION) 2>/dev/null || true; \
 		aws logs get-log-events \
 			--log-group-name "/ecs/$(APP)-task" \
 			--log-stream-name "ecs/$(APP)-container/$$TASK_ID" \
-			--start-time $$(date -d '1 hour ago' +%s)000 \
+			--start-time $$(date -d '2 hours ago' +%s)000 \
 			--region $(AWS_REGION) \
 			--query 'events[-20:].message' \
-			--output text 2>/dev/null || echo "No logs found - container may not have started"; \
+			--output text 2>/dev/null || echo "No logs found - container may not have started properly"; \
+		echo ""; \
+		echo "=== All Log Streams ==="; \
+		aws logs describe-log-streams \
+			--log-group-name "/ecs/$(APP)-task" \
+			--region $(AWS_REGION) \
+			--query 'logStreams[].logStreamName' \
+			--output text 2>/dev/null || echo "No log streams found"; \
 	else \
 		echo "No running tasks found"; \
 	fi
