@@ -34,6 +34,7 @@ PROVIDER_INFO = {
     "google": ("langchain_google_vertexai", "GOOGLE_API_KEY"),
 }
 
+
 def get_api_key(env_var: str) -> SecretStr | None:
     """Get and clean API key from environment variable.
 

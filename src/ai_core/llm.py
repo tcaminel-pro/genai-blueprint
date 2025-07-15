@@ -269,7 +269,6 @@ class LlmFactory(BaseModel):
         debug(model)
         return model
 
-
     def get(self) -> BaseChatModel:
         """Create an LLM model.
         'model' is our internal name for the model and its provider. If None, take the default one.
