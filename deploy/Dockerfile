@@ -71,4 +71,4 @@ ENV BASIC_AUTH_ENABLED=1 \
 EXPOSE 8501 443
 
 # Start Streamlit
-ENTRYPOINT ["streamlit", "run", "/app/src/main/streamlit.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["streamlit", "run", "/app/src/webapp/main.py", "--server.port=8501", "--server.address=0.0.0.0"]
