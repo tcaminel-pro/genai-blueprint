@@ -92,7 +92,10 @@ aws_redeploy: ## Force a new deployment and wait for it to stabilize
 		--region $(AWS_REGION) || echo "⚠️  Warning: Service stabilization timed out - check manually"
 	@echo "✅ Deployment completed"
 	@echo ""
-	@$(MAKE) aws_get_ecs_url
+	@echo "Checking deployment logs..."
+	@$(MAKE) aws_logs APP=$(APP)
+	@echo ""
+	@$(MAKE) aws_get_ecs_url APP=$(APP)
 
 aws_check_container: ## Check container configuration and Dockerfile
 	@echo "=== Checking Container Configuration ==="
@@ -250,7 +253,7 @@ aws_fix_security_group: ## Fix security group rules for port 8501
 	@aws --no-cli-pager ec2 describe-security-groups \
 		--group-ids $(AWS_SECURITY_GROUP) \
 		--region $(AWS_REGION) \
-		--query 'SecurityGroups[0].IpPermissions[?FromPort==`8501`]' \
+		--query 'SecurityGroups[0].{Inbound:IpPermissions,Outbound:IpPermissionsEgress}' \
 		--output table || true
 	@echo "Adding rule for port 8501 if not exists..."
 	@aws --no-cli-pager ec2 authorize-security-group-ingress \
