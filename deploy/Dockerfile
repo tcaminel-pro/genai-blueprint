@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y \
     graphviz-dev \
     ca-certificates \
     openssl \
+    wget \
     && rm -rf /var/lib/apt/lists/*
                                                                                                  
 # A directory to have app data                                                                   
@@ -39,7 +40,7 @@ FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim  AS runtime
 
 WORKDIR /app    
                                                                                                                                
-ENV VIRTUAL_ENV=/app/.venv \                                                                     
+ENV VIRTUAL_ENV=/app/.venv \
     PATH="/app/.venv/bin:$PATH"                                                                  
                                                                                                  
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}     
@@ -49,10 +50,10 @@ COPY --from=builder /root/.nvm /root/.nvm
 RUN ln -sf /root/.nvm/versions/node/$(ls /root/.nvm/versions/node | head -1)/bin/node /usr/local/bin/node && \                                                                         
     ln -sf /root/.nvm/versions/node/$(ls /root/.nvm/versions/node | head -1)/bin/npm /usr/local/bin/npm && \                                                                          
     ln -sf /root/.nvm/versions/node/$(ls /root/.nvm/versions/node | head -1)/bin/npx /usr/local/bin/npx && \
-    ln -sf /usr/bin/curl /usr/local/bin/curl
+    ln -sf /usr/bin/curl /usr/local/bin/curl && \
+    ln -sf /usr/bin/wget /usr/local/bin/wget
                                                                                                  
-
-    # Create data directory (training data will be mounted at runtime)
+# Create data directory (training data will be mounted at runtime)
 RUN mkdir -p /data/external
 
 # Copy application files                                                                         
@@ -69,8 +70,17 @@ ENV BASIC_AUTH_ENABLED=1 \
     REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
     SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt \
     CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+
+# Create a non-root user for security
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+RUN chown -R appuser:appuser /app
+USER appuser
+
 EXPOSE 8501 
 
-# Start Streamlit
-CMD ["streamlit", "run", "/app/src/main/streamlit.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8501/_stcore/health || exit 1
 
+# Start Streamlit
+CMD ["streamlit", "run", "/app/src/main/streamlit.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true", "--server.enableCORS=false", "--server.enableXsrfProtection=false"]
