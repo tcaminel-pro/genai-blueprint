@@ -21,6 +21,14 @@ docker_shell: ## Open a shell in the container
 	if [ -n "$$CONTAINER_ID" ]; then \
 		docker exec -it $$CONTAINER_ID /bin/bash; \
 	else \
-		docker run -it --rm $(APP):$(IMAGE_VERSION) /bin/bash; \
+		if [ -z "$(ONEDRIVE)" ]; then \
+			echo "Warning: ONEDRIVE environment variable not set. Running without training data mount."; \
+			docker run -it --rm $(APP):$(IMAGE_VERSION) /bin/bash; \
+		else \
+			echo "Mounting training data from $(ONEDRIVE)/_ongoing/training_GenAI/"; \
+			docker run -it --rm \
+				-v "$(ONEDRIVE)/_ongoing/training_GenAI/:/data/external" \
+				$(APP):$(IMAGE_VERSION) /bin/bash; \
+		fi; \
 	fi
 
