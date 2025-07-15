@@ -40,6 +40,7 @@ from langchain.storage import LocalFileStore
 from loguru import logger
 from pydantic import BaseModel, Field, SecretStr, computed_field, field_validator
 
+from src.ai_core.providers import get_api_key
 from src.utils.config_mngr import global_config
 
 _ = load_dotenv(verbose=True)
@@ -199,9 +200,7 @@ class EmbeddingsFactory(BaseModel):
             embeddings = self.get_cached_embedder()
         return embeddings
 
-from src.ai_core.providers import get_api_key
-
-def model_factory(self) -> Embeddings:
+    def model_factory(self) -> Embeddings:
         """Create an embeddings model based on configuration.
 
         Returns:
