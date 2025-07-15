@@ -15,6 +15,14 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 	@echo "Creating ECS cluster..."
 	aws ecs create-cluster --cluster-name $(APP)-cluster --region $(AWS_REGION) || true
 	
+	@echo "Updating security group to allow HTTP traffic..."
+	aws ec2 authorize-security-group-ingress \
+		--group-id $(AWS_SECURITY_GROUP) \
+		--protocol tcp \
+		--port 8501 \
+		--cidr 0.0.0.0/0 \
+		--region $(AWS_REGION) || true
+	
 	@echo "Creating task definition..."
 	@SECRETS_JSON=$$(./deploy/generate_container_secrets.sh $(APP) $(AWS_REGION) $(AWS_ACCOUNT_ID) $(ENV_FILE)); \
 	aws ecs register-task-definition \
