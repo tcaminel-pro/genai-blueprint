@@ -64,3 +64,15 @@ modal_clear_cache:  ## Clear Modal image cache
 
 modal_secrets:  ## Create Modal secrets from .env file
 	modal secret create genai-secrets $$(cat .env | xargs)
+
+modal_aws_secrets:  ## Create AWS credentials secret for ECR access
+	@echo "Creating AWS credentials secret for Modal..."
+	@if [ -z "$$AWS_ACCESS_KEY_ID" ] || [ -z "$$AWS_SECRET_ACCESS_KEY" ]; then \
+		echo "Error: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY must be set"; \
+		echo "Run: export AWS_ACCESS_KEY_ID=your_key && export AWS_SECRET_ACCESS_KEY=your_secret"; \
+		exit 1; \
+	fi
+	modal secret create aws-credentials \
+		AWS_ACCESS_KEY_ID=$$AWS_ACCESS_KEY_ID \
+		AWS_SECRET_ACCESS_KEY=$$AWS_SECRET_ACCESS_KEY \
+		AWS_DEFAULT_REGION=$${AWS_DEFAULT_REGION:-eu-west-1}

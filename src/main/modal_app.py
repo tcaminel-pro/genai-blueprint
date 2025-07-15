@@ -56,7 +56,19 @@ def get_image() -> modal.Image:
     elif DEPLOYMENT_MODE == "aws_image":
         if not AWS_IMAGE_URI:
             raise ValueError("AWS_IMAGE_URI must be set when using aws_image deployment mode")
-        return modal.Image.from_registry(AWS_IMAGE_URI, add_python="3.12")
+        
+        # For AWS ECR images, we need to handle authentication
+        if "amazonaws.com" in AWS_IMAGE_URI:
+            # Extract region from ECR URI
+            region = AWS_IMAGE_URI.split(".")[3]  # e.g., eu-west-1 from 909658914353.dkr.ecr.eu-west-1.amazonaws.com
+            
+            return modal.Image.from_registry(
+                AWS_IMAGE_URI, 
+                add_python="3.12",
+                secret=modal.Secret.from_name("aws-credentials", required=False)
+            )
+        else:
+            return modal.Image.from_registry(AWS_IMAGE_URI, add_python="3.12")
 
     elif DEPLOYMENT_MODE == "code":
         # Original code-based image definition
@@ -92,7 +104,7 @@ app = modal.App("genai-framework")
 
 @app.function(
     image=image,
-    secrets=[modal.Secret.from_dotenv()],
+    secrets=[modal.Secret.from_dotenv(), modal.Secret.from_name("aws-credentials", required=False)],
     volumes={VOLUME_PATH: volume},
     timeout=60 * 60,  # 1 hour timeout
     gpu=None,  # Optional: Use GPU if needed
