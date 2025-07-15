@@ -69,15 +69,18 @@ class EmbeddingsInfo(BaseModel):
     def __hash__(self) -> int:
         return hash(self.id)
 
-    def get_key(self) -> str | None:
+    def get_key(self) -> str:
         """Retrieve the API key from environment variables.
 
         Returns:
-            API key string if required and found, None if no key is required
+            API key string or empty string if no key is required
         """
         if self.key:
-            return os.environ.get(self.key)
-        return None
+            key = os.environ.get(self.key)
+            if key is None:
+                raise ValueError(f"No environment variable for {self.key} ")
+            return key
+        return ""
 
 
 def _read_embeddings_list_file() -> list[EmbeddingsInfo]:
@@ -186,8 +189,8 @@ class EmbeddingsFactory(BaseModel):
         Raises:
             ValueError: If API key is required but not found
         """
-        if self.info.key and self.info.get_key() is None:
-            raise EnvironmentError(f"No API key found in environment for: {self.info.id}")
+        if self.info.key and self.info.key not in os.environ:
+            raise EnvironmentError(f"No known API key for : {self.info.id}")
         embeddings = self.model_factory()
         if cached:
             embeddings = self.get_cached_embedder()
@@ -205,7 +208,7 @@ class EmbeddingsFactory(BaseModel):
         if self.info.provider == "openai":
             from langchain_openai import OpenAIEmbeddings
 
-            api_key = get_api_key(self.info.get_key() or "")
+            api_key = get_api_key(self.info.key)
             emb = OpenAIEmbeddings(api_key=api_key)
         elif self.info.provider == "google_genai":
             from langchain_google_genai import GoogleGenerativeAIEmbeddings  # type: ignore  # noqa: I001
