@@ -3,7 +3,7 @@ AWS_ACCOUNT_ID=909658914353
 AWS_SUBNET=subnet-09ea60865f6ded152
 AWS_SECURITY_GROUP=sg-0f9ae86b1de2e3956
 
-.PHONY: aws_push aws_deploy aws_shell aws_logs
+.PHONY: aws_push aws_deploy aws_shell aws_logs aws_debug aws_fix_security_group
 
 aws_push: ## Push Docker image to AWS ECR
 	aws ecr create-repository --repository-name $(APP) --region $(AWS_REGION) || true
@@ -127,11 +127,73 @@ aws_get_ecs_url: ## Get the public IP/URL of the deployed ECS service
 			echo "Your application is available at:"; \
 			echo "  HTTP: http://$$PUBLIC_IP:8501"; \
 			echo ""; \
+			echo "🔍 Testing connectivity..."; \
+			timeout 10 curl -s -o /dev/null -w "HTTP Status: %{http_code}\nResponse Time: %{time_total}s\n" "http://$$PUBLIC_IP:8501" || echo "❌ Connection failed - see troubleshooting below"; \
+			echo ""; \
 			echo "🔍 Troubleshooting:"; \
+			echo "  1. Check logs: make aws_logs"; \
+			echo "  2. Check task health: make aws_debug"; \
+			echo "  3. Verify security group allows port 8501 from your IP"; \
 		else \
 			echo "No public IP found. The task might still be starting."; \
 		fi; \
 	else \
 		echo "No running tasks found. The service might still be starting."; \
 		echo "Check service status with: aws ecs describe-services --cluster $(APP)-cluster --services $(APP)-service --region $(AWS_REGION)"; \
+	fi
+
+aws_debug: ## Debug ECS deployment issues
+	@echo "=== ECS Task Health Check ==="
+	@TASK_ARN=$$(aws ecs list-tasks \
+		--cluster $(APP)-cluster \
+		--service-name $(APP)-service \
+		--region $(AWS_REGION) \
+		--query 'taskArns[0]' \
+		--output text); \
+	if [ "$$TASK_ARN" != "None" ] && [ "$$TASK_ARN" != "" ]; then \
+		echo "Task ARN: $$TASK_ARN"; \
+		echo ""; \
+		echo "=== Task Status ==="; \
+		aws ecs describe-tasks \
+			--cluster $(APP)-cluster \
+			--tasks $$TASK_ARN \
+			--region $(AWS_REGION) \
+			--query 'tasks[0].{LastStatus:lastStatus,HealthStatus:healthStatus,CreatedAt:createdAt,StartedAt:startedAt}' \
+			--output table; \
+		echo ""; \
+		echo "=== Container Status ==="; \
+		aws ecs describe-tasks \
+			--cluster $(APP)-cluster \
+			--tasks $$TASK_ARN \
+			--region $(AWS_REGION) \
+			--query 'tasks[0].containers[0].{Name:name,LastStatus:lastStatus,HealthStatus:healthStatus,ExitCode:exitCode,Reason:reason}' \
+			--output table; \
+		echo ""; \
+		echo "=== Network Configuration ==="; \
+		ENI_ID=$$(aws ecs describe-tasks \
+			--cluster $(APP)-cluster \
+			--tasks $$TASK_ARN \
+			--region $(AWS_REGION) \
+			--query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' \
+			--output text); \
+		if [ "$$ENI_ID" != "" ]; then \
+			echo "Network Interface: $$ENI_ID"; \
+			aws ec2 describe-network-interfaces \
+				--network-interface-ids $$ENI_ID \
+				--region $(AWS_REGION) \
+				--query 'NetworkInterfaces[0].{PublicIp:Association.PublicIp,PrivateIp:PrivateIpAddress,SecurityGroups:Groups[].GroupId}' \
+				--output table; \
+		fi; \
+		echo ""; \
+		echo "=== Recent Logs (last 20 lines) ==="; \
+		TASK_ID=$$(echo $$TASK_ARN | cut -d'/' -f3); \
+		aws logs get-log-events \
+			--log-group-name "/ecs/$(APP)-task" \
+			--log-stream-name "ecs/$(APP)-container/$$TASK_ID" \
+			--start-time $$(date -d '1 hour ago' +%s)000 \
+			--region $(AWS_REGION) \
+			--query 'events[-20:].message' \
+			--output text 2>/dev/null || echo "No logs found - container may not have started"; \
+	else \
+		echo "No running tasks found"; \
 	fi
