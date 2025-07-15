@@ -56,16 +56,14 @@ def get_image() -> modal.Image:
     elif DEPLOYMENT_MODE == "aws_image":
         if not AWS_IMAGE_URI:
             raise ValueError("AWS_IMAGE_URI must be set when using aws_image deployment mode")
-        
+
         # For AWS ECR images, we need to handle authentication
         if "amazonaws.com" in AWS_IMAGE_URI:
             # Extract region from ECR URI
             region = AWS_IMAGE_URI.split(".")[3]  # e.g., eu-west-1 from 909658914353.dkr.ecr.eu-west-1.amazonaws.com
-            
+
             return modal.Image.from_registry(
-                AWS_IMAGE_URI, 
-                add_python="3.12",
-                secret=modal.Secret.from_name("aws-credentials", required=False)
+                AWS_IMAGE_URI, add_python="3.12", secret=modal.Secret.from_name("aws-credentials", required=False)
             )
         else:
             return modal.Image.from_registry(AWS_IMAGE_URI, add_python="3.12")
