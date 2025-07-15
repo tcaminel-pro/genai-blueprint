@@ -199,6 +199,20 @@ class EmbeddingsFactory(BaseModel):
             embeddings = self.get_cached_embedder()
         return embeddings
 
+    def _get_api_key(self, env_var: str) -> str | None:
+        """Get and clean API key from environment variable.
+
+        Args:
+            env_var: Environment variable name to get the API key from
+
+        Returns:
+            Cleaned API key value or None if not found
+        """
+        if env_var not in os.environ:
+            return None
+        # Strip any surrounding quotes and whitespace
+        return os.environ[env_var].strip("\"' \t\n\r")
+
     def model_factory(self) -> Embeddings:
         """Create an embeddings model based on configuration.
 
@@ -211,11 +225,13 @@ class EmbeddingsFactory(BaseModel):
         if self.info.provider == "openai":
             from langchain_openai import OpenAIEmbeddings
 
-            emb = OpenAIEmbeddings()
+            api_key = SecretStr(self._get_api_key(self.info.key))  # type: ignore
+            emb = OpenAIEmbeddings(openai_api_key=api_key)
         elif self.info.provider == "google_genai":
             from langchain_google_genai import GoogleGenerativeAIEmbeddings  # type: ignore  # noqa: I001
 
-            emb = GoogleGenerativeAIEmbeddings(model=self.info.model)  # type: ignore
+            api_key = SecretStr(self._get_api_key(self.info.key))  # type: ignore
+            emb = GoogleGenerativeAIEmbeddings(model=self.info.model, google_api_key=api_key)  # type: ignore
         elif self.info.provider == "huggingface":
             from langchain_huggingface import HuggingFaceEmbeddings  # type: ignore
 
@@ -236,10 +252,13 @@ class EmbeddingsFactory(BaseModel):
             from langchain_openai import AzureOpenAIEmbeddings
 
             name, _, api_version = self.info.model.partition("/")
+            api_key = SecretStr(self._get_api_key(self.info.key))  # type: ignore
             emb = AzureOpenAIEmbeddings(
                 azure_deployment=name,
                 model=name,  # Not sure it's needed
                 api_version=api_version,
+                azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT"),
+                api_key=api_key,
             )
         elif self.info.provider == "ollama":
             from langchain_ollama import OllamaEmbeddings
@@ -248,7 +267,8 @@ class EmbeddingsFactory(BaseModel):
         elif self.info.provider == "deepinfra":
             from langchain_community.embeddings import DeepInfraEmbeddings
 
-            emb = DeepInfraEmbeddings(model_id=self.info.model)
+            api_key = SecretStr(self._get_api_key(self.info.key))  # type: ignore
+            emb = DeepInfraEmbeddings(model_id=self.info.model, deepinfra_api_token=api_key)
         else:
             raise ValueError(f"unsupported Embeddings class {self.info.provider}")
         return emb
