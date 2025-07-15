@@ -13,10 +13,10 @@ aws_push: ## Push Docker image to AWS ECR
 
 aws_deploy: ## Deploy to AWS ECS Fargate
 	@echo "Creating ECS cluster..."
-	aws ecs create-cluster --cluster-name $(APP)-cluster --region $(AWS_REGION) || true
+	aws --no-cli-pager ecs create-cluster --cluster-name $(APP)-cluster --region $(AWS_REGION) || true
 	
 	@echo "Updating security group to allow HTTP traffic..."
-	aws ec2 authorize-security-group-ingress \
+	aws --no-cli-pager ec2 authorize-security-group-ingress \
 		--group-id $(AWS_SECURITY_GROUP) \
 		--protocol tcp \
 		--port 8501 \
@@ -25,7 +25,7 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 	
 	@echo "Creating task definition..."
 	@SECRETS_JSON=$$(./deploy/generate_container_secrets.sh $(APP) $(AWS_REGION) $(AWS_ACCOUNT_ID) $(ENV_FILE)); \
-	aws ecs register-task-definition \
+	aws --no-cli-pager ecs register-task-definition \
 		--family $(APP)-task \
 		--network-mode awsvpc \
 		--cpu "256" \
@@ -37,7 +37,7 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 		--region $(AWS_REGION)
 
 	@echo "Creating or updating ECS service..."
-	aws ecs create-service \
+	aws --no-cli-pager ecs create-service \
 		--cluster $(APP)-cluster \
 		--service-name $(APP)-service \
 		--task-definition $(APP)-task \
@@ -46,7 +46,7 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 		--enable-execute-command \
 		--network-configuration "awsvpcConfiguration={subnets=[$(AWS_SUBNET)],securityGroups=[$(AWS_SECURITY_GROUP)],assignPublicIp=ENABLED}" \
 		--region $(AWS_REGION) || \
-	aws ecs update-service \
+	aws --no-cli-pager ecs update-service \
 		--cluster $(APP)-cluster \
 		--service $(APP)-service \
 		--task-definition $(APP)-task \
