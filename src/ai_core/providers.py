@@ -3,14 +3,9 @@
 This module contains shared provider configurations and utilities for
 managing API keys across different AI service providers.
 
-Key Features:
-- Centralized provider configuration
-- Secure API key handling
-- Provider-specific utilities
 """
 
 import os
-from typing import Any
 
 from pydantic import SecretStr
 
@@ -34,8 +29,9 @@ PROVIDER_INFO = {
     "google": ("langchain_google_vertexai", "GOOGLE_API_KEY"),
 }
 
+#add a function that returns the API key associated to a given provider AI!
 
-def get_api_key(env_var: str) -> SecretStr | None:
+def clean_api_key(env_var: str | None) -> SecretStr | None:
     """Get and clean API key from environment variable.
 
     Args:
@@ -44,7 +40,11 @@ def get_api_key(env_var: str) -> SecretStr | None:
     Returns:
         Cleaned API key value wrapped in SecretStr or None if not found
     """
-    if env_var not in os.environ:
+    if env_var is None or env_var not in os.environ:
         return None
     # Strip any surrounding quotes and whitespace
-    return SecretStr(os.environ[env_var].strip("\"' \t\n\r"))
+    r = os.environ[env_var].strip("\"' \t\n\r")
+    from devtools import debug
+
+    debug(r)
+    return SecretStr(r)
