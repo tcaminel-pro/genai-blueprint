@@ -9,6 +9,11 @@
 
 
 STREAMLIT_ENTRY_POINT="src/main/streamlit.py"
+MODAL_ENTRY_POINT="src/main/modal_app.py"
+APP=genai-blueprint
+IMAGE_VERSION=0.2a
+AWS_REGION=eu-west-1
+AWS_ACCOUNT_ID=909658914353
 
 all: help 
 
