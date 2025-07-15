@@ -52,8 +52,8 @@ fast_api:  ## langsLauch FastAPI server localy
 langserve: ## Lauch langserve app
 	python src/main/langserve_app.py
 
-webapp: ## Lauch Streamlit app
-	uv run streamlit run $(STREAMLIT_ENTRY_POINT)
+webapp: ## Launch Streamlit app
+	streamlit run $(STREAMLIT_ENTRY_POINT) --server.port=8501 --server.address=0.0.0.0 --server.headless=true
 
 
 ##############################

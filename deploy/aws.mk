@@ -23,9 +23,7 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 	@echo "Updating security group to allow HTTP traffic..."
 	aws --no-cli-pager ec2 authorize-security-group-ingress \
 		--group-id $(AWS_SECURITY_GROUP) \
-		--protocol tcp \
-		--port 8501 \
-		--cidr 0.0.0.0/0 \
+		--ip-permissions '[{"IpProtocol": "tcp", "FromPort": 8501, "ToPort": 8501, "IpRanges": [{"CidrIp": "0.0.0.0/0"}]}]' \
 		--region $(AWS_REGION) || true
 	
 	@echo "Creating task definition..."
@@ -38,7 +36,7 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 		--requires-compatibilities "FARGATE" \
 		--execution-role-arn arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskExecutionRole \
 		--task-role-arn arn:aws:iam::$(AWS_ACCOUNT_ID):role/ecsTaskRole \
-		--container-definitions "[{\"name\":\"$(APP)-container\",\"image\":\"$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)\",\"portMappings\":[{\"containerPort\":8501,\"hostPort\":8501}],\"essential\":true,\"secrets\":$$SECRETS_JSON,\"logConfiguration\":{\"logDriver\":\"awslogs\",\"options\":{\"awslogs-group\":\"/ecs/$(APP)-task\",\"awslogs-region\":\"$(AWS_REGION)\",\"awslogs-stream-prefix\":\"ecs\"}}}]" \
+		--container-definitions "[{\"name\":\"$(APP)-container\",\"image\":\"$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)\",\"portMappings\":[{\"containerPort\":8501,\"hostPort\":8501}],\"essential\":true,\"secrets\":$$SECRETS_JSON,\"healthCheck\":{\"command\":[\"CMD-SHELL\",\"curl -f http://localhost:8501/_stcore/health || exit 1\"],\"interval\":30,\"timeout\":5,\"retries\":3},\"logConfiguration\":{\"logDriver\":\"awslogs\",\"options\":{\"awslogs-group\":\"/ecs/$(APP)-task\",\"awslogs-region\":\"$(AWS_REGION)\",\"awslogs-stream-prefix\":\"ecs\"}}}]" \
 		--region $(AWS_REGION)
 
 	@echo "Creating or updating ECS service..."
