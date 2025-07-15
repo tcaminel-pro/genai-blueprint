@@ -201,7 +201,7 @@ class EmbeddingsFactory(BaseModel):
 
 from src.ai_core.providers import get_api_key
 
-    def model_factory(self) -> Embeddings:
+def model_factory(self) -> Embeddings:
         """Create an embeddings model based on configuration.
 
         Returns:
