@@ -50,7 +50,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import RunnableConfig, RunnableLambda
 from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
 from loguru import logger
-from pydantic import BaseModel, Field, SecretStr, computed_field, field_validator
+from pydantic import BaseModel, Field, computed_field, field_validator
 
 from src.ai_core.cache import LlmCache
 from src.utils.config_mngr import global_config
@@ -63,7 +63,7 @@ OPENROUTER_API_BASE = f"{OPENROUTER_BASE}/api/v1"
 DEEPSEEK_API_BASE = "https://api.deepseek.com"
 # cSpell: disable
 
-from src.ai_core.providers import PROVIDER_INFO, get_api_key
+from src.ai_core.providers import PROVIDER_INFO, clean_api_key, get_provider_api_key
 
 
 class LlmInfo(BaseModel):
@@ -312,7 +312,7 @@ class LlmFactory(BaseModel):
             "streaming": self.streaming,
         }
 
-        api_key = get_api_key(self.info.key)
+        api_key = get_provider_api_key(self.info.provider)
         llm_params = common_params | self.llm_params
         if self.json_mode:
             llm_params |= {"response_format": {"type": "json_object"}}

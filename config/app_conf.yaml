@@ -51,8 +51,6 @@ ui:
       - 14_graph_RAG.py
       - 18_residio_anonymization.py
 
-
-
 auth:
   enabled: ${oc.env:BASIC_AUTH_ENABLED,false}
   config_file: ${paths.config}/basic_auth.yaml

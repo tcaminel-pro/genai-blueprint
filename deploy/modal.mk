@@ -8,6 +8,8 @@
 ##  MODAL  ###
 ##############
 
+MODAL_ENTRY_POINT="src/main/modal_app.py"
+
 .PHONY: modal_install modal_login modal_deploy modal_deploy_force modal_run modal_secrets modal_clear_cache
 
 modal_install:  ## Install Modal CLI

@@ -28,19 +28,20 @@ Example:
     vectors = embeddings.embed_documents(["Sample text"])
 """
 
-import os
+import os  # noqa: I001
 from functools import cached_property, lru_cache
 from typing import Annotated
-
 import yaml
+from devtools import debug  # noqa: F401
 from dotenv import load_dotenv
 from langchain.embeddings import CacheBackedEmbeddings
 from langchain.embeddings.base import Embeddings
 from langchain.storage import LocalFileStore
 from loguru import logger
-from pydantic import BaseModel, Field, SecretStr, computed_field, field_validator
+from pydantic import BaseModel, Field, computed_field, field_validator
 
 from src.utils.config_mngr import global_config
+from src.ai_core.providers import get_provider_api_key
 
 _ = load_dotenv(verbose=True)
 
@@ -208,10 +209,6 @@ class EmbeddingsFactory(BaseModel):
         Raises:
             ValueError: If embeddings model is not supported
         """
-        from devtools import debug
-        from src.ai_core.providers import get_provider_api_key
-
-        debug(self.info)
         api_key = get_provider_api_key(self.info.provider)
 
         if self.info.provider == "openai":

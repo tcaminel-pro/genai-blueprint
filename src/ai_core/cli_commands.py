@@ -241,7 +241,12 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         ex: uv run cli embedd "string to be embedded"
         """
-        from src.ai_core.embeddings import EmbeddingsFactory, get_embeddings
+
+        from rich.console import Console
+        from rich.panel import Panel
+        from rich.table import Table
+
+        from src.ai_core.embeddings import EmbeddingsFactory
 
         if model_id is not None:
             if model_id not in EmbeddingsFactory.known_items():
@@ -249,12 +254,10 @@ def register_commands(cli_app: typer.Typer) -> None:
                 return
             global_config().set("llm.default_model", model_id)
 
-        from rich.console import Console
-        from rich.table import Table
-        from rich.panel import Panel
-        from rich.text import Text
-
-        embedder = get_embeddings(embeddings_id=model_id)
+        factory = EmbeddingsFactory(
+            embeddings_id=model_id,
+        )
+        embedder = factory.get()
         vector = embedder.embed_documents([input])
 
         console = Console()
@@ -262,12 +265,11 @@ def register_commands(cli_app: typer.Typer) -> None:
         table.add_column("Property", style="cyan")
         table.add_column("Value", style="green")
 
-        table.add_row("Model", model_id or "default")
+        table.add_row("Model", factory.embeddings_id or "default")
         table.add_row("Vector Length", str(len(vector[0])))
-        table.add_row("First 5 Elements", ", ".join(f"{x:.4f}" for x in vector[0][:5]))
+        table.add_row("First 20 Elements", ", ".join(f"{x:.4f}" for x in vector[0][:20]))
 
         console.print(Panel.fit(table, title="Embedding Summary"))
-        console.print("\nFirst 20 elements:", Text(", ".join(f"{x:.4f}" for x in vector[0][:20]), style="dim"))
 
     @cli_app.command()
     def list_mcp_tools(

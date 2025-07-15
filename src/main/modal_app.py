@@ -15,6 +15,7 @@ DEPLOYMENT_MODE = os.environ.get("MODAL_DEPLOYMENT_MODE", "code")
 DOCKERFILE_PATH = os.environ.get("MODAL_DOCKERFILE_PATH", "deploy/Dockerfile")
 AWS_IMAGE_URI = os.environ.get("MODAL_AWS_IMAGE_URI", "")
 
+AWS_IMAGE_URI = "909658914353.dkr.ecr.eu-west-1.amazonaws.com"
 # Define the Modal volume to persist data
 volume = modal.Volume.from_name("genai-data", create_if_missing=True)
 VOLUME_PATH = "/data"

@@ -4,12 +4,12 @@
 
 import timeit
 from pathlib import Path
-import sys
 
 import pandas as pd
 import streamlit as st
 from langchain.retrievers import EnsembleRetriever
 from langchain_core.runnables import Runnable
+from streamlit import session_state as sss
 
 import src.demos.mon_master_search.search as master_search
 from src.demos.mon_master_search.loader import add_accronym
@@ -36,37 +36,28 @@ title_col2.image(logo_eviden, width=250)
 
 
 # Check if spacy is available
-try:
-    import spacy
+if "spacy_available" not in sss:
+    try:
+        master_search.get_bm25_retriever()
 
-    spacy_available = True
-except ImportError:
-    spacy_available = False
-    st.warning(
-        "Spacy is not installed. Keyword and Hybrid search modes are disabled. Please install spacy to enable these features."
-    )
+        sss.spacy_available = True
+    except Exception:
+        sss.spacy_available = False
 
-# filter1, filter2, filter3 = st.columns(3)
-# filter1.multiselect("licence", LICENCES_CONSEILLEES)
-# filter2.multiselect("modalité", MODELITE_ENSEIGNEMENT)
-# filter3.multiselect("Villes", [])
+if not sss.spacy_available:
+    st.warning("Spacy model is not installed. Keyword and Hybrid search modes are disabled..")
+
 
 with st.sidebar:
     # Only show search method options if spacy is available
-    if spacy_available:
+    if sss.spacy_available:
         search_method = st.radio("Select Search Method:", ["Vector", "Keyword", "Hybrid"], index=2)
         if search_method == "Hybrid":
             ratio_spinner = st.slider("Keyword  / Vector ratio", min_value=0.0, max_value=1.0, value=0.5, step=0.1)
     else:
         search_method = "Vector"
-    search_method = st.radio("Select Search Method:", ["Vector", "Keyword", "Hybrid"], index=2)
-    if search_method == "Hybrid":
-        ratio_spinner = st.slider("Keyword  / Vector ratio", min_value=0.0, max_value=1.0, value=0.5, step=0.1)
 
     default_embeddings = global_config().get_str("embeddings.default_model")
-    from devtools import debug
-
-    debug(default_embeddings)
     embeddings_model = st.radio(
         "Embedding Model:",
         options=[
