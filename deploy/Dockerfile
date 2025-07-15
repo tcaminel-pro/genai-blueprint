@@ -51,9 +51,8 @@ RUN ln -sf /root/.nvm/versions/node/$(ls /root/.nvm/versions/node | head -1)/bin
     ln -sf /root/.nvm/versions/node/$(ls /root/.nvm/versions/node | head -1)/bin/npx /usr/local/bin/npx && \
     ln -sf /usr/bin/curl /usr/local/bin/curl
                                                                                                  
-# Create data directory and copy external training data
+# Create data directory (training data will be mounted at runtime)
 RUN mkdir -p /data/external
-
 
 # Copy application files                                                                         
 COPY --from=builder /app/use_case_data ./use_case_data                                           
