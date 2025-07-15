@@ -40,7 +40,6 @@ from langchain.storage import LocalFileStore
 from loguru import logger
 from pydantic import BaseModel, Field, SecretStr, computed_field, field_validator
 
-from src.ai_core.providers import get_api_key
 from src.utils.config_mngr import global_config
 
 _ = load_dotenv(verbose=True)
@@ -74,13 +73,17 @@ class EmbeddingsInfo(BaseModel):
 
         Returns:
             API key string or empty string if no key is required
+
+        Raises:
+            ValueError: If configured key is not found in environment
         """
         if self.key:
             key = os.environ.get(self.key)
             if key is None:
                 raise ValueError(f"No environment variable for {self.key} ")
             return key
-        return ""
+        else:
+            return ""
 
 
 def _read_embeddings_list_file() -> list[EmbeddingsInfo]:
@@ -205,16 +208,17 @@ class EmbeddingsFactory(BaseModel):
         Raises:
             ValueError: If embeddings model is not supported
         """
+        from devtools import debug
+
+        debug(self.info)
         if self.info.provider == "openai":
             from langchain_openai import OpenAIEmbeddings
 
-            api_key = get_api_key(self.info.key)
-            emb = OpenAIEmbeddings(api_key=api_key)
+            emb = OpenAIEmbeddings()
         elif self.info.provider == "google_genai":
             from langchain_google_genai import GoogleGenerativeAIEmbeddings  # type: ignore  # noqa: I001
 
-            api_key = get_api_key(self.info.key)
-            emb = GoogleGenerativeAIEmbeddings(model=self.info.model, google_api_key=api_key)  # type: ignore
+            emb = GoogleGenerativeAIEmbeddings(model=self.info.model)  # type: ignore
         elif self.info.provider == "huggingface":
             from langchain_huggingface import HuggingFaceEmbeddings  # type: ignore
 
@@ -235,13 +239,10 @@ class EmbeddingsFactory(BaseModel):
             from langchain_openai import AzureOpenAIEmbeddings
 
             name, _, api_version = self.info.model.partition("/")
-            api_key = get_api_key(self.info.key)
             emb = AzureOpenAIEmbeddings(
                 azure_deployment=name,
                 model=name,  # Not sure it's needed
                 api_version=api_version,
-                azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT"),
-                api_key=api_key,
             )
         elif self.info.provider == "ollama":
             from langchain_ollama import OllamaEmbeddings
@@ -250,8 +251,7 @@ class EmbeddingsFactory(BaseModel):
         elif self.info.provider == "deepinfra":
             from langchain_community.embeddings import DeepInfraEmbeddings
 
-            api_key = get_api_key(self.info.key)
-            emb = DeepInfraEmbeddings(model_id=self.info.model, deepinfra_api_token=api_key)
+            emb = DeepInfraEmbeddings(model_id=self.info.model)
         else:
             raise ValueError(f"unsupported Embeddings class {self.info.provider}")
         return emb
