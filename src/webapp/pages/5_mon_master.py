@@ -4,6 +4,7 @@
 
 import timeit
 from pathlib import Path
+import sys
 
 import pandas as pd
 import streamlit as st
@@ -34,12 +35,27 @@ title_col1.title("Recherche Sémantique de Masters")
 title_col2.image(logo_eviden, width=250)
 
 
+# Check if spacy is available
+try:
+    import spacy
+    spacy_available = True
+except ImportError:
+    spacy_available = False
+    st.warning("Spacy is not installed. Keyword and Hybrid search modes are disabled. Please install spacy to enable these features.")
+
 # filter1, filter2, filter3 = st.columns(3)
 # filter1.multiselect("licence", LICENCES_CONSEILLEES)
 # filter2.multiselect("modalité", MODELITE_ENSEIGNEMENT)
 # filter3.multiselect("Villes", [])
 
 with st.sidebar:
+    # Only show search method options if spacy is available
+    if spacy_available:
+        search_method = st.radio("Select Search Method:", ["Vector", "Keyword", "Hybrid"], index=2)
+        if search_method == "Hybrid":
+            ratio_spinner = st.slider("Keyword  / Vector ratio", min_value=0.0, max_value=1.0, value=0.5, step=0.1)
+    else:
+        search_method = "Vector"
     search_method = st.radio("Select Search Method:", ["Vector", "Keyword", "Hybrid"], index=2)
     if search_method == "Hybrid":
         ratio_spinner = st.slider("Keyword  / Vector ratio", min_value=0.0, max_value=1.0, value=0.5, step=0.1)
@@ -100,12 +116,16 @@ df = pd.DataFrame()
 known_set: set[str] = set()
 if submit_clicked:
     assert embeddings_model is not None
-    if search_method == "Vector":
-        retriever = _get_sparse_retriever(embeddings_model)
-    elif search_method == "Keyword":
-        retriever = _get_bm25_retriever()
-    elif search_method == "Hybrid":
-        retriever = get_ensemble_retriever(embeddings_model, ratio_sparse=ratio_spinner)
+    try:
+        if search_method == "Vector":
+            retriever = _get_sparse_retriever(embeddings_model)
+        elif search_method == "Keyword":
+            retriever = _get_bm25_retriever()
+        elif search_method == "Hybrid":
+            retriever = get_ensemble_retriever(embeddings_model, ratio_sparse=ratio_spinner)
+    except ImportError as e:
+        st.error(f"Error: {str(e)}. Please ensure all required dependencies are installed.")
+        st.stop()
 
     #  quick and dirty hack to have enough results
     count = result_count * 2
