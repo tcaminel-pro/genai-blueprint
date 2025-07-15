@@ -3,7 +3,7 @@ AWS_ACCOUNT_ID=909658914353
 AWS_SUBNET=subnet-09ea60865f6ded152
 AWS_SECURITY_GROUP=sg-0f9ae86b1de2e3956
 
-.PHONY: aws_push aws_deploy aws_shell aws_logs aws_debug aws_fix_security_group aws_test_connection
+.PHONY: aws_push aws_deploy aws_shell aws_logs aws_debug aws_fix_security_group aws_test_connection aws_check_container
 
 aws_push: ## Push Docker image to AWS ECR
 	aws ecr create-repository --repository-name $(APP) --region $(AWS_REGION) || true
@@ -75,6 +75,28 @@ aws_shell: ## Open a shell in the running ECS container
 		echo "No running tasks found"; \
 	fi
 
+aws_check_container: ## Check container configuration and Dockerfile
+	@echo "=== Checking Container Configuration ==="
+	@echo "Current task definition:"
+	@aws ecs describe-task-definition \
+		--task-definition $(APP)-task \
+		--region $(AWS_REGION) \
+		--query 'taskDefinition.containerDefinitions[0].{Image:image,Command:command,EntryPoint:entryPoint,PortMappings:portMappings}' \
+		--output table
+	@echo ""
+	@echo "=== Dockerfile Check ==="
+	@if [ -f "Dockerfile" ]; then \
+		echo "Dockerfile exists. Checking EXPOSE and CMD:"; \
+		grep -n "EXPOSE\|CMD\|ENTRYPOINT" Dockerfile || echo "No EXPOSE/CMD/ENTRYPOINT found"; \
+	else \
+		echo "❌ No Dockerfile found in current directory"; \
+	fi
+	@echo ""
+	@echo "=== Streamlit Configuration Suggestions ==="
+	@echo "For Streamlit to work in ECS, ensure your Dockerfile has:"
+	@echo "  EXPOSE 8501"
+	@echo "  CMD [\"streamlit\", \"run\", \"your_app.py\", \"--server.address=0.0.0.0\", \"--server.port=8501\"]"
+
 aws_test_connection: ## Test connection to the deployed application
 	@echo "=== Testing Connection to ECS Application ==="
 	@TASK_ARN=$$(aws ecs list-tasks \
@@ -121,13 +143,34 @@ aws_logs: ## Get application logs from CloudWatch
 		--output text); \
 	if [ "$$TASK_ARN" != "None" ]; then \
 		TASK_ID=$$(echo $$TASK_ARN | cut -d'/' -f3); \
+		echo "Getting logs for task: $$TASK_ID"; \
+		echo "Log stream: ecs/$(APP)-container/$$TASK_ID"; \
 		aws logs get-log-events \
 			--log-group-name "/ecs/$(APP)-task" \
 			--log-stream-name "ecs/$(APP)-container/$$TASK_ID" \
-			--start-time $$(date -d '30 minutes ago' +%s)000 \
+			--start-time $$(date -d '2 hours ago' +%s)000 \
 			--region $(AWS_REGION) \
 			--query 'events[].message' \
-			--output text 2>/dev/null || echo "No logs found"; \
+			--output text 2>/dev/null || echo "No logs found for current task"; \
+		echo ""; \
+		echo "=== Checking all recent log streams ==="; \
+		for stream in $$(aws logs describe-log-streams \
+			--log-group-name "/ecs/$(APP)-task" \
+			--region $(AWS_REGION) \
+			--order-by LastEventTime \
+			--descending \
+			--max-items 3 \
+			--query 'logStreams[].logStreamName' \
+			--output text 2>/dev/null); do \
+			echo "--- Stream: $$stream ---"; \
+			aws logs get-log-events \
+				--log-group-name "/ecs/$(APP)-task" \
+				--log-stream-name "$$stream" \
+				--start-time $$(date -d '2 hours ago' +%s)000 \
+				--region $(AWS_REGION) \
+				--query 'events[-10:].message' \
+				--output text 2>/dev/null || echo "No logs in this stream"; \
+		done; \
 	else \
 		echo "No running tasks found"; \
 	fi
