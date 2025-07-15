@@ -249,10 +249,12 @@ def register_commands(cli_app: typer.Typer) -> None:
                 return
             global_config().set("llm.default_model", model_id)
 
+        # use Rich to improve output AI!
         embedder = get_embeddings(embeddings_id=model_id)
         vector = embedder.embed_documents([input])
-        print(f"{vector[0][:20]}...")
-        print(f"length: {len(vector[0])}")
+        print(f"Model:{model_id}")
+        print(f"Fist elements: {vector[0][:20]}...")
+        print(f"Length: {len(vector[0])}")
 
     @cli_app.command()
     def list_mcp_tools(
