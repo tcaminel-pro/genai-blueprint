@@ -38,9 +38,12 @@ def get_provider_api_key(provider: str) -> SecretStr | None:
 
     Returns:
         The API key as SecretStr if found, None otherwise
+
+    Raises:
+        ValueError: If provider is not in PROVIDER_INFO
     """
     if provider not in PROVIDER_INFO:
-        return None
+        raise ValueError(f"Unknown provider: {provider}. Valid providers are: {list(PROVIDER_INFO.keys())}")
     env_var = PROVIDER_INFO[provider][1]
     return clean_api_key(env_var)
 
