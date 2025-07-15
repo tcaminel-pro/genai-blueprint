@@ -249,12 +249,25 @@ def register_commands(cli_app: typer.Typer) -> None:
                 return
             global_config().set("llm.default_model", model_id)
 
-        # use Rich to improve output AI!
+        from rich.console import Console
+        from rich.table import Table
+        from rich.panel import Panel
+        from rich.text import Text
+
         embedder = get_embeddings(embeddings_id=model_id)
         vector = embedder.embed_documents([input])
-        print(f"Model:{model_id}")
-        print(f"Fist elements: {vector[0][:20]}...")
-        print(f"Length: {len(vector[0])}")
+        
+        console = Console()
+        table = Table(title="Embedding Results", show_header=True, header_style="bold magenta")
+        table.add_column("Property", style="cyan")
+        table.add_column("Value", style="green")
+        
+        table.add_row("Model", model_id or "default")
+        table.add_row("Vector Length", str(len(vector[0])))
+        table.add_row("First 5 Elements", ", ".join(f"{x:.4f}" for x in vector[0][:5]))
+        
+        console.print(Panel.fit(table, title="Embedding Summary"))
+        console.print("\nFirst 20 elements:", Text(", ".join(f"{x:.4f}" for x in vector[0][:20]), style="dim"))
 
     @cli_app.command()
     def list_mcp_tools(
