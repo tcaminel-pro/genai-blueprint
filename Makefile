@@ -83,7 +83,8 @@ aider_r1:
 	aider $(AIDER_OPTS) --model openrouter/deepseek/deepseek-r1
 aider_o3:
 	aider $(AIDER_OPTS) --model o3-mini; 
-
+aider_k2:
+	aider $(AIDER_OPTS) --model openrouter/moonshotai/kimi-k2
 
 lint: ## Run Ruff an all Python files to format fix imports
 	ruff check --select I --fix

@@ -30,7 +30,7 @@ codeact_agent_demos:
       - "Did the passenger class have an impact on survival rates?"
       - "What were the ticket fares and cabin locations for the passengers?"
       - "What are the demographics (age, gender, etc.) of the passengers on the Titanic?"
-      - "What feature would you engineered to predict survival rate ? Build a predictive model, and report feature, the value and the F1 score on a test set"
+      - "What feature would you engineered to predict survival rate ? Build a predictive model, and report feature, the value and the F1 score on a test set. Plot a graph."
 
   - name: "Stock Price"
     tools:
