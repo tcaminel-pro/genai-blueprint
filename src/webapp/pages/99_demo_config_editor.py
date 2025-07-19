@@ -5,7 +5,10 @@ from typing import Any, Dict, List, Union
 
 import streamlit as st
 from loguru import logger
+from omegaconf import OmegaConf
 from pydantic import BaseModel
+
+from src.utils.config_mngr import global_config
 
 
 class DemoConfigEditor(BaseModel):
@@ -21,10 +24,12 @@ class DemoConfigEditor(BaseModel):
 
     @staticmethod
     def load_yaml_file(file_path: Path) -> Dict[str, Any]:
-        """Load and parse a YAML file."""
+        """Load and parse a YAML file using OmegaConf."""
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                return yaml.safe_load(f) or {}
+            # Use global_config to load and resolve YAML with OmegaConf
+            config = global_config().merge_with(str(file_path))
+            # Convert OmegaConf to dict for editing
+            return OmegaConf.to_container(config, resolve=True) or {}
         except Exception as e:
             st.error(f"Error loading YAML file: {e}")
             return {}
@@ -33,8 +38,10 @@ class DemoConfigEditor(BaseModel):
     def save_yaml_file(file_path: Path, data: Dict[str, Any]) -> bool:
         """Save data back to YAML file."""
         try:
+            # Convert dict to OmegaConf and save as YAML
+            config = OmegaConf.create(data)
             with open(file_path, "w", encoding="utf-8") as f:
-                yaml.dump(data, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
+                OmegaConf.save(config, f)
             return True
         except Exception as e:
             st.error(f"Error saving YAML file: {e}")
