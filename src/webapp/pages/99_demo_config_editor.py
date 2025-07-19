@@ -52,7 +52,7 @@ class DemoConfigEditor(BaseModel):
     @staticmethod
     def render_field(key: str, value: Any, parent_key: str = "") -> Any:
         """Render a form field based on the value type."""
-        full_key = f"{parent_key}.{key}" if parent_key else key
+        full_key = f"{parent_key}_{key}" if parent_key else key
 
         if isinstance(value, bool):
             return st.checkbox(key, value=value, key=full_key)
@@ -78,14 +78,19 @@ class DemoConfigEditor(BaseModel):
                     return items
                 return items
             else:
-                # Complex list (list of dicts)
+                # Complex list (list of dicts or primitives)
                 items = []
                 for i, item in enumerate(value):
-                    st.write(f"--- Item {i + 1} ---")
-                    items.append(DemoConfigEditor.render_dict(f"{key}_{i}", item))
+                    if isinstance(item, dict):
+                        st.write(f"--- Item {i + 1} ---")
+                        items.append(DemoConfigEditor.render_dict(f"{key}_{i}", item))
+                    else:
+                        # Handle primitive values in complex list
+                        item_key = f"{full_key}_{i}"
+                        items.append(st.text_input(f"{key}[{i}]", value=str(item), key=item_key))
 
                 if st.button(f"Add new {key} item", key=f"{full_key}_new_item"):
-                    items.append({})
+                    items.append({} if isinstance(item, dict) else "")
                 return items
         elif isinstance(value, dict):
             return DemoConfigEditor.render_dict(key, value)
