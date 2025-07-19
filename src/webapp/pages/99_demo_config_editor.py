@@ -26,12 +26,14 @@ class DemoConfigEditor(BaseModel):
     def load_yaml_file(file_path: Path) -> Dict[str, Any]:
         """Load and parse a YAML file using OmegaConf."""
         try:
-            # Use global_config to load and resolve YAML with OmegaConf
-            config = global_config().merge_with(str(file_path))
-            # Convert OmegaConf to dict for editing
+            # Load the file directly with OmegaConf
+            config = OmegaConf.load(str(file_path))
+            # Convert to dict for editing
             return OmegaConf.to_container(config, resolve=True) or {}
         except Exception as e:
             st.error(f"Error loading YAML file: {e}")
+            with st.expander("Show full error details"):
+                st.exception(e)
             return {}
 
     @staticmethod
