@@ -37,6 +37,7 @@ ui:
       - 0_welcome.py
       - 3_configuration.py
       - 4_MCP_servers.py
+      - 99_demo_config_editor.py
 
     training:
         - 1_runnable_playground.py
