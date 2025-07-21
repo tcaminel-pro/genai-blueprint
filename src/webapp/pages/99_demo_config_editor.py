@@ -8,10 +8,13 @@ from pydantic import BaseModel
 
 try:
     from code_editor import code_editor
+
     CODE_EDITOR_AVAILABLE = True
 except ImportError:
     CODE_EDITOR_AVAILABLE = False
-    st.warning("streamlit-code-editor package not found. Run 'pip install streamlit-code-editor' for enhanced YAML editing.")
+    st.warning(
+        "streamlit-code-editor package not found. Run 'pip install streamlit-code-editor' for enhanced YAML editing."
+    )
 
 
 class DemoConfigEditor(BaseModel):
@@ -214,16 +217,12 @@ class DemoConfigEditor(BaseModel):
             with code_tab:
                 st.header("YAML Code Editor")
                 st.info("Edit the YAML directly with syntax highlighting and validation")
-                
+
                 # Format the current data as YAML for the editor
                 yaml_content = yaml.dump(
-                    edited_data, 
-                    default_flow_style=False, 
-                    sort_keys=False, 
-                    allow_unicode=True,
-                    indent=2
+                    edited_data, default_flow_style=False, sort_keys=False, allow_unicode=True, indent=2
                 )
-                
+
                 # Use the code editor
                 editor_response = code_editor(
                     yaml_content,
@@ -235,9 +234,9 @@ class DemoConfigEditor(BaseModel):
                         "fontSize": 14,
                         "minimap": {"enabled": False},
                         "automaticLayout": True,
-                    }
+                    },
                 )
-                
+
                 # Update edited_data if changes were made in code editor
                 if editor_response["text"] and editor_response["text"] != yaml_content:
                     try:
