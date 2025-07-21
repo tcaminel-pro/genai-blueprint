@@ -98,17 +98,20 @@ class DemoConfigEditor(BaseModel):
             },
         )
 
-        # Parse edited data
-        if editor_response["text"]:
+        # Parse edited data - use session state to preserve changes
+        if "edited_data" not in st.session_state or editor_response["text"]:
             try:
-                edited_data = yaml.safe_load(editor_response["text"])
-                if editor_response["text"] != yaml_content:
-                    st.success("YAML parsed successfully!")
+                if editor_response["text"]:
+                    st.session_state.edited_data = yaml.safe_load(editor_response["text"])
+                    if editor_response["text"] != yaml_content:
+                        st.success("YAML parsed successfully!")
+                else:
+                    st.session_state.edited_data = current_data
             except yaml.YAMLError as e:
                 st.error(f"YAML parsing error: {e}")
-                edited_data = current_data
-        else:
-            edited_data = current_data
+                st.session_state.edited_data = current_data
+        
+        edited_data = st.session_state.edited_data
 
         # Save button
         st.sidebar.markdown("---")
