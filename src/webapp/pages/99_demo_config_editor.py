@@ -22,16 +22,16 @@ class DemoConfigEditor(BaseModel):
         return list(demos_dir.glob("*.yaml"))
 
     @staticmethod
-    def load_yaml_file(file_path: Path) -> Dict[str, Any]:
-        """Load and parse a YAML file directly using PyYAML."""
+    def load_yaml_file(file_path: Path) -> str:
+        """Load YAML file content as raw text."""
         try:
             with open(file_path, "r", encoding="utf-8") as f:
-                return yaml.safe_load(f) or {}
+                return f.read()
         except Exception as e:
             st.error(f"Error loading YAML file: {e}")
             with st.expander("Show full error details"):
                 st.exception(e)
-            return {}
+            return ""
 
     @staticmethod
     def save_yaml_file(file_path: Path, data: Dict[str, Any]) -> bool:
@@ -46,10 +46,6 @@ class DemoConfigEditor(BaseModel):
             st.error(f"Error saving YAML file: {e}")
             return False
 
-    @staticmethod
-    def yaml_to_editor_content(data: Dict[str, Any]) -> str:
-        """Convert dict data to formatted YAML string for editor."""
-        return yaml.safe_dump(data, default_flow_style=False, allow_unicode=True, indent=2)
 
     @staticmethod
     def main():
@@ -71,10 +67,9 @@ class DemoConfigEditor(BaseModel):
             "Select YAML file to edit", options=yaml_files, format_func=lambda x: x.name
         )
 
-        # Load current data
-        current_data = DemoConfigEditor.load_yaml_file(selected_file)
-
-        if not current_data:
+        # Load raw YAML content
+        yaml_content = DemoConfigEditor.load_yaml_file(selected_file)
+        if not yaml_content:
             st.error("Failed to load configuration file")
             return
 
@@ -84,7 +79,6 @@ class DemoConfigEditor(BaseModel):
 
         # Initialize editor content - use session state if available and for the same file
         current_file_key = f"editor_content_{selected_file.name}"
-        yaml_content = DemoConfigEditor.yaml_to_editor_content(current_data)
 
         # Use saved editor content if it exists for this file, otherwise use file content
         if current_file_key in st.session_state:
@@ -106,25 +100,22 @@ class DemoConfigEditor(BaseModel):
             },
         )
 
-        # Parse edited data - use session state to preserve changes
-        try:
-            if editor_response["text"]:
-                # Save the current editor content for this file
+        # Validate and save edited content
+        if editor_response["text"]:
+            # Validate YAML syntax
+            try:
+                yaml.safe_load(editor_response["text"])
+                # Save valid content to session
                 st.session_state[current_file_key] = editor_response["text"]
-
-                edited_data = yaml.safe_load(editor_response["text"])
-                # Always update session state with the current editor content
-                st.session_state.edited_data = edited_data
-
-                # Check if content has changed from the original file
-                if editor_response["text"].strip() != yaml_content.strip():
-                    st.success("YAML parsed successfully! Changes detected.")
-                    st.session_state.file_changed = True
+                st.session_state.file_changed = editor_response["text"].strip() != yaml_content.strip()
+                
+                if st.session_state.file_changed:
+                    st.success("Valid YAML - Changes detected")
                 else:
-                    st.session_state.file_changed = False
-            else:
-                edited_data = current_data
-                st.session_state.edited_data = edited_data
+                    st.info("No changes detected")
+                    
+            except yaml.YAMLError as e:
+                st.error(f"Invalid YAML syntax: {e}")
                 st.session_state.file_changed = False
         except yaml.YAMLError as e:
             st.error(f"YAML parsing error: {e}")
@@ -143,9 +134,9 @@ class DemoConfigEditor(BaseModel):
             button_type = "primary" if has_changes else "secondary"
 
             if st.button(button_text, type=button_type, use_container_width=True):
-                # Use the current edited data from session state
-                data_to_save = st.session_state.get("edited_data", current_data)
-                success = DemoConfigEditor.save_yaml_file(selected_file, data_to_save)
+                # Get the raw edited content from session state
+                edited_content = st.session_state.get(current_file_key, yaml_content)
+                success = DemoConfigEditor.save_yaml_file(selected_file, edited_content)
                 if success:
                     st.success("✅ Configuration saved successfully!")
                     st.session_state.file_changed = False
@@ -153,11 +144,9 @@ class DemoConfigEditor(BaseModel):
                     if current_file_key in st.session_state:
                         del st.session_state[current_file_key]
                     # Reload the saved data directly from disk
-                    with open(selected_file, "r", encoding="utf-8") as f:
-                        current_data = yaml.safe_load(f)
-                    st.session_state.edited_data = current_data
-                    # Update editor content with freshly saved version
-                    st.session_state[current_file_key] = DemoConfigEditor.yaml_to_editor_content(current_data)
+                    yaml_content = DemoConfigEditor.load_yaml_file(selected_file)
+                    # Update editor content with fresh version
+                    st.session_state[current_file_key] = yaml_content
                     st.balloons()
                 else:
                     st.error("❌ Failed to save configuration")
