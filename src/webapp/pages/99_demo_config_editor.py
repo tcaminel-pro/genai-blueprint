@@ -99,28 +99,37 @@ class DemoConfigEditor(BaseModel):
         )
 
         # Parse edited data - use session state to preserve changes
-        if "edited_data" not in st.session_state or editor_response["text"]:
-            try:
-                if editor_response["text"]:
-                    st.session_state.edited_data = yaml.safe_load(editor_response["text"])
-                    if editor_response["text"] != yaml_content:
-                        st.success("YAML parsed successfully!")
-                else:
-                    st.session_state.edited_data = current_data
-            except yaml.YAMLError as e:
-                st.error(f"YAML parsing error: {e}")
-                st.session_state.edited_data = current_data
-
-        edited_data = st.session_state.edited_data
+        try:
+            if editor_response["text"]:
+                edited_data = yaml.safe_load(editor_response["text"])
+                if editor_response["text"] != yaml_content:
+                    st.success("YAML parsed successfully!")
+                    st.session_state.file_changed = True
+            else:
+                edited_data = current_data
+        except yaml.YAMLError as e:
+            st.error(f"YAML parsing error: {e}")
+            edited_data = current_data
+            
+        st.session_state.edited_data = edited_data
 
         # Save button
         st.sidebar.markdown("---")
-        if st.sidebar.button("💾 Save Changes", type="primary", use_container_width=True):
-            if DemoConfigEditor.save_yaml_file(selected_file, edited_data):
-                st.sidebar.success("✅ Configuration saved successfully!")
-                st.balloons()
-            else:
-                st.sidebar.error("❌ Failed to save configuration")
+        save_col, reload_col = st.sidebar.columns(2)
+        
+        with save_col:
+            if st.button("💾 Save Changes", type="primary", use_container_width=True):
+                success = DemoConfigEditor.save_yaml_file(selected_file, st.session_state.edited_data)
+                if success:
+                    st.success("✅ Configuration saved successfully!")
+                    st.session_state.file_changed = False
+                    st.balloons()
+                else:
+                    st.error("❌ Failed to save configuration")
+        
+        with reload_col:
+            if st.button("🔄 Reload", use_container_width=True):
+                st.rerun()
 
         # Reload button
         if st.sidebar.button("🔄 Reload from File", use_container_width=True):
