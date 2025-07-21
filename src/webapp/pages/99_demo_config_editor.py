@@ -6,6 +6,13 @@ import yaml
 from omegaconf import OmegaConf
 from pydantic import BaseModel
 
+try:
+    from code_editor import code_editor
+    CODE_EDITOR_AVAILABLE = True
+except ImportError:
+    CODE_EDITOR_AVAILABLE = False
+    st.warning("streamlit-code-editor package not found. Run 'pip install streamlit-code-editor' for enhanced YAML editing.")
+
 
 class DemoConfigEditor(BaseModel):
     """Streamlit page for editing demo YAML configuration files dynamically."""
@@ -177,10 +184,16 @@ class DemoConfigEditor(BaseModel):
             return
 
         # Create tabs
-        edit_tab, raw_tab, preview_tab = st.tabs(["📝 Edit", "📄 Raw YAML", "👁️ Preview"])
+        if CODE_EDITOR_AVAILABLE:
+            tabs = st.tabs(["📝 Form Editor", "🖥️ Code Editor", "📄 Raw YAML", "👁️ Preview"])
+            form_tab, code_tab, raw_tab, preview_tab = tabs
+        else:
+            tabs = st.tabs(["📝 Form Editor", "📄 Raw YAML", "👁️ Preview"])
+            form_tab, raw_tab, preview_tab = tabs
 
-        with edit_tab:
+        with form_tab:
             st.header(f"Editing: {selected_file.name}")
+            st.info("Use the form interface below to edit configuration values")
 
             edited_data = current_data.copy()
 
@@ -196,6 +209,42 @@ class DemoConfigEditor(BaseModel):
                 else:
                     # Handle simple values
                     edited_data[key] = DemoConfigEditor.render_field(key, value)
+
+        if CODE_EDITOR_AVAILABLE:
+            with code_tab:
+                st.header("YAML Code Editor")
+                st.info("Edit the YAML directly with syntax highlighting and validation")
+                
+                # Format the current data as YAML for the editor
+                yaml_content = yaml.dump(
+                    edited_data, 
+                    default_flow_style=False, 
+                    sort_keys=False, 
+                    allow_unicode=True,
+                    indent=2
+                )
+                
+                # Use the code editor
+                editor_response = code_editor(
+                    yaml_content,
+                    lang="yaml",
+                    height="400px",
+                    theme="dark",
+                    options={
+                        "wrap": True,
+                        "fontSize": 14,
+                        "minimap": {"enabled": False},
+                        "automaticLayout": True,
+                    }
+                )
+                
+                # Update edited_data if changes were made in code editor
+                if editor_response["text"] and editor_response["text"] != yaml_content:
+                    try:
+                        edited_data = yaml.safe_load(editor_response["text"])
+                        st.success("YAML parsed successfully!")
+                    except yaml.YAMLError as e:
+                        st.error(f"YAML parsing error: {e}")
 
         with raw_tab:
             st.header("Raw YAML Content")
