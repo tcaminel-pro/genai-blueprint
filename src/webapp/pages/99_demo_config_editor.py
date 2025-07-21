@@ -7,6 +7,8 @@ from code_editor import code_editor
 from loguru import logger
 from pydantic import BaseModel
 
+from src.utils.config_mngr import OmegaConfig
+
 
 class DemoConfigEditor(BaseModel):
     """Streamlit page for editing demo YAML configuration files dynamically."""
@@ -185,6 +187,7 @@ class DemoConfigEditor(BaseModel):
             st.sidebar.success("✅ No unsaved changes")
 
         st.sidebar.info(f"**File Path:**\n`{selected_file}`\n\n**File Size:** {selected_file.stat().st_size:,} bytes")
+        OmegaConfig.singleton.invalidate()  # type: ignore
 
 
 if __name__ == "__main__":
