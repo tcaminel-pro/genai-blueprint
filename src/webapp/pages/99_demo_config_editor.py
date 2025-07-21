@@ -85,63 +85,39 @@ class DemoConfigEditor(BaseModel):
             return
 
         # Create tabs
-        if CODE_EDITOR_AVAILABLE:
-            tabs = st.tabs(["📝 Form Editor", "🖥️ Code Editor", "📄 Raw YAML", "👁️ Preview"])
-            form_tab, code_tab, raw_tab, preview_tab = tabs
-        else:
-            tabs = st.tabs(["📝 Form Editor", "📄 Raw YAML", "👁️ Preview"])
-            form_tab, raw_tab, preview_tab = tabs
+        tabs = st.tabs(["🖥️ Code Editor", "📄 Raw YAML", "👁️ Preview"])
+        code_tab, raw_tab, preview_tab = tabs
 
-        with form_tab:
-            st.header(f"Editing: {selected_file.name}")
-            st.info("Use the form interface below to edit configuration values")
+        # Use the code editor
+        with code_tab:
+            st.header("YAML Code Editor")
+            st.info("Edit the YAML directly with syntax highlighting and validation")
 
-            edited_data = current_data.copy()
-
-            # Iterate through top-level keys
-            for key, value in current_data.items():
-                if isinstance(value, list) and value and isinstance(value[0], dict):
-                    # Special handling for lists of dictionaries
-                    edited_data[key] = DemoConfigEditor.render_list_editor(key, value)
-                elif isinstance(value, dict):
-                    # Handle dictionaries
-                    st.subheader(key)
-                    edited_data[key] = DemoConfigEditor.render_dict(key, value)
-                else:
-                    # Handle simple values
-                    edited_data[key] = DemoConfigEditor.render_field(key, value)
-
-        if CODE_EDITOR_AVAILABLE:
-            with code_tab:
-                st.header("YAML Code Editor")
-                st.info("Edit the YAML directly with syntax highlighting and validation")
-
-                # Format the current data as YAML for the editor
-                yaml_content = yaml.dump(
-                    edited_data, default_flow_style=False, sort_keys=False, allow_unicode=True, indent=2
-                )
-
-                # Use the code editor
-                editor_response = code_editor(
-                    yaml_content,
-                    lang="yaml",
-                    height="400px",
-                    theme="dark",
-                    options={
-                        "wrap": True,
-                        "fontSize": 14,
-                        "minimap": {"enabled": False},
-                        "automaticLayout": True,
-                    },
-                )
-
-                # Update edited_data if changes were made in code editor
-                if editor_response["text"] and editor_response["text"] != yaml_content:
-                    try:
-                        edited_data = yaml.safe_load(editor_response["text"])
+            yaml_content = DemoConfigEditor.yaml_to_editor_content(current_data)
+            editor_response = code_editor(
+                yaml_content,
+                lang="yaml",
+                height="400px",
+                theme="dark",
+                options={
+                    "wrap": True,
+                    "fontSize": 14,
+                    "minimap": {"enabled": False},
+                    "automaticLayout": True,
+                },
+            )
+            
+            # Parse edited data
+            if editor_response["text"]:
+                try:
+                    edited_data = yaml.safe_load(editor_response["text"])
+                    if editor_response["text"] != yaml_content:
                         st.success("YAML parsed successfully!")
-                    except yaml.YAMLError as e:
-                        st.error(f"YAML parsing error: {e}")
+                except yaml.YAMLError as e:
+                    st.error(f"YAML parsing error: {e}")
+                    edited_data = current_data
+            else:
+                edited_data = current_data
 
         with raw_tab:
             st.header("Raw YAML Content")
