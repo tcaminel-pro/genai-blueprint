@@ -41,7 +41,7 @@ class DemoConfigEditor(BaseModel):
             # Convert dict to OmegaConf and save as YAML
             config = OmegaConf.create(data)
             with open(file_path, "w", encoding="utf-8") as f:
-                logger.info("Write file : {file_path}")
+                logger.info(f"Write file : {file_path}")
                 OmegaConf.save(config, f)
             return True
         except Exception as e:
