@@ -110,13 +110,13 @@ class DemoConfigEditor(BaseModel):
         except yaml.YAMLError as e:
             st.error(f"YAML parsing error: {e}")
             edited_data = current_data
-            
+
         st.session_state.edited_data = edited_data
 
         # Save button
         st.sidebar.markdown("---")
         save_col, reload_col = st.sidebar.columns(2)
-        
+
         with save_col:
             if st.button("💾 Save Changes", type="primary", use_container_width=True):
                 success = DemoConfigEditor.save_yaml_file(selected_file, st.session_state.edited_data)
@@ -126,7 +126,7 @@ class DemoConfigEditor(BaseModel):
                     st.balloons()
                 else:
                     st.error("❌ Failed to save configuration")
-        
+
         with reload_col:
             if st.button("🔄 Reload", use_container_width=True):
                 st.rerun()
