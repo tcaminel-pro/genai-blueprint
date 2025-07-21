@@ -38,11 +38,10 @@ class DemoConfigEditor(BaseModel):
     def save_yaml_file(file_path: Path, data: Dict[str, Any]) -> bool:
         """Save data back to YAML file."""
         try:
-            # Convert dict to OmegaConf and save as YAML
-            config = OmegaConf.create(data)
+            # Save raw edited data directly
             with open(file_path, "w", encoding="utf-8") as f:
                 logger.info(f"Write file : {file_path}")
-                OmegaConf.save(config, f)
+                yaml.safe_dump(st.session_state.edited_data, f, default_flow_style=False, allow_unicode=True, indent=2)
             return True
         except Exception as e:
             st.error(f"Error saving YAML file: {e}")
@@ -151,9 +150,12 @@ class DemoConfigEditor(BaseModel):
                 if success:
                     st.success("✅ Configuration saved successfully!")
                     st.session_state.file_changed = False
-                    # Clear the editor content cache for this file so it reloads from disk
+                    # Clear cache and reload fresh data from file
                     if current_file_key in st.session_state:
                         del st.session_state[current_file_key]
+                    # Reload the saved data to ensure consistency
+                    current_data = DemoConfigEditor.load_yaml_file(selected_file)
+                    st.session_state.edited_data = current_data
                     st.balloons()
                 else:
                     st.error("❌ Failed to save configuration")
