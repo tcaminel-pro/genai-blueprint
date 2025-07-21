@@ -80,35 +80,35 @@ class DemoConfigEditor(BaseModel):
             st.error("Failed to load configuration file")
             return
 
-            # Use the code editor
-            st.header("YAML Code Editor")
-            st.info("Edit the YAML directly with syntax highlighting and validation")
+        # Use the code editor
+        st.header("YAML Code Editor")
+        st.info("Edit the YAML directly with syntax highlighting and validation")
 
-            yaml_content = DemoConfigEditor.yaml_to_editor_content(current_data)
-            editor_response = code_editor(
-                yaml_content,
-                lang="yaml",
-                height="400px",
-                theme="dark",
-                options={
-                    "wrap": True,
-                    "fontSize": 14,
-                    "minimap": {"enabled": False},
-                    "automaticLayout": True,
-                },
-            )
+        yaml_content = DemoConfigEditor.yaml_to_editor_content(current_data)
+        editor_response = code_editor(
+            yaml_content,
+            lang="yaml",
+            height="400px",
+            theme="dark",
+            options={
+                "wrap": True,
+                "fontSize": 14,
+                "minimap": {"enabled": False},
+                "automaticLayout": True,
+            },
+        )
 
-            # Parse edited data
-            if editor_response["text"]:
-                try:
-                    edited_data = yaml.safe_load(editor_response["text"])
-                    if editor_response["text"] != yaml_content:
-                        st.success("YAML parsed successfully!")
-                except yaml.YAMLError as e:
-                    st.error(f"YAML parsing error: {e}")
-                    edited_data = current_data
-            else:
+        # Parse edited data
+        if editor_response["text"]:
+            try:
+                edited_data = yaml.safe_load(editor_response["text"])
+                if editor_response["text"] != yaml_content:
+                    st.success("YAML parsed successfully!")
+            except yaml.YAMLError as e:
+                st.error(f"YAML parsing error: {e}")
                 edited_data = current_data
+        else:
+            edited_data = current_data
 
         # Save button
         st.sidebar.markdown("---")
