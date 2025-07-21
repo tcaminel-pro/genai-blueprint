@@ -84,9 +84,19 @@ class DemoConfigEditor(BaseModel):
         st.header("YAML Code Editor")
         st.info("Edit the YAML directly with syntax highlighting and validation")
 
+        # Initialize editor content - use session state if available and for the same file
+        current_file_key = f"editor_content_{selected_file.name}"
         yaml_content = DemoConfigEditor.yaml_to_editor_content(current_data)
+        
+        # Use saved editor content if it exists for this file, otherwise use file content
+        if current_file_key in st.session_state:
+            editor_content = st.session_state[current_file_key]
+        else:
+            editor_content = yaml_content
+            st.session_state[current_file_key] = editor_content
+
         editor_response = code_editor(
-            yaml_content,
+            editor_content,
             lang="yaml",
             height="400px",
             theme="dark",
@@ -101,10 +111,15 @@ class DemoConfigEditor(BaseModel):
         # Parse edited data - use session state to preserve changes
         try:
             if editor_response["text"]:
+                # Save the current editor content for this file
+                st.session_state[current_file_key] = editor_response["text"]
+                
                 edited_data = yaml.safe_load(editor_response["text"])
                 # Always update session state with the current editor content
                 st.session_state.edited_data = edited_data
-                if editor_response["text"] != yaml_content:
+                
+                # Check if content has changed from the original file
+                if editor_response["text"].strip() != yaml_content.strip():
                     st.success("YAML parsed successfully! Changes detected.")
                     st.session_state.file_changed = True
                 else:
@@ -136,16 +151,25 @@ class DemoConfigEditor(BaseModel):
                 if success:
                     st.success("✅ Configuration saved successfully!")
                     st.session_state.file_changed = False
+                    # Clear the editor content cache for this file so it reloads from disk
+                    if current_file_key in st.session_state:
+                        del st.session_state[current_file_key]
                     st.balloons()
                 else:
                     st.error("❌ Failed to save configuration")
 
         with reload_col:
             if st.button("🔄 Reload", use_container_width=True):
+                # Clear the editor content cache for this file
+                if current_file_key in st.session_state:
+                    del st.session_state[current_file_key]
                 st.rerun()
 
         # Reload button
         if st.sidebar.button("🔄 Reload from File", use_container_width=True):
+            # Clear the editor content cache for this file
+            if current_file_key in st.session_state:
+                del st.session_state[current_file_key]
             st.rerun()
 
         # Status and file info
