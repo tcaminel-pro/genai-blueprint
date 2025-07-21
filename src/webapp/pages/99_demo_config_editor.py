@@ -5,7 +5,6 @@ import streamlit as st
 import yaml
 from code_editor import code_editor
 from loguru import logger
-from omegaconf import OmegaConf
 from pydantic import BaseModel
 
 
@@ -22,12 +21,10 @@ class DemoConfigEditor(BaseModel):
 
     @staticmethod
     def load_yaml_file(file_path: Path) -> Dict[str, Any]:
-        """Load and parse a YAML file using OmegaConf."""
+        """Load and parse a YAML file directly using PyYAML."""
         try:
-            # Load the file directly with OmegaConf
-            config = OmegaConf.load(str(file_path))
-            # Convert to dict for editing
-            return OmegaConf.to_container(config, resolve=True) or {}
+            with open(file_path, "r", encoding="utf-8") as f:
+                return yaml.safe_load(f) or {}
         except Exception as e:
             st.error(f"Error loading YAML file: {e}")
             with st.expander("Show full error details"):
@@ -50,7 +47,7 @@ class DemoConfigEditor(BaseModel):
     @staticmethod
     def yaml_to_editor_content(data: Dict[str, Any]) -> str:
         """Convert dict data to formatted YAML string for editor."""
-        return yaml.dump(data, default_flow_style=False, sort_keys=False, allow_unicode=True, indent=2)
+        return yaml.safe_dump(data, default_flow_style=False, allow_unicode=True, indent=2)
 
     @staticmethod
     def main():
