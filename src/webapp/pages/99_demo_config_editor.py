@@ -87,7 +87,7 @@ class DemoConfigEditor(BaseModel):
         # Initialize editor content - use session state if available and for the same file
         current_file_key = f"editor_content_{selected_file.name}"
         yaml_content = DemoConfigEditor.yaml_to_editor_content(current_data)
-        
+
         # Use saved editor content if it exists for this file, otherwise use file content
         if current_file_key in st.session_state:
             editor_content = st.session_state[current_file_key]
@@ -113,11 +113,11 @@ class DemoConfigEditor(BaseModel):
             if editor_response["text"]:
                 # Save the current editor content for this file
                 st.session_state[current_file_key] = editor_response["text"]
-                
+
                 edited_data = yaml.safe_load(editor_response["text"])
                 # Always update session state with the current editor content
                 st.session_state.edited_data = edited_data
-                
+
                 # Check if content has changed from the original file
                 if editor_response["text"].strip() != yaml_content.strip():
                     st.success("YAML parsed successfully! Changes detected.")
