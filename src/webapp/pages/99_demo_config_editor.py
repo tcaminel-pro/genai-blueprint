@@ -110,7 +110,7 @@ class DemoConfigEditor(BaseModel):
             except yaml.YAMLError as e:
                 st.error(f"YAML parsing error: {e}")
                 st.session_state.edited_data = current_data
-        
+
         edited_data = st.session_state.edited_data
 
         # Save button
