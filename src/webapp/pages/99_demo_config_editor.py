@@ -49,13 +49,7 @@ class DemoConfigEditor(BaseModel):
     @staticmethod
     def yaml_to_editor_content(data: Dict[str, Any]) -> str:
         """Convert dict data to formatted YAML string for editor."""
-        return yaml.dump(
-            data, 
-            default_flow_style=False, 
-            sort_keys=False, 
-            allow_unicode=True,
-            indent=2
-        )
+        return yaml.dump(data, default_flow_style=False, sort_keys=False, allow_unicode=True, indent=2)
 
     @staticmethod
     def main():
@@ -106,7 +100,7 @@ class DemoConfigEditor(BaseModel):
                     "automaticLayout": True,
                 },
             )
-            
+
             # Parse edited data
             if editor_response["text"]:
                 try:
