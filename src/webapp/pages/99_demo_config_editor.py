@@ -38,10 +38,10 @@ class DemoConfigEditor(BaseModel):
     def save_yaml_file(file_path: Path, data: Dict[str, Any]) -> bool:
         """Save data back to YAML file."""
         try:
-            # Save raw edited data directly
+            # Save the data parameter directly
             with open(file_path, "w", encoding="utf-8") as f:
                 logger.info(f"Write file : {file_path}")
-                yaml.safe_dump(st.session_state.edited_data, f, default_flow_style=False, allow_unicode=True, indent=2)
+                yaml.safe_dump(data, f, default_flow_style=False, allow_unicode=True, indent=2)
             return True
         except Exception as e:
             st.error(f"Error saving YAML file: {e}")
@@ -153,9 +153,12 @@ class DemoConfigEditor(BaseModel):
                     # Clear cache and reload fresh data from file
                     if current_file_key in st.session_state:
                         del st.session_state[current_file_key]
-                    # Reload the saved data to ensure consistency
-                    current_data = DemoConfigEditor.load_yaml_file(selected_file)
+                    # Reload the saved data directly from disk
+                    with open(selected_file, "r", encoding="utf-8") as f:
+                        current_data = yaml.safe_load(f)
                     st.session_state.edited_data = current_data
+                    # Update editor content with freshly saved version
+                    st.session_state[current_file_key] = DemoConfigEditor.yaml_to_editor_content(current_data)
                     st.balloons()
                 else:
                     st.error("❌ Failed to save configuration")
