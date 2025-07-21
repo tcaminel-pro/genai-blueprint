@@ -80,7 +80,7 @@ class DemoConfigEditor(BaseModel):
             st.error("Failed to load configuration file")
             return
 
-        # Use the code editor
+            # Use the code editor
             st.header("YAML Code Editor")
             st.info("Edit the YAML directly with syntax highlighting and validation")
 
