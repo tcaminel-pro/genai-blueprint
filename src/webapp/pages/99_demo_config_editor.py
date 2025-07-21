@@ -80,12 +80,7 @@ class DemoConfigEditor(BaseModel):
             st.error("Failed to load configuration file")
             return
 
-        # Create tabs
-        tabs = st.tabs(["🖥️ Code Editor", "📄 Raw YAML", "👁️ Preview"])
-        code_tab, raw_tab, preview_tab = tabs
-
         # Use the code editor
-        with code_tab:
             st.header("YAML Code Editor")
             st.info("Edit the YAML directly with syntax highlighting and validation")
 
@@ -114,16 +109,6 @@ class DemoConfigEditor(BaseModel):
                     edited_data = current_data
             else:
                 edited_data = current_data
-
-        with raw_tab:
-            st.header("Raw YAML Content")
-            st.code(
-                yaml.dump(current_data, default_flow_style=False, sort_keys=False, allow_unicode=True), language="yaml"
-            )
-
-        with preview_tab:
-            st.header("Preview Edited Configuration")
-            st.json(edited_data)
 
         # Save button
         st.sidebar.markdown("---")
