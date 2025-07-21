@@ -128,7 +128,7 @@ class DemoConfigEditor(BaseModel):
             has_changes = st.session_state.get("file_changed", False)
             button_text = "💾 Save Changes" if has_changes else "💾 Save"
             button_type = "primary" if has_changes else "secondary"
-            
+
             if st.button(button_text, type=button_type, use_container_width=True):
                 # Use the current edited data from session state
                 data_to_save = st.session_state.get("edited_data", current_data)
@@ -150,14 +150,14 @@ class DemoConfigEditor(BaseModel):
 
         # Status and file info
         st.sidebar.markdown("---")
-        
+
         # Show change status
         has_changes = st.session_state.get("file_changed", False)
         if has_changes:
             st.sidebar.warning("⚠️ Unsaved changes detected")
         else:
             st.sidebar.success("✅ No unsaved changes")
-        
+
         st.sidebar.info(f"**File Path:**\n`{selected_file}`\n\n**File Size:** {selected_file.stat().st_size:,} bytes")
 
 
