@@ -5,16 +5,7 @@ import streamlit as st
 import yaml
 from omegaconf import OmegaConf
 from pydantic import BaseModel
-
-try:
-    from code_editor import code_editor
-
-    CODE_EDITOR_AVAILABLE = True
-except ImportError:
-    CODE_EDITOR_AVAILABLE = False
-    st.warning(
-        "streamlit-code-editor package not found. Run 'pip install streamlit-code-editor' for enhanced YAML editing."
-    )
+from code_editor import code_editor
 
 
 class DemoConfigEditor(BaseModel):
@@ -56,108 +47,15 @@ class DemoConfigEditor(BaseModel):
             return False
 
     @staticmethod
-    def render_field(key: str, value: Any, parent_key: str = "") -> Any:
-        """Render a form field based on the value type."""
-        full_key = f"{parent_key}_{key}" if parent_key else key
-
-        if isinstance(value, bool):
-            return st.checkbox(key, value=value, key=full_key)
-        elif isinstance(value, int):
-            return st.number_input(key, value=value, step=1, key=full_key)
-        elif isinstance(value, float):
-            return st.number_input(key, value=value, key=full_key)
-        elif isinstance(value, str):
-            return st.text_input(key, value=value, key=full_key)
-        elif isinstance(value, list):
-            st.subheader(f"List: {key}")
-            if len(value) > 0 and isinstance(value[0], (str, int, float)):
-                # Simple list of primitives
-                items = []
-                for i, item in enumerate(value):
-                    item_key = f"{full_key}_{i}"
-                    items.append(st.text_input(f"{key}[{i}]", value=str(item), key=item_key))
-
-                # Add new item
-                new_item = st.text_input(f"Add new item to {key}", key=f"{full_key}_new")
-                if st.button(f"Add to {key}", key=f"{full_key}_add"):
-                    items.append(new_item)
-                    return items
-                return items
-            else:
-                # Complex list (list of dicts or primitives)
-                items = []
-                for i, item in enumerate(value):
-                    if isinstance(item, dict):
-                        st.write(f"--- Item {i + 1} ---")
-                        items.append(DemoConfigEditor.render_dict(f"{key}_{i}", item))
-                    else:
-                        # Handle primitive values in complex list
-                        item_key = f"{full_key}_{i}"
-                        items.append(st.text_input(f"{key}[{i}]", value=str(item), key=item_key))
-
-                if st.button(f"Add new {key} item", key=f"{full_key}_new_item"):
-                    items.append({} if isinstance(item, dict) else "")
-                return items
-        elif isinstance(value, dict):
-            return DemoConfigEditor.render_dict(key, value)
-        else:
-            return st.text_input(key, value=str(value), key=full_key)
-
-    @staticmethod
-    def render_dict(key: str, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Render a dictionary with nested fields."""
-        result = {}
-        st.subheader(key)
-
-        with st.expander(f"Edit {key}", expanded=True):
-            for k, v in data.items():
-                result[k] = DemoConfigEditor.render_field(k, v, key)
-
-        return result
-
-    @staticmethod
-    def render_list_editor(key: str, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Render a list of dictionaries with full editing capability."""
-        st.subheader(f"Edit {key}")
-
-        if not items:
-            items = []
-
-        edited_items = []
-
-        for idx, item in enumerate(items):
-            st.write(f"--- {key.title()} {idx + 1} ---")
-
-            # Create columns for actions
-            col1, col2, col3 = st.columns([3, 1, 1])
-
-            with col1:
-                edited_item = {}
-                for field_key, field_value in item.items():
-                    edited_item[field_key] = DemoConfigEditor.render_field(field_key, field_value, f"{key}_{idx}")
-                edited_items.append(edited_item)
-
-            with col2:
-                if st.button("🗑️ Delete", key=f"delete_{key}_{idx}"):
-                    items.pop(idx)
-                    st.rerun()
-
-            with col3:
-                if st.button("📋 Duplicate", key=f"dup_{key}_{idx}"):
-                    items.insert(idx + 1, item.copy())
-                    st.rerun()
-
-        # Add new item
-        st.write("---")
-        if st.button(f"➕ Add New {key.title()}"):
-            # Create template based on first item or empty dict
-            template = items[0].copy() if items else {}
-            for k in template:
-                template[k] = "" if isinstance(template[k], str) else template[k]
-            items.append(template)
-            st.rerun()
-
-        return items
+    def yaml_to_editor_content(data: Dict[str, Any]) -> str:
+        """Convert dict data to formatted YAML string for editor."""
+        return yaml.dump(
+            data, 
+            default_flow_style=False, 
+            sort_keys=False, 
+            allow_unicode=True,
+            indent=2
+        )
 
     @staticmethod
     def main():
