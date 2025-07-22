@@ -61,7 +61,7 @@ class DemoConfigEditor(BaseModel):
         try:
             debug(content)
             config = yaml.safe_load(content)  # This does full parsing with position tracking
-            
+
             # Validate data structure
             if not isinstance(config, dict):
                 raise ValueError("Top-level YAML structure must be a dictionary")
@@ -70,7 +70,7 @@ class DemoConfigEditor(BaseModel):
                 logger.info(f"Write file : {file_path}")
                 f.write(content)
             return True
-            
+
         except yaml.YAMLError as e:
             if hasattr(e, "problem_mark"):
                 mark = e.problem_mark
@@ -82,11 +82,11 @@ class DemoConfigEditor(BaseModel):
             else:
                 st.error(f"Invalid YAML syntax: {e}")
             return False
-            
+
         except ValueError as e:
             st.error(f"Validation Error: {e}")
             return False
-            
+
         except Exception as e:
             st.error(f"Error saving YAML file: {e}")
             return False
