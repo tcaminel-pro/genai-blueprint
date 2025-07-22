@@ -7,7 +7,7 @@ and safe file saving capabilities.
 """
 
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import List
 
 import streamlit as st
 import yaml
@@ -68,7 +68,7 @@ class DemoConfigEditor(BaseModel):
             return False
 
     @staticmethod
-    def main():
+    def main() -> None:
         """Main page rendering with interactive YAML editor."""
         st.set_page_config(page_title="Demo Config Editor", page_icon="⚙️", layout="wide")
 
@@ -120,9 +120,13 @@ class DemoConfigEditor(BaseModel):
             },
         )
 
+        from devtools import debug
+
+        debug(editor_response )
         # Validate and save edited content
         if editor_response["text"]:
             # Validate YAML syntax
+
             try:
                 yaml.safe_load(editor_response["text"])
                 # Save valid content to session
@@ -162,7 +166,6 @@ class DemoConfigEditor(BaseModel):
                     yaml_content = DemoConfigEditor.load_yaml_file(selected_file)
                     # Update editor content with fresh version
                     st.session_state[current_file_key] = yaml_content
-                    st.balloons()
                 else:
                     st.error("❌ Failed to save configuration")
 
