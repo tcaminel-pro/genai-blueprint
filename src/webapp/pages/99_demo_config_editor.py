@@ -12,6 +12,7 @@ from typing import List
 import streamlit as st
 import yaml
 from code_editor import code_editor
+from devtools import debug
 from loguru import logger
 from pydantic import BaseModel
 
@@ -119,6 +120,8 @@ class DemoConfigEditor(BaseModel):
                 "automaticLayout": True,
             },
         )
+
+        debug(editor_response)
 
         # Validate and save edited content
         if editor_response.get("text", "").strip():
