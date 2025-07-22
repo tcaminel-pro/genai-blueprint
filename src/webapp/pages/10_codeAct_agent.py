@@ -238,11 +238,6 @@ def load_demos_from_config() -> List[CodeactDemo]:
         List of configured CodeactDemo objects
     """
     """Load demos configuration from YAML file"""
-
-    tools_dict = {
-        "WebSearchTool": WebSearchTool,
-        "VisitWebpageTool": VisitWebpageTool,
-    }
     try:
         demos_config = global_config().merge_with(CONF_YAML_FILE).get_list("codeact_agent_demos")
         result = []
@@ -256,24 +251,22 @@ def load_demos_from_config() -> List[CodeactDemo]:
             tools = []
             for tool_config in demo_config.get("tools", []):
                 if isinstance(tool_config, DictConfig):
-                    tool_type = tool_config.get("type", "")
-                    # Handle different tool types
-                    if tool_type == "DataFrameTool":
-                        tools.append(
-                            DataFrameTool(
-                                name=tool_config.get("name", ""),
-                                description=tool_config.get("description", ""),
-                                source_path=DATA_PATH / tool_config.get("source_path", "").split("/")[-1],
-                            )
-                        )
-                    elif tool_type == "function":
-                        func_name = tool_config.get("name", "")
+                    if "function" in tool_config:
+                        func_name = tool_config.get("function")
                         if func_name in globals():
                             tools.append(globals()[func_name])
-                    elif tool_type in tools_dict:
-                        tools.append(tools_dict[tool_type]())
-                    else:
-                        logger.warning(f"Unknown tool type: {tool_type}")
+                        else:
+                            logger.warning(f"Unknown function: {func_name}")
+                    elif "class" in tool_config:
+                        class_name = tool_config.get("class")
+                        if class_name in globals():
+                            tool_class = globals()[class_name]
+                            params = {k: v for k, v in tool_config.items() if k != "class"}
+                            if class_name == "DataFrameTool":
+                                params["source_path"] = DATA_PATH / str(params["source_path"]).split("/")[-1]
+                            tools.append(tool_class(**params))
+                        else:
+                            logger.warning(f"Unknown tool class: {class_name}")
 
             demo = CodeactDemo(
                 name=name,

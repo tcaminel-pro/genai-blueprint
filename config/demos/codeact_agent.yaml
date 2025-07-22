@@ -7,8 +7,8 @@ codeact_authorized_imports:
 codeact_agent_demos:
   - name: "Classic SmolAgents"
     tools: 
-      - type: "WebSearchTool"
-      - type: "VisitWebpageTool"
+      - class: WebSearchTool
+      - class: VisitWebpageTool
     examples:
       - "How many seconds would it take for a leopard at full speed to run through Pont des Arts?"
       - "If the US keeps its 2024 growth rate, how many years will it take for the GDP to double?"
@@ -16,12 +16,12 @@ codeact_agent_demos:
 
   - name: "Titanic"
     tools:
-      - type: "DataFrameTool"
+      - class: DataFrameTool
         name: "titanic_data_reader"
         description: "Data related to the Titanic passengers"
         source_path: "use_case_data/other/titanic.csv"
-      - type: "WebSearchTool"
-      - type: "VisitWebpageTool"
+      - class: WebSearchTool
+      - class: VisitWebpageTool
     examples:
       - "What is the proportion of female passengers that survived?"
       - "Were there any notable individuals or families aboard "
@@ -34,20 +34,18 @@ codeact_agent_demos:
 
   - name: "Stock Price"
     tools:
-      - type: "function"
-        name: "get_stock_info"
-      - type: "function"
-        name: "get_historical_price"
-      - type: "WebSearchTool"
-      - type: "VisitWebpageTool"
+      - function: get_stock_info
+      - function: get_historical_price
+      - class: WebSearchTool
+      - class: VisitWebpageTool
     examples:
       - "What is the current price of Meta stock?"
       - "Show me the historical prices of Apple vs Microsoft stock over the past 6 months"
 
   - name: "Geo"
     tools:
-      - type: "WebSearchTool"
-      - type: "VisitWebpageTool"
+      - class: WebSearchTool
+      - class: VisitWebpageTool
     examples:
       - "Display the map of Toulouse"
       - "Display a map of France with a population density (gathered from Internet) layer by region or department"
