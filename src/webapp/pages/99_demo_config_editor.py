@@ -135,7 +135,7 @@ class DemoConfigEditor(BaseModel):
             if st.button(button_text, type=button_type, use_container_width=True):
                 # Get the raw edited content from session state
                 edited_content = st.session_state.get(current_file_key, yaml_content)
-                
+
                 try:
                     # Validate YAML syntax before saving
                     yaml.safe_load(edited_content)
