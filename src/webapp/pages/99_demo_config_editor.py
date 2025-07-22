@@ -120,18 +120,17 @@ class DemoConfigEditor(BaseModel):
             },
         )
 
-        from devtools import debug
-
-        debug(editor_response )
         # Validate and save edited content
-        if editor_response["text"]:
-            # Validate YAML syntax
-
+        if editor_response.get("text", "").strip():
+            edited_text = editor_response["text"]
+            
             try:
-                yaml.safe_load(editor_response["text"])
+                # Validate YAML syntax
+                yaml.safe_load(edited_text)
+                
                 # Save valid content to session
-                st.session_state[current_file_key] = editor_response["text"]
-                st.session_state.file_changed = editor_response["text"].strip() != yaml_content.strip()
+                st.session_state[current_file_key] = edited_text
+                st.session_state.file_changed = edited_text.strip() != yaml_content.strip()
 
                 if st.session_state.file_changed:
                     st.success("Valid YAML - Changes detected")
@@ -141,6 +140,11 @@ class DemoConfigEditor(BaseModel):
             except yaml.YAMLError as e:
                 st.error(f"Invalid YAML syntax: {e}")
                 st.session_state.file_changed = False
+        elif editor_response.get("text") == "" and editor_response["id"]:
+            # Handle case when editor content is cleared but has valid response
+            st.session_state[current_file_key] = ""
+            st.session_state.file_changed = True
+            st.warning("Editor content cleared")
 
         # Save button
         st.sidebar.markdown("---")
