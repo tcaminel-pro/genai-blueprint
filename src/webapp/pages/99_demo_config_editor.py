@@ -158,13 +158,8 @@ class DemoConfigEditor(BaseModel):
                 if success:
                     st.success("✅ Configuration saved successfully!")
                     st.session_state.file_changed = False
-                    # Clear cache and reload fresh data from file
-                    if current_file_key in st.session_state:
-                        del st.session_state[current_file_key]
-                    # Reload the saved data directly from disk
-                    yaml_content = DemoConfigEditor.load_yaml_file(selected_file)
-                    # Update editor content with fresh version
-                    st.session_state[current_file_key] = yaml_content
+                    # Keep the current edited content in session state
+                    st.session_state[current_file_key] = edited_content
                 else:
                     st.error("❌ Failed to save configuration")
 
