@@ -34,21 +34,34 @@ class DemoConfigEditor(BaseModel):
             return ""
 
     @staticmethod
-    def save_yaml_file(file_path: Path, data: Dict[str, Any]) -> bool:
-        """Save data back to YAML file."""
+    def save_yaml_file(file_path: Path, content: str) -> bool:
+        """Save YAML content back to file.
+        
+        Args:
+            file_path: Path to save the YAML file
+            content: Raw YAML string content to save
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
         try:
-            # Save the data parameter directly
+            # First validate the YAML is valid before saving
+            yaml.safe_load(content)
+            
             with open(file_path, "w", encoding="utf-8") as f:
                 logger.info(f"Write file : {file_path}")
-                yaml.safe_dump(data, f, default_flow_style=False, allow_unicode=True, indent=2)
+                f.write(content)
             return True
+        except yaml.YAMLError as e:
+            st.error(f"Invalid YAML syntax: {e}")
+            return False
         except Exception as e:
             st.error(f"Error saving YAML file: {e}")
             return False
 
     @staticmethod
     def main():
-        """Main page rendering."""
+        """Main page rendering with interactive YAML editor."""
         st.set_page_config(page_title="Demo Config Editor", page_icon="⚙️", layout="wide")
 
         st.title("🛠️ Demo Configuration Editor")
@@ -130,7 +143,7 @@ class DemoConfigEditor(BaseModel):
             if st.button(button_text, type=button_type, use_container_width=True):
                 # Get the raw edited content from session state
                 edited_content = st.session_state.get(current_file_key, yaml_content)
-                success = DemoConfigEditor.save_yaml_file(selected_file, codeact_authorized_imports)
+                success = DemoConfigEditor.save_yaml_file(selected_file, edited_content)
                 if success:
                     st.success("✅ Configuration saved successfully!")
                     st.session_state.file_changed = False
