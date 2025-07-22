@@ -58,7 +58,7 @@ mcpServers:
         - ${paths.src}/mcp_server/
         - run 
         - weather_server.py
-      disabled: true
+      disabled: false
 
   vizro-mcp:
     command: uvx

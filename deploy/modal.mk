@@ -12,48 +12,48 @@ MODAL_ENTRY_POINT="src/main/modal_app.py"
 
 .PHONY: modal_install modal_login modal_deploy modal_deploy_force modal_run modal_secrets modal_clear_cache
 
-modal_install:  ## Install Modal CLI
+modal-install: ## Install Modal CLI
 	uv pip install modal
 
-modal_login:  ## Login to Modal
+modal-login: ## Login to Modal
 	modal token new
 
-modal_deploy:  ## Deploy to Modal (code mode)
+modal-deploy: ## Deploy to Modal (code mode)
 	MODAL_DEPLOYMENT_MODE=code uv run modal deploy $(MODAL_ENTRY_POINT)
 
-modal_deploy_aws:  ## Deploy to Modal using AWS ECR image
+modal-deploy-aws: ## Deploy to Modal using AWS ECR image
 	MODAL_DEPLOYMENT_MODE=aws_image MODAL_AWS_IMAGE_URI=$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION) modal deploy $(MODAL_ENTRY_POINT)
 
-modal_serve: 
+modal-serve:
 	MODAL_DEPLOYMENT_MODE=code modal serve $(MODAL_ENTRY_POINT)
 
-modal_serve_aws:  ## Serve Modal using AWS ECR image
+modal-serve-aws: ## Serve Modal using AWS ECR image
 	MODAL_DEPLOYMENT_MODE=aws_image MODAL_AWS_IMAGE_URI=$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION) modal serve $(MODAL_ENTRY_POINT)
 
-modal_deploy_force:  ## Deploy to Modal with forced image rebuild (code mode)
+modal-deploy-force: ## Deploy to Modal with forced image rebuild (code mode)
 	modal image clear
 	MODAL_DEPLOYMENT_MODE=code modal deploy $(MODAL_ENTRY_POINT)
 
-modal_deploy_force_aws:  ## Deploy to Modal with forced image rebuild (aws mode)
+modal-deploy-force-aws: ## Deploy to Modal with forced image rebuild (aws mode)
 	modal image clear
 	MODAL_DEPLOYMENT_MODE=aws_image MODAL_AWS_IMAGE_URI=$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION) modal deploy $(MODAL_ENTRY_POINT)
 
-modal_run:  ## Run locally with Modal (code mode)
+modal-run: ## Run locally with Modal (code mode)
 	MODAL_DEPLOYMENT_MODE=code modal run $(MODAL_ENTRY_POINT)
 
-modal_run_dockerfile:  ## Run locally with Modal using Dockerfile
+modal-run-dockerfile: ## Run locally with Modal using Dockerfile
 	MODAL_DEPLOYMENT_MODE=dockerfile modal run $(MODAL_ENTRY_POINT)
 
-modal_run_aws:  ## Run locally with Modal using AWS ECR image
+modal-run-aws: ## Run locally with Modal using AWS ECR image
 	MODAL_DEPLOYMENT_MODE=aws_image MODAL_AWS_IMAGE_URI=$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION) modal run $(MODAL_ENTRY_POINT)
 
-modal_clear_cache:  ## Clear Modal image cache
+modal-clear-cache: ## Clear Modal image cache
 	modal image clear
 
-modal_secrets:  ## Create Modal secrets from .env file
+modal-secrets: ## Create Modal secrets from .env file
 	modal secret create genai-secrets $$(cat .env | xargs)
 
-modal_aws_secrets:  ## Create AWS credentials secret for ECR access
+modal-aws-secrets: ## Create AWS credentials secret for ECR access
 	@echo "Creating AWS credentials secret for Modal..."
 	@if [ -z "$$AWS_ACCESS_KEY_ID" ] || [ -z "$$AWS_SECRET_ACCESS_KEY" ]; then \
 		echo "Error: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY must be set"; \

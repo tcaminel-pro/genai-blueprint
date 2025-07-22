@@ -45,8 +45,6 @@ class DemoConfigEditor(BaseModel):
                 st.exception(e)
             return ""
 
-    # Refactored nested try/except into cleaner structure
-
     @staticmethod
     def save_yaml_file(file_path: Path, content: str) -> bool:
         """Save YAML content back to file.
@@ -96,8 +94,7 @@ class DemoConfigEditor(BaseModel):
         """Main page rendering with interactive YAML editor."""
         st.set_page_config(page_title="Demo Config Editor", page_icon="⚙️", layout="wide")
 
-        st.title("🛠️ Demo Configuration Editor")
-        st.markdown("Edit demo YAML configuration files dynamically")
+        st.title("🛠️ Demo YAML Configuration Editor")
 
         # Get available YAML files
         yaml_files = DemoConfigEditor.list_demo_yaml_files()
@@ -119,9 +116,6 @@ class DemoConfigEditor(BaseModel):
 
         # Editor in a form to prevent partial reruns
         with st.form(key="yaml_editor_form"):
-            st.header("YAML Code Editor")
-            st.info("Edit the YAML directly with syntax highlighting and validation")
-
             current_file_key = f"editor_content_{selected_file.name}"
 
             if current_file_key in st.session_state:
@@ -140,46 +134,44 @@ class DemoConfigEditor(BaseModel):
 
             # Form submit buttons
             col1, col2, col3 = st.columns([1, 1, 2])
-            with col1:
-                if st.form_submit_button("💾 Save", use_container_width=True):
-                    edited_content = st.session_state.get(current_file_key, yaml_content)
-                    edited_content = st.session_state.get(current_file_key, yaml_content)
-                    try:
-                        # Validate and save
-                        if DemoConfigEditor.save_yaml_file(selected_file, edited_content):
-                            st.success("✅ Configuration saved successfully!")
-                            st.session_state.file_changed = False
-                            st.session_state[current_file_key] = edited_content
-                        else:
-                            st.error("❌ Failed to save configuration")
-                    except ValueError as e:
-                        st.error(f"Validation Error: {str(e)}")
-                        with st.expander("Technical Details"):
-                            st.code(traceback.format_exc(), language="python")
-                    except (ParserError, ScannerError) as e:
-                        if hasattr(e, "problem_mark"):
-                            mark = e.problem_mark
-                            st.error(f"Syntax Error at line {mark.line + 1}, column {mark.column + 1}")
-                            st.code(f"{e.problem}\nContext: {e.context}", language="yaml")
-                        else:
-                            st.error(f"YAML Error: {str(e)}")
-                        with st.expander("Full Error Details"):
-                            st.code(traceback.format_exc(), language="python")
-                    except yaml.reader.ReaderError as e:
-                        st.error(f"Encoding Error: {str(e)}")
-                        with st.expander("Technical Details"):
-                            st.code(traceback.format_exc(), language="python")
-                    except Exception as e:
-                        st.error(f"Unexpected Error: {str(e)}")
-                        with st.expander("Full Traceback"):
-                            st.code(traceback.format_exc(), language="python")
+            if col1.form_submit_button("💾 Save", use_container_width=True):
+                edited_content = st.session_state.get(current_file_key, yaml_content)
+                edited_content = st.session_state.get(current_file_key, yaml_content)
+                try:
+                    # Validate and save
+                    if DemoConfigEditor.save_yaml_file(selected_file, edited_content):
+                        st.success("✅ Configuration saved successfully!")
+                        st.session_state.file_changed = False
+                        st.session_state[current_file_key] = edited_content
+                    else:
+                        st.error("❌ Failed to save configuration")
+                except ValueError as e:
+                    st.error(f"Validation Error: {str(e)}")
+                    with st.expander("Technical Details"):
+                        st.code(traceback.format_exc(), language="python")
+                except (ParserError, ScannerError) as e:
+                    if hasattr(e, "problem_mark"):
+                        mark = e.problem_mark
+                        st.error(f"Syntax Error at line {mark.line + 1}, column {mark.column + 1}")
+                        st.code(f"{e.problem}\nContext: {e.context}", language="yaml")
+                    else:
+                        st.error(f"YAML Error: {str(e)}")
+                    with st.expander("Full Error Details"):
+                        st.code(traceback.format_exc(), language="python")
+                except yaml.reader.ReaderError as e:
+                    st.error(f"Encoding Error: {str(e)}")
+                    with st.expander("Technical Details"):
+                        st.code(traceback.format_exc(), language="python")
+                except Exception as e:
+                    st.error(f"Unexpected Error: {str(e)}")
+                    with st.expander("Full Traceback"):
+                        st.code(traceback.format_exc(), language="python")
 
-            with col2:
-                if st.form_submit_button("❌ Cancel", use_container_width=True):
-                    # Reset to original content
-                    st.session_state[current_file_key] = yaml_content
-                    st.session_state.file_changed = False
-                    st.rerun()
+            if col2.form_submit_button("❌ Cancel", use_container_width=True):
+                # Reset to original content
+                st.session_state[current_file_key] = yaml_content
+                st.session_state.file_changed = False
+                st.rerun()
 
         # Status and file info
         st.sidebar.markdown("---")

@@ -176,7 +176,7 @@ class OmegaConfig(BaseModel):
             raise TypeError(f"Configuration value for '{key}' is not a list (its a {type(value)})")
         return list(value)
 
-    def get_dict(self, key: str, expected_keys: list | None = None) -> dict[str, str]:
+    def get_dict(self, key: str, expected_keys: list | None = None) -> dict[str, Any]:
         """Get a dictionary configuration value.
 
         Args:

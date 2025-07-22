@@ -3,10 +3,10 @@
 
 .PHONY: docker_build docker_run docker_shell
 
-docker_build: ## Build the docker image
+docker-build: ## Build the docker image
 	docker build --pull --rm -f "deploy/Dockerfile" -t $(APP):$(IMAGE_VERSION) "."
 
-docker_run: ## Run the container with environment variables and mounted training data
+docker-run: ## Run the container with environment variables and mounted training data
 	@echo "Loading environment variables from .env file"; \
 	echo "Mounting external data from $(ONEDRIVE)/_ongoing/training_GenAI/"; \
 	docker run -it -p 8501:8501 \

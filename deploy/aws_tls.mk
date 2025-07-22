@@ -13,16 +13,16 @@ AWS_SECURITY_GROUP=sg-0f9ae86b1de2e3956
 ##############
 .PHONY: login_aws push_aws deploy_aws_ecs aws_store_secrets
 
-awd_login:
+awd-login:
 	aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
 
-aws_push: ## Push to AWS ECR
+aws-push: ## Push to AWS ECR
 	aws ecr create-repository --repository-name $(APP) --region $(AWS_REGION) || true
 	aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
 	docker tag $(APP):$(IMAGE_VERSION) $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)
 	docker push $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)
 
-aws_deploy: ## Deploy to AWS ECS Fargate
+aws-deploy: ## Deploy to AWS ECS Fargate
 	@echo "Creating ECS cluster..."
 	aws ecs create-cluster --cluster-name $(APP)-cluster --region $(AWS_REGION) || true
 	
@@ -118,7 +118,7 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 	
 	@echo "Application deployed! It may take a few minutes to become available."
 
-aws_get_ecs_url: ## Get the public IP/URL of the deployed ECS service
+aws-get-ecs-url: ## Get the public IP/URL of the deployed ECS service
 	@echo "Getting ECS service status..."
 	@aws ecs describe-services \
 		--cluster $(APP)-cluster \
@@ -163,7 +163,7 @@ aws_get_ecs_url: ## Get the public IP/URL of the deployed ECS service
 		echo "Check service status with: aws ecs describe-services --cluster $(APP)-cluster --services $(APP)-service --region $(AWS_REGION)"; \
 	fi
 
-aws_fix_security_group: ## Fix security group to allow port 8501 and 443 access
+aws-fix-security-group: ## Fix security group to allow port 8501 and 443 access
 	@echo "Adding inbound rule for port 8501..."
 	@aws ec2 authorize-security-group-ingress \
 		--group-id $(AWS_SECURITY_GROUP) \
@@ -180,7 +180,7 @@ aws_fix_security_group: ## Fix security group to allow port 8501 and 443 access
 		--region $(AWS_REGION) || echo "Rule might already exist"
 	@echo "Security group updated!"
 
-aws_debug_ecs: ## Debug ECS deployment issues
+aws-debug-ecs: ## Debug ECS deployment issues
 	@echo "=== ECS Service Events ==="
 	@aws ecs describe-services \
 		--cluster $(APP)-cluster \
@@ -247,7 +247,7 @@ aws_debug_ecs: ## Debug ECS deployment issues
 		--query 'SecurityGroups[0].IpPermissions[?FromPort==`443`]' \
 		--output table || echo "No port 443 rules found"
 
-aws_debug_connectivity: ## Debug connectivity issues with the deployed application
+aws-debug-connectivity: ## Debug connectivity issues with the deployed application
 	@echo "=== Connectivity Troubleshooting ==="
 	@TASK_ARN=$$(aws ecs list-tasks \
 		--cluster $(APP)-cluster \
@@ -319,7 +319,7 @@ aws_debug_connectivity: ## Debug connectivity issues with the deployed applicati
 			--output text 2>/dev/null || echo "No logs found in this stream"; \
 	fi
 
-aws_store_secrets: ## Store all environment variables from .env file in AWS Systems Manager Parameter Store
+aws-store-secrets: ## Store all environment variables from .env file in AWS Systems Manager Parameter Store
 	@echo "Storing environment variables from .env file in SSM Parameter Store..."
 	@if [ ! -f $(ENV_FILE) ]; then \
 		echo "Error: .env file not found"; \
@@ -339,7 +339,7 @@ aws_store_secrets: ## Store all environment variables from .env file in AWS Syst
 	done
 	@echo "Environment variables stored successfully in SSM Parameter Store"
 
-aws_list_secrets: ## List all stored secrets in AWS SSM Parameter Store
+aws-list-secrets: ## List all stored secrets in AWS SSM Parameter Store
 	@echo "Listing stored secrets for $(APP)..."
 	@aws ssm describe-parameters \
 		--parameter-filters "Key=Name,Option=BeginsWith,Values=/$(APP)/" \
@@ -347,7 +347,7 @@ aws_list_secrets: ## List all stored secrets in AWS SSM Parameter Store
 		--query 'Parameters[].{Name:Name,Type:Type,LastModified:LastModifiedDate}' \
 		--output table
 
-aws_check_secrets: ## Check if secrets are accessible and properly configured
+aws-check-secrets: ## Check if secrets are accessible and properly configured
 	@echo "Checking if secrets are properly stored and accessible..."
 	@echo "=== SSM Parameters for $(APP) ==="
 	@aws ssm describe-parameters \
@@ -368,7 +368,7 @@ aws_check_secrets: ## Check if secrets are accessible and properly configured
 		--query 'Parameters[].{Name:Name,Value:Value}' \
 		--output table 2>/dev/null || echo "Failed to retrieve parameters - check IAM permissions"
 
-aws_logs: ## Get application logs from CloudWatch
+aws-logs: ## Get application logs from CloudWatch
 	@echo "=== Getting Application Logs ==="
 	@TASK_ARN=$$(aws ecs list-tasks \
 		--cluster $(APP)-cluster \
@@ -394,7 +394,7 @@ aws_logs: ## Get application logs from CloudWatch
 		echo "No running tasks found"; \
 	fi
 
-aws_logs_tail: ## Tail application logs in real-time
+aws-logs-tail: ## Tail application logs in real-time
 	@echo "=== Tailing Application Logs ==="
 	@TASK_ARN=$$(aws ecs list-tasks \
 		--cluster $(APP)-cluster \
@@ -416,7 +416,7 @@ aws_logs_tail: ## Tail application logs in real-time
 		echo "No running tasks found"; \
 	fi
 
-aws_logs_all: ## Get all log streams for the application
+aws-logs-all: ## Get all log streams for the application
 	@echo "=== All Log Streams ==="
 	@aws logs describe-log-streams \
 		--log-group-name "/ecs/$(APP)-task" \
@@ -424,7 +424,7 @@ aws_logs_all: ## Get all log streams for the application
 		--query 'logStreams[].{StreamName:logStreamName,CreationTime:creationTime,LastEvent:lastEventTime}' \
 		--output table 2>/dev/null || echo "No log streams found"
 
-aws_debug_failed_tasks: ## Check for failed/stopped tasks and their reasons
+aws-debug-failed-tasks: ## Check for failed/stopped tasks and their reasons
 	@echo "=== Failed/Stopped Tasks Analysis ==="
 	@echo "Getting stopped tasks..."
 	@aws ecs list-tasks \
@@ -446,7 +446,7 @@ aws_debug_failed_tasks: ## Check for failed/stopped tasks and their reasons
 		fi; \
 	done || echo "No stopped tasks found"
 
-aws_test_env_vars: ## Test if environment variables are available in the running container
+aws-test-env-vars: ## Test if environment variables are available in the running container
 	@echo "=== Testing Environment Variables in Container ==="
 	@TASK_ARN=$$(aws ecs list-tasks \
 		--cluster $(APP)-cluster \
@@ -467,7 +467,7 @@ aws_test_env_vars: ## Test if environment variables are available in the running
 		echo "No running tasks found"; \
 	fi
 
-aws_enable_exec: ## Enable ECS Exec for debugging (allows running commands in containers)
+aws-enable-exec: ## Enable ECS Exec for debugging (allows running commands in containers)
 	@echo "Enabling ECS Exec for the service..."
 	@aws ecs update-service \
 		--cluster $(APP)-cluster \
@@ -476,7 +476,7 @@ aws_enable_exec: ## Enable ECS Exec for debugging (allows running commands in co
 		--region $(AWS_REGION)
 	@echo "ECS Exec enabled. You may need to restart the service for this to take effect."
 
-aws_shell: ## Open a shell in the running ECS container
+aws-shell: ## Open a shell in the running ECS container
 	@echo "=== Opening Shell in ECS Container ==="
 	@TASK_ARN=$$(aws ecs list-tasks \
 		--cluster $(APP)-cluster \
@@ -499,7 +499,7 @@ aws_shell: ## Open a shell in the running ECS container
 	fi
 
 
-aws_fix_ssl: ## Update CA certificates in the running container
+aws-fix-ssl: ## Update CA certificates in the running container
 	@echo "=== Fixing SSL Certificates in ECS Container ==="
 	@TASK_ARN=$$(aws ecs list-tasks \
 		--cluster $(APP)-cluster \
@@ -519,7 +519,7 @@ aws_fix_ssl: ## Update CA certificates in the running container
 		echo "No running tasks found"; \
 	fi
 
-aws_shell_env: ## Check environment variables in the ECS container
+aws-shell-env: ## Check environment variables in the ECS container
 	@echo "=== Checking Environment Variables in ECS Container ==="
 	@TASK_ARN=$$(aws ecs list-tasks \
 		--cluster $(APP)-cluster \
@@ -556,7 +556,7 @@ aws_shell_env: ## Check environment variables in the ECS container
 		echo "No running tasks found"; \
 	fi
 
-aws_restart_service: ## Restart the ECS service to pick up new task definition
+aws-restart-service: ## Restart the ECS service to pick up new task definition
 	@echo "Restarting ECS service..."
 	@aws ecs update-service \
 		--cluster $(APP)-cluster \
@@ -565,7 +565,7 @@ aws_restart_service: ## Restart the ECS service to pick up new task definition
 		--region $(AWS_REGION)
 	@echo "Service restart initiated. It may take a few minutes for the new task to start."
 
-aws_store_secrets_manual: ## Store specific API keys manually (legacy method)
+aws-store-secrets-manual: ## Store specific API keys manually (legacy method)
 	@echo "Storing API keys in SSM Parameter Store..."
 	@if [ -z "$(OPENROUTER_API_KEY)" ]; then \
 		echo "Error: OPENROUTER_API_KEY environment variable is not set"; \
@@ -589,7 +589,7 @@ aws_store_secrets_manual: ## Store specific API keys manually (legacy method)
 		--overwrite || true
 	@echo "API keys stored successfully in SSM Parameter Store"
 
-aws_test_ssl: ## Test SSL connectivity from the ECS container
+aws-test-ssl: ## Test SSL connectivity from the ECS container
 	@echo "=== Testing SSL Connectivity in ECS Container ==="
 	@TASK_ARN=$$(aws ecs list-tasks \
 		--cluster $(APP)-cluster \

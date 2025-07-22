@@ -1,12 +1,22 @@
-# ReAct Agent Demos Configuration
-react_agent_demos:
+# zzz ReAct Agent Demos Configuration  aaaaaaaa
+  react_agent_demos:
+  - name: "Weather"
+    tools:  
+      - my_custom_weather
+    mcp_servers:
+      - "weather"
+      - "playwright"
+    examples: ()
+      - "What is the wind in NY?"
+      - "Quel temps fait-il à Toulouse"
+
+    
   - name: "Weather & PowerPoint"
     mcp_servers:
       - "weather"
       - "ppt"
-#      - "tavily-mcp"
     examples:
-      - "Get weather in  San Francisco today. Create a PowerPoint file about it and usual climate in San Francisco and save it in temp directory"
+      - "Get weather in Toulouse today. Create a PowerPoint file about it and usual climate in Toulouse"
     
   - name: "Web Research"
     mcp_servers:

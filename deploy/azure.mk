@@ -31,7 +31,7 @@ test1:
 check: ## Check if the image is built
 	docker images -a
 
-sync_time:  # Needed because WSL loose time after hibernation, and that can cause issues when pushing 
+sync-time: # Needed because WSL loose time after hibernation, and that can cause issues when pushing
 	sudo hwclock -s 
 
 build: ## Build the docker image
@@ -55,20 +55,20 @@ save:  # Create a zipped version of the image
 
 # To be completed...
 
-login_gcp:
+login-gcp:
 	gcloud auth login
 	gcloud config set project  $(PROJECT_ID_GCP)
 
-build_gcp: ## build the image gor GCP
+build-gcp: ## build the image gor GCP
 	docker build -t gcr.io/$(PROJECT_ID_GCP)/$(APP):$(IMAGE_VERSION) . --build-arg OPENAI_API=$(OPENAI_API_KEY) 
 
-push_gcp: ## Push to a GCP registry
+push-gcp: ## Push to a GCP registry
 # gcloud auth configure-docker
 	docker tag $(APP):$(IMAGE_VERSION) $(LOCATION)-docker.pkg.dev/$(PROJECT_ID_GCP)/$(REGISTRY_NAME)/$(APP):$(IMAGE_VERSION)
 	docker push $(LOCATION)-docker.pkg.dev/$(PROJECT_ID_GCP)/$(REGISTRY_NAME)/$(APP):$(IMAGE_VERSION)
 # gcloud run deploy --image gcr.io/$(PROJECT_ID_GCP)/$(APP):$(IMAGE_VERSION) --platform managed
 
-create_repo_gcp:
+create-repo-gcp:
 	gcloud auth configure-docker $(LOCATION)-docker.pkg.dev
 	gcloud artifacts repositories create $(REGISTRY_NAME) --repository-format=docker \
 		--location=$(LOCATION) --description="Docker repository" \
@@ -79,7 +79,7 @@ create_repo_gcp:
 ##############
 .PHONY: push_az # Azure targets
 	
-push_az:  ## Push to a Azure registry
+push-az: ## Push to a Azure registry
 	docker tag $(APP):$(IMAGE_VERSION) $(REGISTRY_AZ)/$(APP):$(IMAGE_VERSION)
 	docker push $(REGISTRY_AZ)/$(APP):$(IMAGE_VERSION)
 
@@ -91,16 +91,16 @@ push_az:  ## Push to a Azure registry
 ##############
 .PHONY: login_aws push_aws deploy_aws_ecs
 
-login_aws:
+login-aws:
 	aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
 
-push_aws: ## Push to AWS ECR
+push-aws: ## Push to AWS ECR
 	aws ecr create-repository --repository-name $(APP) --region $(AWS_REGION) || true
 	aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
 	docker tag $(APP):$(IMAGE_VERSION) $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)
 	docker push $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)
 
-deploy_aws_ecs: ## Deploy to AWS ECS Fargate
+deploy-aws-ecs: ## Deploy to AWS ECS Fargate
 	@echo "Creating ECS cluster..."
 	aws ecs create-cluster --cluster-name $(APP)-cluster --region $(AWS_REGION) || true
 	
@@ -148,7 +148,7 @@ deploy_aws_ecs: ## Deploy to AWS ECS Fargate
 	
 	@echo "Application deployed! It may take a few minutes to become available."
 
-get_aws_ecs_url: ## Get the public IP/URL of the deployed ECS service
+get-aws-ecs-url: ## Get the public IP/URL of the deployed ECS service
 	@echo "Getting ECS service status..."
 	@aws ecs describe-services \
 		--cluster $(APP)-cluster \
@@ -185,7 +185,7 @@ get_aws_ecs_url: ## Get the public IP/URL of the deployed ECS service
 		echo "Check service status with: aws ecs describe-services --cluster $(APP)-cluster --services $(APP)-service --region $(AWS_REGION)"; \
 	fi
 
-debug_aws_ecs: ## Debug ECS deployment issues
+debug-aws-ecs: ## Debug ECS deployment issues
 	@echo "=== ECS Service Events ==="
 	@aws ecs describe-services \
 		--cluster $(APP)-cluster \
@@ -228,27 +228,27 @@ debug_aws_ecs: ## Debug ECS deployment issues
 
 .PHONY: modal_install modal_login modal_deploy modal_deploy_force modal_run modal_secrets modal_clear_cache
 
-modal_install:  ## Install Modal CLI
+modal-install: ## Install Modal CLI
 	uv pip install modal
 
-modal_login:  ## Login to Modal
+modal-login: ## Login to Modal
 	modal token new
 
-modal_deploy:  ## Deploy to Modal
+modal-deploy: ## Deploy to Modal
 	modal deploy $(MODAL_ENTRY_POINT)
 
-modal_serve: 
+modal-serve:
 	modal serve $(MODAL_ENTRY_POINT)
 
-modal_deploy_force:  ## Deploy to Modal with forced image rebuild
+modal-deploy-force: ## Deploy to Modal with forced image rebuild
 	modal image clear
 	modal deploy $(MODAL_ENTRY_POINT)
 
-modal_run:  ## Run locally with Modal
+modal-run: ## Run locally with Modal
 	modal run $(MODAL_ENTRY_POINT)
 
-modal_clear_cache:  ## Clear Modal image cache
+modal-clear-cache: ## Clear Modal image cache
 	modal image clear
 
-modal_secrets:  ## Create Modal secrets from .env file
+modal-secrets: ## Create Modal secrets from .env file
 	modal secret create genai-secrets $$(cat .env | xargs)

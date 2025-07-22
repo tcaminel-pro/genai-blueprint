@@ -47,12 +47,9 @@ def load_demos_from_config() -> List[GraphRagDemo]:
 
     Returns:
         List of GraphRagDemo instances loaded from config
-
-    Raises:
-        Exception: If config loading fails
     """
     try:
-        demos_config = global_config().get_list("graph_rag_demos")
+        demos_config = global_config().merge_with("config/demos/graph_rag.yaml").get_list("graph_rag_demos")
         result = []
         # Create Demo objects from the configuration
         for demo_config in demos_config:
@@ -86,7 +83,9 @@ def load_demos_from_config() -> List[GraphRagDemo]:
 
 
 # Load demos from config
-SAMPLE_DEMOS = load_demos_from_config()
+sample_demos = load_demos_from_config()
+
+print(sample_demos)
 
 
 llm = get_llm(llm_id=None)
@@ -108,13 +107,13 @@ c01, c02 = st.columns([6, 4], border=False, gap="medium", vertical_alignment="to
 with c01.container(border=True):
     selected_pill = st.pills(
         "🎬 **Demos:**",
-        options=[demo.name for demo in SAMPLE_DEMOS],
-        default=SAMPLE_DEMOS[0].name,
+        options=[demo.name for demo in sample_demos],
+        default=sample_demos[0].name,
         on_change=clear_display,
     )
 
 # Get selected demo
-demo = next((d for d in SAMPLE_DEMOS if d.name == selected_pill), None)
+demo = next((d for d in sample_demos if d.name == selected_pill), None)
 if demo is None:
     st.stop()
 

@@ -12,20 +12,20 @@ PROJECT_ID_GCP=XXX
 
 # To be completed...
 
-login_gcp:
+login-gcp:
 	gcloud auth login
 	gcloud config set project  $(PROJECT_ID_GCP)
 
-build_gcp: ## build the image gor GCP
+build-gcp: ## build the image gor GCP
 	docker build -t gcr.io/$(PROJECT_ID_GCP)/$(APP):$(IMAGE_VERSION) . --build-arg OPENAI_API=$(OPENAI_API_KEY) 
 
-push_gcp: ## Push to a GCP registry
+push-gcp: ## Push to a GCP registry
 # gcloud auth configure-docker
 	docker tag $(APP):$(IMAGE_VERSION) $(LOCATION)-docker.pkg.dev/$(PROJECT_ID_GCP)/$(REGISTRY_NAME)/$(APP):$(IMAGE_VERSION)
 	docker push $(LOCATION)-docker.pkg.dev/$(PROJECT_ID_GCP)/$(REGISTRY_NAME)/$(APP):$(IMAGE_VERSION)
 # gcloud run deploy --image gcr.io/$(PROJECT_ID_GCP)/$(APP):$(IMAGE_VERSION) --platform managed
 
-create_repo_gcp:
+create-repo-gcp:
 	gcloud auth configure-docker $(LOCATION)-docker.pkg.dev
 	gcloud artifacts repositories create $(REGISTRY_NAME) --repository-format=docker \
 		--location=$(LOCATION) --description="Docker repository" \

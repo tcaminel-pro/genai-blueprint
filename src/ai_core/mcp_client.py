@@ -166,12 +166,12 @@ def get_mcp_servers_dict(filter: list[str] | None = None) -> dict:
     """
     servers = global_config().merge_with("config/demos/graph_rag.yaml").get_dict("mcpServers")
     # Filter out servers that are explicitly disabled
-    servers = {name: config for name, config in servers.items() if not config.get("disabled", False)}
-
+    servers = {name: config for name, config in servers.items() if not config.get("disabled", True)}
+    debug(servers)
     if filter is not None:
         missing_servers = [name for name in filter if name not in servers]
         if missing_servers:
-            raise ValueError(f"Servers not found in configuration: {', '.join(missing_servers)}")
+            raise ValueError(f"MCP server(s) not found or disabled in configuration: '{', '.join(missing_servers)}'")
 
     from loguru import logger
 

@@ -1,11 +1,13 @@
-- Use type annotation whenever possible, including 'None' on return type annotation
+- Use type annotation whenever possible
+- Use 'None" type annotation when functions return nothing
 - Use Python 12 capabilities - Typically use | instead of 'Union'
 - Keep Python module presentation short.  Include main classes and functions description (one line). 
 - Don't repeat code examples in module description if they are already in function docstrings. 
 - Don't add comments for classes fields and arguments. Write only one line to describe the class.
+- Keep trace instructions, such as 'debug(...)' or 'print(...)
 - Rules for doctrings:
     - Use Google style 
     - Don't mention types 
-    - Don't mention raise ValueError 
+    - Don't mention raised exceptions 
     - Use  ``` to format code in documentation (Fenced Code Blocks)
 - use 'uv run pytest -v' to run pytest 

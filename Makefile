@@ -51,7 +51,7 @@ include deploy/modal.mk
 ##  GenAI Blueprint related commands
 ##############################
 .PHONY: fast_api langserve webapp 
-fast_api:  ## langsLauch FastAPI server localy
+fast-api: ## langsLauch FastAPI server localy
 	uvicorn $(FASTAPI_ENTRY_POINT) --reload
 
 langserve: ## Lauch langserve app
@@ -75,15 +75,15 @@ AIDER_OPTS=--watch-files --lint-cmd "ruff format" --read CONVENTIONS.md --editor
 
 aider:  ## Call aider-chat (a coding assistant)
 	aider $(AIDER_OPTS) --model openrouter/deepseek/deepseek-chat
-aider_haiku: 
+aider-haiku:
 	aider $(AIDER_OPTS) --cache-prompts --model openrouter/anthropic/claude-3-5-haiku;   
-aider_sonnet: 
+aider-sonnet:
 	aider $(AIDER_OPTS) --cache-prompts --model openrouter/anthropic/claude-sonnet-4;   
-aider_r1:
+aider-r1:
 	aider $(AIDER_OPTS) --model openrouter/deepseek/deepseek-r1
-aider_o3:
+aider-o3:
 	aider $(AIDER_OPTS) --model o3-mini; 
-aider_k2:
+aider-k2:
 	aider $(AIDER_OPTS) --model openrouter/moonshotai/kimi-k2
 
 lint: ## Run Ruff an all Python files to format fix imports
@@ -94,7 +94,7 @@ lint: ## Run Ruff an all Python files to format fix imports
 quality: ## Run Ruff an all Python files to check quality
 	find . -path "./src/wip" -prune -o -path "./.venv" -prune -o -type f -name '*.py' | xargs ruff check --fix 
 
-clean_notebooks:  ## Clean Jupyter notebook outputs. 
+clean-notebooks: ## Clean Jupyter notebook outputs.
 	@find . -name "*.ipynb" | while read -r notebook; do \
 		echo "Cleaning outputs from: $$notebook"; \
 		uvx jupyter nbconvert --clear-output --inplace "$$notebook"; \
@@ -122,7 +122,7 @@ telemetry:  ## Run Phoenix telemetry server in background
 
 .PHONY: check_uv install
 
-check_uv:  ## Check if uv is installed, install if missing
+check-uv: ## Check if uv is installed, install if missing
 	@if command -v uv >/dev/null 2>&1; then \
 		echo "uv is already installed"; \
 	else \
@@ -135,7 +135,7 @@ check_uv:  ## Check if uv is installed, install if missing
 install: check_uv   ## Install SW
 	uv sync
 
-install_spacy_models:  ## Install Spacy Models for NLP
+install-spacy-models: ## Install Spacy Models for NLP
 	uv run --with spacy spacy download fr_core_news_sm
 	uv run --with spacy spacy download en_core_web_lg
 
@@ -159,7 +159,7 @@ backup: ## rsync project and shared files to $(ONEDRIVE)
 	cp -r ~/.env ~/.aws  ~/.bashrc ~/.bash_aliases ~/.modal.toml $(ONEDRIVE)/backup/wsl/tcl/
 	cp ~/install.sh  $(ONEDRIVE)/backup/wsl/tcl/
 
-backup_sync: 
+backup-sync:
 	rsync -av \
 	--exclude='.git/' --exclude='.ruf_cache/' --exclude='__pycache__/'  \
 	--include='*/' \
@@ -173,7 +173,7 @@ ROOT1=/home/tcl/prj/genai-blueprint/
 ROOT2=/home/tcl/prj/ecod-engine-v3
 SYNC_DIRS=src/ai_core src/ai_extra src/ai_utils src/webapp/ui_components   
 
-sync_dirs: ## Sync subdirectories between two root directories 
+sync-dirs: ## Sync subdirectories between two root directories
 	@if [ -z "$(ROOT1)" ] || [ -z "$(ROOT2)" ] || [ -z "$(SYNC_DIRS)" ]; then \
 		echo "Error: Missing required variables. Usage: make sync_dirs ROOT1=path1 ROOT2=path2 SYNC_DIRS='dir1 dir2 dir3'"; \
 		exit 1; \
@@ -188,7 +188,7 @@ sync_dirs: ## Sync subdirectories between two root directories
 		fi; \
 	done
 
-clean_history:  ## Remove duplicate entries and common commands from .bash_history
+clean-history: ## Remove duplicate entries and common commands from .bash_history
 	@if [ -f ~/.bash_history ]; then \
 		awk '!/^(ls|cat|hgrep|h|cd|p|m|ll|pwd|code|mkdir|export|rmdir|uv tree|make)( |$$)/ && !seen[$$0]++' ~/.bash_history > ~/.bash_history_unique && \
 		mv ~/.bash_history_unique ~/.bash_history; \
@@ -202,7 +202,7 @@ help:
 	@awk 'BEGIN {FS = ":.*##"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST) | sort 
 
 
-test_install: .pythonpath ## Quick test install
+test-install: .pythonpath ## Quick test install
 	@echo $(PYTHONPATH)
 	@echo "Call a fake LLM that returns the prompt. Here it should  display 'tell me a joke on ...'"
 	echo bears | PYTHONPATH="." uv run cli run joke -m parrot_local_fake
@@ -211,7 +211,7 @@ test_install: .pythonpath ## Quick test install
 # Load .env file environ variable in shell
 # export $(grep -v '^#' ~/.env | xargs)
 
-load_env:
+load-env:
 	@echo "Loading environment variables..."
 	@if [ -f ~/.env ]; then \
 		export $$(grep -v '^#' ~/.env | xargs); \

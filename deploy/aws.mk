@@ -5,13 +5,13 @@ AWS_SECURITY_GROUP=sg-0f9ae86b1de2e3956
 
 .PHONY: aws_push aws_deploy aws_shell aws_logs aws_debug aws_fix_security_group aws_test_connection aws_check_container aws_redeploy
 
-aws_push: ## Push Docker image to AWS ECR
+aws-push: ## Push Docker image to AWS ECR
 	aws ecr create-repository --repository-name $(APP) --region $(AWS_REGION) || true
 	aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
 	docker tag $(APP):$(IMAGE_VERSION) $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)
 	docker push $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(APP):$(IMAGE_VERSION)
 
-aws_deploy: ## Deploy to AWS ECS Fargate
+aws-deploy: ## Deploy to AWS ECS Fargate
 	@echo "Creating ECS cluster..."
 	aws --no-cli-pager ecs create-cluster --cluster-name $(APP)-cluster --region $(AWS_REGION) || true
 	
@@ -59,7 +59,7 @@ aws_deploy: ## Deploy to AWS ECS Fargate
 	
 	@echo "Application deployed! Access it at the public IP on port 8501."
 
-aws_shell: ## Open a shell in the running ECS container
+aws-shell: ## Open a shell in the running ECS container
 	@TASK_ARN=$$(aws ecs list-tasks \
 		--cluster $(APP)-cluster \
 		--service-name $(APP)-service \
@@ -78,7 +78,7 @@ aws_shell: ## Open a shell in the running ECS container
 		echo "No running tasks found"; \
 	fi
 
-aws_redeploy: ## Force a new deployment and wait for it to stabilize
+aws-redeploy: ## Force a new deployment and wait for it to stabilize
 	@if [ -z "$(APP)" ]; then \
 		echo "Error: APP variable not set. Usage: make aws_redeploy APP=<your-app-name>"; \
 		exit 1; \
@@ -101,7 +101,7 @@ aws_redeploy: ## Force a new deployment and wait for it to stabilize
 	@echo ""
 	@$(MAKE) aws_get_ecs_url APP=$(APP)
 
-aws_check_container: ## Check container configuration and Dockerfile
+aws-check-container: ## Check container configuration and Dockerfile
 	@echo "=== Checking Container Configuration ==="
 	@echo "Current task definition:"
 	@aws ecs describe-task-definition \
@@ -126,7 +126,7 @@ aws_check_container: ## Check container configuration and Dockerfile
 	@echo "  EXPOSE 8501"
 	@echo "  CMD [\"streamlit\", \"run\", \"your_app.py\", \"--server.address=0.0.0.0\", \"--server.port=8501\"]"
 
-aws_test_connection: ## Test connection to the deployed application
+aws-test-connection: ## Test connection to the deployed application
 	@echo "=== Testing Connection to ECS Application ==="
 	@TASK_ARN=$$(aws ecs list-tasks \
 		--cluster $(APP)-cluster \
@@ -163,7 +163,7 @@ aws_test_connection: ## Test connection to the deployed application
 		echo "No running tasks found"; \
 	fi
 
-aws_logs: ## Get application logs from CloudWatch
+aws-logs: ## Get application logs from CloudWatch
 	@TASK_ARN=$$(aws ecs list-tasks \
 		--cluster $(APP)-cluster \
 		--service-name $(APP)-service \
@@ -205,7 +205,7 @@ aws_logs: ## Get application logs from CloudWatch
 	fi
 
 
-aws_get_ecs_url: ## Get the public IP/URL of the deployed ECS service
+aws-get-ecs-url: ## Get the public IP/URL of the deployed ECS service
 	@echo "Getting ECS service status..."
 	@aws --no-cli-pager ecs describe-services \
 		--cluster $(APP)-cluster \
@@ -251,7 +251,7 @@ aws_get_ecs_url: ## Get the public IP/URL of the deployed ECS service
 		echo "Check service status with: aws ecs describe-services --cluster $(APP)-cluster --services $(APP)-service --region $(AWS_REGION)"; \
 	fi
 
-aws_fix_security_group: ## Fix security group rules for port 8501
+aws-fix-security-group: ## Fix security group rules for port 8501
 	@echo "Checking and fixing security group rules..."
 	@echo "Current security group rules:"
 	@aws --no-cli-pager ec2 describe-security-groups \
@@ -275,7 +275,7 @@ aws_fix_security_group: ## Fix security group rules for port 8501
 		--query 'SecurityGroups[0].IpPermissions[?FromPort==`8501`]' \
 		--output table
 
-aws_debug: ## Debug ECS deployment issues
+aws-debug: ## Debug ECS deployment issues
 	@echo "=== ECS Task Health Check ==="
 	@TASK_ARN=$$(aws ecs list-tasks \
 		--cluster $(APP)-cluster \
