@@ -154,7 +154,6 @@ class DemoConfigEditor(BaseModel):
         # Render the editor fragment
         editor_fragment(selected_file, yaml_content)
 
-
         # Status and file info
         st.sidebar.markdown("---")
 
