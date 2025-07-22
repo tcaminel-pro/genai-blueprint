@@ -115,7 +115,7 @@ class DemoConfigEditor(BaseModel):
             theme="vs-dark",
             minimap=False,
             lineNumbers=True,
-            key=f"monaco_{selected_file.name}"
+            key=f"monaco_{selected_file.name}",
         )
 
         debug(edited_text)
