@@ -100,7 +100,7 @@ class DemoConfigEditor(BaseModel):
             st.info("Edit the YAML directly with syntax highlighting and validation")
 
             current_file_key = f"editor_content_{selected_file.name}"
-            
+
             if current_file_key in st.session_state:
                 editor_content = st.session_state[current_file_key]
             else:
@@ -116,7 +116,7 @@ class DemoConfigEditor(BaseModel):
                 st.session_state.file_changed = edited_text.strip() != yaml_content.strip()
 
             # Form submit buttons
-            col1, col2, col3 = st.columns([1,1,2])
+            col1, col2, col3 = st.columns([1, 1, 2])
             with col1:
                 if st.form_submit_button("💾 Save", use_container_width=True):
                     edited_content = st.session_state.get(current_file_key, yaml_content)
@@ -132,7 +132,7 @@ class DemoConfigEditor(BaseModel):
                         st.error(f"Invalid YAML syntax: {e}")
                     except Exception as e:
                         st.error(f"Error saving configuration: {e}")
-            
+
             with col2:
                 if st.form_submit_button("❌ Cancel", use_container_width=True):
                     # Reset to original content
