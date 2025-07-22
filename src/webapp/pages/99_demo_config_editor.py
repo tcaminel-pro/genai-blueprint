@@ -61,7 +61,7 @@ class DemoConfigEditor(BaseModel):
             try:
                 yaml.compose(content)  # This does full parsing with position tracking
             except yaml.YAMLError as e:
-                if hasattr(e, 'problem_mark'):
+                if hasattr(e, "problem_mark"):
                     mark = e.problem_mark
                     error_msg = (
                         f"YAML Error at line {mark.line + 1} column {mark.column + 1}:\n"
@@ -152,7 +152,7 @@ class DemoConfigEditor(BaseModel):
                         with st.expander("Technical Details"):
                             st.code(traceback.format_exc(), language="python")
                     except (ParserError, ScannerError) as e:
-                        if hasattr(e, 'problem_mark'):
+                        if hasattr(e, "problem_mark"):
                             mark = e.problem_mark
                             st.error(f"Syntax Error at line {mark.line + 1}, column {mark.column + 1}")
                             st.code(f"{e.problem}\nContext: {e.context}", language="yaml")
