@@ -91,8 +91,7 @@ def update_server_parameters(server_config: dict) -> dict:
 
     desc.pop("description", "")  # not used yet
     desc.pop("example", None)
-    if not desc.get("disabled"):
-        desc.pop("disabled", None)
+    desc.pop("disabled", None)  # TODO : reintroduce it
     _ = StdioServerParameters(**desc)  # just to test argument type
 
     return desc
@@ -165,6 +164,7 @@ def get_mcp_servers_dict(filter: list[str] | None = None) -> dict:
     # {'pubmed': {'command': 'uv', 'args': ['tool', 'run', 'pubmedmcp@0.1.3'], ...}}
     ```
     """
+    # remove servers whose field "disabled" is true AI!
     servers = global_config().merge_with("config/demos/graph_rag.yaml").get_dict("mcpServers")
 
     if filter is not None:
@@ -182,7 +182,7 @@ def get_mcp_servers_dict(filter: list[str] | None = None) -> dict:
             except Exception as e:
                 print(f"Skipping MCP server {name} due to configuration error: {str(e)}")
                 logger.warning(f"Skipping MCP server {name} due to configuration error: {str(e)}")
-
+    debug(result_dict)
     return result_dict
 
 
