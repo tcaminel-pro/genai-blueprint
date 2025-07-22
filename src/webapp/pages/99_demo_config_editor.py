@@ -10,8 +10,8 @@ from pathlib import Path
 from typing import List
 
 import streamlit as st
-import yaml
 import streamlit_monaco as monaco
+import yaml
 from devtools import debug
 from loguru import logger
 from pydantic import BaseModel
@@ -108,17 +108,13 @@ class DemoConfigEditor(BaseModel):
             editor_content = yaml_content
             st.session_state[current_file_key] = editor_content
 
-        edited_text = monaco.st_monaco_editor(
+        edited_text = monaco.st_monaco(
             value=editor_content,
             height="400px",
             language="yaml",
             theme="vs-dark",
-            automatic_layout=True,
             minimap=False,
-            line_numbers=True,
-            word_wrap=True,
-            font_size=14,
-            key=f"monaco_{selected_file.name}",
+            lineNumbers=True,
         )
 
         debug(edited_text)
