@@ -94,14 +94,13 @@ class DemoConfigEditor(BaseModel):
             st.error("Failed to load configuration file")
             return
 
-        # Editor fragment to preserve state
-        @st.experimental_fragment
-        def editor_fragment(selected_file, yaml_content):
+        # Editor in a form to prevent partial reruns
+        with st.form(key="yaml_editor_form"):
             st.header("YAML Code Editor")
             st.info("Edit the YAML directly with syntax highlighting and validation")
 
             current_file_key = f"editor_content_{selected_file.name}"
-
+            
             if current_file_key in st.session_state:
                 editor_content = st.session_state[current_file_key]
             else:
@@ -116,15 +115,10 @@ class DemoConfigEditor(BaseModel):
                 st.session_state[current_file_key] = edited_text
                 st.session_state.file_changed = edited_text.strip() != yaml_content.strip()
 
-            # Save/reload controls
-            save_col, reload_col = st.columns(2)
-            with save_col:
-                has_changes = st.session_state.get("file_changed", False)
-                if st.button(
-                    "💾 Save Changes" if has_changes else "💾 Save",
-                    type="primary" if has_changes else "secondary",
-                    use_container_width=True,
-                ):
+            # Form submit buttons
+            col1, col2, col3 = st.columns([1,1,2])
+            with col1:
+                if st.form_submit_button("💾 Save", use_container_width=True):
                     edited_content = st.session_state.get(current_file_key, yaml_content)
                     try:
                         yaml.safe_load(edited_content)
@@ -138,15 +132,13 @@ class DemoConfigEditor(BaseModel):
                         st.error(f"Invalid YAML syntax: {e}")
                     except Exception as e:
                         st.error(f"Error saving configuration: {e}")
-
-            with reload_col:
-                if st.button("🔄 Reload", use_container_width=True):
-                    if current_file_key in st.session_state:
-                        del st.session_state[current_file_key]
+            
+            with col2:
+                if st.form_submit_button("❌ Cancel", use_container_width=True):
+                    # Reset to original content
+                    st.session_state[current_file_key] = yaml_content
+                    st.session_state.file_changed = False
                     st.rerun()
-
-        # Render the editor fragment
-        editor_fragment(selected_file, yaml_content)
 
         # Status and file info
         st.sidebar.markdown("---")
