@@ -114,9 +114,7 @@ class DemoConfigEditor(BaseModel):
                 language="yaml",
                 theme="vs-dark",
                 minimap=False,
-                lineNumbers=True,
-                debounce=1000,  # Delay updates by 1 second
-                key=f"monaco_editor_{selected_file.name}",  # Unique key for widget
+                lineNumbers=True
             )
 
             if edited_text and edited_text.strip():
