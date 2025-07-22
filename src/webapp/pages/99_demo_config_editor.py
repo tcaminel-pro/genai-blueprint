@@ -6,18 +6,18 @@ used for various demos. It includes real-time syntax validation, change tracking
 and safe file saving capabilities.
 """
 
+import traceback
 from pathlib import Path
 from typing import List
 
 import streamlit as st
-import traceback
 import yaml
 from devtools import debug  # noqa: F401
-from yaml.parser import ParserError
-from yaml.scanner import ScannerError
 from loguru import logger
 from pydantic import BaseModel
 from streamlit_monaco import st_monaco
+from yaml.parser import ParserError
+from yaml.scanner import ScannerError
 
 from src.utils.config_mngr import OmegaConfig
 
@@ -45,6 +45,7 @@ class DemoConfigEditor(BaseModel):
                 st.exception(e)
             return ""
 
+    # simplify AI!
     @staticmethod
     def save_yaml_file(file_path: Path, content: str) -> bool:
         """Save YAML content back to file.
@@ -59,8 +60,9 @@ class DemoConfigEditor(BaseModel):
         try:
             # Validate YAML structure and syntax
             try:
-                yaml.compose(content)  # This does full parsing with position tracking
-            except yaml.YAMLError as e:
+                debug(content)
+                _ = yaml.safe_load(content)  # This does full parsing with position tracking
+            except Exception as e:
                 if hasattr(e, "problem_mark"):
                     mark = e.problem_mark
                     error_msg = (
