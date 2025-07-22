@@ -108,13 +108,14 @@ class DemoConfigEditor(BaseModel):
             editor_content = yaml_content
             st.session_state[current_file_key] = editor_content
 
-        edited_text = monaco.st_monaco(
+        edited_text = monaco.st_monaco_editor(
             value=editor_content,
             height="400px",
             language="yaml",
             theme="vs-dark",
             minimap=False,
             lineNumbers=True,
+            key=f"monaco_{selected_file.name}"
         )
 
         debug(edited_text)
