@@ -95,7 +95,7 @@ class DemoConfigEditor(BaseModel):
             return
 
         # Editor fragment to preserve state
-        @st.experimental_fragment
+        @st.fragment
         def editor_fragment(selected_file, yaml_content):
             st.header("YAML Code Editor")
             st.info("Edit the YAML directly with syntax highlighting and validation")
@@ -115,7 +115,7 @@ class DemoConfigEditor(BaseModel):
                 theme="vs-dark",
                 minimap=False,
                 lineNumbers=True,
-                key=f"monaco_{current_file_key}",  # Unique key per file
+                # key=f"monaco_{current_file_key}",  # Unique key per file
             )
 
             if edited_text and edited_text.strip():
