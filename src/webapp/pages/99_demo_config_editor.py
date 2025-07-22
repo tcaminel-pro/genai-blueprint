@@ -10,8 +10,11 @@ from pathlib import Path
 from typing import List
 
 import streamlit as st
+import traceback
 import yaml
 from devtools import debug  # noqa: F401
+from yaml.parser import ParserError
+from yaml.scanner import ScannerError
 from loguru import logger
 from pydantic import BaseModel
 from streamlit_monaco import st_monaco
@@ -54,8 +57,23 @@ class DemoConfigEditor(BaseModel):
             bool: True if successful, False otherwise
         """
         try:
-            # First validate the YAML is valid before saving
-            yaml.safe_load(content)
+            # Validate YAML structure and syntax
+            try:
+                yaml.compose(content)  # This does full parsing with position tracking
+            except yaml.YAMLError as e:
+                if hasattr(e, 'problem_mark'):
+                    mark = e.problem_mark
+                    error_msg = (
+                        f"YAML Error at line {mark.line + 1} column {mark.column + 1}:\n"
+                        f"{e.problem}\nContext: {e.context or 'None'}"
+                    )
+                    raise ValueError(error_msg) from e
+                raise ValueError(f"YAML Error: {e}") from e
+
+            # Validate data structure
+            config = yaml.safe_load(content)
+            if not isinstance(config, dict):
+                raise ValueError("Top-level YAML structure must be a dictionary")
 
             with open(file_path, "w", encoding="utf-8") as f:
                 logger.info(f"Write file : {file_path}")
@@ -120,18 +138,36 @@ class DemoConfigEditor(BaseModel):
             with col1:
                 if st.form_submit_button("💾 Save", use_container_width=True):
                     edited_content = st.session_state.get(current_file_key, yaml_content)
+                    edited_content = st.session_state.get(current_file_key, yaml_content)
                     try:
-                        yaml.safe_load(edited_content)
+                        # Validate and save
                         if DemoConfigEditor.save_yaml_file(selected_file, edited_content):
                             st.success("✅ Configuration saved successfully!")
                             st.session_state.file_changed = False
                             st.session_state[current_file_key] = edited_content
                         else:
                             st.error("❌ Failed to save configuration")
-                    except yaml.YAMLError as e:
-                        st.error(f"Invalid YAML syntax: {e}")
+                    except ValueError as e:
+                        st.error(f"Validation Error: {str(e)}")
+                        with st.expander("Technical Details"):
+                            st.code(traceback.format_exc(), language="python")
+                    except (ParserError, ScannerError) as e:
+                        if hasattr(e, 'problem_mark'):
+                            mark = e.problem_mark
+                            st.error(f"Syntax Error at line {mark.line + 1}, column {mark.column + 1}")
+                            st.code(f"{e.problem}\nContext: {e.context}", language="yaml")
+                        else:
+                            st.error(f"YAML Error: {str(e)}")
+                        with st.expander("Full Error Details"):
+                            st.code(traceback.format_exc(), language="python")
+                    except yaml.reader.ReaderError as e:
+                        st.error(f"Encoding Error: {str(e)}")
+                        with st.expander("Technical Details"):
+                            st.code(traceback.format_exc(), language="python")
                     except Exception as e:
-                        st.error(f"Error saving configuration: {e}")
+                        st.error(f"Unexpected Error: {str(e)}")
+                        with st.expander("Full Traceback"):
+                            st.code(traceback.format_exc(), language="python")
 
             with col2:
                 if st.form_submit_button("❌ Cancel", use_container_width=True):
