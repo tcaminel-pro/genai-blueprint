@@ -118,7 +118,7 @@ class DemoConfigEditor(BaseModel):
             line_numbers=True,
             word_wrap=True,
             font_size=14,
-            key=f"monaco_{selected_file.name}"
+            key=f"monaco_{selected_file.name}",
         )
 
         debug(edited_text)
