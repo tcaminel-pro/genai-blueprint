@@ -164,8 +164,9 @@ def get_mcp_servers_dict(filter: list[str] | None = None) -> dict:
     # {'pubmed': {'command': 'uv', 'args': ['tool', 'run', 'pubmedmcp@0.1.3'], ...}}
     ```
     """
-    # remove servers whose field "disabled" is true AI!
     servers = global_config().merge_with("config/demos/graph_rag.yaml").get_dict("mcpServers")
+    # Filter out servers that are explicitly disabled
+    servers = {name: config for name, config in servers.items() if not config.get("disabled", False)}
 
     if filter is not None:
         missing_servers = [name for name in filter if name not in servers]
