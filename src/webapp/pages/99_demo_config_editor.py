@@ -109,12 +109,7 @@ class DemoConfigEditor(BaseModel):
                 st.session_state[current_file_key] = editor_content
 
             edited_text = st_monaco(
-                value=editor_content,
-                height="400px",
-                language="yaml",
-                theme="vs-dark",
-                minimap=False,
-                lineNumbers=True
+                value=editor_content, height="400px", language="yaml", theme="vs-dark", minimap=False, lineNumbers=True
             )
 
             if edited_text and edited_text.strip():
