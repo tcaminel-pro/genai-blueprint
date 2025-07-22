@@ -94,69 +94,65 @@ class DemoConfigEditor(BaseModel):
             st.error("Failed to load configuration file")
             return
 
-        # Use the Monaco editor
-        st.header("YAML Code Editor")
-        st.info("Edit the YAML directly with syntax highlighting and validation")
+        # Editor fragment to preserve state
+        @st.experimental_fragment
+        def editor_fragment(selected_file, yaml_content):
+            st.header("YAML Code Editor")
+            st.info("Edit the YAML directly with syntax highlighting and validation")
 
-        # Initialize editor content - use session state if available and for the same file
-        current_file_key = f"editor_content_{selected_file.name}"
+            current_file_key = f"editor_content_{selected_file.name}"
+            
+            if current_file_key in st.session_state:
+                editor_content = st.session_state[current_file_key]
+            else:
+                editor_content = yaml_content
+                st.session_state[current_file_key] = editor_content
 
-        # Use saved editor content if it exists for this file, otherwise use file content
-        if current_file_key in st.session_state:
-            editor_content = st.session_state[current_file_key]
-        else:
-            editor_content = yaml_content
-            st.session_state[current_file_key] = editor_content
+            edited_text = st_monaco(
+                value=editor_content,
+                height="400px",
+                language="yaml",
+                theme="vs-dark",
+                minimap=False,
+                lineNumbers=True,
+                key=f"monaco_{current_file_key}"  # Unique key per file
+            )
 
-        edited_text = st_monaco(
-            value=editor_content,
-            height="400px",
-            language="yaml",
-            theme="vs-dark",
-            minimap=False,
-            lineNumbers=True,
-        )
+            if edited_text and edited_text.strip():
+                st.session_state[current_file_key] = edited_text
+                st.session_state.file_changed = edited_text.strip() != yaml_content.strip()
 
-        # Store edited content without validation
-        if edited_text and edited_text.strip():
-            st.session_state[current_file_key] = edited_text
-            st.session_state.file_changed = edited_text.strip() != yaml_content.strip()
+            # Save/reload controls
+            save_col, reload_col = st.columns(2)
+            with save_col:
+                has_changes = st.session_state.get("file_changed", False)
+                if st.button(
+                    "💾 Save Changes" if has_changes else "💾 Save",
+                    type="primary" if has_changes else "secondary",
+                    use_container_width=True
+                ):
+                    edited_content = st.session_state.get(current_file_key, yaml_content)
+                    try:
+                        yaml.safe_load(edited_content)
+                        if DemoConfigEditor.save_yaml_file(selected_file, edited_content):
+                            st.success("✅ Configuration saved successfully!")
+                            st.session_state.file_changed = False
+                            st.session_state[current_file_key] = edited_content
+                        else:
+                            st.error("❌ Failed to save configuration")
+                    except yaml.YAMLError as e:
+                        st.error(f"Invalid YAML syntax: {e}")
+                    except Exception as e:
+                        st.error(f"Error saving configuration: {e}")
 
-        # Save button
-        st.sidebar.markdown("---")
-        save_col, reload_col = st.sidebar.columns(2)
+            with reload_col:
+                if st.button("🔄 Reload", use_container_width=True):
+                    if current_file_key in st.session_state:
+                        del st.session_state[current_file_key]
+                    st.rerun()
 
-        with save_col:
-            # Show if there are unsaved changes
-            has_changes = st.session_state.get("file_changed", False)
-            button_text = "💾 Save Changes" if has_changes else "💾 Save"
-            button_type = "primary" if has_changes else "secondary"
-
-            if st.button(button_text, type=button_type, use_container_width=True):
-                # Get the raw edited content from session state
-                edited_content = st.session_state.get(current_file_key, yaml_content)
-
-                try:
-                    # Validate YAML syntax before saving
-                    yaml.safe_load(edited_content)
-                    success = DemoConfigEditor.save_yaml_file(selected_file, edited_content)
-                    if success:
-                        st.success("✅ Configuration saved successfully!")
-                        st.session_state.file_changed = False
-                        st.session_state[current_file_key] = edited_content
-                    else:
-                        st.error("❌ Failed to save configuration")
-                except yaml.YAMLError as e:
-                    st.error(f"Invalid YAML syntax: {e}")
-                except Exception as e:
-                    st.error(f"Error saving configuration: {e}")
-
-        with reload_col:
-            if st.button("🔄 Reload", use_container_width=True):
-                # Clear the editor content cache for this file
-                if current_file_key in st.session_state:
-                    del st.session_state[current_file_key]
-                st.rerun()
+        # Render the editor fragment
+        editor_fragment(selected_file, yaml_content)
 
         # Reload button
         if st.sidebar.button("🔄 Reload from File", use_container_width=True):
