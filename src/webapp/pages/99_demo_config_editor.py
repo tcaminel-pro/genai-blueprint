@@ -117,29 +117,10 @@ class DemoConfigEditor(BaseModel):
             lineNumbers=True,
         )
 
-        #debug(edited_text)
-
-        # Validate and save edited content
+        # Store edited content without validation
         if edited_text and edited_text.strip():
-            try:
-                # Validate YAML syntax
-                yaml.safe_load(edited_text)
-
-                # Save valid content to session
-                st.session_state[current_file_key] = edited_text
-                st.session_state.file_changed = edited_text.strip() != yaml_content.strip()
-
-                if st.session_state.file_changed:
-                    st.success("Valid YAML - Changes detected")
-                else:
-                    st.info("No changes detected")
-
-            except yaml.YAMLError as e:
-                st.error(f"Invalid YAML syntax: {e}")
-                st.session_state.file_changed = False
-            except Exception as e:
-                st.error(f"Error validating YAML: {e}")
-                st.session_state.file_changed = False
+            st.session_state[current_file_key] = edited_text
+            st.session_state.file_changed = edited_text.strip() != yaml_content.strip()
 
         # Save button
         st.sidebar.markdown("---")
@@ -154,14 +135,21 @@ class DemoConfigEditor(BaseModel):
             if st.button(button_text, type=button_type, use_container_width=True):
                 # Get the raw edited content from session state
                 edited_content = st.session_state.get(current_file_key, yaml_content)
-                success = DemoConfigEditor.save_yaml_file(selected_file, edited_content)
-                if success:
-                    st.success("✅ Configuration saved successfully!")
-                    st.session_state.file_changed = False
-                    # Keep the current edited content in session state
-                    st.session_state[current_file_key] = edited_content
-                else:
-                    st.error("❌ Failed to save configuration")
+                
+                try:
+                    # Validate YAML syntax before saving
+                    yaml.safe_load(edited_content)
+                    success = DemoConfigEditor.save_yaml_file(selected_file, edited_content)
+                    if success:
+                        st.success("✅ Configuration saved successfully!")
+                        st.session_state.file_changed = False
+                        st.session_state[current_file_key] = edited_content
+                    else:
+                        st.error("❌ Failed to save configuration")
+                except yaml.YAMLError as e:
+                    st.error(f"Invalid YAML syntax: {e}")
+                except Exception as e:
+                    st.error(f"Error saving configuration: {e}")
 
         with reload_col:
             if st.button("🔄 Reload", use_container_width=True):
