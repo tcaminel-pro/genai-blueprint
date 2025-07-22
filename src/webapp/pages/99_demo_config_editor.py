@@ -125,26 +125,25 @@ class DemoConfigEditor(BaseModel):
 
         # Validate and save edited content
         if edited_text and edited_text.strip():
+            try:
+                # Validate YAML syntax
+                yaml.safe_load(edited_text)
 
-        try:
-            # Validate YAML syntax
-            yaml.safe_load(edited_text)
+                # Save valid content to session
+                st.session_state[current_file_key] = edited_text
+                st.session_state.file_changed = edited_text.strip() != yaml_content.strip()
 
-            # Save valid content to session
-            st.session_state[current_file_key] = edited_text
-            st.session_state.file_changed = edited_text.strip() != yaml_content.strip()
+                if st.session_state.file_changed:
+                    st.success("Valid YAML - Changes detected")
+                else:
+                    st.info("No changes detected")
 
-            if st.session_state.file_changed:
-                st.success("Valid YAML - Changes detected")
-            else:
-                st.info("No changes detected")
-
-        except yaml.YAMLError as e:
-            st.error(f"Invalid YAML syntax: {e}")
-            st.session_state.file_changed = False
-        except Exception as e:
-            st.error(f"Error validating YAML: {e}")
-            st.session_state.file_changed = False
+            except yaml.YAMLError as e:
+                st.error(f"Invalid YAML syntax: {e}")
+                st.session_state.file_changed = False
+            except Exception as e:
+                st.error(f"Error validating YAML: {e}")
+                st.session_state.file_changed = False
 
         # Save button
         st.sidebar.markdown("---")
