@@ -11,7 +11,7 @@ from typing import List
 
 import streamlit as st
 import yaml
-from code_editor import code_editor
+import streamlit_monaco as monaco
 from devtools import debug
 from loguru import logger
 from pydantic import BaseModel
@@ -94,7 +94,7 @@ class DemoConfigEditor(BaseModel):
             st.error("Failed to load configuration file")
             return
 
-        # Use the code editor
+        # Use the Monaco editor
         st.header("YAML Code Editor")
         st.info("Edit the YAML directly with syntax highlighting and validation")
 
@@ -108,46 +108,43 @@ class DemoConfigEditor(BaseModel):
             editor_content = yaml_content
             st.session_state[current_file_key] = editor_content
 
-        editor_response = code_editor(
-            editor_content,
-            lang="yaml",
+        edited_text = monaco.st_monaco_editor(
+            value=editor_content,
             height="400px",
-            theme="dark",
-            options={
-                "wrap": True,
-                "fontSize": 14,
-                "minimap": {"enabled": False},
-                "automaticLayout": True,
-            },
+            language="yaml",
+            theme="vs-dark",
+            automatic_layout=True,
+            minimap=False,
+            line_numbers=True,
+            word_wrap=True,
+            font_size=14,
+            key=f"monaco_{selected_file.name}"
         )
 
-        debug(editor_response)
+        debug(edited_text)
 
         # Validate and save edited content
-        if editor_response.get("text", "").strip():
-            edited_text = editor_response["text"]
+        if edited_text and edited_text.strip():
 
-            try:
-                # Validate YAML syntax
-                yaml.safe_load(edited_text)
+        try:
+            # Validate YAML syntax
+            yaml.safe_load(edited_text)
 
-                # Save valid content to session
-                st.session_state[current_file_key] = edited_text
-                st.session_state.file_changed = edited_text.strip() != yaml_content.strip()
+            # Save valid content to session
+            st.session_state[current_file_key] = edited_text
+            st.session_state.file_changed = edited_text.strip() != yaml_content.strip()
 
-                if st.session_state.file_changed:
-                    st.success("Valid YAML - Changes detected")
-                else:
-                    st.info("No changes detected")
+            if st.session_state.file_changed:
+                st.success("Valid YAML - Changes detected")
+            else:
+                st.info("No changes detected")
 
-            except yaml.YAMLError as e:
-                st.error(f"Invalid YAML syntax: {e}")
-                st.session_state.file_changed = False
-        elif editor_response.get("text") == "" and editor_response["id"]:
-            # Handle case when editor content is cleared but has valid response
-            st.session_state[current_file_key] = ""
-            st.session_state.file_changed = True
-            st.warning("Editor content cleared")
+        except yaml.YAMLError as e:
+            st.error(f"Invalid YAML syntax: {e}")
+            st.session_state.file_changed = False
+        except Exception as e:
+            st.error(f"Error validating YAML: {e}")
+            st.session_state.file_changed = False
 
         # Save button
         st.sidebar.markdown("---")
