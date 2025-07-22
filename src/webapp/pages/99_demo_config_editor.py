@@ -101,7 +101,7 @@ class DemoConfigEditor(BaseModel):
             st.info("Edit the YAML directly with syntax highlighting and validation")
 
             current_file_key = f"editor_content_{selected_file.name}"
-            
+
             if current_file_key in st.session_state:
                 editor_content = st.session_state[current_file_key]
             else:
@@ -115,7 +115,7 @@ class DemoConfigEditor(BaseModel):
                 theme="vs-dark",
                 minimap=False,
                 lineNumbers=True,
-                key=f"monaco_{current_file_key}"  # Unique key per file
+                key=f"monaco_{current_file_key}",  # Unique key per file
             )
 
             if edited_text and edited_text.strip():
@@ -129,7 +129,7 @@ class DemoConfigEditor(BaseModel):
                 if st.button(
                     "💾 Save Changes" if has_changes else "💾 Save",
                     type="primary" if has_changes else "secondary",
-                    use_container_width=True
+                    use_container_width=True,
                 ):
                     edited_content = st.session_state.get(current_file_key, yaml_content)
                     try:
