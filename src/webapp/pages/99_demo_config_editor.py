@@ -46,7 +46,6 @@ class DemoConfigEditor(BaseModel):
             st.error(f"Error saving YAML file: {e}")
             return False
 
-
     @staticmethod
     def main():
         """Main page rendering."""
@@ -108,20 +107,15 @@ class DemoConfigEditor(BaseModel):
                 # Save valid content to session
                 st.session_state[current_file_key] = editor_response["text"]
                 st.session_state.file_changed = editor_response["text"].strip() != yaml_content.strip()
-                
+
                 if st.session_state.file_changed:
                     st.success("Valid YAML - Changes detected")
                 else:
                     st.info("No changes detected")
-                    
+
             except yaml.YAMLError as e:
                 st.error(f"Invalid YAML syntax: {e}")
                 st.session_state.file_changed = False
-        except yaml.YAMLError as e:
-            st.error(f"YAML parsing error: {e}")
-            edited_data = current_data
-            st.session_state.edited_data = edited_data
-            st.session_state.file_changed = False
 
         # Save button
         st.sidebar.markdown("---")
@@ -136,7 +130,7 @@ class DemoConfigEditor(BaseModel):
             if st.button(button_text, type=button_type, use_container_width=True):
                 # Get the raw edited content from session state
                 edited_content = st.session_state.get(current_file_key, yaml_content)
-                success = DemoConfigEditor.save_yaml_file(selected_file, edited_content)
+                success = DemoConfigEditor.save_yaml_file(selected_file, codeact_authorized_imports)
                 if success:
                     st.success("✅ Configuration saved successfully!")
                     st.session_state.file_changed = False
