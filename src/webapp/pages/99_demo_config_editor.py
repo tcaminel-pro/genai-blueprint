@@ -11,7 +11,7 @@ from typing import List
 
 import streamlit as st
 import yaml
-from devtools import debug
+from devtools import debug  # noqa: F401
 from loguru import logger
 from pydantic import BaseModel
 from streamlit_monaco import st_monaco
@@ -117,7 +117,7 @@ class DemoConfigEditor(BaseModel):
             lineNumbers=True,
         )
 
-        debug(edited_text)
+        #debug(edited_text)
 
         # Validate and save edited content
         if edited_text and edited_text.strip():
