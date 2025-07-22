@@ -45,7 +45,7 @@ class DemoConfigEditor(BaseModel):
                 st.exception(e)
             return ""
 
-     # avoid enmeshed try / except clause AI!
+    # Refactored nested try/except into cleaner structure
 
     @staticmethod
     def save_yaml_file(file_path: Path, content: str) -> bool:
@@ -59,22 +59,10 @@ class DemoConfigEditor(BaseModel):
             bool: True if successful, False otherwise
         """
         try:
-            # Validate YAML structure and syntax
-            try:
-                debug(content)
-                _ = yaml.safe_load(content)  # This does full parsing with position tracking
-            except Exception as e:
-                if hasattr(e, "problem_mark"):
-                    mark = e.problem_mark
-                    error_msg = (
-                        f"YAML Error at line {mark.line + 1} column {mark.column + 1}:\n"
-                        f"{e.problem}\nContext: {e.context or 'None'}"
-                    )
-                    raise ValueError(error_msg) from e
-                raise ValueError(f"YAML Error: {e}") from e
-
+            debug(content)
+            config = yaml.safe_load(content)  # This does full parsing with position tracking
+            
             # Validate data structure
-            config = yaml.safe_load(content)
             if not isinstance(config, dict):
                 raise ValueError("Top-level YAML structure must be a dictionary")
 
@@ -82,9 +70,23 @@ class DemoConfigEditor(BaseModel):
                 logger.info(f"Write file : {file_path}")
                 f.write(content)
             return True
+            
         except yaml.YAMLError as e:
-            st.error(f"Invalid YAML syntax: {e}")
+            if hasattr(e, "problem_mark"):
+                mark = e.problem_mark
+                error_msg = (
+                    f"YAML Error at line {mark.line + 1} column {mark.column + 1}:\n"
+                    f"{e.problem}\nContext: {e.context or 'None'}"
+                )
+                st.error(error_msg)
+            else:
+                st.error(f"Invalid YAML syntax: {e}")
             return False
+            
+        except ValueError as e:
+            st.error(f"Validation Error: {e}")
+            return False
+            
         except Exception as e:
             st.error(f"Error saving YAML file: {e}")
             return False
