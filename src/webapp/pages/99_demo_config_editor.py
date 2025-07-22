@@ -123,11 +123,11 @@ class DemoConfigEditor(BaseModel):
         # Validate and save edited content
         if editor_response.get("text", "").strip():
             edited_text = editor_response["text"]
-            
+
             try:
                 # Validate YAML syntax
                 yaml.safe_load(edited_text)
-                
+
                 # Save valid content to session
                 st.session_state[current_file_key] = edited_text
                 st.session_state.file_changed = edited_text.strip() != yaml_content.strip()
