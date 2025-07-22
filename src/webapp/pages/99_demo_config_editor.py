@@ -114,8 +114,7 @@ class DemoConfigEditor(BaseModel):
                 language="yaml",
                 theme="vs-dark",
                 minimap=False,
-                lineNumbers=True,
-                key=f"monaco_{current_file_key}",  # Unique key per file
+                lineNumbers=True
             )
 
             if edited_text and edited_text.strip():
