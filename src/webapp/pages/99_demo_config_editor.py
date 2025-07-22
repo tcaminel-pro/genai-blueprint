@@ -44,18 +44,18 @@ class DemoConfigEditor(BaseModel):
     @staticmethod
     def save_yaml_file(file_path: Path, content: str) -> bool:
         """Save YAML content back to file.
-        
+
         Args:
             file_path: Path to save the YAML file
             content: Raw YAML string content to save
-            
+
         Returns:
             bool: True if successful, False otherwise
         """
         try:
             # First validate the YAML is valid before saving
             yaml.safe_load(content)
-            
+
             with open(file_path, "w", encoding="utf-8") as f:
                 logger.info(f"Write file : {file_path}")
                 f.write(content)
