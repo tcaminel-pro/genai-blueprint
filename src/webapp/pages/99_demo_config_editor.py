@@ -1,3 +1,11 @@
+"""
+Streamlit page for editing demo YAML configuration files dynamically.
+
+This module provides a web interface to view and edit YAML configuration files
+used for various demos. It includes real-time syntax validation, change tracking,
+and safe file saving capabilities.
+"""
+
 from pathlib import Path
 from typing import Any, Dict, List
 
