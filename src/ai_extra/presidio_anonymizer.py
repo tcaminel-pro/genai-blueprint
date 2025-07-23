@@ -28,13 +28,11 @@ class CustomizedPresidioAnonymizer(BaseModel):
     company_names: List[str] = Field(default_factory=list)
     product_names: List[str] = Field(default_factory=list)
 
-    _anonymizer: PresidioReversibleAnonymizer = PrivateAttr()
-    _fake: Faker = PrivateAttr()
+    _anonymizer: PresidioReversibleAnonymizer = PrivateAttr(default_factory=lambda: None)
+    _fake: Faker = PrivateAttr(default_factory=lambda: None)
 
-    def __init__(self, **data) -> None:
-        """Initialize the anonymizer with configurable options."""
-        super().__init__(**data)
-
+    def model_post_init(self, __context: Any) -> None:
+        """Initialize the anonymizer after model creation."""
         # Initialize the Presidio reversible anonymizer
         self._anonymizer = PresidioReversibleAnonymizer(
             analyzed_fields=self.analyzed_fields,
