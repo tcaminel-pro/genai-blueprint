@@ -62,7 +62,7 @@ class SpaCyModelManager:
     def get_analyzer_engine(model_name: str | None = None) -> AnalyzerEngine:
         """Get a configured AnalyzerEngine using the specified SpaCy model."""
         from presidio_nlp_engine import NlpEngineProvider
-        
+
         model_name = model_name or SpaCyModelManager.DEFAULT_MODEL_NAME
 
         # Ensure model is available
@@ -72,14 +72,11 @@ class SpaCyModelManager:
         model_path = SpaCyModelManager.get_model_path(model_name)
 
         # Create configuration for the NLP engine
-        nlp_engine_config = {
-            "nlp_engine_name": "spacy",
-            "models": [{"lang_code": "en", "model_name": str(model_path)}]
-        }
-        
+        nlp_engine_config = {"nlp_engine_name": "spacy", "models": [{"lang_code": "en", "model_name": str(model_path)}]}
+
         # Create the NLP engine
         nlp_engine = NlpEngineProvider(nlp_configuration=nlp_engine_config).create_engine()
-        
+
         # Configure the analyzer with the model
         return AnalyzerEngine(nlp_engine=nlp_engine)
 
