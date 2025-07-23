@@ -9,48 +9,40 @@ from langchain_experimental.data_anonymizer.deanonymizer_matching_strategies imp
 )
 from presidio_analyzer import Pattern, PatternRecognizer
 from presidio_anonymizer.entities import OperatorConfig
+from pydantic import BaseModel, ConfigDict, PrivateAttr, Field
 
 
-class CustomizedPresidioAnonymizer:
+class CustomizedPresidioAnonymizer(BaseModel):
     """A configurable anonymizer with reversible operations and fuzzy matching.
 
     Provides a generic interface for PII detection, anonymization, and deanonymization
     with support for custom recognizers and reversible operations using fuzzy matching.
     """
-
-    def __init__(
-        self,
-        analyzed_fields: Optional[List[str]] = None,
-        faker_seed: Optional[int] = 42,
-        company_names: Optional[List[str]] = None,
-        product_names: Optional[List[str]] = None,
-    ):
-        """Initialize the anonymizer with configurable options.
-
-        Args:
-            analyzed_fields: List of PII field types to detect (e.g., PERSON, EMAIL_ADDRESS)
-            faker_seed: Seed for deterministic fake data generation
-            company_names: List of company names to anonymize
-            product_names: List of product names to anonymize
-        """
-        self.analyzed_fields = analyzed_fields or [
-            "PERSON",
-            "PHONE_NUMBER",
-            "EMAIL_ADDRESS",
-            "CREDIT_CARD",
-        ]
-        self.company_names = company_names or []
-        self.product_names = product_names or []
-
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
+    analyzed_fields: List[str] = Field(default_factory=lambda: [
+        "PERSON", "PHONE_NUMBER", "EMAIL_ADDRESS", "CREDIT_CARD"
+    ])
+    faker_seed: Optional[int] = 42
+    company_names: List[str] = Field(default_factory=list)
+    product_names: List[str] = Field(default_factory=list)
+    
+    _anonymizer: PresidioReversibleAnonymizer = PrivateAttr()
+    _fake: Faker = PrivateAttr()
+    
+    def __init__(self, **data):
+        """Initialize the anonymizer with configurable options."""
+        super().__init__(**data)
+        
         # Initialize the Presidio reversible anonymizer
-        self.anonymizer = PresidioReversibleAnonymizer(
+        self._anonymizer = PresidioReversibleAnonymizer(
             analyzed_fields=self.analyzed_fields,
-            faker_seed=faker_seed,
+            faker_seed=self.faker_seed,
         )
-
+        
         # Initialize faker for custom operators
-        self.fake = Faker(locale=["en-US", "fr-FR"])
-
+        self._fake = Faker(locale=["en-US", "fr-FR"])
+        
         # Add custom recognizers
         self._add_custom_recognizers()
 
@@ -63,14 +55,14 @@ class CustomizedPresidioAnonymizer:
                 patterns=[Pattern(name="company_pattern", regex=company_pattern, score=0.9)],
                 context=["company", "organization", "firm", "enterprise", "business"],
             )
-            self.anonymizer.add_recognizer(company_recognizer)
+            self._anonymizer.add_recognizer(company_recognizer)
 
             # Add custom operator for companies
-            self.anonymizer.add_operators(
+            self._anonymizer.add_operators(
                 {
                     "COMPANY": OperatorConfig(
                         "custom",
-                        {"lambda": lambda _: self.fake.bothify(text="COMP####")},
+                        {"lambda": lambda _: self._fake.bothify(text="COMP####")},
                     )
                 }
             )
@@ -82,14 +74,14 @@ class CustomizedPresidioAnonymizer:
                 patterns=[Pattern(name="product_pattern", regex=product_pattern, score=0.9)],
                 context=["product", "service", "solution", "platform", "tool"],
             )
-            self.anonymizer.add_recognizer(product_recognizer)
+            self._anonymizer.add_recognizer(product_recognizer)
 
             # Add custom operator for products
-            self.anonymizer.add_operators(
+            self._anonymizer.add_operators(
                 {
                     "PRODUCT": OperatorConfig(
                         "custom",
-                        {"lambda": lambda _: self.fake.bothify(text="PROD####")},
+                        {"lambda": lambda _: self._fake.bothify(text="PROD####")},
                     )
                 }
             )
@@ -103,7 +95,7 @@ class CustomizedPresidioAnonymizer:
         Returns:
             Anonymized text with PII replaced
         """
-        return self.anonymizer.anonymize(text)
+        return self._anonymizer.anonymize(text)
 
     def deanonymize(
         self,
@@ -122,14 +114,14 @@ class CustomizedPresidioAnonymizer:
             Text with original PII restored
         """
         if use_fuzzy_matching:
-            return self.anonymizer.deanonymize(
+            return self._anonymizer.deanonymize(
                 text,
                 deanonymizer_matching_strategy=lambda *args, **kwargs: combined_exact_fuzzy_matching_strategy(
                     *args, **kwargs
                 ),
             )
         else:
-            return self.anonymizer.deanonymize(text)
+            return self._anonymizer.deanonymize(text)
 
     def get_mapping(self) -> Dict[str, Any]:
         """Get the anonymization mapping for inspection.
@@ -137,7 +129,7 @@ class CustomizedPresidioAnonymizer:
         Returns:
             Dictionary mapping fake values to original PII
         """
-        return getattr(self.anonymizer, "deanon_mapping", {})
+        return getattr(self._anonymizer, "deanon_mapping", {})
 
     def add_custom_recognizer(
         self,
@@ -162,14 +154,14 @@ class CustomizedPresidioAnonymizer:
             context=context_words,
         )
 
-        self.anonymizer.add_recognizer(recognizer)
+        self._anonymizer.add_recognizer(recognizer)
 
         # Add custom operator
-        self.anonymizer.add_operators(
+        self._anonymizer.add_operators(
             {
                 entity_name: OperatorConfig(
                     "custom",
-                    {"lambda": lambda _: self.fake.bothify(text=replacement_format)},
+                    {"lambda": lambda _: self._fake.bothify(text=replacement_format)},
                 )
             }
         )
