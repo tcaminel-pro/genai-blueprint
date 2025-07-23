@@ -9,7 +9,7 @@ from langchain_experimental.data_anonymizer.deanonymizer_matching_strategies imp
 )
 from presidio_analyzer import Pattern, PatternRecognizer
 from presidio_anonymizer.entities import OperatorConfig
-from pydantic import BaseModel, ConfigDict, PrivateAttr, Field
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
 
 class CustomizedPresidioAnonymizer(BaseModel):
@@ -31,7 +31,7 @@ class CustomizedPresidioAnonymizer(BaseModel):
     _anonymizer: PresidioReversibleAnonymizer = PrivateAttr()
     _fake: Faker = PrivateAttr()
 
-    def __init__(self, **data):
+    def __init__(self, **data) -> None:
         """Initialize the anonymizer with configurable options."""
         super().__init__(**data)
 
