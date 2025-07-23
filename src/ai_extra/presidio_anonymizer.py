@@ -18,31 +18,32 @@ class CustomizedPresidioAnonymizer(BaseModel):
     Provides a generic interface for PII detection, anonymization, and deanonymization
     with support for custom recognizers and reversible operations using fuzzy matching.
     """
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    
-    analyzed_fields: List[str] = Field(default_factory=lambda: [
-        "PERSON", "PHONE_NUMBER", "EMAIL_ADDRESS", "CREDIT_CARD"
-    ])
+
+    analyzed_fields: List[str] = Field(
+        default_factory=lambda: ["PERSON", "PHONE_NUMBER", "EMAIL_ADDRESS", "CREDIT_CARD"]
+    )
     faker_seed: Optional[int] = 42
     company_names: List[str] = Field(default_factory=list)
     product_names: List[str] = Field(default_factory=list)
-    
+
     _anonymizer: PresidioReversibleAnonymizer = PrivateAttr()
     _fake: Faker = PrivateAttr()
-    
+
     def __init__(self, **data):
         """Initialize the anonymizer with configurable options."""
         super().__init__(**data)
-        
+
         # Initialize the Presidio reversible anonymizer
         self._anonymizer = PresidioReversibleAnonymizer(
             analyzed_fields=self.analyzed_fields,
             faker_seed=self.faker_seed,
         )
-        
+
         # Initialize faker for custom operators
         self._fake = Faker(locale=["en-US", "fr-FR"])
-        
+
         # Add custom recognizers
         self._add_custom_recognizers()
 
