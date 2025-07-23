@@ -76,12 +76,7 @@ class DataFrameTool(Tool):
 
     name: str
     description: str
-    inputs = {
-        "dataset": {
-            "type": "string",
-            "description": "data set required",
-        }
-    }
+    inputs = {}
     output_type = "object"
     source_path: Path
 
@@ -95,7 +90,7 @@ class DataFrameTool(Tool):
         except ImportError as e:
             raise ImportError("You must install package `pandas` to run this tool`.") from e
 
-    def forward(self, dataset: str) -> pd.DataFrame:  # type: ignore
+    def forward(self) -> pd.DataFrame:  # type: ignore
         df = get_cache_dataframe(self.source_path)
         return df
 
