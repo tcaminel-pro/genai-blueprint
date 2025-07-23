@@ -8,26 +8,21 @@ from upath import UPath
 class SpaCyModelManager:
     """Manages SpaCy model installation and configuration."""
 
-    DEFAULT_MODEL_NAME = "en_core_web_lg"
-
     @staticmethod
-    def get_model_path(model_name: str | None = None) -> UPath:
+    def get_model_path(model_name: str) -> UPath:
         """Get the path where the SpaCy model should be stored."""
-        model_name = model_name or SpaCyModelManager.DEFAULT_MODEL_NAME
         home_dir = UPath.home()
         return home_dir / ".presidio" / "spacy_models" / model_name
 
     @staticmethod
-    def is_model_installed(model_name: str | None = None) -> bool:
+    def is_model_installed(model_name: str) -> bool:
         """Check if the SpaCy model is installed in the specified directory."""
-        model_name = model_name or SpaCyModelManager.DEFAULT_MODEL_NAME
         model_path = SpaCyModelManager.get_model_path(model_name)
         return model_path.exists()
 
     @staticmethod
-    def download_model(model_name: str | None = None) -> UPath:
+    def download_model(model_name: str) -> UPath:
         """Download the SpaCy model if not already present."""
-        model_name = model_name or SpaCyModelManager.DEFAULT_MODEL_NAME
         model_path = SpaCyModelManager.get_model_path(model_name)
 
         if SpaCyModelManager.is_model_installed(model_name):
@@ -44,9 +39,8 @@ class SpaCyModelManager:
         return model_path
 
     @staticmethod
-    def setup_spacy_model(model_name: str | None = None) -> None:
+    def setup_spacy_model(model_name: str) -> None:
         """Set up the SpaCy model by downloading it if needed ."""
-        model_name = model_name or SpaCyModelManager.DEFAULT_MODEL_NAME
 
         # Ensure model is available
         if not SpaCyModelManager.is_model_installed(model_name):
