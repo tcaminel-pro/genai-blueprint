@@ -14,6 +14,7 @@ from langchain_experimental.data_anonymizer import (
 from loguru import logger
 from presidio_analyzer import Pattern, PatternRecognizer
 from pydantic import BaseModel, ConfigDict
+from streamlit import session_state as sss
 
 
 class AnonymizationDemo(BaseModel):
@@ -27,8 +28,9 @@ st.title("Data Anonymization with Presidio")
 st.caption("Protect PII (Personally Identifiable Information) using Microsoft Presidio")
 
 # Initialize session state
-if "anon" not in st.session_state:
-    anonymizer = PresidioReversibleAnonymizer()
+if "anon" not in sss:
+    with st.spinner("load Spacy Model..."):
+        anonymizer = PresidioReversibleAnonymizer()
 
     # Add custom recognizers for company and project names
     company_recognizer = PatternRecognizer(
@@ -60,7 +62,7 @@ if "anon" not in st.session_state:
     #     }
     # )
 
-    st.session_state.anon = AnonymizationDemo(anonymizer=anonymizer)
+    sss.anon = AnonymizationDemo(anonymizer=anonymizer)
 
 # Main layout
 col1, col2 = st.columns(2)
@@ -80,21 +82,21 @@ with col2:
         with st.spinner("Detecting and anonymizing PII..."):
             try:
                 # Anonymize the text
-                st.session_state.anonymized_text = st.session_state.anon.anonymizer.anonymize(input_text)
-                st.session_state.show_reversible = True
+                sss.anonymized_text = sss.anon.anonymizer.anonymize(input_text)
+                sss.show_reversible = True
             except Exception as e:
                 logger.exception(f"Anonymization failed: {e}")
                 st.error(f"Anonymization error: {str(e)}")
 
-    if "anonymized_text" in st.session_state:
+    if "anonymized_text" in sss:
         st.subheader("🛡️ Anonymized Text")
-        st.code(st.session_state.anonymized_text, language="text")
+        st.code(sss.anonymized_text, language="text")
 
         with st.expander("Reversible Operations", expanded=True):
             if st.button("De-anonymize Text"):
                 try:
                     # De-anonymize the text
-                    deanon_text = st.session_state.anon.anonymizer.deanonymize(st.session_state.anonymized_text)
+                    deanon_text = sss.anon.anonymizer.deanonymize(sss.anonymized_text)
                     st.subheader("🔓 De-anonymized Text")
                     st.code(deanon_text, language="text")
                 except Exception as e:
@@ -102,8 +104,8 @@ with col2:
                     st.error(f"De-anonymization error: {str(e)}")
 
         with st.expander("Anonymization Mapping"):
-            if hasattr(st.session_state.anon.anonymizer, "deanon_mapping"):
-                mapping = st.session_state.anon.anonymizer.deanon_mapping
+            if hasattr(sss.anon.anonymizer, "deanon_mapping"):
+                mapping = sss.anon.anonymizer.deanon_mapping
                 if mapping:
                     st.json(mapping)
                 else:
