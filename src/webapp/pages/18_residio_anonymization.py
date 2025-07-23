@@ -4,14 +4,14 @@ Demonstrates PII detection, anonymization, and reversible de-anonymization capab
 """
 # https://python.langchain.com/v0.1/docs/guides/productionization/safety/presidio_data_anonymization/
 
-from typing import Any, List
+from typing import Any
 
 import streamlit as st
 from loguru import logger
 from pydantic import BaseModel, ConfigDict
 from streamlit import session_state as sss
 
-from src.ai_extra.presidio_anonymizer import ReversiblePresidioAnonymizer
+from src.ai_extra.presidio_anonymizer import CustomizedPresidioAnonymizer
 
 
 class AnonymizationDemo(BaseModel):
@@ -48,7 +48,7 @@ with st.sidebar:
 # Initialize session state
 if "anon" not in sss or sss.get("company_names") != company_names or sss.get("product_names") != product_names:
     with st.spinner("Loading Spacy Model and initializing anonymizer..."):
-        anonymizer = ReversiblePresidioAnonymizer(
+        anonymizer = CustomizedPresidioAnonymizer(
             analyzed_fields=["PERSON", "PHONE_NUMBER", "EMAIL_ADDRESS", "CREDIT_CARD", "LOCATION"],
             faker_seed=42,
             company_names=company_names,
