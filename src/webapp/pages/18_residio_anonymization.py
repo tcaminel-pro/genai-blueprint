@@ -33,11 +33,11 @@ CONF_YAML_FILE = "config/demos/presidio_anonymization.yaml"
 # Configuration options
 with st.sidebar:
     st.header("Configuration")
-    
+
     # Add edit button for configuration
     if st.button(":material/edit: Edit Config", help="Edit anonymization configuration"):
         edit_config_dialog(CONF_YAML_FILE)
-    
+
     # Load configuration from YAML
     try:
         config = global_config().merge_with(CONF_YAML_FILE)
@@ -56,7 +56,7 @@ with st.sidebar:
     st.write(f"**Analyzed Fields:** {', '.join(analyzed_fields)}")
     st.write(f"**Companies:** {', '.join(company_names)}")
     st.write(f"**Products:** {', '.join(product_names)}")
-    
+
     # Fuzzy matching options
     use_fuzzy_matching = st.checkbox("Use fuzzy matching for deanonymization", value=True)
     fuzzy_threshold = st.slider("Fuzzy matching threshold", 0.0, 1.0, 0.8, 0.05)
