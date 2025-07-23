@@ -68,11 +68,12 @@ class SpaCyModelManager:
             SpaCyModelManager.download_model(model_name)
 
         model_path = SpaCyModelManager.get_model_path(model_name)
-        
+
         # Set the model path in environment variable for Presidio to use
         import os
+
         os.environ["PRESIDIO_SPACY_MODEL"] = str(model_path)
-        
+
         # Create analyzer with default configuration
         # The model will be loaded from the environment variable
         return AnalyzerEngine()
