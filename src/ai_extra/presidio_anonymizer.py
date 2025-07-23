@@ -5,16 +5,14 @@ Taken from:
 - https://python.langchain.com/api_reference/experimental/data_anonymizer/langchain_experimental.data_anonymizer.deanonymizer_matching_strategies.combined_exact_fuzzy_matching_strategy.html
 """
 
-import os
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from faker import Faker
 from langchain_experimental.data_anonymizer import PresidioReversibleAnonymizer
 from langchain_experimental.data_anonymizer.deanonymizer_matching_strategies import (
     combined_exact_fuzzy_matching_strategy,
 )
-from presidio_analyzer import AnalyzerEngine, Pattern, PatternRecognizer
+from presidio_analyzer import Pattern, PatternRecognizer
 from presidio_anonymizer.entities import OperatorConfig
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 

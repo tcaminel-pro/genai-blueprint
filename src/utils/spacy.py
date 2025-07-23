@@ -1,21 +1,20 @@
 """SpaCy model management utilities for Presidio."""
 
-import os
 import subprocess
-from pathlib import Path
-from typing import Optional
+
+from upath import UPath
 
 
 class SpaCyModelManager:
-    """Manages SpaCy model installation and configuration for Presidio."""
+    """Manages SpaCy model installation and configuration."""
 
     DEFAULT_MODEL_NAME = "en_core_web_lg"
 
     @staticmethod
-    def get_model_path(model_name: str | None = None) -> Path:
+    def get_model_path(model_name: str | None = None) -> UPath:
         """Get the path where the SpaCy model should be stored."""
         model_name = model_name or SpaCyModelManager.DEFAULT_MODEL_NAME
-        home_dir = Path.home()
+        home_dir = UPath.home()
         return home_dir / ".presidio" / "spacy_models" / model_name
 
     @staticmethod
@@ -26,7 +25,7 @@ class SpaCyModelManager:
         return model_path.exists()
 
     @staticmethod
-    def download_model(model_name: str | None = None) -> Path:
+    def download_model(model_name: str | None = None) -> UPath:
         """Download the SpaCy model if not already present."""
         model_name = model_name or SpaCyModelManager.DEFAULT_MODEL_NAME
         model_path = SpaCyModelManager.get_model_path(model_name)
@@ -46,14 +45,14 @@ class SpaCyModelManager:
 
     @staticmethod
     def setup_spacy_model(model_name: str | None = None) -> None:
-        """Set up the SpaCy model by downloading it if needed and setting environment variable."""
+        """Set up the SpaCy model by downloading it if needed ."""
         model_name = model_name or SpaCyModelManager.DEFAULT_MODEL_NAME
 
         # Ensure model is available
         if not SpaCyModelManager.is_model_installed(model_name):
             SpaCyModelManager.download_model(model_name)
 
-        model_path = SpaCyModelManager.get_model_path(model_name)
+        # model_path = SpaCyModelManager.get_model_path(model_name)
 
-        # Set the model path in environment variable for Presidio to use
-        os.environ["PRESIDIO_SPACY_MODEL"] = str(model_path)
+        # # Set the model path in environment variable for Presidio to use
+        # os.environ["PRESIDIO_SPACY_MODEL"] = str(model_path)
