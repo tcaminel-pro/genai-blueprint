@@ -1,6 +1,11 @@
-"""Reversible anonymization with Presidio and fuzzy matching support."""
+"""Reversible anonymization with Presidio and fuzzy matching support.
 
-from typing import Any, Dict, List, Optional
+Taken from:
+- https://python.langchain.com/v0.1/docs/guides/productionization/safety/presidio_data_anonymization/
+- https://python.langchain.com/api_reference/experimental/data_anonymizer/langchain_experimental.data_anonymizer.deanonymizer_matching_strategies.combined_exact_fuzzy_matching_strategy.html
+"""
+
+from typing import Any, Dict, List
 
 from faker import Faker
 from langchain_experimental.data_anonymizer import PresidioReversibleAnonymizer
@@ -24,12 +29,13 @@ class CustomizedPresidioAnonymizer(BaseModel):
     analyzed_fields: List[str] = Field(
         default_factory=lambda: ["PERSON", "PHONE_NUMBER", "EMAIL_ADDRESS", "CREDIT_CARD"]
     )
-    faker_seed: Optional[int] = 42
+
     company_names: List[str] = Field(default_factory=list)
     product_names: List[str] = Field(default_factory=list)
 
-    _anonymizer: PresidioReversibleAnonymizer = PrivateAttr(default_factory=lambda: None)
-    _fake: Faker = PrivateAttr(default_factory=lambda: None)
+    faker_seed: int | None = None
+    _anonymizer: PresidioReversibleAnonymizer = PrivateAttr()
+    _faker: Faker = PrivateAttr()
 
     def model_post_init(self, __context: Any) -> None:
         """Initialize the anonymizer after model creation."""
@@ -40,7 +46,7 @@ class CustomizedPresidioAnonymizer(BaseModel):
         )
 
         # Initialize faker for custom operators
-        self._fake = Faker(locale=["en-US", "fr-FR"])
+        self._faker = Faker(locale=["en-US", "fr-FR"])
 
         # Add custom recognizers
         self._add_custom_recognizers()
@@ -61,7 +67,7 @@ class CustomizedPresidioAnonymizer(BaseModel):
                 {
                     "COMPANY": OperatorConfig(
                         "custom",
-                        {"lambda": lambda _: self._fake.bothify(text="COMP####")},
+                        {"lambda": lambda _: self._faker.bothify(text="COMP####")},
                     )
                 }
             )
@@ -80,7 +86,7 @@ class CustomizedPresidioAnonymizer(BaseModel):
                 {
                     "PRODUCT": OperatorConfig(
                         "custom",
-                        {"lambda": lambda _: self._fake.bothify(text="PROD####")},
+                        {"lambda": lambda _: self._faker.bothify(text="PROD####")},
                     )
                 }
             )
@@ -128,7 +134,7 @@ class CustomizedPresidioAnonymizer(BaseModel):
         Returns:
             Dictionary mapping fake values to original PII
         """
-        return getattr(self._anonymizer, "deanon_mapping", {})
+        return getattr(self._anonymizer, "deanonymizer_mapping", {})
 
     def add_custom_recognizer(
         self,
@@ -160,7 +166,7 @@ class CustomizedPresidioAnonymizer(BaseModel):
             {
                 entity_name: OperatorConfig(
                     "custom",
-                    {"lambda": lambda _: self._fake.bothify(text=replacement_format)},
+                    {"lambda": lambda _: self._faker.bothify(text=replacement_format)},
                 )
             }
         )
