@@ -1,6 +1,6 @@
 - Use type annotation whenever possible
 - Use 'None" type annotation when functions return nothing
-- Use Python 12 capabilities - Typically use | instead of 'Union'
+- Use Python 12 capabilities - Typically use '|' instead of 'Union', and '| None' instead of 'Optional'
 - Keep Python module presentation short.  Include main classes and functions description (one line). 
 - Don't repeat code examples in module description if they are already in function docstrings. 
 - Don't add comments for classes fields and arguments. Write only one line to describe the class.

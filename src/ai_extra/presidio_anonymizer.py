@@ -142,7 +142,7 @@ class CustomizedPresidioAnonymizer(BaseModel):
         return getattr(self._anonymizer, "deanonymizer_mapping", {})
 
     @staticmethod
-    def check_spacy_model_status(model_name: str | None = None) -> dict[str, Any]:
+    def check_spacy_model_status(model_name: str) -> dict[str, Any]:
         """Check the status of the SpaCy model.
 
         Args:
@@ -151,7 +151,6 @@ class CustomizedPresidioAnonymizer(BaseModel):
         Returns:
             Dictionary with model status information
         """
-        model_name = model_name or SpaCyModelManager.DEFAULT_MODEL_NAME
         model_path = SpaCyModelManager.get_model_path(model_name)
 
         return {
