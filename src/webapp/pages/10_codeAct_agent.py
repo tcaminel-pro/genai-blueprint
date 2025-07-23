@@ -412,9 +412,7 @@ def display_header_and_demo_selector() -> str:
     return selected_pill
 
 
-def handle_selection(
-    selected_pill: str, select_block: Any
-) -> tuple[CodeactDemo, str | None, pd.DataFrame | None, Any]:
+def handle_selection(selected_pill: str, select_block: Any) -> tuple[CodeactDemo, str | None, pd.DataFrame | None, Any]:
     """Handles file upload or demo selection logic."""
     raw_data_file = None
     df = None
