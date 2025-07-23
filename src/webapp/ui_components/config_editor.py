@@ -20,8 +20,6 @@ def edit_config_dialog(config_path: str | Path) -> None:
     """
     config_path = Path(config_path)
 
-    st.subheader("Edit Configuration")
-
     if not config_path.exists():
         st.error(f"Configuration file not found: {config_path}")
         return

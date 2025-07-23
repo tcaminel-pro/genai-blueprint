@@ -5,7 +5,7 @@ codeact_authorized_imports:
   - "sklearn.*"
 
 codeact_agent_demos:
-  - name: "Classic SmolAgents"
+  - name: "SmolAgents"
     tools: 
       - class: WebSearchTool
       - class: VisitWebpageTool

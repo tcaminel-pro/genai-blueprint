@@ -19,7 +19,6 @@ from typing import Any, List
 import folium
 import pandas as pd
 import streamlit as st
-import yaml
 import yfinance as yf
 from groq import BaseModel
 from loguru import logger
@@ -35,7 +34,6 @@ from smolagents import (
 from streamlit import session_state as sss
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 from streamlit_folium import st_folium
-from streamlit_monaco import st_monaco
 
 from src.ai_core.llm import LlmFactory
 from src.ai_core.mcp_client import dict_to_stdio_server_list, get_mcp_servers_dict
@@ -324,12 +322,12 @@ c02.title(" CodeAct Agent :material/Mindfulness:")
 # Left column - Demo selection interface
 with c01.container(border=True):
     # Create columns for demo selector and edit button
-    selector_col, edit_col = st.columns([4, 1])
+    selector_col, edit_col = st.columns([8, 1], vertical_alignment="bottom")
 
     with selector_col:
         # Create pill-style selector for demos and file upload
         selected_pill = st.pills(
-            "🎬 **Demos:**",
+            ":material/open_with: **Demos:**",
             options=[demo.name for demo in SAMPLES_DEMOS] + [FILE_SElECT_CHOICE],
             default=SAMPLES_DEMOS[0].name,
             on_change=clear_display,  # Clear display when changing selection
@@ -337,7 +335,13 @@ with c01.container(border=True):
 
     with edit_col:
         # Add edit configuration button
-        if st.button("⚙️ Edit Config", use_container_width=True):
+        if st.button(
+            "",
+            icon=":material/settings:",
+            type="secondary",
+            use_container_width=False,
+            help="Open a YAML editor to modify and create demos configuration",
+        ):
             edit_config_dialog(CONF_YAML_FILE)
 raw_data_file = None
 df: pd.DataFrame | None = None

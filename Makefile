@@ -75,8 +75,8 @@ AIDER_OPTS=--watch-files --lint-cmd "ruff format" --read CONVENTIONS.md --editor
 
 aider:  ## Call aider-chat (a coding assistant)
 	aider $(AIDER_OPTS) --model openrouter/deepseek/deepseek-chat
-aider-haiku:
-	aider $(AIDER_OPTS) --cache-prompts --model openrouter/anthropic/claude-3-5-haiku;   
+aider-gemini:
+	aider $(AIDER_OPTS) --cache-prompts --model openrouter/google/gemini-2.5-pro ;   
 aider-sonnet:
 	aider $(AIDER_OPTS) --cache-prompts --model openrouter/anthropic/claude-sonnet-4;   
 aider-r1:
