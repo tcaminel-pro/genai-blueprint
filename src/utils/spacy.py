@@ -39,8 +39,7 @@ class SpaCyModelManager:
 
         # Download the model
         subprocess.run(
-            ["python", "-m", "spacy", "download", model_name, "--target", str(model_path.parent)],
-            check=True
+            ["python", "-m", "spacy", "download", model_name, "--target", str(model_path.parent)], check=True
         )
 
         return model_path
