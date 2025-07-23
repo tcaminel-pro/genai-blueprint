@@ -315,8 +315,6 @@ def clear_display() -> None:
     # st.rerun()  # Optional: Uncomment to force UI refresh
 
 
-
-
 # Create main UI layout with two columns
 c01, c02 = st.columns([6, 4], border=False, gap="medium", vertical_alignment="top")
 
