@@ -59,8 +59,8 @@ class SpaCyModelManager:
         return model_path
 
     @staticmethod
-    def get_analyzer_engine(model_name: str | None = None) -> AnalyzerEngine:
-        """Get a configured AnalyzerEngine using the specified SpaCy model."""
+    def setup_spacy_model(model_name: str | None = None) -> None:
+        """Set up the SpaCy model by downloading it if needed and setting environment variable."""
         model_name = model_name or SpaCyModelManager.DEFAULT_MODEL_NAME
 
         # Ensure model is available
@@ -70,13 +70,7 @@ class SpaCyModelManager:
         model_path = SpaCyModelManager.get_model_path(model_name)
 
         # Set the model path in environment variable for Presidio to use
-        import os
-
         os.environ["PRESIDIO_SPACY_MODEL"] = str(model_path)
-
-        # Create analyzer with default configuration
-        # The model will be loaded from the environment variable
-        return AnalyzerEngine()
 
 
 class CustomizedPresidioAnonymizer(BaseModel):
@@ -99,16 +93,15 @@ class CustomizedPresidioAnonymizer(BaseModel):
     faker_seed: int | None = None
     _anonymizer: PresidioReversibleAnonymizer = PrivateAttr()
     _faker: Faker = PrivateAttr()
-    _analyzer: AnalyzerEngine = PrivateAttr()
 
     def model_post_init(self, __context: Any) -> None:
         """Initialize the anonymizer after model creation."""
-        # Ensure SpaCy model is available and configure analyzer
-        self._analyzer = SpaCyModelManager.get_analyzer_engine(self.spacy_model)
+        # Ensure SpaCy model is available and configure the environment
+        SpaCyModelManager.setup_spacy_model(self.spacy_model)
 
         # Initialize the Presidio reversible anonymizer
         self._anonymizer = PresidioReversibleAnonymizer(
-            analyzed_fields=self.analyzed_fields, faker_seed=self.faker_seed, analyzer_engine=self._analyzer
+            analyzed_fields=self.analyzed_fields, faker_seed=self.faker_seed
         )
 
         # Initialize faker for custom operators
