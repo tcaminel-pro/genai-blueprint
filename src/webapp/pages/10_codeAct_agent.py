@@ -44,6 +44,7 @@ from src.utils.config_mngr import global_config
 from src.utils.streamlit.auto_scroll import scroll_to_here
 from src.utils.streamlit.load_data import TABULAR_FILE_FORMATS_READERS, load_tabular_data
 from src.utils.streamlit.recorder import StreamlitRecorder
+from src.webapp.ui_components.config_editor import edit_config_dialog
 from src.webapp.ui_components.smolagents_streamlit import stream_to_streamlit
 
 MODEL_ID = None  # Use the one by configuration
@@ -314,51 +315,6 @@ def clear_display() -> None:
     # st.rerun()  # Optional: Uncomment to force UI refresh
 
 
-@st.dialog("Edit Configuration", width="large")
-def edit_config_dialog() -> None:
-    """Open a dialog to edit the configuration YAML file."""
-    config_path = Path(CONF_YAML_FILE)
-
-    st.subheader("Edit CodeAct Agent Configuration")
-
-    if not config_path.exists():
-        st.error(f"Configuration file not found: {config_path}")
-        return
-
-    try:
-        # Load current configuration
-        with open(config_path, "r", encoding="utf-8") as f:
-            current_content = f.read()
-
-        # YAML editor
-        edited_content = st_monaco(
-            value=current_content, height="400px", language="yaml", theme="vs-dark", minimap=False, lineNumbers=True
-        )
-
-        col1, col2, col3 = st.columns([1, 1, 2])
-
-        if col1.button("💾 Save", use_container_width=True):
-            try:
-                # Validate YAML
-                yaml.safe_load(edited_content)
-
-                # Save file
-                with open(config_path, "w", encoding="utf-8") as f:
-                    f.write(edited_content)
-
-                st.success("Configuration saved successfully!")
-                st.info("Please refresh the page to see the changes.")
-
-            except yaml.YAMLError as e:
-                st.error(f"Invalid YAML: {e}")
-            except Exception as e:
-                st.error(f"Error saving file: {e}")
-
-        if col2.button("❌ Cancel", use_container_width=True):
-            st.rerun()
-
-    except Exception as e:
-        st.error(f"Error loading configuration: {e}")
 
 
 # Create main UI layout with two columns
@@ -384,7 +340,7 @@ with c01.container(border=True):
     with edit_col:
         # Add edit configuration button
         if st.button("⚙️ Edit Config", use_container_width=True):
-            edit_config_dialog()
+            edit_config_dialog(CONF_YAML_FILE)
 raw_data_file = None
 df: pd.DataFrame | None = None
 sample_search = None
