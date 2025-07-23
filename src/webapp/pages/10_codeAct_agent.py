@@ -166,7 +166,7 @@ def get_historical_price(symbol: str, start_date: date, end_date: date) -> pd.Da
 
 
 # List of authorized Python packages that can be imported in the code execution environment
-AUTHORIZED_IMPORTS = [
+COMMON_AUTHORIZED_IMPORTS = [
     "pathlib",
     "numpy.*",
     "json",
@@ -177,7 +177,7 @@ AUTHORIZED_IMPORTS = [
 
 authorized_import = list(
     dict.fromkeys(
-        AUTHORIZED_IMPORTS + global_config().merge_with(CONF_YAML_FILE).get_list("codeact_authorized_imports")
+        COMMON_AUTHORIZED_IMPORTS + global_config().merge_with(CONF_YAML_FILE).get_list("codeact_authorized_imports")
     )
 )
 PRINT_INFORMATION = "my_final_answer"
