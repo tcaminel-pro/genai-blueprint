@@ -81,27 +81,6 @@ with col1:
         value=sample_texts[selected_sample],
     )
 
-    # Custom recognizer section
-    with st.expander("Add Custom Recognizer"):
-        entity_name = st.text_input("Entity Name:", placeholder="e.g., EMPLOYEE_ID")
-        patterns = st.text_area("Patterns (regex, one per line):", placeholder=r"EMP-\d{4}\nE\d{6}")
-        context_words = st.text_input("Context words (comma-separated):", placeholder="employee, staff, worker")
-
-        if st.button("Add Custom Recognizer"):
-            if entity_name and patterns:
-                pattern_list = [p.strip() for p in patterns.split("\n") if p.strip()]
-                context_list = [c.strip() for c in context_words.split(",") if c.strip()]
-
-                try:
-                    sss.anon.anonymizer.add_custom_recognizer(
-                        entity_name=entity_name,
-                        patterns=pattern_list,
-                        context_words=context_list,
-                        replacement_format=f"{entity_name[:3].upper()}####",
-                    )
-                    st.success(f"Added custom recognizer for {entity_name}")
-                except Exception as e:
-                    st.error(f"Failed to add recognizer: {str(e)}")
 
 with col2:
     st.subheader("Anonymized Results")
