@@ -19,6 +19,7 @@ from typing import Any, List
 import folium
 import pandas as pd
 import streamlit as st
+import yaml
 import yfinance as yf
 from groq import BaseModel
 from loguru import logger
@@ -35,7 +36,6 @@ from streamlit import session_state as sss
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 from streamlit_folium import st_folium
 from streamlit_monaco import st_monaco
-import yaml
 
 from src.ai_core.llm import LlmFactory
 from src.ai_core.mcp_client import dict_to_stdio_server_list, get_mcp_servers_dict
@@ -314,51 +314,51 @@ def clear_display() -> None:
     # st.rerun()  # Optional: Uncomment to force UI refresh
 
 
+@st.dialog("Edit Configuration", width="large")
 def edit_config_dialog() -> None:
     """Open a dialog to edit the configuration YAML file."""
     config_path = Path(CONF_YAML_FILE)
 
-    with st.dialog("Edit Configuration", width="large"):
-        st.subheader("Edit CodeAct Agent Configuration")
+    st.subheader("Edit CodeAct Agent Configuration")
 
-        if not config_path.exists():
-            st.error(f"Configuration file not found: {config_path}")
-            return
+    if not config_path.exists():
+        st.error(f"Configuration file not found: {config_path}")
+        return
 
-        try:
-            # Load current configuration
-            with open(config_path, "r", encoding="utf-8") as f:
-                current_content = f.read()
+    try:
+        # Load current configuration
+        with open(config_path, "r", encoding="utf-8") as f:
+            current_content = f.read()
 
-            # YAML editor
-            edited_content = st_monaco(
-                value=current_content, height="400px", language="yaml", theme="vs-dark", minimap=False, lineNumbers=True
-            )
+        # YAML editor
+        edited_content = st_monaco(
+            value=current_content, height="400px", language="yaml", theme="vs-dark", minimap=False, lineNumbers=True
+        )
 
-            col1, col2, col3 = st.columns([1, 1, 2])
+        col1, col2, col3 = st.columns([1, 1, 2])
 
-            if col1.button("💾 Save", use_container_width=True):
-                try:
-                    # Validate YAML
-                    yaml.safe_load(edited_content)
+        if col1.button("💾 Save", use_container_width=True):
+            try:
+                # Validate YAML
+                yaml.safe_load(edited_content)
 
-                    # Save file
-                    with open(config_path, "w", encoding="utf-8") as f:
-                        f.write(edited_content)
+                # Save file
+                with open(config_path, "w", encoding="utf-8") as f:
+                    f.write(edited_content)
 
-                    st.success("Configuration saved successfully!")
-                    st.info("Please refresh the page to see the changes.")
+                st.success("Configuration saved successfully!")
+                st.info("Please refresh the page to see the changes.")
 
-                except yaml.YAMLError as e:
-                    st.error(f"Invalid YAML: {e}")
-                except Exception as e:
-                    st.error(f"Error saving file: {e}")
+            except yaml.YAMLError as e:
+                st.error(f"Invalid YAML: {e}")
+            except Exception as e:
+                st.error(f"Error saving file: {e}")
 
-            if col2.button("❌ Cancel", use_container_width=True):
-                st.rerun()
+        if col2.button("❌ Cancel", use_container_width=True):
+            st.rerun()
 
-        except Exception as e:
-            st.error(f"Error loading configuration: {e}")
+    except Exception as e:
+        st.error(f"Error loading configuration: {e}")
 
 
 # Create main UI layout with two columns
