@@ -29,8 +29,6 @@ from smolagents import (
     LiteLLMModel,
     MCPClient,
     Tool,
-    VisitWebpageTool,
-    WebSearchTool,
     tool,
 )
 from streamlit import session_state as sss
@@ -222,11 +220,6 @@ PRE_PROMPT = dedent_ws(
 #  - Call the function '{PRINT_STEP}' to display intermediate informtation. It accepts markdown and str.
 #  - Print also the outcome on stdio, or the title if it's a diagram.
 
-##########################
-#  Demos definition
-#  todo : put it in a config file
-##########################
-
 
 def load_demos_from_config() -> List[CodeactDemo]:
     """Load and configure demonstration scenarios from the application configuration.
@@ -264,7 +257,7 @@ def load_demos_from_config() -> List[CodeactDemo]:
                             params = {k: v for k, v in tool_config.items() if k != "class"}
                             if class_name == "DataFrameTool":
                                 params["source_path"] = DATA_PATH / str(params["source_path"]).split("/")[-1]
-                            tools.append(tool_class(**params))
+                            tools.append(tool_class(**params))  # type: ignore
                         else:
                             logger.warning(f"Unknown tool class: {class_name}")
 
