@@ -4,12 +4,10 @@ Demonstrates PII detection, anonymization, and reversible de-anonymization capab
 """
 # https://python.langchain.com/v0.1/docs/guides/productionization/safety/presidio_data_anonymization/
 
-from pathlib import Path
-from typing import Any, List
+from typing import Any
 
 import streamlit as st
 from loguru import logger
-from omegaconf import DictConfig
 from pydantic import BaseModel, ConfigDict
 from streamlit import session_state as sss
 
@@ -25,8 +23,8 @@ class AnonymizationDemo(BaseModel):
     anonymizer: Any = None
 
 
-st.title("Data Anonymization with Presidio")
-st.caption("Protect PII (Personally Identifiable Information) using Microsoft Presidio")
+st.title("Data Anonymization")
+st.caption("...using Microsoft Presidio")
 
 CONF_YAML_FILE = "config/demos/presidio_anonymization.yaml"
 
@@ -39,23 +37,11 @@ with st.sidebar:
         edit_config_dialog(CONF_YAML_FILE)
 
     # Load configuration from YAML
-    try:
-        config = global_config().merge_with(CONF_YAML_FILE)
-        analyzed_fields = config.get_list("presidio_anonymization_config.analyzed_fields")
-        company_names = config.get_list("presidio_anonymization_config.company_names")
-        product_names = config.get_list("presidio_anonymization_config.product_names")
-    except Exception as e:
-        logger.error(f"Error loading configuration: {e}")
-        st.error("Error loading configuration. Using defaults.")
-        analyzed_fields = ["PERSON", "PHONE_NUMBER", "EMAIL_ADDRESS", "CREDIT_CARD", "LOCATION"]
-        company_names = ["Microsoft", "Google", "Apple", "Amazon", "Meta", "Tesla", "Netflix"]
-        product_names = ["Azure", "AWS", "ChatGPT", "LangChain", "Presidio", "iPhone", "Android"]
-
-    # Display current configuration
-    st.subheader("Current Configuration")
-    st.write(f"**Analyzed Fields:** {', '.join(analyzed_fields)}")
-    st.write(f"**Companies:** {', '.join(company_names)}")
-    st.write(f"**Products:** {', '.join(product_names)}")
+    config = global_config().merge_with(CONF_YAML_FILE)
+    analyzed_fields = config.get_list("anonymization_config.analyzed_fields")
+    company_names = config.get_list("anonymization_config.company_names")
+    product_names = config.get_list("anonymization_config.product_names")
+    sample_texts = config.get_list("anonymization_config.examples")
 
     # Fuzzy matching options
     use_fuzzy_matching = st.checkbox("Use fuzzy matching for deanonymization", value=True)
@@ -75,14 +61,6 @@ if "anon" not in sss or sss.get("config_hash") != config_hash:
     sss.anon = AnonymizationDemo(anonymizer=anonymizer)
     sss.config_hash = config_hash
 
-# Sample texts for demonstration
-sample_texts = {
-    "Basic PII": "John Doe's email is john.doe@example.com and his phone is 555-123-4567. He lives in New York.",
-    "Company & Product": "Alice Johnson works at Microsoft and uses Azure services. Bob Smith from Google prefers AWS.",
-    "Mixed Content": "Contact Sarah Wilson at sarah.wilson@company.com. She works at Tesla developing ChatGPT integrations.",
-    "Custom Entities": "Employee EMP-1234 from Capgemini reported an issue with the iPhone app.",
-}
-
 # Main layout
 col1, col2 = st.columns(2)
 
@@ -90,18 +68,11 @@ with col1:
     st.subheader("Original Text")
 
     # Sample selector
-    selected_sample = st.selectbox("Choose a sample:", list(sample_texts.keys()))
-    input_text = st.text_area(
-        "Enter text containing PII:",
-        height=300,
-        value=sample_texts[selected_sample],
-    )
+    input_text = st.text_area("Enter text containing PII:", height=300, value=sample_texts[0])
 
 
 with col2:
-    st.subheader("Anonymized Results")
-
-    if st.button("Anonymize Text"):
+    if st.button("Anonymize Text", icon=":material/domino_mask:"):
         with st.spinner("Detecting and anonymizing PII..."):
             try:
                 # Anonymize the text
@@ -112,11 +83,11 @@ with col2:
                 st.error(f"Anonymization error: {str(e)}")
 
     if "anonymized_text" in sss:
-        st.subheader("🛡️ Anonymized Text")
-        st.code(sss.anonymized_text, language="text")
+        st.subheader("Anonymized Text:")
+        st.code(sss.anonymized_text, language="text", wrap_lines=True)
 
         with st.expander("Reversible Operations", expanded=True):
-            if st.button("De-anonymize Text"):
+            if st.button("De-anonymize Text:"):
                 try:
                     # De-anonymize the text
                     deanon_text = sss.anon.anonymizer.deanonymize(
@@ -125,7 +96,7 @@ with col2:
                         threshold=fuzzy_threshold,
                     )
                     st.subheader("🔓 De-anonymized Text")
-                    st.code(deanon_text, language="text")
+                    st.code(deanon_text, language="text", wrap_lines=True)
                 except Exception as e:
                     logger.error(f"De-anonymization failed: {e}")
                     st.error(f"De-anonymization error: {str(e)}")

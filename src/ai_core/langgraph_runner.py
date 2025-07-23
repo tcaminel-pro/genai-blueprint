@@ -70,7 +70,7 @@ class LangGraphSession(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    _graph: Pregel | None = None
+    _graph: Pregel | None = None  # TODO: use = PrivateAttr()
 
     def config(self, call_conf: dict) -> RunnableConfig:
         config = {"configurable": {"thread_id": self.thread_id}} | self.extra_config | call_conf

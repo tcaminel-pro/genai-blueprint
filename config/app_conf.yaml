@@ -37,7 +37,6 @@ ui:
       - 0_welcome.py
       - 3_configuration.py
       - 4_MCP_servers.py
-      - 99_demo_config_editor.py
 
     training:
         - 1_runnable_playground.py
@@ -50,7 +49,7 @@ ui:
       - 12_reAct_agent.py
       - 10_codeAct_agent.py
       - 14_graph_RAG.py
-      - 18_residio_anonymization.py
+      - 18_anonymization.py
 
 auth:
   enabled: ${oc.env:BASIC_AUTH_ENABLED,false}

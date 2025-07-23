@@ -127,7 +127,7 @@ wheels = [
 
 [[package]]
 name = "anthropic"
-version = "0.58.2"
+version = "0.59.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -138,9 +138,9 @@ dependencies = [
     { name = "sniffio" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/95/b9/ab06c586aa5a5e7499017cee5ebab94ee260e75975c45395f32b8592abdd/anthropic-0.58.2.tar.gz", hash = "sha256:86396cc45530a83acea25ae6bca9f86656af81e3d598b4d22a1300e0e4cf8df8", size = 425125 }
+sdist = { url = "https://files.pythonhosted.org/packages/fe/cf/52daff015f5a1f24eec891b3041f5f816712fea8b5113dc76638bcbc23d8/anthropic-0.59.0.tar.gz", hash = "sha256:d710d1ef0547ebbb64b03f219e44ba078e83fc83752b96a9b22e9726b523fd8f", size = 425679 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d0/f2/68d908ff308c9a65af5749ec31952e01d32f19ea073b0268affc616e6ebc/anthropic-0.58.2-py3-none-any.whl", hash = "sha256:3742181c634c725f337b71096839b6404145e33a8e190c75387c4028b825864d", size = 292896 },
+    { url = "https://files.pythonhosted.org/packages/3c/b1/03f680393eac04afd8f2be44ee0e39e033c40faf43dbc1c11764b07a2687/anthropic-0.59.0-py3-none-any.whl", hash = "sha256:cbc8b3dccef66ad6435c4fa1d317e5ebb092399a4b88b33a09dc4bf3944c3183", size = 293057 },
 ]
 
 [[package]]
@@ -592,15 +592,6 @@ wheels = [
 ]
 
 [[package]]
-name = "chardet"
-version = "5.2.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f3/0d/f7b6ab21ec75897ed80c17d79b15951a719226b9fababf1e40ea74d69079/chardet-5.2.0.tar.gz", hash = "sha256:1b3b6ff479a8c414bc3fa2c0852995695c4a026dcd6d0633b2dd092ca39c1cf7", size = 2069618 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/38/6f/f5fbc992a329ee4e0f288c1fe0e2ad9485ed064cac731ed2fe47dcc38cbf/chardet-5.2.0-py3-none-any.whl", hash = "sha256:e1cf59446890a00105fe7b7912492ea04b6e6f06d4b742b2c788469e34c82970", size = 199385 },
-]
-
-[[package]]
 name = "charset-normalizer"
 version = "3.4.2"
 source = { registry = "https://pypi.org/simple" }
@@ -877,14 +868,14 @@ wheels = [
 
 [[package]]
 name = "dash-ag-grid"
-version = "31.3.1"
+version = "32.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dash" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/74/5e/e8c0b160005c5b01407aa4c739bf28a60043921458b2f25ef7b977f989e9/dash_ag_grid-31.3.1.tar.gz", hash = "sha256:90069c340d893841d4e405fd3759794260946428c9cefcf70a356431e68c5020", size = 3861593 }
+sdist = { url = "https://files.pythonhosted.org/packages/2d/ea/5bd9d074d2245bb4fe98c60e4596d665d342a6b4e36704f892e40ae35cd4/dash_ag_grid-32.3.0.tar.gz", hash = "sha256:e496bd18cf206428b4101b4a8dbb0dee7bd88268cb40ea24190ea36cd7f63701", size = 4019307 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/84/a9/7d1bd060ca28611e155cf7e3a53756b7244ee3224481c9ff0be0d2d2b2fb/dash_ag_grid-31.3.1-py3-none-any.whl", hash = "sha256:2bce8e2a99c2d08800f6c119e4723c838789a093eea29b121aabdb541e1da156", size = 3878810 },
+    { url = "https://files.pythonhosted.org/packages/f3/05/49bb9e5d6f4f6c74176121342b94bc40ac086dab99780ff1c25fcdbf57f8/dash_ag_grid-32.3.0-py3-none-any.whl", hash = "sha256:6e52f5bd4cb51d7219a584990e60a0a627d0104ae7d89c58c977fdd4f51e9928", size = 4042546 },
 ]
 
 [[package]]
@@ -7463,12 +7454,12 @@ wheels = [
 
 [[package]]
 name = "unstructured"
-version = "0.18.9"
+version = "0.18.11"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "backoff" },
     { name = "beautifulsoup4" },
-    { name = "chardet" },
+    { name = "charset-normalizer" },
     { name = "dataclasses-json" },
     { name = "emoji" },
     { name = "filetype" },
@@ -7488,27 +7479,28 @@ dependencies = [
     { name = "unstructured-client" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ea/3d/7ec76008918d204322588b24cd825267671c810e3ec73b7014cf06a11226/unstructured-0.18.9.tar.gz", hash = "sha256:1e0df6f01248a05d31dc6b23ca7c99d17fd0e123438a0e0b6c95d4626b133871", size = 1689038 }
+sdist = { url = "https://files.pythonhosted.org/packages/be/7b/991fc1d9bf3f5a08f5c2bdaeb6523cb882171fa9bb20bd087818a50fb1dd/unstructured-0.18.11.tar.gz", hash = "sha256:cf177d2a212a8bcd3a5a6750d8400c079764d30dabdb6605e7ba0a65679e00a0", size = 1689741 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a9/62/7d3b38799aeba19f6c6900564077c76514a627da48197cec0e820f039d17/unstructured-0.18.9-py3-none-any.whl", hash = "sha256:15fd47a491546ba8e6b70d990c09ca2624170009d67fa6a6421c8f5d5888aef3", size = 1776429 },
+    { url = "https://files.pythonhosted.org/packages/8c/73/7b15fe1f31e8904e2df8a4dbfbb6364ee5567a2fc0d5fa69856d684f5751/unstructured-0.18.11-py3-none-any.whl", hash = "sha256:85aec87032177b826ec278e57e3f74ef3a2aa7e887ab137875e572293cf9659b", size = 1777194 },
 ]
 
 [[package]]
 name = "unstructured-client"
-version = "0.39.1"
+version = "0.40.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
     { name = "cryptography" },
+    { name = "httpcore" },
     { name = "httpx" },
     { name = "nest-asyncio" },
     { name = "pydantic" },
     { name = "pypdf" },
     { name = "requests-toolbelt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d7/19/af77890f5a0769c751b2d9c939bd5119a55f73c4a8184b3417c86e2606fb/unstructured_client-0.39.1.tar.gz", hash = "sha256:9ae5871a6e76c441d42579eaffc6bffb309d3206ecdfa80216c412dda7609911", size = 91725 }
+sdist = { url = "https://files.pythonhosted.org/packages/e5/e7/d65325d9ff93037ab1ad7baac0210892540f7926c34f125655bdb589a2aa/unstructured_client-0.40.0.tar.gz", hash = "sha256:42b557a0f157a4493f8e36e355f5794364b0adfae942269e823fa16032d6dd1c", size = 91967 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a0/d7/dd78a00b5604d5118a5611329929589334e1635ff04b33e1c80e57a0d045/unstructured_client-0.39.1-py3-none-any.whl", hash = "sha256:b0a179bcbbeae1f155712fd646012d2b3d426778c06eb9a3f5971563ad6fa8fa", size = 212568 },
+    { url = "https://files.pythonhosted.org/packages/e3/36/5772b7e1815c951e2f1cc6f37599beabd2306a22d0a8fd04acbad8c14255/unstructured_client-0.40.0-py3-none-any.whl", hash = "sha256:d487f293d3ebcb1a48c6c596486f898bd53a86019424c7da9a1d589d2f5e8bf4", size = 212531 },
 ]
 
 [[package]]

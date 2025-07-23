@@ -5,6 +5,7 @@
 - Don't repeat code examples in module description if they are already in function docstrings. 
 - Don't add comments for classes fields and arguments. Write only one line to describe the class.
 - Keep trace instructions, such as 'debug(...)' or 'print(...)
+- Use Pydantic for classes definitioon. Avoid __init__ methods.
 - Rules for doctrings:
     - Use Google style 
     - Don't mention types 

@@ -27,3 +27,6 @@ anonymization_config:
     - "Android"                                                                                                           
     - "Windows"                                                                                                           
     - "iOS"  
+
+  examples:
+    - "My name is John Smith and my email is john.smith@microsoft.com. I work at Google as a product manager on Android."
