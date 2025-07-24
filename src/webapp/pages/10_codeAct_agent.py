@@ -169,21 +169,33 @@ def load_demos_from_config() -> List[CodeactDemo]:
             for tool_config in demo_config.get("tools", []):
                 if isinstance(tool_config, DictConfig):
                     if "function" in tool_config:
-                        func_name = tool_config.get("function")
-                        if func_name in globals():
-                            tools.append(globals()[func_name])
+                        func_ref = tool_config.get("function")
+                        if isinstance(func_ref, str) and ":" in func_ref:
+                            # Import from qualified name
+                            from src.utils.config_mngr import import_from_qualified
+                            tool_func = import_from_qualified(func_ref)
+                            tools.append(tool_func)
+                        elif func_ref in globals():
+                            tools.append(globals()[func_ref])
                         else:
-                            logger.warning(f"Unknown function: {func_name}")
+                            logger.warning(f"Unknown function: {func_ref}")
                     elif "class" in tool_config:
-                        class_name = tool_config.get("class")
-                        if class_name in globals():
-                            tool_class = globals()[class_name]
-                            params = {k: v for k, v in tool_config.items() if k != "class"}
-                            if class_name == "DataFrameTool":
-                                params["source_path"] = DATA_PATH / str(params["source_path"]).split("/")[-1]
-                            tools.append(tool_class(**params))  # type: ignore
+                        class_ref = tool_config.get("class")
+                        params = {k: v for k, v in tool_config.items() if k not in ["class"]}
+                        
+                        if isinstance(class_ref, str) and ":" in class_ref:
+                            # Import from qualified name
+                            from src.utils.config_mngr import import_from_qualified
+                            tool_class = import_from_qualified(class_ref)
+                        elif class_ref in globals():
+                            tool_class = globals()[class_ref]
                         else:
-                            logger.warning(f"Unknown tool class: {class_name}")
+                            logger.warning(f"Unknown tool class: {class_ref}")
+                            continue
+                            
+                        if class_ref.endswith("DataFrameTool"):
+                            params["source_path"] = DATA_PATH / str(params["source_path"]).split("/")[-1]
+                        tools.append(tool_class(**params))  # type: ignore
 
             demo = CodeactDemo(
                 name=name,
