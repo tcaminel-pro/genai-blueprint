@@ -106,12 +106,14 @@ class CodeactDemo(BaseModel):
         tools: List of available tools for the demo
         mcp_servers: List of MCP server configurations
         examples: List of example prompts for the demo
+        authorized_imports: List of Python packages authorized for import
     """
 
     name: str
     tools: list[Tool] = []
     mcp_servers: list[str] = []
     examples: list[str]
+    authorized_imports: list[str] = []
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
@@ -170,11 +172,6 @@ COMMON_AUTHORIZED_IMPORTS = [
     "tempfile",
 ]
 
-authorized_import = list(
-    dict.fromkeys(
-        COMMON_AUTHORIZED_IMPORTS + global_config().merge_with(CONF_YAML_FILE).get_list("codeact_authorized_imports")
-    )
-)
 PRINT_INFORMATION = "my_final_answer"
 
 IMAGE_INSTRUCTION = dedent_ws(
@@ -235,6 +232,7 @@ def load_demos_from_config() -> List[CodeactDemo]:
             name = demo_config.get("name", "")
             examples = demo_config.get("examples", [])
             mcp_servers = demo_config.get("mcp_servers", [])
+            authorized_imports = demo_config.get("authorized_imports", [])
 
             # Process tools
             tools = []
@@ -262,6 +260,7 @@ def load_demos_from_config() -> List[CodeactDemo]:
                 tools=tools,
                 mcp_servers=mcp_servers,
                 examples=examples,
+                authorized_imports=authorized_imports,
             )
             result.append(demo)
         return result
@@ -486,7 +485,7 @@ def handle_submission(placeholder: Any, demo: CodeactDemo, prompt: str, max_step
                 agent = CodeAgent(
                     tools=tools,
                     model=llm,
-                    additional_authorized_imports=authorized_import,
+                    additional_authorized_imports=list(dict.fromkeys(COMMON_AUTHORIZED_IMPORTS + demo.authorized_imports)),
                     max_steps=max_steps,  # for debug
                 )
                 with st.spinner(text="Thinking..."):
