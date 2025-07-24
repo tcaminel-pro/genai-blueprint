@@ -482,9 +482,7 @@ def handle_submission(placeholder: Any, demo: CodeactDemo, prompt: str, max_step
         with log_widget:
             if prompt:
                 tools = demo.tools + mcp_tools + [my_final_answer]
-                authorized_imports_list = list(
-                    dict.fromkeys(COMMON_AUTHORIZED_IMPORTS + demo.authorized_imports)
-                )
+                authorized_imports_list = list(dict.fromkeys(COMMON_AUTHORIZED_IMPORTS + demo.authorized_imports))
                 agent = CodeAgent(
                     tools=tools,
                     model=llm,
@@ -493,9 +491,7 @@ def handle_submission(placeholder: Any, demo: CodeactDemo, prompt: str, max_step
                 )
                 with st.spinner(text="Thinking..."):
                     result_display.write(f"query: {prompt}")
-                    formatted_prompt = PRE_PROMPT.format(
-                        authorized_imports=", ".join(authorized_imports_list)
-                    ) + prompt
+                    formatted_prompt = PRE_PROMPT.format(authorized_imports=", ".join(authorized_imports_list)) + prompt
                     with strecorder:
                         stream_to_streamlit(
                             agent,
