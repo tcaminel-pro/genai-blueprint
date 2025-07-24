@@ -1,31 +1,27 @@
 # Data Analyst SmolAgents Demos Configuration
-# YAML Aliases for common configurations
-analytic_authorized_import: &analytic_authorized_import
-  authorized_imports:
-    - "pandas"
-    - "matplotlib.*"
-    - "sklearn.*"
+
 
 codeact_agent_demos:
   - name: "SmolAgents"
-    <<: *analytic_authorized_import
     tools: 
       - class: WebSearchTool
       - class: VisitWebpageTool
+    authorized_imports: ["pandas", "matplotlib.*", "sklearn.*"]
     examples:
       - "How many seconds would it take for a leopard at full speed to run through Pont des Arts?"
       - "If the US keeps its 2024 growth rate, how many years will it take for the GDP to double?"
       - "Which Dutch player scored an open-play goal in the 2022 Netherlands vs Argentina game in the men's FIFA World Cup?"
 
   - name: "Titanic"
-    <<: *analytic_authorized_import
     tools:
       - class: DataFrameTool
         name: "titanic_data_reader"
         description: "Data related to the Titanic passengers"
         source_path: "use_case_data/other/titanic.csv"
+        
       - class: WebSearchTool
       - class: VisitWebpageTool
+    authorized_imports: ["pandas", "matplotlib.*", "sklearn.*"]
     examples:
       - "What is the proportion of female passengers that survived?"
       - "Were there any notable individuals or families aboard "
@@ -37,35 +33,34 @@ codeact_agent_demos:
       - "What feature would you engineered to predict survival rate ? Build a predictive model, and report the F1 score on a test set"
 
   - name: "Stock Price"
-    <<: *analytic_authorized_import
     tools:
       - function: get_stock_info
       - function: get_historical_price
       - class: WebSearchTool
       - class: VisitWebpageTool
+    authorized_imports: ["pandas", "matplotlib.*"]
     examples:
       - "What is the current price of Meta stock?"
       - "Show me the historical prices of Apple vs Microsoft stock over the past 6 months"
 
   - name: "Geo"
-    <<: *analytic_authorized_import
     tools:
       - class: WebSearchTool
       - class: VisitWebpageTool
+    authorized_imports: ["pandas", "matplotlib.*", "streamlit_folium"]
     examples:
       - "Display the map of Toulouse"
       - "Display a map of France with a population density (gathered from Internet) layer by region or department"
 
   - name: "MCP"
-    <<: *analytic_authorized_import
     mcp_servers: ["filesystem", "weather", "playwright"]
+    authorized_imports: ["pandas", "matplotlib.*"]
     examples:
       - "What is the current wind force in Toulouse ? "
       - "List current directory"
       - "connect to atos.net site and get recent news"
 
   - name: "Vizro"
-    <<: *analytic_authorized_import
     mcp_servers: ["vizro-mcp"]
     examples:
       - "Create a Vizro dashboard with one page, a scatter chart, and a filter."

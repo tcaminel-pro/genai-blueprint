@@ -42,10 +42,8 @@ with st.sidebar:
     company_names = config.get_list("anonymization_config.company_names")
     product_names = config.get_list("anonymization_config.product_names")
     sample_texts = config.get_list("anonymization_config.examples")
+    use_fuzzy_matching = config.get_bool("anonymization_config.fuzzy_matching", default=True)
 
-    # Fuzzy matching options
-    use_fuzzy_matching = st.checkbox("Use fuzzy matching for deanonymization", value=True)
-    fuzzy_threshold = st.slider("Fuzzy matching threshold", 0.0, 1.0, 0.8, 0.05)
 
 # Initialize session state
 config_hash = hash(str(analyzed_fields) + str(company_names) + str(product_names))
@@ -86,20 +84,18 @@ with col2:
         st.subheader("Anonymized Text:")
         st.code(sss.anonymized_text, language="text", wrap_lines=True)
 
-        with st.expander("Reversible Operations", expanded=True):
-            if st.button("De-anonymize Text:"):
-                try:
-                    # De-anonymize the text
-                    deanon_text = sss.anon.anonymizer.deanonymize(
-                        sss.anonymized_text,
-                        use_fuzzy_matching=use_fuzzy_matching,
-                        threshold=fuzzy_threshold,
-                    )
-                    st.subheader("🔓 De-anonymized Text")
-                    st.code(deanon_text, language="text", wrap_lines=True)
-                except Exception as e:
-                    logger.error(f"De-anonymization failed: {e}")
-                    st.error(f"De-anonymization error: {str(e)}")
+        if st.button("De-anonymize Text:"):
+            try:
+                # De-anonymize the text
+                deanon_text = sss.anon.anonymizer.deanonymize(
+                    sss.anonymized_text,
+                    use_fuzzy_matching=use_fuzzy_matching,
+                )
+                st.subheader("🔓 De-anonymized Text")
+                st.code(deanon_text, language="text", wrap_lines=True)
+            except Exception as e:
+                logger.error(f"De-anonymization failed: {e}")
+                st.error(f"De-anonymization error: {str(e)}")
 
         with st.expander("Anonymization Mapping"):
             mapping = sss.anon.anonymizer.get_mapping()

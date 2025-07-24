@@ -199,6 +199,13 @@ llm:
   capabilities: ['structured_outputs']
 
 - model:
+  id: kimi_k2
+  providers:
+    - openrouter: moonshotai/kimi-k2
+    - groq: moonshotai/kimi-k2-instruct
+  capabilities: ['structured_outputs']  
+
+- model:
   id: nova_lite10
   providers:
     - openrouter: amazon/nova-lite-v1

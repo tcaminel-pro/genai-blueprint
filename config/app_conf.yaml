@@ -12,6 +12,7 @@ paths:
   src: ${paths.project}/src
   config: ${paths.project}/config
   demo_conf: ${paths.project}/config/demos
+  models: ${oc.env:HOME}/.models
 
 
 # Other config files merged to this one at launch time

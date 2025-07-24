@@ -111,14 +111,12 @@ class CustomizedPresidioAnonymizer(BaseModel):
         self,
         text: str,
         use_fuzzy_matching: bool = True,
-        threshold: float = 0.8,
     ) -> str:
         """Deanonymize text by restoring original PII.
 
         Args:
             text: Anonymized text to restore
             use_fuzzy_matching: Whether to use fuzzy matching for better results
-            threshold: Fuzzy matching threshold (0.0-1.0)
 
         Returns:
             Text with original PII restored
