@@ -485,7 +485,9 @@ def handle_submission(placeholder: Any, demo: CodeactDemo, prompt: str, max_step
                 agent = CodeAgent(
                     tools=tools,
                     model=llm,
-                    additional_authorized_imports=list(dict.fromkeys(COMMON_AUTHORIZED_IMPORTS + demo.authorized_imports)),
+                    additional_authorized_imports=list(
+                        dict.fromkeys(COMMON_AUTHORIZED_IMPORTS + demo.authorized_imports)
+                    ),
                     max_steps=max_steps,  # for debug
                 )
                 with st.spinner(text="Thinking..."):
