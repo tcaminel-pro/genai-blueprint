@@ -13,9 +13,10 @@ global_config().set("llm.default_model", "gpt-4")
 
 from __future__ import annotations
 
+import importlib
 import os
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 from dotenv import load_dotenv
 from loguru import logger
@@ -169,6 +170,8 @@ class OmegaConfig(BaseModel):
             raise TypeError(f"Configuration value for '{key}' is not a boolean (its a {type(value)})")
         return value
 
+    # add an optional argument that is the type of the values in the list (str, dict, int, ...).  
+    # check the value type.  Improve Typing information (ex: list[str]) AI!
     def get_list(self, key: str, default: Optional[list] = None) -> list:
         """Get a list configuration value."""
         value = self.get(key, default)
@@ -237,10 +240,7 @@ def global_config_reload():
     OmegaConfig.singleton.invalidate()  # type: ignore
 
 
-T = TypeVar("T")
-
-
-def import_from_qualified(qualified_name: str) -> T:
+def import_from_qualified(qualified_name: str) -> Callable:
     """Dynamically import and return a function, class, or object by its qualified name.
 
     The configuration value should be a string in the format 'module.submodule:function_or_class_name'.
@@ -260,8 +260,6 @@ def import_from_qualified(qualified_name: str) -> T:
     module_path, object_name = qualified_name.split(":", 1)
 
     try:
-        import importlib
-
         module = importlib.import_module(module_path)
         return getattr(module, object_name)
     except ImportError as e:
