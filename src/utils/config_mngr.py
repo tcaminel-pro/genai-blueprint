@@ -226,6 +226,53 @@ class OmegaConfig(BaseModel):
             raise FileNotFoundError(f"File path for '{key}' does not exist: '{path}'")
         return path
 
+    def get_import(self, key: str) -> Any:
+        """Dynamically import and return a function, class, or object by its qualified name.
+        
+        The configuration value should be a string in the format 'module.submodule:function_or_class_name'.
+        This method handles the import and returns the requested object.
+        
+        Examples:
+            ```python
+            # In config YAML:
+            # my_function: src.ai_extra.smolagents_tools:get_historical_price
+            
+            # In code:
+            historical_price_func = global_config().get_import("my_function")
+            df = historical_price_func("AAPL", date(2024,1,1), date(2024,12,31))
+            ```
+        
+        Args:
+            key: Configuration key containing the qualified name
+            
+        Returns:
+            The imported function, class, or object
+            
+        Raises:
+            ImportError: If the module cannot be imported
+            AttributeError: If the object cannot be found in the module
+            ValueError: If the configuration format is invalid
+        """
+        qualified_name = self.get_str(key)
+        
+        if ":" not in qualified_name:
+            raise ValueError(
+                f"Invalid format for '{key}'. Expected format: 'module.submodule:object_name'"
+            )
+        
+        module_path, object_name = qualified_name.split(":", 1)
+        
+        try:
+            import importlib
+            module = importlib.import_module(module_path)
+            return getattr(module, object_name)
+        except ImportError as e:
+            raise ImportError(f"Cannot import module '{module_path}' for key '{key}': {e}")
+        except AttributeError as e:
+            raise AttributeError(
+                f"Cannot find object '{object_name}' in module '{module_path}' for key '{key}': {e}"
+            )
+
 
 def global_config() -> OmegaConfig:
     """Get the global config singleton."""
