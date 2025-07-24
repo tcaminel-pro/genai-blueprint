@@ -12,14 +12,12 @@ Key Features:
 - Real-time output display including plots and maps
 """
 
-from datetime import date
 from pathlib import Path
 from typing import Any, List
 
 import folium
 import pandas as pd
 import streamlit as st
-import yfinance as yf
 from groq import BaseModel
 from loguru import logger
 from omegaconf import DictConfig
@@ -32,15 +30,14 @@ from smolagents import (
     tool,
 )
 from streamlit import session_state as sss
-from streamlit.runtime.uploaded_file_manager import UploadedFile
 from streamlit_folium import st_folium
 
 from src.ai_core.llm import LlmFactory
 from src.ai_core.mcp_client import dict_to_stdio_server_list, get_mcp_servers_dict
 from src.ai_core.prompts import dedent_ws
 from src.utils.config_mngr import global_config
+from src.utils.load_data import TABULAR_FILE_FORMATS_READERS, load_tabular_data_once
 from src.utils.streamlit.auto_scroll import scroll_to_here
-from src.utils.streamlit.load_data import TABULAR_FILE_FORMATS_READERS, load_tabular_data
 from src.utils.streamlit.recorder import StreamlitRecorder
 from src.webapp.ui_components.config_editor import edit_config_dialog
 from src.webapp.ui_components.smolagents_streamlit import stream_to_streamlit
@@ -60,15 +57,6 @@ if "agent_output" not in sss:
 
 if "result_display" not in sss:
     sss.result_display = st  # Default display container
-
-
-# Import moved tools from ai_extra
-from src.ai_extra.smolagents_tools import (
-    DataFrameTool,
-    get_historical_price,
-    get_stock_info,
-    get_cache_dataframe,
-)
 
 
 class CodeactDemo(BaseModel):
@@ -219,9 +207,6 @@ SAMPLES_DEMOS = load_demos_from_config()
 ##########################
 
 
-# get_cache_dataframe is now imported from ai_extra.smolagents_tools
-
-
 FILE_SElECT_CHOICE = ":open_file_folder: :orange[Select your file]"
 
 # recorder of agents generated output, to be re-displayed when the page is rerun.
@@ -366,7 +351,7 @@ def handle_selection(selected_pill: str, select_block: Any) -> tuple[CodeactDemo
     if raw_data_file:
         with select_block.expander(label="Loaded Dataframe", expanded=True):
             args = {}
-            df = get_cache_dataframe(raw_data_file, **args)
+            df = load_tabular_data_once(raw_data_file, **args)
     return demo, sample_search, df, raw_data_file
 
 
