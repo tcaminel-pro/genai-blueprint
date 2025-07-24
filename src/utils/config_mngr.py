@@ -237,7 +237,9 @@ def global_config_reload():
     OmegaConfig.singleton.invalidate()  # type: ignore
 
 
-def import_from_qualified(qualified_name: str) -> Any:
+T = TypeVar("T")
+
+def import_from_qualified(qualified_name: str) -> T:
     """Dynamically import and return a function, class, or object by its qualified name.
 
     The configuration value should be a string in the format 'module.submodule:function_or_class_name'.
