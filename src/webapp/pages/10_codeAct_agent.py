@@ -197,7 +197,7 @@ PRE_PROMPT = dedent_ws(
     Answer following request. 
 
     Instructions:
-    - You can use ONLY the following packages:  {", ".join(authorized_import)}.
+    - You can use ONLY the following packages:  {", ".join(authorized_imports)}.
     - DO NOT USE other packages (such as os, shutils, etc).
     - Don't generate "if __name__ == "__main__"
     - Don't use st.sidebar 
