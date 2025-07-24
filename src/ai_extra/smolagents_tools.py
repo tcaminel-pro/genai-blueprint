@@ -6,15 +6,12 @@ including stock data retrieval, DataFrame operations, and historical data access
 
 from datetime import date
 from pathlib import Path
-from typing import Any
 
 import pandas as pd
 import yfinance as yf
 from smolagents import Tool, tool
-from streamlit import session_state as sss
-from streamlit.runtime.uploaded_file_manager import UploadedFile
 
-from src.utils.streamlit.load_data import load_tabular_data
+from src.utils.load_data import load_tabular_data_once
 
 
 @tool
@@ -89,22 +86,5 @@ class DataFrameTool(Tool):
 
     def forward(self) -> pd.DataFrame:  # type: ignore
         """Load and return a DataFrame from the configured source path."""
-        df = get_cache_dataframe(self.source_path)
+        df = load_tabular_data_once(self.source_path)
         return df
-
-
-@st.cache_data(show_spinner=True)
-def get_cache_dataframe(file_or_filename: Path | UploadedFile, **kwargs) -> pd.DataFrame:
-    """Load and cache a DataFrame from a file or uploaded file object.
-
-    This function handles various file formats and caches the loaded DataFrame
-    to improve performance for repeated access.
-
-    Args:
-        file_or_filename: Path to the file or Streamlit UploadedFile object
-        **kwargs: Additional arguments to pass to the file reader
-
-    Returns:
-        Loaded Pandas DataFrame
-    """
-    return load_tabular_data(file_or_filename=file_or_filename, **kwargs)

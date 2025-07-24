@@ -6,24 +6,26 @@ Supports both Path compatible pathnames and Streamlit UploadedFile objects.
 
 import os
 from io import BytesIO
-from pathlib import Path
 
 import pandas as pd
-from streamlit.runtime.uploaded_file_manager import UploadedFile
+from upath import UPath
+
+from src.utils.singleton import once
 
 TABULAR_FILE_FORMATS_READERS = {
     "csv": pd.read_csv,
-    # "xls": pd.read_excel,  # Could be read but need additional import
+    # "xls": pd.read_excel,  # Works but need additional import
     "xlsx": pd.read_excel,
     "xlsm": pd.read_excel,
 }
 
 
-def load_tabular_data(file_or_filename: Path | UploadedFile, **kwargs) -> pd.DataFrame:
-    """Load tabular data from a file path or Streamlit UploadedFile object.
+@once
+def load_tabular_data_once(file_or_filename: str | UPath | BytesIO, **kwargs) -> pd.DataFrame:
+    """Load tabular data from a file path or ByteIO  object (such as Streamlit UploadedFile ).
 
     Args:
-        file_or_filename: Either a Path object pointing to a file or a Streamlit UploadedFile
+        file_or_filename: Either a Path object pointing to a file or ByteIA
         **kwargs: Additional arguments to pass to the pandas reader function
 
     Returns:
@@ -32,11 +34,13 @@ def load_tabular_data(file_or_filename: Path | UploadedFile, **kwargs) -> pd.Dat
     Raises:
         ValueError: If the file doesn't exist or has an unsupported format
     """
-    if isinstance(file_or_filename, Path):
+    if isinstance(file_or_filename, str):
+        file_or_filename = UPath(file_or_filename)
+    if isinstance(file_or_filename, UPath):
         assert file_or_filename.exists()
         loaded_file = BytesIO(file_or_filename.read_bytes())
         loaded_file.name = file_or_filename.name
-    elif isinstance(file_or_filename, UploadedFile):
+    elif isinstance(file_or_filename, BytesIO):
         loaded_file = file_or_filename
     else:
         raise ValueError(f"incorrect file: {file_or_filename}")

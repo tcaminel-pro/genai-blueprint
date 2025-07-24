@@ -35,7 +35,7 @@ from streamlit_folium import st_folium
 from src.ai_core.llm import LlmFactory
 from src.ai_core.mcp_client import dict_to_stdio_server_list, get_mcp_servers_dict
 from src.ai_core.prompts import dedent_ws
-from src.utils.config_mngr import global_config
+from src.utils.config_mngr import global_config, import_from_qualified
 from src.utils.load_data import TABULAR_FILE_FORMATS_READERS, load_tabular_data_once
 from src.utils.streamlit.auto_scroll import scroll_to_here
 from src.utils.streamlit.recorder import StreamlitRecorder
@@ -44,7 +44,7 @@ from src.webapp.ui_components.smolagents_streamlit import stream_to_streamlit
 
 MODEL_ID = None  # Use the one by configuration
 MODEL_ID = "gpt_41mini_openrouter"
-# MODEL_ID = "qwen_qwq32_deepinfra"
+#MODEL_ID = "kimi_k2_openrouter"
 # MODEL_ID = "gpt_o3mini_openrouter"
 # MODEL_ID = "qwen_qwq32_openrouter"
 
@@ -171,9 +171,6 @@ def load_demos_from_config() -> List[CodeactDemo]:
                     if "function" in tool_config:
                         func_ref = tool_config.get("function")
                         if isinstance(func_ref, str) and ":" in func_ref:
-                            # Import from qualified name
-                            from src.utils.config_mngr import import_from_qualified
-
                             tool_func = import_from_qualified(func_ref)
                             tools.append(tool_func)
                         elif func_ref in globals():
@@ -185,9 +182,6 @@ def load_demos_from_config() -> List[CodeactDemo]:
                         params = {k: v for k, v in tool_config.items() if k not in ["class"]}
 
                         if isinstance(class_ref, str) and ":" in class_ref:
-                            # Import from qualified name
-                            from src.utils.config_mngr import import_from_qualified
-
                             tool_class = import_from_qualified(class_ref)
                         elif class_ref in globals():
                             tool_class = globals()[class_ref]

@@ -16,7 +16,7 @@ from __future__ import annotations
 import importlib
 import os
 from pathlib import Path
-from typing import Any, Callable, Optional, TypeVar, overload
+from typing import Any, Callable, Optional, TypeVar
 
 from dotenv import load_dotenv
 from loguru import logger
@@ -172,13 +172,7 @@ class OmegaConfig(BaseModel):
             raise TypeError(f"Configuration value for '{key}' is not a boolean (its a {type(value)})")
         return value
 
-    @overload
-    def get_list(self, key: str, default: Optional[list] = None) -> list: ...
-
-    @overload
-    def get_list(self, key: str, default: Optional[list] = None, *, type: type[T]) -> list[T]: ...
-
-    def get_list(self, key: str, default: Optional[list] = None, *, type: Optional[type[T]] = None) -> list | list[T]:
+    def get_list(self, key: str, default: Optional[list] = None, value_type: type[T] | Any = Any) -> list[T]:
         """Get a list configuration value.
 
         Args:
@@ -205,12 +199,11 @@ class OmegaConfig(BaseModel):
         result = list(value)
 
         # Type validation if type parameter is provided
-        if type is not None:
+        if value_type is not Any:
             for i, item in enumerate(result):
-                if not isinstance(item, type):
+                if not isinstance(item, value_type):
                     raise TypeError(
-                        f"List item at index {i} for key '{key}' is not of type {type.__name__} "
-                        f"(got {type(item).__name__}: {item})"
+                        f"List item at index {i} for key '{key}' is not of type '{value_type}' but '{type(item)}' "
                     )
 
         return result
@@ -315,12 +308,12 @@ if __name__ == "__main__":
     global_config().set("llm.default_model", "gpt-4")
     model = global_config().get("llm.default_model")
     print(model)
-    print(global_config().get_list("chains.modules"))
+    print(global_config().get_list("cli.commands"))
     # Switch configurations
     global_config().select_config("training_local")
     model = global_config().get("llm.default_model")
     print(model)
-    print(global_config().get_list("chains.modules"))
+    print(global_config().get_list("cli.commands"))
 
     global_config().set("llm.default_model", "foo")
     print(global_config().get_str("llm.default_model"))

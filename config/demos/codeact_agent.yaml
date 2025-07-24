@@ -4,8 +4,8 @@
 codeact_agent_demos:
   - name: "SmolAgents"
     tools: 
-      - class: WebSearchTool
-      - class: VisitWebpageTool
+      - class: smolagents:WebSearchTool
+      - class: smolagents:VisitWebpageTool
     authorized_imports: ["pandas", "matplotlib.*", "sklearn.*"]
     examples:
       - "How many seconds would it take for a leopard at full speed to run through Pont des Arts?"
@@ -14,13 +14,13 @@ codeact_agent_demos:
 
   - name: "Titanic"
     tools:
-      - class: DataFrameTool
+      - class: src.ai_extra.smolagents_tools:DataFrameTool
         name: "titanic_data_reader"
         description: "Data related to the Titanic passengers"
         source_path: "use_case_data/other/titanic.csv"
         
-      - class: WebSearchTool
-      - class: VisitWebpageTool
+      - class: smolagents:WebSearchTool
+      - class: smolagents:VisitWebpageTool
     authorized_imports: ["pandas", "matplotlib.*", "sklearn.*"]
     examples:
       - "What is the proportion of female passengers that survived?"
@@ -34,10 +34,10 @@ codeact_agent_demos:
 
   - name: "Stock Price"
     tools:
-      - function: get_stock_info
-      - function: get_historical_price
-      - class: WebSearchTool
-      - class: VisitWebpageTool
+      - function: src.ai_extra.smolagents_tools:get_stock_info
+      - function: src.ai_extra.smolagents_tools:get_historical_price
+      - class: smolagents:WebSearchTool
+      - class: smolagents:VisitWebpageTool
     authorized_imports: ["pandas", "matplotlib.*"]
     examples:
       - "What is the current price of Meta stock?"
@@ -45,8 +45,8 @@ codeact_agent_demos:
 
   - name: "Geo"
     tools:
-      - class: WebSearchTool
-      - class: VisitWebpageTool
+      - class: smolagents:WebSearchTool
+      - class: smolagents:VisitWebpageTool
     authorized_imports: ["pandas", "matplotlib.*", "streamlit_folium"]
     examples:
       - "Display the map of Toulouse"

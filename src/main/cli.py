@@ -15,7 +15,6 @@ The CLI is built using Typer and supports:
 - Streaming and non-streaming execution
 """
 
-import importlib
 import sys
 
 import typer
@@ -23,7 +22,7 @@ from dotenv import load_dotenv
 from loguru import logger
 
 # Import modules where runnables are registered
-from src.utils.config_mngr import global_config
+from src.utils.config_mngr import global_config, import_from_qualified
 from src.utils.logger_factory import setup_logging
 
 load_dotenv(verbose=True)
@@ -39,7 +38,7 @@ cli_app = typer.Typer(
 )
 
 
-def define_other_commands(cli_app: typer.Typer) -> None:
+def register_commands(cli_app: typer.Typer) -> None:
     """Define additional utility commands for the CLI.
 
     Args:
@@ -71,22 +70,14 @@ def main():
         level = "WARNING"
     # print(f"in main {argc=}  {argv=}")
     setup_logging(level)
-    modules = global_config().get_list("commands.modules")
+    modules = global_config().get_list("cli.commands", value_type=str)
     # Import and register commands from each module
     for module in modules:
         try:
-            mod = importlib.import_module(module)
-            if hasattr(mod, "register_commands"):
-                logger.info(f"register CLI commands from: '{module}'")
-                mod.register_commands(cli_app)
-            else:
-                logger.warning(f"no 'register_commands' found for module {module} ")
+            register_commands = import_from_qualified(module)
+            register_commands(cli_app)
         except Exception as ex:
             logger.exception(f"Cannot load module {module}: {ex}")
-
-    # define_llm_related_commands(cli_app)
-    # define_lca_related_commands(cli_app)
-    define_other_commands(cli_app)
 
     cli_app()
 

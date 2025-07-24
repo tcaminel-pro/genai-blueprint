@@ -6,7 +6,6 @@ Provides a simple interface to:
 - Display command output
 """
 
-import importlib
 import shlex
 
 import streamlit as st
@@ -14,7 +13,7 @@ from loguru import logger
 from typer.testing import CliRunner
 
 from src.main.cli import cli_app, define_other_commands
-from src.utils.config_mngr import global_config
+from src.utils.config_mngr import global_config, import_from_qualified
 
 
 def load_cli_examples() -> list[dict]:
@@ -26,16 +25,12 @@ def load_cli_examples() -> list[dict]:
 def get_cli_runner() -> CliRunner:
     runner = CliRunner()
 
-    modules = global_config().get_list("commands.modules")
+    modules = global_config().get_list("cli.commands")
     # Import and register commands from each module
     for module in modules:
         try:
-            mod = importlib.import_module(module)
-            if hasattr(mod, "register_commands"):
-                logger.info(f"register CLI commands from: '{module}'")
-                mod.register_commands(cli_app)
-            else:
-                logger.warning(f"no 'register_commands' found for module {module} ")
+            register_commands = import_from_qualified(module)
+            register_commands(cli_app)
         except Exception as ex:
             logger.exception(f"Cannot load module {module}: {ex}")
 

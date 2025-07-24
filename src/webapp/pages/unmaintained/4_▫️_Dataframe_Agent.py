@@ -11,9 +11,9 @@ from loguru import logger  # noqa: F401
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from src.ai_core.llm import get_llm
-from src.utils.streamlit.load_data import (
+from src.utils.load_data import (
     TABULAR_FILE_FORMATS_READERS,
-    load_tabular_data,
+    load_tabular_data_once,
 )
 
 
@@ -27,7 +27,7 @@ def clear_submit() -> None:
 
 @st.cache_data(show_spinner=True)
 def get_dataframe(file_or_filename: Path | UploadedFile, **kwargs) -> pd.DataFrame | None:
-    return load_tabular_data(file_or_filename=file_or_filename, **kwargs)
+    return load_tabular_data_once(file_or_filename=file_or_filename, **kwargs)
 
 
 SAMPLE_PROMPTS = [

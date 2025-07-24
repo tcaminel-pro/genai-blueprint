@@ -57,10 +57,11 @@ auth:
   config_file: ${paths.config}/basic_auth.yaml
 
 #####
-# modules  with CLI commands to be loaded
+# CLI (Command Line Interface) configuration
 ####
-commands:
-  modules:
-    - src.ai_core.cli_commands
-    - src.ai_extra.cli_commands
-    - src.webapp.cli_commands
+cli:
+  commands:  # List modules:functions to register CLI commands
+    - src.ai_core.cli_commands:register_commands
+    - src.ai_extra.cli_commands:register_commands
+    - src.webapp.cli_commands:register_commands
+    - src.main.cli:register_commands
