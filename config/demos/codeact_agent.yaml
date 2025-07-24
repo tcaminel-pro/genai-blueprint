@@ -53,7 +53,7 @@ codeact_agent_demos:
   - name: "MCP"
     mcp_servers: ["filesystem", "weather", "playwright"]
     examples:
-      - "What is the currrent wind force in Toulouse ? "
+      - "What is the current wind force in Toulouse ? "
       - "List current directory"
       - "connect to atos.net site and get recent news"
 
