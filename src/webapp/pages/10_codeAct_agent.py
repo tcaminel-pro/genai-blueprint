@@ -197,7 +197,7 @@ PRE_PROMPT = dedent_ws(
     Answer following request. 
 
     Instructions:
-    - You can use ONLY the following packages:  {", ".join(authorized_imports)}.
+    - You can use ONLY the following packages:  {{authorized_imports}}.
     - DO NOT USE other packages (such as os, shutils, etc).
     - Don't generate "if __name__ == "__main__"
     - Don't use st.sidebar 
@@ -482,20 +482,24 @@ def handle_submission(placeholder: Any, demo: CodeactDemo, prompt: str, max_step
         with log_widget:
             if prompt:
                 tools = demo.tools + mcp_tools + [my_final_answer]
+                authorized_imports_list = list(
+                    dict.fromkeys(COMMON_AUTHORIZED_IMPORTS + demo.authorized_imports)
+                )
                 agent = CodeAgent(
                     tools=tools,
                     model=llm,
-                    additional_authorized_imports=list(
-                        dict.fromkeys(COMMON_AUTHORIZED_IMPORTS + demo.authorized_imports)
-                    ),
+                    additional_authorized_imports=authorized_imports_list,
                     max_steps=max_steps,  # for debug
                 )
                 with st.spinner(text="Thinking..."):
                     result_display.write(f"query: {prompt}")
+                    formatted_prompt = PRE_PROMPT.format(
+                        authorized_imports=", ".join(authorized_imports_list)
+                    ) + prompt
                     with strecorder:
                         stream_to_streamlit(
                             agent,
-                            PRE_PROMPT + prompt,
+                            formatted_prompt,
                             # additional_args={"widget": col_display_right},  # does not work in fact
                             display_details=False,
                         )
