@@ -170,7 +170,8 @@ class OmegaConfig(BaseModel):
             raise TypeError(f"Configuration value for '{key}' is not a boolean (its a {type(value)})")
         return value
 
-    # add an optional argument that is the type of the values in the list (str, dict, int, ...).  
+    # add an optional argument : the type of the values in the list (str, dict, int, ...). 
+    # ex: get_list("key", type=str) 
     # check the value type.  Improve Typing information (ex: list[str]) AI!
     def get_list(self, key: str, default: Optional[list] = None) -> list:
         """Get a list configuration value."""
