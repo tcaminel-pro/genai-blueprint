@@ -16,7 +16,7 @@ from __future__ import annotations
 import importlib
 import os
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, TypeVar, overload
 
 from dotenv import load_dotenv
 from loguru import logger
@@ -32,6 +32,8 @@ APPLICATION_CONFIG_FILE: str = "config/app_conf.yaml"
 
 # Ensure PWD is set correctly
 os.environ["PWD"] = os.getcwd()  # Hack because PWD is sometime set to a Windows path in WSL
+
+T = TypeVar("T")
 
 
 class OmegaConfig(BaseModel):
@@ -170,15 +172,48 @@ class OmegaConfig(BaseModel):
             raise TypeError(f"Configuration value for '{key}' is not a boolean (its a {type(value)})")
         return value
 
-    # add an optional argument : the type of the values in the list (str, dict, int, ...). 
-    # ex: get_list("key", type=str) 
-    # check the value type.  Improve Typing information (ex: list[str]) AI!
-    def get_list(self, key: str, default: Optional[list] = None) -> list:
-        """Get a list configuration value."""
+    @overload
+    def get_list(self, key: str, default: Optional[list] = None) -> list: ...
+
+    @overload
+    def get_list(self, key: str, default: Optional[list] = None, *, type: type[T]) -> list[T]: ...
+
+    def get_list(self, key: str, default: Optional[list] = None, *, type: Optional[type[T]] = None) -> list | list[T]:
+        """Get a list configuration value.
+        
+        Args:
+            key: Configuration key in dot notation
+            default: Default value if key not found
+            type: Optional type to validate list elements against
+            
+        Returns:
+            List of configuration values, optionally typed
+            
+        Example:
+            ```python
+            # Get untyped list
+            modules = config.get_list("chains.modules")
+            
+            # Get typed list with validation
+            names = config.get_list("user.names", type=str)
+            ```
+        """
         value = self.get(key, default)
         if not isinstance(value, ListConfig):
             raise TypeError(f"Configuration value for '{key}' is not a list (its a {type(value)})")
-        return list(value)
+        
+        result = list(value)
+        
+        # Type validation if type parameter is provided
+        if type is not None:
+            for i, item in enumerate(result):
+                if not isinstance(item, type):
+                    raise TypeError(
+                        f"List item at index {i} for key '{key}' is not of type {type.__name__} "
+                        f"(got {type(item).__name__}: {item})"
+                    )
+        
+        return result
 
     def get_dict(self, key: str, expected_keys: list | None = None) -> dict[str, Any]:
         """Get a dictionary configuration value.
