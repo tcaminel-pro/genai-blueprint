@@ -239,6 +239,7 @@ def global_config_reload():
 
 T = TypeVar("T")
 
+
 def import_from_qualified(qualified_name: str) -> T:
     """Dynamically import and return a function, class, or object by its qualified name.
 
