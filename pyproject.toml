@@ -46,8 +46,9 @@ ai = [
     "langchain-mcp-adapters>=0.0.5",
     "langchain-groq>=0.2",
     "langchain-chroma>=0.2",
+    "langchain-tavily>=0.2.10",
     # "litellm>=1",
-    "litellm>=1.67.2", 
+    "litellm>=1.67.2",
     "chromadb>=1.0",
     "mistralai>=1.7.0",
     "smolagents[toolkit, mcp, openai, litellm, docker]==1.17", # code display issue un streamlit with 1.19  TODO

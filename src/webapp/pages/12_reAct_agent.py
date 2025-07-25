@@ -36,6 +36,8 @@ from langchain_community.tools import DuckDuckGoSearchRun  # noqa: E402
 
 duckduck_search_tool = DuckDuckGoSearchRun()
 
+CONFIG_FILE = "config/demos/react_agent.yaml"
+
 
 @tool
 def my_custom_weather(location: str) -> str:
@@ -95,7 +97,7 @@ def load_demos_from_config() -> List[ReactDemo]:
         Exception: If config loading fails
     """
     try:
-        demos_config = global_config().merge_with("config/demos/react_agent.yaml").get_list("react_agent_demos")
+        demos_config = global_config().merge_with(CONFIG_FILE).get_list("react_agent_demos")
         result = []
         # Create Demo objects from the configuration
         for demo_config in demos_config:

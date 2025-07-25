@@ -206,7 +206,7 @@ async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache
 
         # Create batch file
         batch_file_path = "batch_ocr_file.jsonl"
-        debug(document_urls)
+#        debug(document_urls)
         create_batch_file(document_urls, batch_file_path)
         progress.update(task, completed=len(pdf_paths), description="[cyan]Batch file created")
 

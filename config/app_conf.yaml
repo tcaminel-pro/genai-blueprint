@@ -27,7 +27,7 @@ merge:
 default_config: ${oc.env:BLUEPRINT_CONFIG,training_openrouter}
 
 #### 
-# UI Configuration : list of Streamlit pages, authentication, ... 
+# User Interface Configuration : list of Streamlit pages, authentication, ... 
 ####    
 ui:
   app_name : GenAI Lab and Practicum
@@ -52,12 +52,15 @@ ui:
       - 14_graph_RAG.py
       - 18_anonymization.py
 
+#### 
+# Authentication
+####  
 auth:
   enabled: ${oc.env:BASIC_AUTH_ENABLED,false}
   config_file: ${paths.config}/basic_auth.yaml
 
 #####
-# CLI (Command Line Interface) configuration
+# Command Line Interface configuration
 ####
 cli:
   commands:  # List modules:functions to register CLI commands

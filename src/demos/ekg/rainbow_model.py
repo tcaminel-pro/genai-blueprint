@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Dict, List, Optional, Union
+from typing import List
 
 from pydantic import BaseModel, Field
 
@@ -7,9 +7,9 @@ from pydantic import BaseModel, Field
 class ProjectIdentification(BaseModel):
     """Core project identification information"""
 
-    name: str | None = Field(None, description="Official name of the project/opportunity")
+    name: str = Field(description="Official name of the project/opportunity")
     opportunity_id: str | None = Field(None, description="Unique identifier from Salesforce or similar CRM")
-    customer: str | None = Field(None, description="Client organization name")
+    customer: str = Field(description="Client organization name")
     customer_segment: str | None = Field(None, description="Industry vertical of the customer")
     status: str | None = Field(None, description="Current phase: Pursuit/Active/Completed/Cancelled")
     start_date: date | None = Field(None, description="Planned/projected start date")
@@ -83,22 +83,21 @@ class SimilarityAttributes(BaseModel):
 
     keywords: List[str] | None = Field(None, description="Key terms for semantic search")
     tech_stack_fingerprint: List[str] | None = Field(None, description="Technology combinations")
-    embedding_vector: List[float] | None = Field(None, description="Vector embedding for ANN search")
 
 
 class RainbowProjectAnalysis(BaseModel):
     """Complete project analysis structure"""
 
-    identification: ProjectIdentification | None = None
-    description: ProjectDescription | None = None
-    team: List[PersonRole] | None = Field(None, description="All involved personnel")
-    delivery: DeliveryInfo | None = None
-    financials: FinancialMetrics | None = None
-    risks: List[RiskAnalysis] | None = Field(None, description="")
-    competition: CompetitiveLandscape | None = None
-    bidding: BiddingStrategy | None = None
-    similarity: SimilarityAttributes | None = None
-    source: Dict[str, Union[str, date]] | None = Field(None, description="Source document metadata")
+    identification: ProjectIdentification
+    description: ProjectDescription
+    team: List[PersonRole] = Field(description="All involved personnel")
+    delivery: DeliveryInfo
+    financials: FinancialMetrics
+    risks: List[RiskAnalysis] = Field(description="")
+    competition: CompetitiveLandscape
+    bidding: BiddingStrategy
+    similarity: SimilarityAttributes
+    source: str = Field(description="Source document metadata")
 
 
 # Example usage:
