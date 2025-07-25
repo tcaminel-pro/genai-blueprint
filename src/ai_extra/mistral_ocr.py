@@ -135,6 +135,8 @@ def create_batch_file(document_urls: list[str], output_file: str) -> None:
             file.write(json.dumps(entry) + "\n")
 
 
+# add an option to replace  white char in the output file name by underscore AI!
+
 async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache: bool = True) -> None:
     """Process multiple PDF files using Mistral's batch OCR API.
 
