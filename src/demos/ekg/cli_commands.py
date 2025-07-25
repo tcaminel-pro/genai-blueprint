@@ -21,8 +21,9 @@ def register_commands(cli_app: typer.Typer) -> None:
             Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
         ] = None,
         recursive: bool = typer.Option(False, help="Search for files recursively"),
-        use_cache: bool = typer.Option(True, help="Use cached LLM responses if available"),
+        use_cache: bool = typer.Option(True, "Use cached LLM responses if available"),
         batch_size: int = typer.Option(5, help="Number of files to process in each batch"),
+        force: bool = typer.Option(False, "--force", help="Overwrite existing JSON files"),
     ) -> None:
         """Extract structured project data from Markdown files and save as JSON.
 
@@ -68,12 +69,25 @@ def register_commands(cli_app: typer.Typer) -> None:
             logger.warning("No Markdown files found matching the provided patterns.")
             return
 
+        # Filter out files that already have JSON output unless forced
+        output_path = UPath(output_dir)
+        if not force:
+            unprocessed_files = []
+            for md_file in md_files:
+                json_output_file = output_path / f"{md_file.stem}_extracted.json"
+                if not json_output_file.exists():
+                    unprocessed_files.append(md_file)
+                else:
+                    logger.info(f"Skipping {md_file.name} - JSON already exists (use --force to overwrite)")
+            md_files = unprocessed_files
+
+        if not md_files:
+            logger.info("All files have already been processed. Use --force to reprocess.")
+            return
+
         logger.info(f"Found {len(md_files)} Markdown files to process")
 
-        # Process the files
-        output_path = UPath(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
-
         asyncio.run(process_markdown_batch(md_files, output_path, batch_size))
 
         logger.info(f"Project extraction complete. Results saved to {output_dir}")
