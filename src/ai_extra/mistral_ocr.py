@@ -135,7 +135,9 @@ def create_batch_file(document_urls: list[str], output_file: str) -> None:
             file.write(json.dumps(entry) + "\n")
 
 
-# add an option to replace  white char in the output file name by underscore AI!
+def sanitize_filename(filename: str) -> str:
+    """Replace whitespace characters in filename with underscores."""
+    return filename.replace(" ", "_")
 
 async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache: bool = True) -> None:
     """Process multiple PDF files using Mistral's batch OCR API.
@@ -280,8 +282,9 @@ async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache
                 if use_cache:
                     save_object_to_kvstore(key=str(pdf_path), obj=ocr_response)
 
-                # Save to output directory
-                output_file = output_dir / f"{pdf_path.stem}.md"
+                # Save to output directory with sanitized filename
+                safe_filename = sanitize_filename(f"{pdf_path.stem}.md")
+                output_file = output_dir / safe_filename
                 with open(output_file, "w") as f:
                     for page in ocr_response.pages:
                         f.write(f"## Page {page.index + 1}\n\n")
