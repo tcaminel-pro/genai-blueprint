@@ -11,6 +11,7 @@ from src.ai_core.llm import LlmFactory, get_llm
 from src.demos.ekg.rainbow_model import RainbowProjectAnalysis
 from src.utils.config_mngr import global_config
 
+
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def extract_rainbow(
@@ -74,7 +75,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         if not md_files:
             logger.warning("No Markdown files found matching the provided patterns.")
             return
-        
+
         logger.info(f"Found {len(md_files)} Markdown files to process")
 
         # Filter out files that already have JSON output unless forced
