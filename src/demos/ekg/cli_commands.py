@@ -11,25 +11,24 @@ from src.ai_core.llm import LlmFactory, get_llm
 from src.demos.ekg.rainbow_model import RainbowProjectAnalysis
 from src.utils.config_mngr import global_config
 
-
+#  log main actions AI!
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
-    def extract_projects(
+    def extract_rainbow(
         file_patterns: list[str] = typer.Argument(..., help="File patterns to match Markdown files (glob patterns)"),  # noqa: B008
         output_dir: str = typer.Option("./extracted_projects", help="Directory to save JSON results"),
         llm_id: Annotated[
             Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
         ] = None,
         recursive: bool = typer.Option(False, help="Search for files recursively"),
-        use_cache: bool = typer.Option(True, "Use cached LLM responses if available"),
         batch_size: int = typer.Option(5, help="Number of files to process in each batch"),
         force: bool = typer.Option(False, "--force", help="Overwrite existing JSON files"),
     ) -> None:
         """Extract structured project data from Markdown files and save as JSON.
 
         Example:
-            uv run cli extract-projects "*.md" "projects/*.md" --output-dir=./json_output --llm-id gpt-4o
-            uv run cli extract-projects "**/*.md" --recursive --output-dir=./data
+            uv run cli extract-rainbow "*.md" "projects/*.md" --output-dir=./json_output --llm-id gpt-4o
+            uv run cli extract-rainbow "**/*.md" --recursive --output-dir=./data
         """
 
         from loguru import logger
@@ -39,10 +38,10 @@ def register_commands(cli_app: typer.Typer) -> None:
             print(f"Error: unknown llm_id. \n Should be in {LlmFactory.known_items()}")
             return
 
-        # Setup configuration
-        LlmCache.set_method("sqlite" if use_cache else "no_cache")
-        if llm_id:
-            global_config().set("llm.default_model", llm_id)
+        # # Setup configuration
+        # LlmCache.set_method("sqlite" if use_cache else "no_cache")
+        # if llm_id:
+        #     global_config().set("llm.default_model", llm_id)
 
         # Collect all Markdown files matching the patterns
         all_files = []
