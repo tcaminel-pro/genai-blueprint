@@ -180,8 +180,9 @@ async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache
                 cached_ocr = load_object_from_kvstore(model_class=OCRResponse, key=str(pdf_path))
                 if cached_ocr:
                     logger.info(f"Using cached OCR for: '{str(pdf_path)}'")
-                    # Save to output directory
-                    output_file = output_dir / f"{pdf_path.stem}.md"
+                    # Save to output directory with sanitized filename
+                    safe_filename = sanitize_filename(f"{pdf_path.stem}.md")
+                    output_file = output_dir / safe_filename
                     with open(output_file, "w") as f:
                         for page in cached_ocr.pages:
                             f.write(f"## Page {page.index + 1}\n\n")
