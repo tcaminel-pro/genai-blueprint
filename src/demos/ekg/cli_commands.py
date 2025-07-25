@@ -6,17 +6,15 @@ from loguru import logger
 from typer import Option
 from upath import UPath
 
-from src.ai_core.cache import LlmCache
 from src.ai_core.llm import LlmFactory, get_llm
 from src.demos.ekg.rainbow_model import RainbowProjectAnalysis
-from src.utils.config_mngr import global_config
 
 
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def extract_rainbow(
         file_patterns: list[str] = typer.Argument(..., help="File patterns to match Markdown files (glob patterns)"),  # noqa: B008
-        output_dir: str = typer.Option("./extracted_projects", help="Directory to save JSON results"),
+        output_dir: str = typer.Argument(help="Directory to save JSON results"),
         llm_id: Annotated[
             Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
         ] = None,
@@ -87,7 +85,9 @@ def register_commands(cli_app: typer.Typer) -> None:
                 if not json_output_file.exists():
                     unprocessed_files.append(md_file)
                 else:
-                    logger.info(f"Skipping {md_file.name} - JSON already exists (use --force to overwrite)")
+                    logger.info(
+                        f"Skipping {md_file.name} - JSON already exists : {json_output_file} (use --force to overwrite)"
+                    )
             md_files = unprocessed_files
 
         if not md_files:

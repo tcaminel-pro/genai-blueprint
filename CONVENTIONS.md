@@ -11,4 +11,6 @@
     - Don't mention types 
     - Don't mention raised exceptions 
     - Use  ``` to format code in documentation (Fenced Code Blocks)
-- use 'uv run pytest -v' to run pytest 
+- use loguru for logging.  
+- use rich for output pretty-printing
+- use 'uv' to manage packages and execute tests, code etc. Ex: uv pytest -v' to run pytest 

@@ -67,3 +67,9 @@ container:
     default:  langsmith
   external_data: ${paths.data_root}/external
 
+ekg_local:
+  default_model: kimi_k2_openrouter
+  cli:
+    commands:  
+    - src.ai_core.cli_commands:register_commands
+    - src.demos.ekg.cli_commands:register_commands
