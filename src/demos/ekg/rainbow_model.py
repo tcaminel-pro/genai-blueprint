@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
 
+
 class ProjectIdentification(BaseModel):
     """Core project identification information"""
 
