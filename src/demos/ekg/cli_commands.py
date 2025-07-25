@@ -11,7 +11,6 @@ from src.ai_core.llm import LlmFactory, get_llm
 from src.demos.ekg.rainbow_model import RainbowProjectAnalysis
 from src.utils.config_mngr import global_config
 
-#  log main actions AI!
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def extract_rainbow(
@@ -26,6 +25,12 @@ def register_commands(cli_app: typer.Typer) -> None:
     ) -> None:
         """Extract structured project data from Markdown files and save as JSON.
 
+        Logs main actions including:
+        - File pattern matching
+        - File processing
+        - Batch processing
+        - Results saving
+
         Example:
             uv run cli extract-rainbow "*.md" "projects/*.md" --output-dir=./json_output --llm-id gpt-4o
             uv run cli extract-rainbow "**/*.md" --recursive --output-dir=./data
@@ -35,8 +40,10 @@ def register_commands(cli_app: typer.Typer) -> None:
         from upath import UPath
 
         if llm_id is not None and llm_id not in LlmFactory.known_items():
-            print(f"Error: unknown llm_id. \n Should be in {LlmFactory.known_items()}")
+            logger.error(f"Unknown llm_id: {llm_id}. Valid options: {LlmFactory.known_items()}")
             return
+
+        logger.info(f"Starting project extraction with patterns: {file_patterns}")
 
         # # Setup configuration
         # LlmCache.set_method("sqlite" if use_cache else "no_cache")
@@ -67,6 +74,8 @@ def register_commands(cli_app: typer.Typer) -> None:
         if not md_files:
             logger.warning("No Markdown files found matching the provided patterns.")
             return
+        
+        logger.info(f"Found {len(md_files)} Markdown files to process")
 
         # Filter out files that already have JSON output unless forced
         output_path = UPath(output_dir)
@@ -84,12 +93,11 @@ def register_commands(cli_app: typer.Typer) -> None:
             logger.info("All files have already been processed. Use --force to reprocess.")
             return
 
-        logger.info(f"Found {len(md_files)} Markdown files to process")
-
         output_path.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Created output directory: {output_path}")
         asyncio.run(process_markdown_batch(md_files, output_path, batch_size))
 
-        logger.info(f"Project extraction complete. Results saved to {output_dir}")
+        logger.success(f"Project extraction complete. {len(md_files)} files processed. Results saved to {output_dir}")
 
 
 async def process_markdown_batch(md_files: list[UPath], output_dir: UPath, batch_size: int = 5) -> None:
