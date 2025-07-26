@@ -172,8 +172,8 @@ def register_commands(cli_app: typer.Typer) -> None:
 
     @cli_app.command()
     def ocr_pdf(
-        file_patterns: list[str] = typer.Argument(..., help="File patterns to match PDF files (glob patterns)"),  # noqa: B008
-        output_dir: str = typer.Option("./ocr_output", help="Directory to save OCR results"),
+        file_patterns: list[Path] = typer.Argument(..., help="File patterns or directories to process PDF files"),  # noqa: B008
+        output_dir: Path = typer.Option(Path("./ocr_output"), help="Directory to save OCR results", exists=False),
         use_cache: bool = typer.Option(True, help="Use cached OCR results if available"),
         recursive: bool = typer.Option(False, help="Search for files recursively"),
     ) -> None:
@@ -186,22 +186,41 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         from src.ai_extra.mistral_ocr import process_pdf_batch
 
-        # Collect all PDF files matching the patterns
+        # Validate output directory
+        if output_dir.exists() and not output_dir.is_dir():
+            print(f"Error: {output_dir} exists but is not a directory")
+            return
+        
+        # Create output directory if it doesn't exist
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Collect all PDF files
         all_files = []
-        for pattern in file_patterns:
-            path = UPath(pattern)
-
-            # Handle glob patterns
-            if "*" in pattern:
-                base_dir = path.parent
+        for pattern_path in file_patterns:
+            path = UPath(pattern_path)
+            
+            if path.is_file() and path.suffix.lower() == ".pdf":
+                # Single PDF file
+                all_files.append(path)
+            elif path.is_dir():
+                # Directory - find PDF files inside
                 if recursive:
-                    matched_files = list(base_dir.glob(f"**/{path.name}"))
+                    pdf_files = list(path.rglob("*.pdf"))
                 else:
-                    matched_files = list(base_dir.glob(path.name))
-                all_files.extend(matched_files)
+                    pdf_files = list(path.glob("*.pdf"))
+                all_files.extend(pdf_files)
             else:
-                # Direct file path
-                if path.exists():
+                # Handle glob patterns
+                base_dir = path.parent
+                pattern_name = path.name
+                
+                if "*" in str(pattern_name):
+                    if recursive:
+                        matched_files = list(base_dir.rglob(pattern_name))
+                    else:
+                        matched_files = list(base_dir.glob(pattern_name))
+                    all_files.extend(matched_files)
+                elif path.exists() and path.suffix.lower() == ".pdf":
                     all_files.append(path)
 
         # Filter for PDF files
