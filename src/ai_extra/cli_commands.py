@@ -173,13 +173,13 @@ def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def ocr_pdf(
         file_patterns: list[typer.Path] = typer.Argument(
-            ..., 
+            ...,
             help="PDF files or directories to process",
             exists=True,
             file_okay=True,
             dir_okay=True,
             readable=True,
-            resolve_path=True
+            resolve_path=True,
         ),
         output_dir: typer.Path = typer.Option(
             Path("./ocr_output"),
@@ -188,7 +188,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             file_okay=False,
             dir_okay=True,
             writable=True,
-            resolve_path=True
+            resolve_path=True,
         ),
         use_cache: bool = typer.Option(True, help="Use cached OCR results if available"),
         recursive: bool = typer.Option(False, help="Search for files recursively"),
@@ -206,7 +206,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         all_files = []
         for path in file_patterns:
             path = UPath(path)
-            
+
             if path.is_file() and path.suffix.lower() == ".pdf":
                 # Single PDF file
                 all_files.append(path)
