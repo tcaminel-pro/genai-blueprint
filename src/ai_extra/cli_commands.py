@@ -190,15 +190,15 @@ def register_commands(cli_app: typer.Typer) -> None:
         if output_dir.exists() and not output_dir.is_dir():
             print(f"Error: {output_dir} exists but is not a directory")
             return
-        
+
         # Create output directory if it doesn't exist
         output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Collect all PDF files
         all_files = []
         for pattern_path in file_patterns:
             path = UPath(pattern_path)
-            
+
             if path.is_file() and path.suffix.lower() == ".pdf":
                 # Single PDF file
                 all_files.append(path)
@@ -213,7 +213,7 @@ def register_commands(cli_app: typer.Typer) -> None:
                 # Handle glob patterns
                 base_dir = path.parent
                 pattern_name = path.name
-                
+
                 if "*" in str(pattern_name):
                     if recursive:
                         matched_files = list(base_dir.rglob(pattern_name))
@@ -344,4 +344,3 @@ def register_commands(cli_app: typer.Typer) -> None:
         else:
             result = chain.invoke({"pattern": pattern, "input_data": input}, config)
             print(result)
-
