@@ -14,22 +14,22 @@ def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def extract_rainbow(
         file_or_dir: list[Path] = typer.Argument(
-            ..., 
+            ...,
             help="Markdown files or directories to process",
             exists=True,
             file_okay=True,
             dir_okay=True,
             readable=True,
-            resolve_path=True
+            resolve_path=True,
         ),
         output_dir: Path = typer.Argument(
             ...,
             help="Directory to save JSON results",
             exists=True,
-            file_okay=False, 
+            file_okay=False,
             dir_okay=True,
             writable=True,
-            resolve_path=True
+            resolve_path=True,
         ),
         llm_id: Annotated[
             Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
@@ -40,9 +40,9 @@ def register_commands(cli_app: typer.Typer) -> None:
     ) -> None:
         """Extract structured project data from Markdown files and save as JSON.
 
-         Example:
-            uv run cli extract-rainbow "*.md" "projects/*.md" --output-dir=./json_output --llm-id gpt-4o
-            uv run cli extract-rainbow "**/*.md" --recursive --output-dir=./data
+        Example:
+           uv run cli extract-rainbow "*.md" "projects/*.md" --output-dir=./json_output --llm-id gpt-4o
+           uv run cli extract-rainbow "**/*.md" --recursive --output-dir=./data
         """
 
         from loguru import logger
@@ -54,11 +54,11 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         logger.info(f"Starting project extraction with: {file_or_dir}")
 
-        # Collect all Markdown files 
+        # Collect all Markdown files
         all_files = []
         for path in file_or_dir:
             path = UPath(path)
-            
+
             if path.is_file() and path.suffix.lower() in [".md", ".markdown"]:
                 # Single Markdown file
                 all_files.append(path)
