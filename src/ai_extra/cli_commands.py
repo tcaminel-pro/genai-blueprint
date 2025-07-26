@@ -172,33 +172,41 @@ def register_commands(cli_app: typer.Typer) -> None:
 
     @cli_app.command()
     def ocr_pdf(
-        file_patterns: list[Path] = typer.Argument(..., help="File patterns or directories to process PDF files"),  # noqa: B008
-        output_dir: Path = typer.Option(Path("./ocr_output"), help="Directory to save OCR results", exists=False),
+        file_patterns: list[typer.Path] = typer.Argument(
+            ..., 
+            help="PDF files or directories to process",
+            exists=True,
+            file_okay=True,
+            dir_okay=True,
+            readable=True,
+            resolve_path=True
+        ),
+        output_dir: typer.Path = typer.Option(
+            Path("./ocr_output"),
+            help="Directory to save OCR results",
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+            writable=True,
+            resolve_path=True
+        ),
         use_cache: bool = typer.Option(True, help="Use cached OCR results if available"),
         recursive: bool = typer.Option(False, help="Search for files recursively"),
     ) -> None:
         """Process PDF files with Mistral OCR and save the results as markdown files.
 
         Example:
-            python -m src.ai_extra.mistral_ocr ocr_pdf "*.pdf" "data/*.pdf" --output-dir=./ocr_results
+            uv run cli ocr-pdf file1.pdf file2.pdf /path/to/files --output-dir=./ocr_results
         """
         from loguru import logger
 
         from src.ai_extra.mistral_ocr import process_pdf_batch
 
-        # Validate output directory
-        if output_dir.exists() and not output_dir.is_dir():
-            print(f"Error: {output_dir} exists but is not a directory")
-            return
-
-        # Create output directory if it doesn't exist
-        output_dir.mkdir(parents=True, exist_ok=True)
-
         # Collect all PDF files
         all_files = []
-        for pattern_path in file_patterns:
-            path = UPath(pattern_path)
-
+        for path in file_patterns:
+            path = UPath(path)
+            
             if path.is_file() and path.suffix.lower() == ".pdf":
                 # Single PDF file
                 all_files.append(path)
@@ -210,24 +218,14 @@ def register_commands(cli_app: typer.Typer) -> None:
                     pdf_files = list(path.glob("*.pdf"))
                 all_files.extend(pdf_files)
             else:
-                # Handle glob patterns
-                base_dir = path.parent
-                pattern_name = path.name
-
-                if "*" in str(pattern_name):
-                    if recursive:
-                        matched_files = list(base_dir.rglob(pattern_name))
-                    else:
-                        matched_files = list(base_dir.glob(pattern_name))
-                    all_files.extend(matched_files)
-                elif path.exists() and path.suffix.lower() == ".pdf":
-                    all_files.append(path)
+                logger.error(f"Invalid path: {path} - must be a PDF file or directory")
+                return
 
         # Filter for PDF files
         pdf_files = [f for f in all_files if f.suffix.lower() == ".pdf"]
 
         if not pdf_files:
-            logger.warning("No PDF files found matching the provided patterns.")
+            logger.warning("No PDF files found in the provided paths.")
             return
 
         logger.info(f"Found {len(pdf_files)} PDF files to process")
