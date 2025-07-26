@@ -24,13 +24,7 @@ def register_commands(cli_app: typer.Typer) -> None:
     ) -> None:
         """Extract structured project data from Markdown files and save as JSON.
 
-        Logs main actions including:
-        - File pattern matching
-        - File processing
-        - Batch processing
-        - Results saving
-
-        Example:
+         Example:
             uv run cli extract-rainbow "*.md" "projects/*.md" --output-dir=./json_output --llm-id gpt-4o
             uv run cli extract-rainbow "**/*.md" --recursive --output-dir=./data
         """
