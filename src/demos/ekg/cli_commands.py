@@ -13,8 +13,24 @@ from src.demos.ekg.rainbow_model import RainbowProjectAnalysis
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def extract_rainbow(
-        file_patterns: list[str] = typer.Argument(..., help="File patterns to match Markdown files (glob patterns)"),  # noqa: B008
-        output_dir: str = typer.Argument(help="Directory to save JSON results"),
+        file_or_dir: list[Path] = typer.Argument(
+            ..., 
+            help="Markdown files or directories to process",
+            exists=True,
+            file_okay=True,
+            dir_okay=True,
+            readable=True,
+            resolve_path=True
+        ),
+        output_dir: Path = typer.Argument(
+            ...,
+            help="Directory to save JSON results",
+            exists=True,
+            file_okay=False, 
+            dir_okay=True,
+            writable=True,
+            resolve_path=True
+        ),
         llm_id: Annotated[
             Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
         ] = None,
@@ -36,33 +52,28 @@ def register_commands(cli_app: typer.Typer) -> None:
             logger.error(f"Unknown llm_id: {llm_id}. Valid options: {LlmFactory.known_items()}")
             return
 
-        logger.info(f"Starting project extraction with patterns: {file_patterns}")
+        logger.info(f"Starting project extraction with: {file_or_dir}")
 
-        # # Setup configuration
-        # LlmCache.set_method("sqlite" if use_cache else "no_cache")
-        # if llm_id:
-        #     global_config().set("llm.default_model", llm_id)
-
-        # Collect all Markdown files matching the patterns
+        # Collect all Markdown files 
         all_files = []
-        for pattern in file_patterns:
-            path = UPath(pattern)
-
-            # Handle glob patterns
-            if "*" in pattern:
-                base_dir = path.parent
+        for path in file_or_dir:
+            path = UPath(path)
+            
+            if path.is_file() and path.suffix.lower() in [".md", ".markdown"]:
+                # Single Markdown file
+                all_files.append(path)
+            elif path.is_dir():
+                # Directory - find Markdown files inside
                 if recursive:
-                    matched_files = list(base_dir.glob(f"**/{path.name}"))
+                    md_files = list(path.rglob("*.[mM][dD]"))  # Case-insensitive match
                 else:
-                    matched_files = list(base_dir.glob(path.name))
-                all_files.extend(matched_files)
+                    md_files = list(path.glob("*.[mM][dD]"))
+                all_files.extend(md_files)
             else:
-                # Direct file path
-                if path.exists():
-                    all_files.append(path)
+                logger.error(f"Invalid path: {path} - must be a Markdown file or directory")
+                return
 
-        # Filter for Markdown files
-        md_files = [f for f in all_files if f.suffix.lower() in [".md", ".markdown"]]
+        md_files = all_files  # All files are already Markdown files at this point
 
         if not md_files:
             logger.warning("No Markdown files found matching the provided patterns.")
