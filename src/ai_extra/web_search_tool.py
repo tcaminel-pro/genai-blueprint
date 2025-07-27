@@ -20,7 +20,7 @@ def basic_web_search(query: str) -> str:
     """Run web search on the question."""
     if os.environ.get("TAVILY_API_KEY"):
         try:
-            from langchain-tavily import TavilySearchResults
+            from langchain_tavily import TavilySearchResults
         except ImportError as ex:
             raise ImportError(
                 "tavily-python package is required. Install with: uv add tavily-python --group demos"

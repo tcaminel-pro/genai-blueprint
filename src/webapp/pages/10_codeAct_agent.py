@@ -44,7 +44,7 @@ from src.webapp.ui_components.smolagents_streamlit import stream_to_streamlit
 
 MODEL_ID = None  # Use the one by configuration
 MODEL_ID = "gpt_41mini_openrouter"
-#MODEL_ID = "kimi_k2_openrouter"
+# MODEL_ID = "kimi_k2_openrouter"
 # MODEL_ID = "gpt_o3mini_openrouter"
 # MODEL_ID = "qwen_qwq32_openrouter"
 

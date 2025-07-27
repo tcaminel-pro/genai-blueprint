@@ -94,7 +94,7 @@ def _display_step_content(step_log: MemoryStep, display_details: bool = True) ->
         step_log: The memory step to display
         display_details: Whether to show detailed information like code and footnotes
     """
-   # debug(str_log)
+    # debug(str_log)
     if isinstance(step_log, ActionStep):
         step_number = f"Step {step_log.step_number}" if step_log.step_number is not None else "Step"
         st.markdown(f"**{step_number}**")
