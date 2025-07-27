@@ -132,7 +132,7 @@ def generate_field_embeddings(
             continue
 
         # Get the field info to include in YAML serialization
-        field_info = model_instance.model_fields[field_name]
+        field_info = type(model_instance).model_fields[field_name]
 
         # Create a YAML representation
         yaml_content = yaml.dump(
@@ -176,7 +176,7 @@ def generate_field_documents(
         if field_value is None and not include_null:
             continue
 
-        field_info = model_instance.model_fields[field_name]
+        field_info = type(model_instance).model_fields[field_name]
 
         yaml_content = yaml.dump(
             {
