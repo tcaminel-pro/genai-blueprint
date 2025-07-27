@@ -207,7 +207,7 @@ def main() -> None:
     """Quick test of the embedding utilities using fake embeddings."""
     # Create fake embeddings for testing
     fake_embeddings = FakeEmbeddings(size=1536)
-    
+
     # Create a sample project
     sample_project = RainbowProjectAnalysis(
         identification=ProjectIdentification(
@@ -235,19 +235,19 @@ def main() -> None:
         similarity=SimilarityAttributes(keywords=["AI", "automation", "customer service"]),
         source="Test data",
     )
-    
+
     # Test field embeddings
     print("Generating field embeddings...")
     field_embeddings = generate_field_embeddings(sample_project, fake_embeddings)
     print(f"Generated embeddings for {len(field_embeddings)} fields")
-    
+
     # Test field documents
     print("\nGenerating field documents...")
     documents = generate_field_documents(sample_project)
     print(f"Generated {len(documents)} documents")
     for doc in documents[:3]:  # Show first 3
         print(f"- {doc.metadata['field_name']}: {doc.page_content[:100]}...")
-    
+
     print("\nTest completed successfully!")
 
 
