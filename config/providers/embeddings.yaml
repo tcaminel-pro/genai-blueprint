@@ -78,3 +78,8 @@ embeddings:
   id: stella_400
   providers:
     - huggingface: dunzhang/stella_en_400M_v5
+
+- model:  # fake embeddings for tests
+  id: fake_embeddings
+  providers:
+    - fake: fake-embeddings
