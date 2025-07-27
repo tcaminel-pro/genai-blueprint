@@ -4,6 +4,7 @@ from typing import Dict, List
 import yaml
 from langchain.embeddings.base import Embeddings
 from langchain.schema import Document
+from langchain_community.embeddings import FakeEmbeddings
 from pydantic import BaseModel, Field
 
 
@@ -200,3 +201,55 @@ def generate_field_documents(
         documents.append(doc)
 
     return documents
+
+
+def main() -> None:
+    """Quick test of the embedding utilities using fake embeddings."""
+    # Create fake embeddings for testing
+    fake_embeddings = FakeEmbeddings(size=1536)
+    
+    # Create a sample project
+    sample_project = RainbowProjectAnalysis(
+        identification=ProjectIdentification(
+            name="AI Agent Development Project",
+            customer="TechCorp Inc",
+            status="Pursuit",
+            start_date=date(2024, 8, 1),
+            end_date=date(2024, 12, 31),
+        ),
+        description=ProjectDescription(
+            objectives=["Build AI agents for customer service", "Reduce response time by 50%"],
+            scope="End-to-end AI agent implementation",
+            success_metrics=["Response time < 2min", "95% accuracy rate"],
+        ),
+        team=[PersonRole(name="John Doe", role="Project Manager", organization="Our Company")],
+        delivery=DeliveryInfo(
+            business_lines=["AI Solutions", "Consulting"],
+            locations=["New York", "London"],
+            technologies=["Python", "LangChain", "OpenAI"],
+        ),
+        financials=FinancialMetrics(tcv=500000.0, annual_revenue=500000.0, project_margin=25.0),
+        risks=[RiskAnalysis(risk_description="Tight timeline", mitigation_strategy="Add resources")],
+        competition=CompetitiveLandscape(competitors=["BigConsulting Inc"], competitive_position="Strong"),
+        bidding=BiddingStrategy(strategy_type="Prime", win_themes=["Technical expertise", "Experience"]),
+        similarity=SimilarityAttributes(keywords=["AI", "automation", "customer service"]),
+        source="Test data",
+    )
+    
+    # Test field embeddings
+    print("Generating field embeddings...")
+    field_embeddings = generate_field_embeddings(sample_project, fake_embeddings)
+    print(f"Generated embeddings for {len(field_embeddings)} fields")
+    
+    # Test field documents
+    print("\nGenerating field documents...")
+    documents = generate_field_documents(sample_project)
+    print(f"Generated {len(documents)} documents")
+    for doc in documents[:3]:  # Show first 3
+        print(f"- {doc.metadata['field_name']}: {doc.page_content[:100]}...")
+    
+    print("\nTest completed successfully!")
+
+
+if __name__ == "__main__":
+    main()
