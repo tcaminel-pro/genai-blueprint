@@ -1,11 +1,10 @@
 from datetime import date
-from typing import List, Dict, Any
+from typing import Dict, List
 
 import yaml
-from pydantic import BaseModel, Field
 from langchain.embeddings.base import Embeddings
 from langchain.schema import Document
-import numpy as np
+from pydantic import BaseModel, Field
 
 
 class ProjectIdentification(BaseModel):
@@ -202,29 +201,3 @@ def generate_field_documents(
 
     return documents
 
-
-def generate_composite_embedding(
-    model_instance: BaseModel,
-    embeddings: Embeddings,
-    include_null: bool = False,
-) -> list[float]:
-    """Generate a single embedding vector for the entire model instance.
-
-    Serializes the complete model to YAML and generates a single embedding
-    vector representing the entire object.
-
-    Args:
-        model_instance: An instance of a Pydantic model
-        embeddings: LangChain embeddings instance to use for generating vectors
-        include_null: Whether to include fields with None values in serialization
-
-    Returns:
-        Single embedding vector for the entire model
-    """
-    # Filter out None values if requested
-    data = model_instance.model_dump()
-    if not include_null:
-        data = {k: v for k, v in data.items() if v is not None}
-
-    yaml_content = yaml.dump(data, default_flow_style=False, sort_keys=False)
-    return embeddings.embed_query(yaml_content)
