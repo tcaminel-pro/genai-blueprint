@@ -200,4 +200,3 @@ def generate_field_documents(
         documents.append(doc)
 
     return documents
-
