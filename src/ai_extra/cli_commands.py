@@ -22,8 +22,6 @@ import typer
 from typer import Option
 from upath import UPath
 
-from src.ai_core.cache import LlmCache
-from src.ai_core.llm import LlmFactory, get_llm
 from src.utils.config_mngr import global_config
 
 
@@ -45,6 +43,7 @@ async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str] | Non
     from prompt_toolkit.history import FileHistory
     from prompt_toolkit.patch_stdout import patch_stdout
 
+    from src.ai_core.llm import get_llm
     from src.ai_core.mcp_client import get_mcp_servers_dict
     from src.utils.langgraph import print_astream
 
@@ -108,6 +107,8 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         from langchain.globals import set_debug, set_verbose
 
+        from src.ai_core.cache import LlmCache
+        from src.ai_core.llm import LlmFactory
         from src.ai_core.mcp_client import call_react_agent
 
         set_debug(lc_debug)
@@ -148,6 +149,8 @@ def register_commands(cli_app: typer.Typer) -> None:
         from smolagents import CodeAgent, Tool
         from smolagents.default_tools import TOOL_MAPPING
 
+        from src.ai_core.llm import LlmFactory
+
         if llm_id is not None:
             if llm_id not in LlmFactory.known_items():
                 print(f"Error: {llm_id} is unknown llm_id.\nShould be in {LlmFactory.known_items()}")
@@ -172,60 +175,43 @@ def register_commands(cli_app: typer.Typer) -> None:
 
     @cli_app.command()
     def ocr_pdf(
-        file_patterns: list[typer.Path] = typer.Argument(
-            ...,
-            help="PDF files or directories to process",
-            exists=True,
-            file_okay=True,
-            dir_okay=True,
-            readable=True,
-            resolve_path=True,
-        ),
-        output_dir: typer.Path = typer.Option(
-            Path("./ocr_output"),
-            help="Directory to save OCR results",
-            exists=True,
-            file_okay=False,
-            dir_okay=True,
-            writable=True,
-            resolve_path=True,
-        ),
+        file_patterns: list[str] = typer.Argument(..., help="File patterns to match PDF files (glob patterns)"),  # noqa: B008
+        output_dir: str = typer.Option("./ocr_output", help="Directory to save OCR results"),
         use_cache: bool = typer.Option(True, help="Use cached OCR results if available"),
         recursive: bool = typer.Option(False, help="Search for files recursively"),
     ) -> None:
         """Process PDF files with Mistral OCR and save the results as markdown files.
 
         Example:
-            uv run cli ocr-pdf file1.pdf file2.pdf /path/to/files --output-dir=./ocr_results
+            python -m src.ai_extra.mistral_ocr ocr_pdf "*.pdf" "data/*.pdf" --output-dir=./ocr_results
         """
         from loguru import logger
 
         from src.ai_extra.mistral_ocr import process_pdf_batch
 
-        # Collect all PDF files
+        # Collect all PDF files matching the patterns
         all_files = []
-        for path in file_patterns:
-            path = UPath(path)
+        for pattern in file_patterns:
+            path = UPath(pattern)
 
-            if path.is_file() and path.suffix.lower() == ".pdf":
-                # Single PDF file
-                all_files.append(path)
-            elif path.is_dir():
-                # Directory - find PDF files inside
+            # Handle glob patterns
+            if "*" in pattern:
+                base_dir = path.parent
                 if recursive:
-                    pdf_files = list(path.rglob("*.pdf"))
+                    matched_files = list(base_dir.glob(f"**/{path.name}"))
                 else:
-                    pdf_files = list(path.glob("*.pdf"))
-                all_files.extend(pdf_files)
+                    matched_files = list(base_dir.glob(path.name))
+                all_files.extend(matched_files)
             else:
-                logger.error(f"Invalid path: {path} - must be a PDF file or directory")
-                return
+                # Direct file path
+                if path.exists():
+                    all_files.append(path)
 
         # Filter for PDF files
         pdf_files = [f for f in all_files if f.suffix.lower() == ".pdf"]
 
         if not pdf_files:
-            logger.warning("No PDF files found in the provided paths.")
+            logger.warning("No PDF files found matching the provided patterns.")
             return
 
         logger.info(f"Found {len(pdf_files)} PDF files to process")
@@ -287,6 +273,8 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         from browser_use import Agent, BrowserSession
 
+        from src.ai_core.llm import LlmFactory, get_llm
+
         if llm_id is not None and llm_id not in LlmFactory.known_items():
             print(f"Error: unknown llm_id. \n Should be in {LlmFactory.known_items()}")
             return
@@ -321,6 +309,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         from langchain.globals import set_debug, set_verbose
 
+        from src.ai_core.llm import LlmFactory
         from src.ai_extra.fabric_chain import get_fabric_chain
 
         set_debug(debug_mode)

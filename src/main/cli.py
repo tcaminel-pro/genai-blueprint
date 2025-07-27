@@ -68,7 +68,6 @@ def main():
         sys.argv.remove("--logging")
     else:
         level = "WARNING"
-    # print(f"in main {argc=}  {argv=}")
     setup_logging(level)
     modules = global_config().get_list("cli.commands", value_type=str)
     # Import and register commands from each module

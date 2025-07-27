@@ -81,8 +81,8 @@ aider-sonnet:
 	aider $(AIDER_OPTS) --cache-prompts --model openrouter/anthropic/claude-sonnet-4;   
 aider-r1:
 	aider $(AIDER_OPTS) --model openrouter/deepseek/deepseek-r1
-aider-o3:
-	aider $(AIDER_OPTS) --model o3-mini; 
+aider-qwen:
+	aider $(AIDER_OPTS) --model openrouter/qwen/qwen3-coder ; 
 aider-k2:
 	aider $(AIDER_OPTS) --model openrouter/moonshotai/kimi-k2
 

@@ -1,4 +1,5 @@
 import asyncio
+from pathlib import Path
 from typing import Annotated, Optional
 
 import typer
@@ -6,31 +7,28 @@ from loguru import logger
 from typer import Option
 from upath import UPath
 
-from src.ai_core.llm import LlmFactory, get_llm
-from src.demos.ekg.rainbow_model import RainbowProjectAnalysis
-
 
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def extract_rainbow(
-        file_or_dir: list[Path] = typer.Argument(
-            ...,
-            help="Markdown files or directories to process",
-            exists=True,
-            file_okay=True,
-            dir_okay=True,
-            readable=True,
-            resolve_path=True,
-        ),
-        output_dir: Path = typer.Argument(
-            ...,
-            help="Directory to save JSON results",
-            exists=True,
-            file_okay=False,
-            dir_okay=True,
-            writable=True,
-            resolve_path=True,
-        ),
+        file_or_dir: Annotated[
+            Path,
+            typer.Argument(
+                help="Markdown files or directories to process",
+                exists=True,
+                file_okay=True,
+                dir_okay=True,
+            ),
+        ],
+        output_dir: Annotated[
+            Path,
+            typer.Argument(
+                help="Output directory",
+                exists=True,
+                file_okay=False,
+                dir_okay=True,
+            ),
+        ],
         llm_id: Annotated[
             Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
         ] = None,
@@ -48,6 +46,8 @@ def register_commands(cli_app: typer.Typer) -> None:
         from loguru import logger
         from upath import UPath
 
+        from src.ai_core.llm import LlmFactory
+
         if llm_id is not None and llm_id not in LlmFactory.known_items():
             logger.error(f"Unknown llm_id: {llm_id}. Valid options: {LlmFactory.known_items()}")
             return
@@ -56,22 +56,20 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         # Collect all Markdown files
         all_files = []
-        for path in file_or_dir:
-            path = UPath(path)
 
-            if path.is_file() and path.suffix.lower() in [".md", ".markdown"]:
-                # Single Markdown file
-                all_files.append(path)
-            elif path.is_dir():
-                # Directory - find Markdown files inside
-                if recursive:
-                    md_files = list(path.rglob("*.[mM][dD]"))  # Case-insensitive match
-                else:
-                    md_files = list(path.glob("*.[mM][dD]"))
-                all_files.extend(md_files)
+        if file_or_dir.is_file() and file_or_dir.suffix.lower() in [".md", ".markdown"]:
+            # Single Markdown file
+            all_files.append(file_or_dir)
+        elif file_or_dir.is_dir():
+            # Directory - find Markdown files inside
+            if recursive:
+                md_files = list(file_or_dir.rglob("*.[mM][dD]"))  # Case-insensitive match
             else:
-                logger.error(f"Invalid path: {path} - must be a Markdown file or directory")
-                return
+                md_files = list(file_or_dir.glob("*.[mM][dD]"))
+            all_files.extend(md_files)
+        else:
+            logger.error(f"Invalid path: {file_or_dir} - must be a Markdown file or directory")
+            return
 
         md_files = all_files  # All files are already Markdown files at this point
 
@@ -90,9 +88,7 @@ def register_commands(cli_app: typer.Typer) -> None:
                 if not json_output_file.exists():
                     unprocessed_files.append(md_file)
                 else:
-                    logger.info(
-                        f"Skipping {md_file.name} - JSON already exists : {json_output_file} (use --force to overwrite)"
-                    )
+                    logger.info(f"Skipping {md_file.name} - JSON already exists (use --force to overwrite)")
             md_files = unprocessed_files
 
         if not md_files:
@@ -109,7 +105,9 @@ def register_commands(cli_app: typer.Typer) -> None:
 async def process_markdown_batch(md_files: list[UPath], output_dir: UPath, batch_size: int = 5) -> None:
     """Process a batch of markdown files using LangChain batching."""
 
+    from src.ai_core.llm import get_llm
     from src.ai_core.prompts import def_prompt
+    from src.demos.ekg.rainbow_model import RainbowProjectAnalysis
 
     # Setup LLM with structured output
     llm = get_llm(temperature=0.0).with_structured_output(RainbowProjectAnalysis)

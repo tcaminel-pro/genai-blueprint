@@ -19,8 +19,6 @@ from pathlib import Path
 from typing import Annotated, Optional
 
 import typer
-from langchain.globals import set_debug, set_verbose
-from langchain_core.output_parsers import StrOutputParser
 from typer import Option
 
 from src.utils.config_mngr import global_config
@@ -68,6 +66,8 @@ def register_commands(cli_app: typer.Typer) -> None:
         'cache' is the prompt caching strategy, and it can be either 'sqlite' (default) or 'memory'.
         """
 
+        from langchain.globals import set_debug, set_verbose
+        from langchain_core.output_parsers import StrOutputParser
         from rich import print as pprint
 
         from src.ai_core.cache import LlmCache
@@ -144,6 +144,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
 
         from devtools import pprint
+        from langchain.globals import set_debug, set_verbose
 
         from src.ai_core.cache import LlmCache
         from src.ai_core.chain_registry import ChainRegistry
@@ -243,7 +244,6 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
 
         from rich.console import Console
-        from rich.panel import Panel
         from rich.table import Table
 
         from src.ai_core.embeddings import EmbeddingsFactory
@@ -261,15 +261,15 @@ def register_commands(cli_app: typer.Typer) -> None:
         vector = embedder.embed_documents([input])
 
         console = Console()
-        table = Table(title="Embedding Results", show_header=True, header_style="bold magenta")
+        table = Table(title="Embeddings Summary", show_header=True, header_style="bold magenta")
         table.add_column("Property", style="cyan")
         table.add_column("Value", style="green")
 
         table.add_row("Model", factory.embeddings_id or "default")
         table.add_row("Vector Length", str(len(vector[0])))
-        table.add_row("First 20 Elements", ", ".join(f"{x:.4f}" for x in vector[0][:20]))
+        table.add_row("First 40 Elements", ", ".join(f"{x:.4f}" for x in vector[0][:40]) + " [...]")
 
-        console.print(Panel.fit(table, title="Embedding Summary"))
+        console.print(table)
 
     @cli_app.command()
     def list_mcp_tools(

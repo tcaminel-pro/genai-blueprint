@@ -9,8 +9,6 @@ from typing import Annotated
 
 import typer
 
-from src.utils.basic_auth import hash_password
-
 
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command("hash-password")
@@ -22,5 +20,7 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         The hashed password can be added to the auth.yaml file.
         """
+        from src.utils.basic_auth import hash_password
+
         hashed = hash_password(password)
         print(f"Hashed password: {hashed}")
