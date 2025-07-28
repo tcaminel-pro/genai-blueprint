@@ -98,3 +98,6 @@ class RainbowProjectAnalysis(BaseModel):
     bidding: BiddingStrategy
     similarity: SimilarityAttributes
     source: str = Field(description="Source document metadata")
+
+    def get_key(self):
+        return self.identification.opportunity_id
