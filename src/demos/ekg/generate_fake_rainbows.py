@@ -13,7 +13,7 @@ class RainbowProjectAnalysisList(BaseModel)
     array: list[RainbowProjectAnalysis]
 
 
-def generate_fake_rainbows(examples : list[Path], output_dir: Path)
+def generate_fake_rainbows(examples : list[Path], number_of_generated_fakes: int, output_dir: Path)
     LLM_ID = None
     llm = get_llm(temperature=0.0).with_structured_output(RainbowProjectAnalysisList)
 
@@ -40,7 +40,7 @@ def generate_fake_rainbows(examples : list[Path], output_dir: Path)
 def test() -> None:
     file1 = Path(os.getenv("ONEDRIVE","")) / "prj/atos-kg/rainbow-json/03.RESM-SOL-9000559500_CNES_TMA_VENUS_VIP_PEPS_THEIA_MUSCATE-v0.2_extracted.json"
     assert file1.exists()
-    generate_fake_rainbows([file1], Path("/temp"))
+    generate_fake_rainbows([file1], 3, Path("/temp"))
 
 if __name__ == "__main__":
     test()
