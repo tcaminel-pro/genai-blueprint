@@ -130,18 +130,18 @@ class RainbowProjectAnalysis(BaseModel):
                 if annotation is None:
                     schema["fields"][field_name] = field_info
                     continue
-                    
+
                 # Handle Optional/Union types
                 origin = typing.get_origin(annotation)
                 args = typing.get_args(annotation)
-                
+
                 if origin is not None:
                     # Handle Optional, Union, List, etc.
                     nested_models = []
                     for arg in args:
                         if isinstance(arg, type) and issubclass(arg, BaseModel):
                             nested_models.append(extract_schema(arg))
-                    
+
                     if nested_models:
                         field_info["nested"] = nested_models[0] if len(nested_models) == 1 else nested_models
                 elif isinstance(annotation, type) and issubclass(annotation, BaseModel):
