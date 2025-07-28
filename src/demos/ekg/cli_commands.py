@@ -314,10 +314,10 @@ async def generate_fake_projects_async(
     chain = def_prompt(system, human) | llm
 
     # Generate fake projects using LangGraph ReAct agent
-    from src.ai_extra.react_agent_structured_output import create_react_structured_output_graph
+    from langgraph.prebuilt import create_react_agent
 
     llm = get_llm(llm_id=llm_id, temperature=0.7)
-    agent = create_react_structured_output_graph(llm, [save_fake_project_file], dict)
+    agent = create_react_agent(llm, [save_fake_project_file], response_format=)
 
     for i in range(count):
         templates_json = json.dumps(template_projects, indent=2)
@@ -359,65 +359,3 @@ async def generate_fake_projects_async(
                     except Exception as e:
                         logger.error(f"Failed to parse/save fake project {i + 1}: {e}")
 
-        except Exception as e:
-            logger.error(f"Error generating fake project {i + 1} with LangGraph: {e}")
-            # Try individual generation as fallback
-            try:
-                filename = output_dir / f"fake_project_{i + 1}.json"
-                fake_project = await generate_single_fake_project(llm, template_projects, i + 1)
-                filename.write_text(json.dumps(fake_project, indent=2))
-                logger.info(f"Saved fake project (fallback): {filename}")
-            except Exception as e2:
-                logger.error(f"Fallback generation also failed: {e2}")
-
-
-async def generate_single_fake_project(llm, template_projects: list[dict], index: int) -> dict:
-    """Fallback method to generate a single fake project without tools."""
-    from src.ai_core.prompts import def_prompt
-
-    templates_json = json.dumps(template_projects, indent=2)
-
-    system = """Generate a single realistic fake project review based on the provided templates.
-    
-    Rules:
-    - Use the exact same JSON structure as the templates
-    - Create completely fictional but realistic data
-    - Vary names, dates, technologies, and financial figures
-    - Ensure all required fields are filled
-    - Return only valid JSON"""
-
-    user = f"Create fake project #{index} based on these templates:\n\n{templates_json}"
-
-    chain = def_prompt(system=system, user=user) | llm
-
-    # Try to get JSON response
-    response = await chain.ainvoke({})
-    if hasattr(response, "content"):
-        content = response.content
-    else:
-        content = str(response)
-
-    # Try to parse JSON from response
-    import re
-
-    json_match = re.search(r"\{.*\}", content, re.DOTALL)
-    if json_match:
-        try:
-            return json.loads(json_match.group())
-        except:
-            pass
-
-    # If parsing fails, create a basic fake project
-    template = template_projects[0] if template_projects else {}
-    fake_project = {}
-    for key, value in template.items():
-        if isinstance(value, str):
-            fake_project[key] = f"fake_{key}_{index}"
-        elif isinstance(value, (int, float)):
-            fake_project[key] = value + index
-        elif isinstance(value, list):
-            fake_project[key] = [f"fake_item_{i}" for i in range(min(len(value), 3))]
-        else:
-            fake_project[key] = value
-
-    return fake_project

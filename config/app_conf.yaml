@@ -68,4 +68,4 @@ cli:
     - src.ai_extra.cli_commands:register_commands
     - src.webapp.cli_commands:register_commands
     - src.main.cli:register_commands
-#    - src.demos.ekg.cli_commands:register_commands
+    - src.demos.ekg.cli_commands:register_commands

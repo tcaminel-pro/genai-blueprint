@@ -90,8 +90,8 @@ def generate_field_documents(
 
 
 def main() -> None:
-    from rich import print
     from devtools import debug
+    from rich import print
 
     """Quick test of the embedding utilities using fake embeddings."""
     # Create fake embeddings for testing
