@@ -291,7 +291,7 @@ async def generate_fake_projects_async(
     # Setup LLM with tools
     llm = get_llm(llm_id=llm_id, temperature=0.7).bind_tools([save_fake_project_file])
 
-    system = dedent_ws( """
+    system = dedent_ws("""
         You are an expert at generating realistic fake project data based on templates.
         Your task is to create fake but realistic project review data that follows the same patterns 
         and structure as the provided templates, but with completely fictional information.
@@ -309,19 +309,19 @@ async def generate_fake_projects_async(
                       Generate fake project #{index} based on these templates:\n
                         {templates_json}
 
-                     Create a unique, realistic fake project with different details but similar structure.""")          
+                     Create a unique, realistic fake project with different details but similar structure.""")
 
-    chain = def_prompt(system, human)  | llm
+    chain = def_prompt(system, human) | llm
 
     # Generate fake projects using LangGraph ReAct agent
     from src.ai_extra.react_agent_structured_output import create_react_structured_output_graph
-    
+
     llm = get_llm(llm_id=llm_id, temperature=0.7)
     agent = create_react_structured_output_graph(llm, [save_fake_project_file], dict)
-    
+
     for i in range(count):
         templates_json = json.dumps(template_projects, indent=2)
-        
+
         try:
             # Use the ReAct agent to generate and save fake project
             prompt = f"""Generate fake project #{i + 1} based on these templates:
@@ -330,25 +330,25 @@ async def generate_fake_projects_async(
             
             Create a unique, realistic fake project with different details but similar structure. 
             Use the save_fake_project_file tool to save the generated project data."""
-            
+
             result = agent.invoke({"messages": [{"role": "user", "content": prompt}]})
-            
+
             # Check if any tool was called in the conversation
             messages = result.get("messages", [])
             tool_called = False
-            
+
             for message in messages:
-                if hasattr(message, 'tool_calls') and message.tool_calls:
+                if hasattr(message, "tool_calls") and message.tool_calls:
                     for tool_call in message.tool_calls:
-                        if tool_call.get('name') == 'save_fake_project_file':
+                        if tool_call.get("name") == "save_fake_project_file":
                             tool_called = True
                             break
-            
+
             if not tool_called:
                 # Fallback if tool wasn't called - extract final response and save manually
                 final_response = messages[-1].content if messages else ""
                 import re
-                
+
                 json_match = re.search(r"\{.*\}", final_response, re.DOTALL)
                 if json_match:
                     try:
@@ -358,7 +358,7 @@ async def generate_fake_projects_async(
                         logger.info(f"Saved fake project (manual fallback): {filename}")
                     except Exception as e:
                         logger.error(f"Failed to parse/save fake project {i + 1}: {e}")
-                        
+
         except Exception as e:
             logger.error(f"Error generating fake project {i + 1} with LangGraph: {e}")
             # Try individual generation as fallback
