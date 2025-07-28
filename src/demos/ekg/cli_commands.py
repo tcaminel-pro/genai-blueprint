@@ -105,7 +105,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         logger.success(f"Project extraction complete. {len(md_files)} files processed. Results saved to {output_dir}")
 
     @cli_app.command()
-    def generate_fake_projects(
+    def generate_fake_rainbow(
         input_files: Annotated[
             list[Path], typer.Argument(help="JSON files containing project reviews to use as templates")
         ],
@@ -265,6 +265,7 @@ async def generate_fake_projects_async(
     """Generate fake project data based on existing JSON files."""
     from langchain.agents import AgentExecutor, create_tool_calling_agent
     from langchain_core.prompts import ChatPromptTemplate
+
     from src.ai_core.llm import get_llm
 
     # Load template projects from input files
@@ -346,8 +347,8 @@ async def generate_fake_projects_async(
                         filename = output_dir / f"fake_project_{i + 1}.json"
                         filename.write_text(json.dumps(fake_project, indent=2))
                         logger.info(f"Saved fake project: {filename}")
-                    except:
-                        logger.error(f"Failed to parse/save fake project {i + 1}")
+                    except Exception as e:
+                        logger.error(f"Failed to parse/save fake project {i + 1}: {e}")
 
         except Exception as e:
             logger.error(f"Error generating fake project {i + 1}: {e}")
