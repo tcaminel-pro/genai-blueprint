@@ -1,16 +1,13 @@
 import asyncio
-import json
 from pathlib import Path
 from typing import Annotated, Optional
 
 import typer
-from langchain_core.tools import tool
 from loguru import logger
-from pydantic import BaseModel, Field
 from typer import Option
 from upath import UPath
 
-from src.ai_core.prompts import dedent_ws, def_prompt
+from src.ai_core.prompts import def_prompt
 
 
 def register_commands(cli_app: typer.Typer) -> None:
@@ -158,16 +155,11 @@ def register_commands(cli_app: typer.Typer) -> None:
         output_path = UPath(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
 
-        logger.info(f"Generating {count} fake project reviews based on {len(valid_files)} template files")
-        asyncio.run(generate_fake_projects_async(valid_files, output_path, count, llm_id))
-        logger.success(f"Generated {count} fake project reviews in {output_dir}")
-
 
 async def process_markdown_batch(md_files: list[UPath], output_dir: UPath, batch_size: int = 5) -> None:
     """Process a batch of markdown files using LangChain batching."""
 
     from src.ai_core.llm import get_llm
-    from src.ai_core.prompts import def_prompt
     from src.demos.ekg.rainbow_model import RainbowProjectAnalysis
 
     # Setup LLM with structured output
@@ -234,128 +226,3 @@ async def process_markdown_batch(md_files: list[UPath], output_dir: UPath, batch
                     logger.info(f"Saved (individual): {output_file}")
                 except Exception as e2:
                     logger.error(f"Error processing {file_path}: {e2}")
-
-
-class FakeProjectRequest(BaseModel):
-    """Request model for generating a fake project."""
-
-    template_projects: list[dict] = Field(description="List of template project data")
-    index: int = Field(description="Index of the fake project being generated")
-
-
-@tool
-def save_fake_project_file(project_data: dict, filename: str) -> str:
-    """Save generated fake project data to a JSON file.
-
-    Args:
-        project_data: The fake project data to save
-        filename: Name of the file to save (without extension)
-
-    Returns:
-        Success message with file path
-    """
-    from upath import UPath
-
-    output_file = UPath(filename).with_suffix(".json")
-    output_file.write_text(json.dumps(project_data, indent=2))
-    return f"Successfully saved fake project to {output_file}"
-
-
-async def generate_fake_projects_async(
-    input_files: list[Path], output_dir: UPath, count: int, llm_id: str | None = None
-) -> None:
-    """Generate fake project data based on existing JSON files."""
-    from src.ai_core.llm import get_llm
-
-    # Load template projects from input files
-    template_projects = []
-    for file_path in input_files:
-        try:
-            with open(file_path) as f:
-                data = json.load(f)
-                # Handle both single project and array formats
-                if isinstance(data, list):
-                    template_projects.extend(data)
-                else:
-                    template_projects.append(data)
-        except Exception as e:
-            logger.error(f"Error reading template file {file_path}: {e}")
-            return
-
-    if not template_projects:
-        logger.error("No valid project data found in input files")
-        return
-
-    logger.info(f"Loaded {len(template_projects)} template projects")
-
-    # Setup LLM with tools
-    llm = get_llm(llm_id=llm_id, temperature=0.7).bind_tools([save_fake_project_file])
-
-    system = dedent_ws("""
-        You are an expert at generating realistic fake project data based on templates.
-        Your task is to create fake but realistic project review data that follows the same patterns 
-        and structure as the provided templates, but with completely fictional information.
-        Guidelines:
-        - Maintain the exact JSON structure and field names from the templates
-        - Generate realistic but fake data (different company names, technologies, dates, etc.)
-        - Ensure dates are realistic and consistent
-        - Vary the data significantly from the templates while keeping it believable
-        - Fill all required fields with appropriate fake data
-        - Use diverse company names, project names, and technologies
-        - Make sure financial figures are realistic for the project type
-        After generating each fake project, use the save_fake_project_file tool to save it.""")
-
-    human = dedent_ws("""
-                      Generate fake project #{index} based on these templates:\n
-                        {templates_json}
-
-                     Create a unique, realistic fake project with different details but similar structure.""")
-
-    chain = def_prompt(system, human) | llm
-
-    # Generate fake projects using LangGraph ReAct agent
-    from langgraph.prebuilt import create_react_agent
-
-    llm = get_llm(llm_id=llm_id, temperature=0.7)
-    agent = create_react_agent(llm, [save_fake_project_file], response_format=)
-
-    for i in range(count):
-        templates_json = json.dumps(template_projects, indent=2)
-
-        try:
-            # Use the ReAct agent to generate and save fake project
-            prompt = f"""Generate fake project #{i + 1} based on these templates:
-            
-            {templates_json}
-            
-            Create a unique, realistic fake project with different details but similar structure. 
-            Use the save_fake_project_file tool to save the generated project data."""
-
-            result = agent.invoke({"messages": [{"role": "user", "content": prompt}]})
-
-            # Check if any tool was called in the conversation
-            messages = result.get("messages", [])
-            tool_called = False
-
-            for message in messages:
-                if hasattr(message, "tool_calls") and message.tool_calls:
-                    for tool_call in message.tool_calls:
-                        if tool_call.get("name") == "save_fake_project_file":
-                            tool_called = True
-                            break
-
-            if not tool_called:
-                # Fallback if tool wasn't called - extract final response and save manually
-                final_response = messages[-1].content if messages else ""
-                import re
-
-                json_match = re.search(r"\{.*\}", final_response, re.DOTALL)
-                if json_match:
-                    try:
-                        fake_project = json.loads(json_match.group())
-                        filename = output_dir / f"fake_project_{i + 1}.json"
-                        filename.write_text(json.dumps(fake_project, indent=2))
-                        logger.info(f"Saved fake project (manual fallback): {filename}")
-                    except Exception as e:
-                        logger.error(f"Failed to parse/save fake project {i + 1}: {e}")
-

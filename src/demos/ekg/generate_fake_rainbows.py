@@ -1,7 +1,7 @@
 """
-Generate fake project review data based on real project templates.
+Generate fake project Rainbow review data based on real project templates.
 
-This module provides functionality to create realistic but fake project review data using LangChain.
+This module provides functionality to create realistic but fake project Rainbow review data using LangChain.
 It loads JSON templates of actual project reviews and generates new synthetic data with similar structure
 but completely fictional content including company names, technologies, team members, and financial data.
 """
@@ -12,7 +12,6 @@ from pathlib import Path
 
 from loguru import logger
 from pydantic import BaseModel
-from langchain_core.language_models import BaseChatModel
 
 from src.ai_core.llm import get_llm
 from src.ai_core.prompts import dedent_ws, def_prompt
@@ -25,8 +24,8 @@ class RainbowProjectAnalysisList(BaseModel):
     array: list[RainbowProjectAnalysis]
 
 
-def generate_fake_rainbows(
-    examples: list[Path], number_of_generated_fakes: int, output_dir: Path, llm: BaseChatModel | None = None
+def generate_fake_rainbows_from_samples(
+    examples: list[Path], number_of_generated_fakes: int, output_dir: Path, llm_id: str | None = None
 ) -> None:
     """
     Generate fake project reviews based on templates and save as JSON files.
@@ -43,12 +42,6 @@ def generate_fake_rainbows(
 
     all_examples = [example.read_text() for example in examples]
     logger.info(f"Loaded {len(all_examples)} templates, generating {number_of_generated_fakes} fake projects")
-
-    # Use provided LLM or create default
-    if llm is None:
-        llm = get_llm(temperature=0.7)
-
-    llm = llm.with_structured_output(RainbowProjectAnalysisList)
 
     system = dedent_ws("""
         You are an expert at generating realistic fake project data based on examples.
@@ -70,9 +63,9 @@ def generate_fake_rainbows(
         {templates_json}\n
         Create diverse fake projects with different details but similar structure and complexity.""")
 
-    templates_json = "\n".join(all_examples)
+    llm = get_llm(llm_id, temperature=0.7).with_structured_output(RainbowProjectAnalysisList)
     chain = def_prompt(system, user) | llm
-
+    templates_json = "\n".join(all_examples)
     try:
         response = chain.invoke({"count": number_of_generated_fakes, "templates_json": templates_json})
 
@@ -97,7 +90,7 @@ def test() -> None:
     assert file1.exists()
 
     output_dir = Path("/tmp")
-    generate_fake_rainbows([file1], 2, output_dir)
+    generate_fake_rainbows_from_samples([file1], 2, output_dir, llm_id=None)
     logger.info(f"Test completed. Check {output_dir} for generated files.")
 
 
