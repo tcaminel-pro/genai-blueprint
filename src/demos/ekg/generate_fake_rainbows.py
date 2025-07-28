@@ -21,18 +21,16 @@ from src.demos.ekg.rainbow_model import RainbowProjectAnalysis
 
 class RainbowProjectAnalysisList(BaseModel):
     """A container for multiple RainbowProjectAnalysis instances."""
+
     array: list[RainbowProjectAnalysis]
 
 
 def generate_fake_rainbows(
-    examples: list[Path], 
-    number_of_generated_fakes: int, 
-    output_dir: Path,
-    llm: BaseChatModel | None = None
+    examples: list[Path], number_of_generated_fakes: int, output_dir: Path, llm: BaseChatModel | None = None
 ) -> None:
     """
     Generate fake project reviews based on templates and save as JSON files.
-    
+
     Args:
         examples: List of paths to JSON template files containing real project reviews
         number_of_generated_fakes: Number of fake projects to generate
@@ -49,7 +47,7 @@ def generate_fake_rainbows(
     # Use provided LLM or create default
     if llm is None:
         llm = get_llm(temperature=0.7)
-    
+
     llm = llm.with_structured_output(RainbowProjectAnalysisList)
 
     system = dedent_ws("""
