@@ -132,6 +132,7 @@ def register_commands(cli_app: typer.Typer) -> None:
            uv run cli generate-fake-projects sample_project.json --output-dir=./generated --count=5
         """
         from src.ai_core.llm import LlmFactory
+        from src.demos.ekg.generate_fake_rainbows import generate_fake_rainbows_from_samples
 
         if llm_id is not None and llm_id not in LlmFactory.known_items():
             logger.error(f"Unknown llm_id: {llm_id}. Valid options: {LlmFactory.known_items()}")
@@ -154,9 +155,6 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         output_path = UPath(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
-
-        from src.demos.ekg.generate_fake_rainbows import generate_fake_rainbows_from_samples
-
         generate_fake_rainbows_from_samples(
             examples=valid_files, number_of_generated_fakes=count, output_dir=output_path, llm_id=llm_id
         )
