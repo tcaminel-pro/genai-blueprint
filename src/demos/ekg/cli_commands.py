@@ -106,7 +106,9 @@ def register_commands(cli_app: typer.Typer) -> None:
 
     @cli_app.command()
     def generate_fake_projects(
-        input_files: Annotated[list[Path], typer.Argument(help="JSON files containing project reviews to use as templates")],
+        input_files: Annotated[
+            list[Path], typer.Argument(help="JSON files containing project reviews to use as templates")
+        ],
         output_dir: Annotated[
             Path,
             typer.Argument(
@@ -131,7 +133,7 @@ def register_commands(cli_app: typer.Typer) -> None:
            uv run cli generate-fake-projects sample_project.json --output-dir=./generated --count=5
         """
         from src.ai_core.llm import LlmFactory
-        
+
         if llm_id is not None and llm_id not in LlmFactory.known_items():
             logger.error(f"Unknown llm_id: {llm_id}. Valid options: {LlmFactory.known_items()}")
             return
@@ -142,18 +144,18 @@ def register_commands(cli_app: typer.Typer) -> None:
             if not file_path.exists():
                 logger.error(f"Input file does not exist: {file_path}")
                 return
-            if not file_path.suffix.lower() == '.json':
+            if not file_path.suffix.lower() == ".json":
                 logger.error(f"Input file must be JSON: {file_path}")
                 return
             valid_files.append(file_path)
-        
+
         if not valid_files:
             logger.error("No valid JSON input files provided")
             return
-            
+
         output_path = UPath(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
-        
+
         logger.info(f"Generating {count} fake project reviews based on {len(valid_files)} template files")
         asyncio.run(generate_fake_projects_async(valid_files, output_path, count, llm_id))
         logger.success(f"Generated {count} fake project reviews in {output_dir}")
@@ -234,6 +236,7 @@ async def process_markdown_batch(md_files: list[UPath], output_dir: UPath, batch
 
 class FakeProjectRequest(BaseModel):
     """Request model for generating a fake project."""
+
     template_projects: list[dict] = Field(description="List of template project data")
     index: int = Field(description="Index of the fake project being generated")
 
@@ -241,32 +244,29 @@ class FakeProjectRequest(BaseModel):
 @tool
 def save_fake_project_file(project_data: dict, filename: str) -> str:
     """Save generated fake project data to a JSON file.
-    
+
     Args:
         project_data: The fake project data to save
         filename: Name of the file to save (without extension)
-    
+
     Returns:
         Success message with file path
     """
     from upath import UPath
-    
-    output_file = UPath(filename).with_suffix('.json')
+
+    output_file = UPath(filename).with_suffix(".json")
     output_file.write_text(json.dumps(project_data, indent=2))
     return f"Successfully saved fake project to {output_file}"
 
 
 async def generate_fake_projects_async(
-    input_files: list[Path], 
-    output_dir: UPath, 
-    count: int, 
-    llm_id: str | None = None
+    input_files: list[Path], output_dir: UPath, count: int, llm_id: str | None = None
 ) -> None:
     """Generate fake project data based on existing JSON files."""
     from langchain.agents import AgentExecutor, create_tool_calling_agent
     from langchain_core.prompts import ChatPromptTemplate
     from src.ai_core.llm import get_llm
-    
+
     # Load template projects from input files
     template_projects = []
     for file_path in input_files:
@@ -281,20 +281,23 @@ async def generate_fake_projects_async(
         except Exception as e:
             logger.error(f"Error reading template file {file_path}: {e}")
             return
-    
+
     if not template_projects:
         logger.error("No valid project data found in input files")
         return
-    
+
     logger.info(f"Loaded {len(template_projects)} template projects")
-    
+
     # Setup LLM and agent
     llm = get_llm(llm_id=llm_id, temperature=0.7)
-    
+
     tools = [save_fake_project_file]
-    
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", """You are an expert at generating realistic fake project data based on templates.
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                """You are an expert at generating realistic fake project data based on templates.
         
         Your task is to create fake but realistic project review data that follows the same patterns 
         and structure as the provided templates, but with completely fictional information.
@@ -308,47 +311,50 @@ async def generate_fake_projects_async(
         - Use diverse company names, project names, and technologies
         - Make sure financial figures are realistic for the project type
         
-        After generating each fake project, use the save_fake_project_file tool to save it."""),
-        ("human", """Generate fake project #{index} based on these templates:
+        After generating each fake project, use the save_fake_project_file tool to save it.""",
+            ),
+            (
+                "human",
+                """Generate fake project #{index} based on these templates:
         
         {templates_json}
         
-        Create a unique, realistic fake project with different details but similar structure.""")
-    ])
-    
+        Create a unique, realistic fake project with different details but similar structure.""",
+            ),
+        ]
+    )
+
     agent = create_tool_calling_agent(llm, tools, prompt)
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
-    
+
     # Generate fake projects
     for i in range(count):
         templates_json = json.dumps(template_projects, indent=2)
-        
+
         try:
-            result = await agent_executor.ainvoke({
-                "templates_json": templates_json,
-                "index": i + 1
-            })
-            
+            result = await agent_executor.ainvoke({"templates_json": templates_json, "index": i + 1})
+
             # The agent should use the save tool, but if not, save manually
             if "save_fake_project_file" not in str(result):
                 # Fallback: extract JSON from response and save manually
                 import re
-                json_match = re.search(r'\{.*\}', str(result), re.DOTALL)
+
+                json_match = re.search(r"\{.*\}", str(result), re.DOTALL)
                 if json_match:
                     try:
                         fake_project = json.loads(json_match.group())
-                        filename = output_dir / f"fake_project_{i+1}.json"
+                        filename = output_dir / f"fake_project_{i + 1}.json"
                         filename.write_text(json.dumps(fake_project, indent=2))
                         logger.info(f"Saved fake project: {filename}")
                     except:
-                        logger.error(f"Failed to parse/save fake project {i+1}")
-                        
+                        logger.error(f"Failed to parse/save fake project {i + 1}")
+
         except Exception as e:
-            logger.error(f"Error generating fake project {i+1}: {e}")
+            logger.error(f"Error generating fake project {i + 1}: {e}")
             # Try individual generation as fallback
             try:
-                filename = output_dir / f"fake_project_{i+1}.json"
-                fake_project = await generate_single_fake_project(llm, template_projects, i+1)
+                filename = output_dir / f"fake_project_{i + 1}.json"
+                fake_project = await generate_single_fake_project(llm, template_projects, i + 1)
                 filename.write_text(json.dumps(fake_project, indent=2))
                 logger.info(f"Saved fake project (fallback): {filename}")
             except Exception as e2:
@@ -358,9 +364,9 @@ async def generate_fake_projects_async(
 async def generate_single_fake_project(llm, template_projects: list[dict], index: int) -> dict:
     """Fallback method to generate a single fake project without tools."""
     from src.ai_core.prompts import def_prompt
-    
+
     templates_json = json.dumps(template_projects, indent=2)
-    
+
     system = """Generate a single realistic fake project review based on the provided templates.
     
     Rules:
@@ -369,27 +375,28 @@ async def generate_single_fake_project(llm, template_projects: list[dict], index
     - Vary names, dates, technologies, and financial figures
     - Ensure all required fields are filled
     - Return only valid JSON"""
-    
+
     user = f"Create fake project #{index} based on these templates:\n\n{templates_json}"
-    
+
     chain = def_prompt(system=system, user=user) | llm
-    
+
     # Try to get JSON response
     response = await chain.ainvoke({})
-    if hasattr(response, 'content'):
+    if hasattr(response, "content"):
         content = response.content
     else:
         content = str(response)
-    
+
     # Try to parse JSON from response
     import re
-    json_match = re.search(r'\{.*\}', content, re.DOTALL)
+
+    json_match = re.search(r"\{.*\}", content, re.DOTALL)
     if json_match:
         try:
             return json.loads(json_match.group())
         except:
             pass
-    
+
     # If parsing fails, create a basic fake project
     template = template_projects[0] if template_projects else {}
     fake_project = {}
@@ -402,5 +409,5 @@ async def generate_single_fake_project(llm, template_projects: list[dict], index
             fake_project[key] = [f"fake_item_{i}" for i in range(min(len(value), 3))]
         else:
             fake_project[key] = value
-    
+
     return fake_project
