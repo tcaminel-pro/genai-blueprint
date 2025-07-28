@@ -10,6 +10,8 @@ from pydantic import BaseModel, Field
 from typer import Option
 from upath import UPath
 
+from src.ai_core.prompts import dedent_ws, def_prompt
+
 
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
@@ -263,7 +265,6 @@ async def generate_fake_projects_async(
     input_files: list[Path], output_dir: UPath, count: int, llm_id: str | None = None
 ) -> None:
     """Generate fake project data based on existing JSON files."""
-    from langchain_core.prompts import ChatPromptTemplate
     from src.ai_core.llm import get_llm
 
     # Load template projects from input files
@@ -290,15 +291,10 @@ async def generate_fake_projects_async(
     # Setup LLM with tools
     llm = get_llm(llm_id=llm_id, temperature=0.7).bind_tools([save_fake_project_file])
 
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                """You are an expert at generating realistic fake project data based on templates.
-        
+    system = dedent_ws( """
+        You are an expert at generating realistic fake project data based on templates.
         Your task is to create fake but realistic project review data that follows the same patterns 
         and structure as the provided templates, but with completely fictional information.
-        
         Guidelines:
         - Maintain the exact JSON structure and field names from the templates
         - Generate realistic but fake data (different company names, technologies, dates, etc.)
@@ -307,26 +303,21 @@ async def generate_fake_projects_async(
         - Fill all required fields with appropriate fake data
         - Use diverse company names, project names, and technologies
         - Make sure financial figures are realistic for the project type
-        
-        After generating each fake project, use the save_fake_project_file tool to save it.""",
-            ),
-            (
-                "human",
-                """Generate fake project #{index} based on these templates:
-        
-        {templates_json}
-        
-        Create a unique, realistic fake project with different details but similar structure.""",
-            ),
-        ]
-    )
+        After generating each fake project, use the save_fake_project_file tool to save it.""")
 
-    chain = prompt | llm
+    human = dedent_ws("""
+                      Generate fake project #{index} based on these templates:\n
+                        {templates_json}
+
+                     Create a unique, realistic fake project with different details but similar structure.""")          
+
+    chain = def_prompt(system, human)  | llm
 
     # Generate fake projects
     for i in range(count):
         templates_json = json.dumps(template_projects, indent=2)
 
+        # replace code hereafter by a camm to LangGraph create_react_agent AI!
         try:
             response = await chain.ainvoke({"templates_json": templates_json, "index": i + 1})
 
