@@ -171,19 +171,18 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         output_path = UPath(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
-        
+
         total_generated = 0
         for json_file in all_files:
             logger.info(f"Processing template: {json_file}")
             generate_fake_rainbows_from_samples(
-                examples=[json_file], 
-                number_of_generated_fakes=count, 
-                output_dir=output_path, 
-                llm_id=llm_id
+                examples=[json_file], number_of_generated_fakes=count, output_dir=output_path, llm_id=llm_id
             )
             total_generated += count
 
-        logger.success(f"Successfully generated {total_generated} fake project reviews from {len(all_files)} templates in {output_dir}")
+        logger.success(
+            f"Successfully generated {total_generated} fake project reviews from {len(all_files)} templates in {output_dir}"
+        )
 
 
 async def process_markdown_batch(md_files: list[UPath], output_dir: UPath, batch_size: int = 5) -> None:
