@@ -74,10 +74,10 @@ def generate_fake_rainbows_from_samples(
             # Use identification.name and identification.opportunity-id for filename
             name = fake_project.identification.name
             opportunity_id = fake_project.identification.opportunity_id
-            safe_name = "".join(c for c in name if c.isalnum() or c in (' ', '-', '_')).rstrip()
-            safe_name = safe_name.replace(' ', '_')
+            safe_name = "".join(c for c in name if c.isalnum() or c in (" ", "-", "_")).rstrip()
+            safe_name = safe_name.replace(" ", "_")
             output_file = output_dir / f"{safe_name}_{opportunity_id}.json"
-            
+
             with open(output_file, "w", encoding="utf-8") as f:
                 json.dump(fake_project.model_dump(), f, indent=2, default=str)
             logger.info(f"Saved fake project {name}_{opportunity_id} to {output_file}")
