@@ -313,41 +313,54 @@ async def generate_fake_projects_async(
 
     chain = def_prompt(system, human)  | llm
 
-    # Generate fake projects
+    # Generate fake projects using LangGraph ReAct agent
+    from src.ai_extra.react_agent_structured_output import create_react_structured_output_graph
+    
+    llm = get_llm(llm_id=llm_id, temperature=0.7)
+    agent = create_react_structured_output_graph(llm, [save_fake_project_file], dict)
+    
     for i in range(count):
         templates_json = json.dumps(template_projects, indent=2)
-
-        # replace code hereafter by a camm to LangGraph create_react_agent AI!
+        
         try:
-            response = await chain.ainvoke({"templates_json": templates_json, "index": i + 1})
-
-            # Check if the tool was called
-            if hasattr(response, "tool_calls") and response.tool_calls:
-                for tool_call in response.tool_calls:
-                    if tool_call.get("name") == "save_fake_project_file":
-                        args = tool_call.get("args", {})
-                        if "project_data" in args and "filename" in args:
-                            filename = output_dir / f"{args['filename']}.json"
-                            filename.write_text(json.dumps(args["project_data"], indent=2))
-                            logger.info(f"Saved fake project: {filename}")
-                            continue
-
-            # Fallback: extract JSON from response and save manually
-            import re
-
-            content = str(response)
-            json_match = re.search(r"\{.*\}", content, re.DOTALL)
-            if json_match:
-                try:
-                    fake_project = json.loads(json_match.group())
-                    filename = output_dir / f"fake_project_{i + 1}.json"
-                    filename.write_text(json.dumps(fake_project, indent=2))
-                    logger.info(f"Saved fake project (manual fallback): {filename}")
-                except Exception as e:
-                    logger.error(f"Failed to parse/save fake project {i + 1}: {e}")
-
+            # Use the ReAct agent to generate and save fake project
+            prompt = f"""Generate fake project #{i + 1} based on these templates:
+            
+            {templates_json}
+            
+            Create a unique, realistic fake project with different details but similar structure. 
+            Use the save_fake_project_file tool to save the generated project data."""
+            
+            result = agent.invoke({"messages": [{"role": "user", "content": prompt}]})
+            
+            # Check if any tool was called in the conversation
+            messages = result.get("messages", [])
+            tool_called = False
+            
+            for message in messages:
+                if hasattr(message, 'tool_calls') and message.tool_calls:
+                    for tool_call in message.tool_calls:
+                        if tool_call.get('name') == 'save_fake_project_file':
+                            tool_called = True
+                            break
+            
+            if not tool_called:
+                # Fallback if tool wasn't called - extract final response and save manually
+                final_response = messages[-1].content if messages else ""
+                import re
+                
+                json_match = re.search(r"\{.*\}", final_response, re.DOTALL)
+                if json_match:
+                    try:
+                        fake_project = json.loads(json_match.group())
+                        filename = output_dir / f"fake_project_{i + 1}.json"
+                        filename.write_text(json.dumps(fake_project, indent=2))
+                        logger.info(f"Saved fake project (manual fallback): {filename}")
+                    except Exception as e:
+                        logger.error(f"Failed to parse/save fake project {i + 1}: {e}")
+                        
         except Exception as e:
-            logger.error(f"Error generating fake project {i + 1}: {e}")
+            logger.error(f"Error generating fake project {i + 1} with LangGraph: {e}")
             # Try individual generation as fallback
             try:
                 filename = output_dir / f"fake_project_{i + 1}.json"
