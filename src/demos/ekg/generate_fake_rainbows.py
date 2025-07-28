@@ -1,9 +1,18 @@
+"""
+Generate fake project review data based on real project templates.
+
+This module provides functionality to create realistic but fake project review data using LangChain.
+It loads JSON templates of actual project reviews and generates new synthetic data with similar structure
+but completely fictional content including company names, technologies, team members, and financial data.
+"""
+
 import json
 import os
 from pathlib import Path
 
 from loguru import logger
 from pydantic import BaseModel
+from langchain_core.language_models import BaseChatModel
 
 from src.ai_core.llm import get_llm
 from src.ai_core.prompts import dedent_ws, def_prompt
@@ -11,11 +20,25 @@ from src.demos.ekg.rainbow_model import RainbowProjectAnalysis
 
 
 class RainbowProjectAnalysisList(BaseModel):
+    """A container for multiple RainbowProjectAnalysis instances."""
     array: list[RainbowProjectAnalysis]
 
 
-def generate_fake_rainbows(examples: list[Path], number_of_generated_fakes: int, output_dir: Path) -> None:
-    """Generate fake project reviews based on templates and save as JSON files."""
+def generate_fake_rainbows(
+    examples: list[Path], 
+    number_of_generated_fakes: int, 
+    output_dir: Path,
+    llm: BaseChatModel | None = None
+) -> None:
+    """
+    Generate fake project reviews based on templates and save as JSON files.
+    
+    Args:
+        examples: List of paths to JSON template files containing real project reviews
+        number_of_generated_fakes: Number of fake projects to generate
+        output_dir: Directory where generated JSON files will be saved
+        llm: LangChain LLM instance to use for generation. If None, uses default from get_llm()
+    """
 
     # Ensure output directory exists
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -23,8 +46,11 @@ def generate_fake_rainbows(examples: list[Path], number_of_generated_fakes: int,
     all_examples = [example.read_text() for example in examples]
     logger.info(f"Loaded {len(all_examples)} templates, generating {number_of_generated_fakes} fake projects")
 
-    # Create LLM with structured output
-    llm = get_llm(temperature=0.7).with_structured_output(RainbowProjectAnalysisList)
+    # Use provided LLM or create default
+    if llm is None:
+        llm = get_llm(temperature=0.7)
+    
+    llm = llm.with_structured_output(RainbowProjectAnalysisList)
 
     system = dedent_ws("""
         You are an expert at generating realistic fake project data based on examples.
@@ -66,8 +92,6 @@ def generate_fake_rainbows(examples: list[Path], number_of_generated_fakes: int,
 
 def test() -> None:
     """Test the fake rainbow generation with sample files."""
-    # Use a more accessible test path
-
     file1 = (
         Path(os.getenv("ONEDRIVE", ""))
         / "prj/atos-kg/rainbow-json/03.RESM-SOL-9000559500_CNES_TMA_VENUS_VIP_PEPS_THEIA_MUSCATE-v0.2_extracted.json"
