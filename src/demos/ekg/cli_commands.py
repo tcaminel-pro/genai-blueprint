@@ -105,8 +105,14 @@ def register_commands(cli_app: typer.Typer) -> None:
 
     @cli_app.command()
     def generate_fake_rainbow(
-        input_files: Annotated[
-            list[Path], typer.Argument(help="JSON files containing project reviews to use as templates")
+        file_or_dir: Annotated[
+            Path,
+            typer.Argument(
+                help="JSON files or directories containing project reviews to use as templates",
+                exists=True,
+                file_okay=True,
+                dir_okay=True,
+            ),
         ],
         output_dir: Annotated[
             Path,
@@ -116,10 +122,11 @@ def register_commands(cli_app: typer.Typer) -> None:
                 dir_okay=True,
             ),
         ],
-        count: Annotated[int, Option("--count", "-n", help="Number of fake projects to generate")] = 10,
+        count: Annotated[int, Option("--count", "-n", help="Number of fake projects to generate per input file")] = 1,
         llm_id: Annotated[
             Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
         ] = None,
+        recursive: bool = typer.Option(False, help="Search for files recursively"),
     ) -> None:
         """Generate fake but realistic project review JSON files based on existing ones.
 
@@ -128,8 +135,9 @@ def register_commands(cli_app: typer.Typer) -> None:
         of the originals.
 
         Example:
-           uv run cli generate-fake-projects projects/*.json --output-dir=./fake_data --count=20
-           uv run cli generate-fake-projects sample_project.json --output-dir=./generated --count=5
+           uv run cli generate-fake-rainbow "projects/*.json" --output-dir=./fake_data --count=5
+           uv run cli generate-fake-rainbow sample_project.json --output-dir=./generated --count=3
+           uv run cli generate-fake-rainbow "data/**/*.json" --recursive --output-dir=./generated
         """
         from src.ai_core.llm import LlmFactory
         from src.demos.ekg.generate_fake_rainbows import generate_fake_rainbows_from_samples
@@ -138,28 +146,44 @@ def register_commands(cli_app: typer.Typer) -> None:
             logger.error(f"Unknown llm_id: {llm_id}. Valid options: {LlmFactory.known_items()}")
             return
 
-        # Validate input files exist
-        valid_files = []
-        for file_path in input_files:
-            if not file_path.exists():
-                logger.error(f"Input file does not exist: {file_path}")
-                return
-            if not file_path.suffix.lower() == ".json":
-                logger.error(f"Input file must be JSON: {file_path}")
-                return
-            valid_files.append(file_path)
+        # Collect all JSON files
+        all_files = []
 
-        if not valid_files:
-            logger.error("No valid JSON input files provided")
+        if file_or_dir.is_file() and file_or_dir.suffix.lower() in [".json"]:
+            # Single JSON file
+            all_files.append(file_or_dir)
+        elif file_or_dir.is_dir():
+            # Directory - find JSON files inside
+            if recursive:
+                json_files = list(file_or_dir.rglob("*.json"))
+            else:
+                json_files = list(file_or_dir.glob("*.json"))
+            all_files.extend(json_files)
+        else:
+            logger.error(f"Invalid path: {file_or_dir} - must be a JSON file or directory")
             return
+
+        if not all_files:
+            logger.warning("No JSON files found matching the provided patterns.")
+            return
+
+        logger.info(f"Found {len(all_files)} JSON files to process")
 
         output_path = UPath(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
-        generate_fake_rainbows_from_samples(
-            examples=valid_files, number_of_generated_fakes=count, output_dir=output_path, llm_id=llm_id
-        )
+        
+        total_generated = 0
+        for json_file in all_files:
+            logger.info(f"Processing template: {json_file}")
+            generate_fake_rainbows_from_samples(
+                examples=[json_file], 
+                number_of_generated_fakes=count, 
+                output_dir=output_path, 
+                llm_id=llm_id
+            )
+            total_generated += count
 
-        logger.success(f"Successfully generated {count} fake project reviews in {output_dir}")
+        logger.success(f"Successfully generated {total_generated} fake project reviews from {len(all_files)} templates in {output_dir}")
 
 
 async def process_markdown_batch(md_files: list[UPath], output_dir: UPath, batch_size: int = 5) -> None:
