@@ -112,6 +112,7 @@ class RainbowProjectAnalysis(BaseModel):
         """
         import hashlib
         import json
+        import typing
 
         def extract_schema(model_class: type[BaseModel]):
             """Recursively extract schema information from a Pydantic model."""
@@ -120,17 +121,32 @@ class RainbowProjectAnalysis(BaseModel):
             for field_name, field in model_class.model_fields.items():
                 field_info = {
                     "type": str(field.annotation),
-                    "description": field.description,
-                    "required": field.is_required,
+                    "description": str(field.description or ""),
+                    "required": not (field.is_required() if callable(field.is_required) else field.is_required),
                 }
 
                 # Handle nested models
-                if hasattr(field.annotation, "__name__") and "BaseModel" in str(type(field.annotation)):
-                    field_info["nested"] = extract_schema(field.annotation)
-                elif hasattr(field.annotation, "__args__"):  # Handle generic types like List, Optional
-                    args = field.annotation.__args__
-                    if args and any("BaseModel" in str(type(arg)) for arg in args):
-                        field_info["nested"] = [extract_schema(arg) for arg in args if "BaseModel" in str(type(arg))]
+                annotation = field.annotation
+                if annotation is None:
+                    schema["fields"][field_name] = field_info
+                    continue
+                    
+                # Handle Optional/Union types
+                origin = typing.get_origin(annotation)
+                args = typing.get_args(annotation)
+                
+                if origin is not None:
+                    # Handle Optional, Union, List, etc.
+                    nested_models = []
+                    for arg in args:
+                        if isinstance(arg, type) and issubclass(arg, BaseModel):
+                            nested_models.append(extract_schema(arg))
+                    
+                    if nested_models:
+                        field_info["nested"] = nested_models[0] if len(nested_models) == 1 else nested_models
+                elif isinstance(annotation, type) and issubclass(annotation, BaseModel):
+                    # Handle direct model references
+                    field_info["nested"] = extract_schema(annotation)
 
                 schema["fields"][field_name] = field_info
 
