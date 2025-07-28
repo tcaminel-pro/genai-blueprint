@@ -329,20 +329,21 @@ async def generate_fake_projects_async(
 
         try:
             response = await chain.ainvoke({"templates_json": templates_json, "index": i + 1})
-            
+
             # Check if the tool was called
-            if hasattr(response, 'tool_calls') and response.tool_calls:
+            if hasattr(response, "tool_calls") and response.tool_calls:
                 for tool_call in response.tool_calls:
-                    if tool_call.get('name') == 'save_fake_project_file':
-                        args = tool_call.get('args', {})
-                        if 'project_data' in args and 'filename' in args:
+                    if tool_call.get("name") == "save_fake_project_file":
+                        args = tool_call.get("args", {})
+                        if "project_data" in args and "filename" in args:
                             filename = output_dir / f"{args['filename']}.json"
-                            filename.write_text(json.dumps(args['project_data'], indent=2))
+                            filename.write_text(json.dumps(args["project_data"], indent=2))
                             logger.info(f"Saved fake project: {filename}")
                             continue
-                            
+
             # Fallback: extract JSON from response and save manually
             import re
+
             content = str(response)
             json_match = re.search(r"\{.*\}", content, re.DOTALL)
             if json_match:
