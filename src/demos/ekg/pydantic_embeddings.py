@@ -19,8 +19,8 @@ def generate_field_embeddings(
 ) -> Dict[str, list[float]]:
     """Generate embeddings for each field in a Pydantic model instance.
 
-    Serializes each field to YAML and creates embeddings using the provided
-    LangChain embeddings model.
+    Uses generate_field_documents to create documents for each field, then
+    generates embeddings from the document content.
 
     Args:
         model_instance: An instance of a Pydantic model
@@ -30,32 +30,14 @@ def generate_field_embeddings(
     Returns:
         Dictionary mapping field names to their embedding vectors
     """
+    documents = generate_field_documents(model_instance, include_null)
     embeddings_dict = {}
-
-    for field_name, field_value in model_instance.model_dump().items():
-        if field_value is None and not include_null:
-            continue
-
-        # Get the field info to include in YAML serialization
-        field_info = type(model_instance).model_fields[field_name]
-
-        # Create a YAML representation
-        yaml_content = yaml.dump(
-            {
-                field_name: {
-                    "value": field_value,
-                    "description": field_info.description,
-                    "type": str(type(field_value).__name__) if field_value is not None else "None",
-                }
-            },
-            default_flow_style=False,
-            sort_keys=False,
-        )
-
-        # Generate embedding
-        embedding = embeddings.embed_query(yaml_content)
+    
+    for doc in documents:
+        field_name = doc.metadata['field_name']
+        embedding = embeddings.embed_query(doc.page_content)
         embeddings_dict[field_name] = embedding
-
+    
     return embeddings_dict
 
 
