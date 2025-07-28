@@ -263,9 +263,7 @@ async def generate_fake_projects_async(
     input_files: list[Path], output_dir: UPath, count: int, llm_id: str | None = None
 ) -> None:
     """Generate fake project data based on existing JSON files."""
-    from langchain.agents import AgentExecutor, create_tool_calling_agent
     from langchain_core.prompts import ChatPromptTemplate
-
     from src.ai_core.llm import get_llm
 
     # Load template projects from input files
@@ -289,10 +287,8 @@ async def generate_fake_projects_async(
 
     logger.info(f"Loaded {len(template_projects)} template projects")
 
-    # Setup LLM and agent
-    llm = get_llm(llm_id=llm_id, temperature=0.7)
-
-    tools = [save_fake_project_file]
+    # Setup LLM with tools
+    llm = get_llm(llm_id=llm_id, temperature=0.7).bind_tools([save_fake_project_file])
 
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -325,30 +321,38 @@ async def generate_fake_projects_async(
         ]
     )
 
-    agent = create_tool_calling_agent(llm, tools, prompt)
-    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+    chain = prompt | llm
 
     # Generate fake projects
     for i in range(count):
         templates_json = json.dumps(template_projects, indent=2)
 
         try:
-            result = await agent_executor.ainvoke({"templates_json": templates_json, "index": i + 1})
-
-            # The agent should use the save tool, but if not, save manually
-            if "save_fake_project_file" not in str(result):
-                # Fallback: extract JSON from response and save manually
-                import re
-
-                json_match = re.search(r"\{.*\}", str(result), re.DOTALL)
-                if json_match:
-                    try:
-                        fake_project = json.loads(json_match.group())
-                        filename = output_dir / f"fake_project_{i + 1}.json"
-                        filename.write_text(json.dumps(fake_project, indent=2))
-                        logger.info(f"Saved fake project: {filename}")
-                    except Exception as e:
-                        logger.error(f"Failed to parse/save fake project {i + 1}: {e}")
+            response = await chain.ainvoke({"templates_json": templates_json, "index": i + 1})
+            
+            # Check if the tool was called
+            if hasattr(response, 'tool_calls') and response.tool_calls:
+                for tool_call in response.tool_calls:
+                    if tool_call.get('name') == 'save_fake_project_file':
+                        args = tool_call.get('args', {})
+                        if 'project_data' in args and 'filename' in args:
+                            filename = output_dir / f"{args['filename']}.json"
+                            filename.write_text(json.dumps(args['project_data'], indent=2))
+                            logger.info(f"Saved fake project: {filename}")
+                            continue
+                            
+            # Fallback: extract JSON from response and save manually
+            import re
+            content = str(response)
+            json_match = re.search(r"\{.*\}", content, re.DOTALL)
+            if json_match:
+                try:
+                    fake_project = json.loads(json_match.group())
+                    filename = output_dir / f"fake_project_{i + 1}.json"
+                    filename.write_text(json.dumps(fake_project, indent=2))
+                    logger.info(f"Saved fake project (manual fallback): {filename}")
+                except Exception as e:
+                    logger.error(f"Failed to parse/save fake project {i + 1}: {e}")
 
         except Exception as e:
             logger.error(f"Error generating fake project {i + 1}: {e}")
