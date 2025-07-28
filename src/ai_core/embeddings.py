@@ -257,9 +257,9 @@ class EmbeddingsFactory(BaseModel):
                 model_id=self.info.model, deepinfra_api_token=api_key.get_secret_value() if api_key else None
             )
         elif self.info.provider == "fake":
-            from langchain_community.embeddings import FakeEmbeddings
+            from langchain_community.embeddings import DeterministicFakeEmbedding
 
-            emb = FakeEmbeddings(size=1536)  # Default size matching common embedding dimensions
+            emb = DeterministicFakeEmbedding(size=768)  # Default size matching common embedding dimensions
         else:
             raise ValueError(f"unsupported Embeddings class {self.info.provider}")
         return emb

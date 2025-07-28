@@ -79,7 +79,7 @@ embeddings:
   providers:
     - huggingface: dunzhang/stella_en_400M_v5
 
-- model:  # fake embeddings for tests
-  id: fake_embeddings
+- model:  # fake embeddings for tests - size : 768
+  id: embeddings_768
   providers:
     - fake: fake-embeddings
