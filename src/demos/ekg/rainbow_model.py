@@ -113,7 +113,7 @@ class RainbowProjectAnalysis(BaseModel):
         import hashlib
         import json
 
-        def extract_schema(model_class):
+        def extract_schema(model_class: type[BaseModel]):
             """Recursively extract schema information from a Pydantic model."""
             schema = {"name": model_class.__name__, "fields": {}}
 
