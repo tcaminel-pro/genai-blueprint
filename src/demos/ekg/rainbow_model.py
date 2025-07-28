@@ -105,48 +105,42 @@ class RainbowProjectAnalysis(BaseModel):
     @staticmethod
     def schema_footprint() -> str:
         """Generate a unique signature for the current schema structure.
-        
+
         Returns:
             A SHA-256 hash of the schema structure including all nested models,
             fields, and their descriptions/types.
         """
         import hashlib
         import json
-        
+
         def extract_schema(model_class):
             """Recursively extract schema information from a Pydantic model."""
-            schema = {
-                "name": model_class.__name__,
-                "fields": {}
-            }
-            
+            schema = {"name": model_class.__name__, "fields": {}}
+
             for field_name, field in model_class.model_fields.items():
                 field_info = {
                     "type": str(field.annotation),
                     "description": field.description,
-                    "required": field.is_required
+                    "required": field.is_required,
                 }
-                
+
                 # Handle nested models
                 if hasattr(field.annotation, "__name__") and "BaseModel" in str(type(field.annotation)):
                     field_info["nested"] = extract_schema(field.annotation)
                 elif hasattr(field.annotation, "__args__"):  # Handle generic types like List, Optional
                     args = field.annotation.__args__
                     if args and any("BaseModel" in str(type(arg)) for arg in args):
-                        field_info["nested"] = [
-                            extract_schema(arg) for arg in args 
-                            if "BaseModel" in str(type(arg))
-                        ]
-                
+                        field_info["nested"] = [extract_schema(arg) for arg in args if "BaseModel" in str(type(arg))]
+
                 schema["fields"][field_name] = field_info
-            
+
             return schema
-        
+
         # Build complete schema structure
         full_schema = extract_schema(RainbowProjectAnalysis)
-        
+
         # Convert to JSON with sorted keys for consistency
         schema_json = json.dumps(full_schema, sort_keys=True, indent=2)
-        
+
         # Generate SHA-256 hash
         return hashlib.sha256(schema_json.encode("utf-8")).hexdigest()
