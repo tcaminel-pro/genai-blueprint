@@ -70,11 +70,17 @@ def generate_fake_rainbows_from_samples(
         response = chain.invoke({"count": number_of_generated_fakes, "templates_json": templates_json})
 
         # Save each fake project as a separate JSON file
-        for i, fake_project in enumerate(response.array):
-            output_file = output_dir / f"fake_project_{i + 1:03d}.json"
+        for fake_project in response.array:
+            # Use identification.name and identification.opportunity-id for filename
+            name = fake_project.identification.name
+            opportunity_id = fake_project.identification.opportunity_id
+            safe_name = "".join(c for c in name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+            safe_name = safe_name.replace(' ', '_')
+            output_file = output_dir / f"{safe_name}_{opportunity_id}.json"
+            
             with open(output_file, "w", encoding="utf-8") as f:
                 json.dump(fake_project.model_dump(), f, indent=2, default=str)
-            logger.info(f"Saved fake project {i + 1} to {output_file}")
+            logger.info(f"Saved fake project {name}_{opportunity_id} to {output_file}")
 
     except Exception as e:
         logger.error(f"Error generating fake projects: {e}")
