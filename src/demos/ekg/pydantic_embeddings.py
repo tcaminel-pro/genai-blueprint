@@ -32,12 +32,12 @@ def generate_field_embeddings(
     """
     documents = generate_field_documents(model_instance, include_null)
     embeddings_dict = {}
-    
+
     for doc in documents:
-        field_name = doc.metadata['field_name']
+        field_name = doc.metadata["field_name"]
         embedding = embeddings.embed_query(doc.page_content)
         embeddings_dict[field_name] = embedding
-    
+
     return embeddings_dict
 
 
@@ -90,7 +90,6 @@ def generate_field_documents(
 
 
 def main() -> None:
-
     from rich import print
     from devtools import debug
 
@@ -137,7 +136,7 @@ def main() -> None:
     documents = generate_field_documents(sample_project)
     print(f"Generated {len(documents)} documents")
     for doc in documents[:3]:  # Show first 3
-        #print(f"- {doc.metadata['field_name']}: {doc.page_content[:100]}...")
+        # print(f"- {doc.metadata['field_name']}: {doc.page_content[:100]}...")
         debug(doc)
 
     print("\nTest completed successfully!")
