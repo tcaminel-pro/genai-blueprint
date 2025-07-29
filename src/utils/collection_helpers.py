@@ -1,9 +1,10 @@
 """Collection helper utilities for more readable collection operations."""
 
-from typing import Iterable, TypeVar, Callable, Any
+from typing import Any, Callable, Iterable, TypeVar
 
 T = TypeVar("T")
 
+# provide self contained examples AI!
 
 def find_first(items: Iterable[T], predicate: Callable[[T], bool]) -> T | None:
     """Find the first item in a collection that matches a predicate.
