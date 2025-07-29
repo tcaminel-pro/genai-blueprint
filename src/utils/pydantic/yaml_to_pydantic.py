@@ -139,7 +139,7 @@ if __name__ == "__main__":
     # Test the functionality
     test_yaml = """
     Person:
-      description: "class for members of the family 
+      description: "class for members of the family"
       fields:
         name:
             description: "Person's full name"
@@ -158,24 +158,30 @@ if __name__ == "__main__":
             required: false
     
     Email:
-      description : email contact
+      description: "email contact"
       fields:
         url:
             type: str
             required: true
         email_type:
             type: str
+            required: false
 
     Address:
-      description : postal contact
+      description: "postal contact"
       fields:
         street:
+            type: str
             required: true
         city:
+            type: str
             required: true
         zip_code:
+            type: str
             required: false
         country:
+            type: str
+            required: false
     """
 
     # Test with string content
