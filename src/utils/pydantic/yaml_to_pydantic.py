@@ -70,8 +70,17 @@ def create_class_from_dict(yaml_data: dict, class_name: str | None = None) -> Ty
             return created_classes[class_name]
 
         fields = {}
+        
+        # Handle the new YAML format with description and fields
+        description = class_def.get("description", "")
+        fields_def = class_def.get("fields", class_def)  # Fallback to class_def for backward compatibility
+        
+        # Create a new model with docstring if description exists
+        class_attrs = {}
+        if description:
+            class_attrs["__doc__"] = description
 
-        for field_name, field_def in class_def.items():
+        for field_name, field_def in fields_def.items():
             if isinstance(field_def, dict):
                 yaml_type = field_def.get("type", "str")
 
@@ -103,13 +112,15 @@ def create_class_from_dict(yaml_data: dict, class_name: str | None = None) -> Ty
                     fields[field_name] = (field_type, Field(..., **field_info))
                 else:
                     fields[field_name] = (Union[field_type, None], Field(None, **field_info))
-            elif not isinstance(field_def, dict):
+            else:
                 # Handle shorthand field definitions
                 yaml_type = str(field_def)
                 field_type = yaml_type_to_python_type(yaml_type)
                 fields[field_name] = (Union[field_type, None], Field(None, description=""))
 
         new_class = create_model(class_name, __base__=BaseModel, **fields)
+        for attr, value in class_attrs.items():
+            setattr(new_class, attr, value)
 
         created_classes[class_name] = new_class
         return new_class
