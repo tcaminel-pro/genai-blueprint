@@ -101,7 +101,6 @@ if __name__ == "__main__":
     test_yaml = """
     Person:
       name:
-        type: str
         description: "Person's full name"
         required: true
       age:
@@ -109,13 +108,19 @@ if __name__ == "__main__":
         description: "Age in years"
         required: false
       email:
-        type: list[str]
+        type: list[Email]
         description: "Email addresses"
         required: true
       address:
-        class: Address
+        type: Address
         description: "Home address"
         required: false
+    
+    Email:
+        url
+            description : URL
+        type:
+            description : personal or professional
 
     Address:
       street:
@@ -139,7 +144,7 @@ if __name__ == "__main__":
     person_data = {
         "name": "John Doe",
         "age": 30,
-        "email": ["john@example.com", "myssf@gmail.com"],
+        "email": [{"url":"john@example.com", "type":"pro"},  {"myssf@gmail.com", "type":"pro"}],
         "address": {"street": "123 Main St", "city": "Anytown", "zip_code": "12345", "country": "USA"},
     }
 
