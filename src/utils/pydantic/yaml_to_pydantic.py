@@ -67,8 +67,13 @@ def create_class_from_dict(yaml_data: dict, class_name: str | None = None) -> Ty
 
     def create_model_with_description(model_name: str, description: str, fields: dict):
         """Create a Pydantic model with a programmatic description."""
-        model_config = type("Config", (), {"description": description}) if description else None
-        return create_model(model_name, __config__=model_config, __base__=BaseModel, **fields)
+        if description:
+            # Create a proper config class
+            class Config:
+                description = description
+            return create_model(model_name, __config__=Config, __base__=BaseModel, **fields)
+        else:
+            return create_model(model_name, __base__=BaseModel, **fields)
 
     def create_class(class_name: str, class_def: Dict[str, Any]) -> Type[BaseModel]:
         if class_name in created_classes:
