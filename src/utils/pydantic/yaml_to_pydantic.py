@@ -64,6 +64,14 @@ def create_class_from_dict(yaml_data: dict, class_name: str | None = None) -> Ty
     """
 
     created_classes: Dict[str, Type[BaseModel]] = {}
+        
+    # First pass: create all class definitions
+    for cls_name, cls_def in yaml_data.items():
+        if cls_name not in created_classes:
+            # Create placeholder classes to handle circular dependencies
+            created_classes[cls_name] = None
+                
+    # Second pass: create actual classes
 
     def create_model_with_description(model_name: str, description: str, fields: dict):
         """Create a Pydantic model with a programmatic description."""
@@ -75,7 +83,7 @@ def create_class_from_dict(yaml_data: dict, class_name: str | None = None) -> Ty
             return create_model(model_name, __base__=BaseModel, **fields)
 
     def create_class(class_name: str, class_def: Dict[str, Any]) -> Type[BaseModel]:
-        if class_name in created_classes:
+        if class_name in created_classes and created_classes[class_name] is not None:
             return created_classes[class_name]
 
         description = class_def.get("description", "")
@@ -90,14 +98,14 @@ def create_class_from_dict(yaml_data: dict, class_name: str | None = None) -> Ty
                 if yaml_type.startswith("list[") or yaml_type.startswith("List["):
                     inner_type = yaml_type[5:-1]
                     if inner_type in yaml_data:
-                        if inner_type not in created_classes:
+                        if inner_type not in created_classes or created_classes[inner_type] is None:
                             create_class(inner_type, yaml_data[inner_type])
                         field_type = List[created_classes[inner_type]]
                     else:
                         field_type = yaml_type_to_python_type(yaml_type)
                 elif yaml_type in yaml_data:
                     nested_class_name = yaml_type
-                    if nested_class_name not in created_classes:
+                    if nested_class_name not in created_classes or created_classes[nested_class_name] is None:
                         create_class(nested_class_name, yaml_data[nested_class_name])
                     field_type = created_classes[nested_class_name]
                 else:
@@ -112,13 +120,16 @@ def create_class_from_dict(yaml_data: dict, class_name: str | None = None) -> Ty
                 else:
                     fields[field_name] = (Union[field_type, None], Field(None, **field_info))
 
-        return create_model_with_description(class_name, description, fields)
+        new_class = create_model_with_description(class_name, description, fields)
+        created_classes[class_name] = new_class
+        return new_class
 
         created_classes[class_name] = new_class
         return new_class
 
+    # Ensure all classes are created
     for cls_name, cls_def in yaml_data.items():
-        if cls_name not in created_classes:
+        if cls_name not in created_classes or created_classes[cls_name] is None:
             create_class(cls_name, cls_def)
 
     if class_name:
