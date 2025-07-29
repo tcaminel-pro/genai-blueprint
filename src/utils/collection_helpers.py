@@ -4,7 +4,6 @@ from typing import Any, Callable, Iterable, TypeVar
 
 T = TypeVar("T")
 
-# provide self contained examples AI!
 
 def find_first(items: Iterable[T], predicate: Callable[[T], bool]) -> T | None:
     """Find the first item in a collection that matches a predicate.
@@ -18,7 +17,26 @@ def find_first(items: Iterable[T], predicate: Callable[[T], bool]) -> T | None:
 
     Example:
         ```python
-        result = find_first(SAMPLES_DEMOS, lambda d: d.name == selected_pill)
+        from dataclasses import dataclass
+        
+        @dataclass
+        class User:
+            name: str
+            age: int
+        
+        users = [User("Alice", 30), User("Bob", 25), User("Charlie", 35)]
+        
+        # Find first user named Bob
+        bob = find_first(users, lambda u: u.name == "Bob")
+        print(bob)  # User(name='Bob', age=25)
+        
+        # Find first user over 30
+        over_30 = find_first(users, lambda u: u.age > 30)
+        print(over_30)  # User(name='Charlie', age=35)
+        
+        # No match returns None
+        missing = find_first(users, lambda u: u.name == "David")
+        print(missing)  # None
         ```
     """
     return next((item for item in items if predicate(item)), None)
@@ -37,7 +55,31 @@ def find_by_key(items: Iterable[T], key: str, value: Any) -> T | None:
 
     Example:
         ```python
-        result = find_by_key(SAMPLES_DEMOS, 'name', selected_pill)
+        from dataclasses import dataclass
+        
+        @dataclass
+        class Product:
+            id: int
+            name: str
+            category: str
+        
+        products = [
+            Product(1, "Laptop", "Electronics"),
+            Product(2, "Chair", "Furniture"),
+            Product(3, "Phone", "Electronics")
+        ]
+        
+        # Find product by name
+        laptop = find_by_key(products, 'name', 'Laptop')
+        print(laptop)  # Product(id=1, name='Laptop', category='Electronics')
+        
+        # Find product by category
+        furniture = find_by_key(products, 'category', 'Furniture')
+        print(furniture)  # Product(id=2, name='Chair', category='Furniture')
+        
+        # No match returns None
+        missing = find_by_key(products, 'name', 'Tablet')
+        print(missing)  # None
         ```
     """
     return next((item for item in items if getattr(item, key, None) == value), None)
