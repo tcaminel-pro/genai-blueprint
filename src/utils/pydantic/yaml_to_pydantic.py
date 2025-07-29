@@ -60,7 +60,7 @@ def load_yaml_and_create_class(yaml_content: str, class_name: str | None = None)
         for field_name, field_def in class_def.items():
             if isinstance(field_def, dict):
                 yaml_type = field_def.get("type", "str")
-                
+
                 # Handle list[type] with nested classes
                 if yaml_type.startswith("list[") or yaml_type.startswith("List["):
                     inner_type = yaml_type[5:-1]
@@ -78,7 +78,7 @@ def load_yaml_and_create_class(yaml_content: str, class_name: str | None = None)
                     field_type = created_classes[nested_class_name]
                 else:
                     field_type = yaml_type_to_python_type(yaml_type)
-                
+
                 is_required = field_def.get("required", True)
 
                 field_info = {}
