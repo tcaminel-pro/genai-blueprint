@@ -89,6 +89,11 @@ def create_class_from_yaml(yaml_content: str, class_name: str | None = None) -> 
                     fields[field_name] = (field_type, Field(..., **field_info))
                 else:
                     fields[field_name] = (Union[field_type, None], Field(None, **field_info))
+            elif not isinstance(field_def, dict):
+                # Handle shorthand field definitions
+                yaml_type = str(field_def)
+                field_type = yaml_type_to_python_type(yaml_type)
+                fields[field_name] = (Union[field_type, None], Field(None, description=""))
 
         new_class = create_model(class_name, __base__=BaseModel, **fields)
 
@@ -127,9 +132,11 @@ if __name__ == "__main__":
     
     Email:
       url:
-        description: "URL"
+        type: str
+        required: true
       email_type:
-        description: "personal or professional"
+        type: str
+        required: false
 
     Address:
       street:
