@@ -64,13 +64,13 @@ def create_class_from_dict(yaml_data: dict, class_name: str | None = None) -> Ty
     """
 
     created_classes: Dict[str, Type[BaseModel]] = {}
-        
+
     # First pass: create all class definitions
     for cls_name, cls_def in yaml_data.items():
         if cls_name not in created_classes:
             # Create placeholder classes to handle circular dependencies
             created_classes[cls_name] = None
-                
+
     # Second pass: create actual classes
 
     def create_model_with_description(model_name: str, description: str, fields: dict):
