@@ -8,11 +8,11 @@ from pydantic import BaseModel, Field, create_model
 
 class YamlToPydantic:
     """Convert YAML definitions to Pydantic classes dynamically."""
-    
+
     def __init__(self) -> None:
         """Initialize the YamlToPydantic converter."""
         self.created_classes: Dict[str, Type[BaseModel]] = {}
-    
+
     def yaml_type_to_python_type(self, yaml_type: str) -> type:
         """Convert YAML type string to Python type."""
         type_mapping = {
@@ -69,7 +69,7 @@ class YamlToPydantic:
         """
         # Clear existing classes
         self.created_classes.clear()
-        
+
         # First pass: create all class definitions
         for cls_name, cls_def in yaml_data.items():
             if cls_name not in self.created_classes:
