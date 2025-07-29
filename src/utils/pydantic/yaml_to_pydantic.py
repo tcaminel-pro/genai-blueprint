@@ -71,6 +71,7 @@ def create_class_from_dict(yaml_data: dict, class_name: str | None = None) -> Ty
             # Create a proper config class
             class Config:
                 description = description
+
             return create_model(model_name, __config__=Config, __base__=BaseModel, **fields)
         else:
             return create_model(model_name, __base__=BaseModel, **fields)
