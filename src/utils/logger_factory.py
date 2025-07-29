@@ -10,21 +10,24 @@ import sys
 
 from loguru import logger
 
+from src.utils.config_mngr import global_config
 
-def setup_logging(level: str = "TRACE") -> None:
+
+def setup_logging(level: str | None = None) -> None:
     """Configure the application logger with Loguru.
 
     Sets up logging with a default format. It can be overridden by setting the LOGURU_FORMAT environment variable.
     """
     LOGURU_FORMAT = "<cyan>{time:HH:mm:ss}</cyan>-<level>{level: <7}</level> | <magenta>{file.name}</magenta>:<green>{line} <italic>{function}</italic></green>- <level>{message}</level>"
-    # Workaround "LOGURU_FORMAT" does not seems to be taken into account - TODO
-    format_str = os.environ.get("LOGURU_FORMAT") or LOGURU_FORMAT
+    format_str = os.environ.get("LOGURU_FORMAT") or global_config().get_str("logging.format", LOGURU_FORMAT)
+    level = level or global_config().get_str("logging.level", "INFO")
+    backtrace = global_config().get_bool("logging.backtrace", False)
     logger.remove()
     logger.add(
         sys.stderr,
         colorize=True,
-        level=level,
+        level=level.upper(),
         format=format_str,
-        backtrace=False,
+        backtrace=backtrace,
         diagnose=True,
     )

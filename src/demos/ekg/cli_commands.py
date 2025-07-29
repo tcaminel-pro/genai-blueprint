@@ -12,7 +12,7 @@ from src.ai_core.prompts import def_prompt
 
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
-    def extract_rainbow(
+    def rainbow_extract(
         file_or_dir: Annotated[
             Path,
             typer.Argument(
@@ -104,7 +104,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         logger.success(f"Project extraction complete. {len(md_files)} files processed. Results saved to {output_dir}")
 
     @cli_app.command()
-    def generate_fake_rainbow(
+    def rainbow_generate_fake(
         file_or_dir: Annotated[
             Path,
             typer.Argument(

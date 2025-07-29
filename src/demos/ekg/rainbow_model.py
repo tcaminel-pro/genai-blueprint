@@ -121,8 +121,8 @@ class RainbowProjectAnalysis(BaseModel):
             for field_name, field in model_class.model_fields.items():
                 field_info = {
                     "type": str(field.annotation),
-                    "description": str(field.description or ""),
-                    "required": not (field.is_required() if callable(field.is_required) else field.is_required),
+                    # "description": str(field.description or ""),
+                    # "required": not (field.is_required() if callable(field.is_required) else field.is_required),
                 }
 
                 # Handle nested models
@@ -149,7 +149,9 @@ class RainbowProjectAnalysis(BaseModel):
                     field_info["nested"] = extract_schema(annotation)
 
                 schema["fields"][field_name] = field_info
+            from devtools import debug
 
+            debug(schema)
             return schema
 
         # Build complete schema structure
@@ -159,4 +161,4 @@ class RainbowProjectAnalysis(BaseModel):
         schema_json = json.dumps(full_schema, sort_keys=True, indent=2)
 
         # Generate SHA-256 hash
-        return hashlib.sha256(schema_json.encode("utf-8")).hexdigest()
+        return hashlib.md5(schema_json.encode("utf-8")).hexdigest()

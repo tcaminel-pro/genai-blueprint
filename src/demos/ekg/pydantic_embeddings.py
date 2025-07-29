@@ -4,17 +4,15 @@ from datetime import date
 from typing import Dict, List
 
 import yaml
-from langchain.embeddings.base import Embeddings
 from langchain.schema import Document
-from langchain_community.embeddings import FakeEmbeddings
 from pydantic import BaseModel
 
-import src.demos.ekg.rainbow_model as m
+from src.ai_core.embeddings import get_embeddings
 
 
 def generate_field_embeddings(
     model_instance: BaseModel,
-    embeddings: Embeddings,
+    embeddings_id: str,
     include_null: bool = False,
 ) -> Dict[str, list[float]]:
     """Generate embeddings for each field in a Pydantic model instance.
@@ -32,6 +30,8 @@ def generate_field_embeddings(
     """
     documents = generate_field_documents(model_instance, include_null)
     embeddings_dict = {}
+
+    embeddings = get_embeddings(embeddings_id)
 
     for doc in documents:
         field_name = doc.metadata["field_name"]
@@ -91,7 +91,10 @@ def generate_field_documents(
 
 def main() -> None:
     from devtools import debug
+    from langchain_community.embeddings import FakeEmbeddings
     from rich import print
+
+    import src.demos.ekg.rainbow_model as m
 
     """Quick test of the embedding utilities using fake embeddings."""
     # Create fake embeddings for testing
@@ -127,7 +130,7 @@ def main() -> None:
 
     # Test field embeddings
     print("Generating field embeddings...")
-    field_embeddings = generate_field_embeddings(sample_project, fake_embeddings)
+    field_embeddings = generate_field_embeddings(sample_project, "embeddings_768_fake")
     print(f"Generated embeddings for {len(field_embeddings)} fields")
 
     # Test field documents

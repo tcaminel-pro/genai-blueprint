@@ -2,6 +2,8 @@
 #  Embeddings service provider
 ########################
 
+# Dimension is optional
+
 # Registered Embeddings Services
 
 # Provider documentation links:
@@ -12,74 +14,88 @@
 #cSpell: disable
 
 embeddings:
-- model:
-  id: ada_002
-  providers:
-    - openai: text-embedding-ada-002
-    - edenai: openai/text-embedding-ada-002
-    - azure: text-embedding-ada-002/2023-05-15
+  - model:
+      id: ada_002
+    providers:
+      - openai: text-embedding-ada-002
+      - edenai: openai/text-embedding-ada-002
+      - azure: text-embedding-ada-002/2023-05-15
+    dimension: 1536
 
-- model:
-  id: artic_22
-  providers:
-    - ollama: snowflake-arctic-embed:22m
+  - model:
+      id: artic_22
+    providers:
+      - ollama: snowflake-arctic-embed:22m
+    dimension: 384
 
-- model:
-  id: bge_m3
-  providers:
-    - deepinfra: BAAI/bge-m3
+  - model:
+      id: bge_m3
+    providers:
+      - deepinfra: BAAI/bge-m3
+    dimension: 1024
 
-- model:
-  id: camembert_large
-  providers:
-    - huggingface: dangvantuan/sentence-camembert-large
+  - model:
+      id: camembert_large
+    providers:
+      - huggingface: dangvantuan/sentence-camembert-large
+    dimension: 1024
 
-- model:
-  id: embedding_001
-  providers:
-    - google_genai: text-embedding-ada-002
+  - model:
+      id: embedding_001
+    providers:
+      - google_genai: text-embedding-ada-002
+    dimension: 1536
 
-- model:
-  id: gte15_base
-  providers:
-    - huggingface: Alibaba-NLP/gte-base-en-v1.5
+  - model:
+      id: gte15_base
+    providers:
+      - huggingface: Alibaba-NLP/gte-base-en-v1.5
+    dimension: 768
 
-- model:
-  id: gte15_large
-  providers:
-    - huggingface: Alibaba-NLP/gte-large-en-v1.5
+  - model:
+      id: gte15_large
+    providers:
+      - huggingface: Alibaba-NLP/gte-large-en-v1.5
+    dimension: 1024
 
-- model:
-  id: minilm_multilingual
-  providers:
-    - huggingface: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+  - model:
+      id: minilm_multilingual
+    providers:
+      - huggingface: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+    dimension: 384
 
-- model:
-  id: minilm_v2
-  providers:
-    - huggingface: sentence-transformers/all-MiniLM-L6-v2
+  - model:
+      id: minilm_v2
+    providers:
+      - huggingface: sentence-transformers/all-MiniLM-L6-v2
+    dimension: 384
 
-- model:
-  id: mistral_1024
-  providers:
-    - edenai: mistral/1024__mistral-embed
+  - model:
+      id: mistral_1024
+    providers:
+      - edenai: mistral/1024__mistral-embed
+    dimension: 1024
 
-- model:
-  id: mxbai_large
-  providers:
-    - ollama: mxbai-embed-large
+  - model:
+      id: mxbai_large
+    providers:
+      - ollama: mxbai-embed-large
+    dimension: 1024
 
-- model:
-  id: solon_large
-  providers:
-    - huggingface: OrdalieTech/Solon-embeddings-large-0.1
+  - model:
+      id: solon_large
+    providers:
+      - huggingface: OrdalieTech/Solon-embeddings-large-0.1
+    dimension: 1024
 
-- model:
-  id: stella_400
-  providers:
-    - huggingface: dunzhang/stella_en_400M_v5
+  - model:
+      id: stella_400
+    providers:
+      - huggingface: dunzhang/stella_en_400M_v5
+    dimension: 1024
 
-- model:  # fake embeddings for tests - size : 768
-  id: embeddings_768
-  providers:
-    - fake: fake-embeddings
+  - model:  # fake embeddings for tests
+      id: embeddings_768
+    providers:
+      - fake: fake-embeddings
+    dimension: 768

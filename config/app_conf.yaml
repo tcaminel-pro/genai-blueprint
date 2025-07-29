@@ -69,3 +69,9 @@ cli:
     - src.webapp.cli_commands:register_commands
     - src.main.cli:register_commands
     - src.demos.ekg.cli_commands:register_commands
+
+logging:
+  format: "<cyan>{time:HH:mm:ss}</cyan>-<level>{level: <7}</level> | <magenta>{file.name}</magenta>:<green>{line} <italic>{function}</italic></green>- <level>{message}</level>"
+  level: INFO
+  backtrace : True  # Should be False in production  - see https://loguru.readthedocs.io/en/stable/overview.html#fully-descriptive-exceptions
+  

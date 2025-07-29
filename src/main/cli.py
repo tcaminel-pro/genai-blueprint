@@ -66,8 +66,9 @@ def main():
     if "--logging" in sys.argv:
         level = "TRACE"
         sys.argv.remove("--logging")
-    else:
-        level = "WARNING"
+    else :
+        level = None
+
     setup_logging(level)
     modules = global_config().get_list("cli.commands", value_type=str)
     # Import and register commands from each module

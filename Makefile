@@ -29,10 +29,10 @@ $(warning .env file not found in current or parent directory)
 endif
 
 
-include deploy/docker.mk
-include deploy/aws.mk
+#include deploy/docker.mk
+#include deploy/aws.mk
 #include deploy/github.mk
-include deploy/modal.mk
+#include deploy/modal.mk
 
 .PHONY: .uv   .pre-commit .pythonpath
 .uv:  ## Check that uv is installed
