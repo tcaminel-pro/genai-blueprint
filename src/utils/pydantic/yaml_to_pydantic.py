@@ -34,7 +34,7 @@ def yaml_type_to_python_type(yaml_type: str) -> type:
     return type_mapping.get(yaml_type, str)
 
 
-def load_yaml_and_create_class(yaml_content: str, class_name: str | None = None) -> Type[BaseModel]:
+def create_class_from_yaml(yaml_content: str, class_name: str | None = None) -> Type[BaseModel]:
     """Create a Pydantic class from YAML content string.
 
     Args:
@@ -127,35 +127,28 @@ if __name__ == "__main__":
     
     Email:
       url:
-        type: str
         description: "URL"
       email_type:
-        type: str
         description: "personal or professional"
 
     Address:
       street:
-        type: str
         required: true
       city:
-        type: str
         required: true
       zip_code:
-        type: str
         required: false
       country:
-        type: str
-        required: false
     """
 
     # Test with string content
-    PersonClass = load_yaml_and_create_class(test_yaml, "Person")
+    PersonClass = create_class_from_yaml(test_yaml, "Person")
 
     # Create instances
     person_data = {
         "name": "John Doe",
         "age": 30,
-        "email": [{"url": "john@example.com", "email_type": "pro"}, {"url": "myssf@gmail.com", "email_type": "pro"}],
+        "email": [{"url": "john@example.com"}, {"url": "myssf@gmail.com", "email_type": "pro"}],
         "address": {"street": "123 Main St", "city": "Anytown", "zip_code": "12345", "country": "USA"},
     }
 
