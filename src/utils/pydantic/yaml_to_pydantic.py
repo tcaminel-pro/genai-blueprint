@@ -70,11 +70,11 @@ def create_class_from_dict(yaml_data: dict, class_name: str | None = None) -> Ty
             return created_classes[class_name]
 
         fields = {}
-        
+
         # Handle the new YAML format with description and fields
         description = class_def.get("description", "")
         fields_def = class_def.get("fields", class_def)  # Fallback to class_def for backward compatibility
-        
+
         # Create a new model with docstring if description exists
         class_attrs = {}
         if description:
