@@ -59,18 +59,27 @@ def load_yaml_and_create_class(yaml_content: str, class_name: str | None = None)
 
         for field_name, field_def in class_def.items():
             if isinstance(field_def, dict):
-                if "type" in field_def and field_def["type"] in yaml_data:
-                    nested_class_name = field_def["type"]
+                yaml_type = field_def.get("type", "str")
+                
+                # Handle list[type] with nested classes
+                if yaml_type.startswith("list[") or yaml_type.startswith("List["):
+                    inner_type = yaml_type[5:-1]
+                    if inner_type in yaml_data:
+                        if inner_type not in created_classes:
+                            create_class(inner_type, yaml_data[inner_type])
+                        field_type = List[created_classes[inner_type]]
+                    else:
+                        field_type = yaml_type_to_python_type(yaml_type)
+                elif yaml_type in yaml_data:
+                    # Handle direct class references
+                    nested_class_name = yaml_type
                     if nested_class_name not in created_classes:
-                        if nested_class_name in yaml_data:
-                            create_class(nested_class_name, yaml_data[nested_class_name])
-
+                        create_class(nested_class_name, yaml_data[nested_class_name])
                     field_type = created_classes[nested_class_name]
-                    is_required = field_def.get("required", True)
                 else:
-                    yaml_type = field_def.get("type", "str")
                     field_type = yaml_type_to_python_type(yaml_type)
-                    is_required = field_def.get("required", True)
+                
+                is_required = field_def.get("required", True)
 
                 field_info = {}
                 if "description" in field_def:
