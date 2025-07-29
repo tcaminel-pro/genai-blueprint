@@ -59,8 +59,8 @@ def load_yaml_and_create_class(yaml_content: str, class_name: str | None = None)
 
         for field_name, field_def in class_def.items():
             if isinstance(field_def, dict):
-                if "class" in field_def:
-                    nested_class_name = field_def["class"]
+                if "type" in field_def and field_def["type"] in yaml_data:
+                    nested_class_name = field_def["type"]
                     if nested_class_name not in created_classes:
                         if nested_class_name in yaml_data:
                             create_class(nested_class_name, yaml_data[nested_class_name])
@@ -117,10 +117,12 @@ if __name__ == "__main__":
         required: false
     
     Email:
-        url
-            description : URL
-        type:
-            description : personal or professional
+      url:
+        type: str
+        description: "URL"
+      email_type:
+        type: str
+        description: "personal or professional"
 
     Address:
       street:
