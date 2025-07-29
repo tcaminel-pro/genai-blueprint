@@ -146,10 +146,7 @@ if __name__ == "__main__":
     person_data = {
         "name": "John Doe",
         "age": 30,
-        "email": [
-            {"url": "john@example.com", "email_type": "pro"}, 
-            {"url": "myssf@gmail.com", "email_type": "pro"}
-        ],
+        "email": [{"url": "john@example.com", "email_type": "pro"}, {"url": "myssf@gmail.com", "email_type": "pro"}],
         "address": {"street": "123 Main St", "city": "Anytown", "zip_code": "12345", "country": "USA"},
     }
 
