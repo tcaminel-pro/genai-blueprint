@@ -49,6 +49,20 @@ def create_class_from_yaml(yaml_content: str, class_name: str | None = None) -> 
     if not yaml_data:
         raise ValueError("Invalid YAML content")
 
+    return create_class_from_dict(yaml_data, class_name)
+
+
+def create_class_from_dict(yaml_data: dict, class_name: str | None = None) -> Type[BaseModel]:
+    """Create a Pydantic class from YAML content string.
+
+    Args:
+        yaml_content: YAML content as string
+        class_name: Optional name for the class to return
+
+    Returns:
+        A dynamically created Pydantic class
+    """
+
     created_classes: Dict[str, Type[BaseModel]] = {}
 
     def create_class(class_name: str, class_def: Dict[str, Any]) -> Type[BaseModel]:
@@ -79,7 +93,7 @@ def create_class_from_yaml(yaml_content: str, class_name: str | None = None) -> 
                 else:
                     field_type = yaml_type_to_python_type(yaml_type)
 
-                is_required = field_def.get("required", True)
+                is_required = field_def.get("required", False)
 
                 field_info = {}
                 if "description" in field_def:
@@ -114,38 +128,43 @@ if __name__ == "__main__":
     # Test the functionality
     test_yaml = """
     Person:
-      name:
-        description: "Person's full name"
-        required: true
-      age:
-        type: int
-        description: "Age in years"
-        required: false
-      email:
-        type: list[Email]
-        description: "Email addresses"
-        required: true
-      address:
-        type: Address
-        description: "Home address"
-        required: false
+      description: "class for members of the family 
+      fields:
+        name:
+            description: "Person's full name"
+            required: true
+        age:
+            type: int
+            description: "Age in years"
+            required: false
+        email:
+            type: list[Email]
+            description: "Email addresses"
+            required: true
+        address:
+            type: Address
+            description: "Home address"
+            required: false
     
     Email:
-      url:
-        type: str
-        required: true
-      email_type:
-        type: str
-        required: false
+      description : email contact
+      fields:
+        url:
+            type: str
+            required: true
+        email_type:
+            type: str
 
     Address:
-      street:
-        required: true
-      city:
-        required: true
-      zip_code:
-        required: false
-      country:
+      description : postal contact
+      fields:
+        street:
+            required: true
+        city:
+            required: true
+        zip_code:
+            required: false
+        country:
     """
 
     # Test with string content
@@ -156,7 +175,7 @@ if __name__ == "__main__":
         "name": "John Doe",
         "age": 30,
         "email": [{"url": "john@example.com"}, {"url": "myssf@gmail.com", "email_type": "pro"}],
-        "address": {"street": "123 Main St", "city": "Anytown", "zip_code": "12345", "country": "USA"},
+        "address": {"street": "123 Main St", "city": "Anytown", "zip_code": "12345"},
     }
 
     from rich import print
