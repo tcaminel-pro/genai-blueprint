@@ -291,7 +291,9 @@ class VectorStoreFactory(BaseModel):
             collection_metadata=self.collection_metadata,
         )
 
-    def _create_pg_vector_store(self, connection_string: str, qualified_table_name: str, embeddings: Embeddings) -> VectorStore:
+    def _create_pg_vector_store(
+        self, connection_string: str, qualified_table_name: str, embeddings: Embeddings
+    ) -> VectorStore:
         """Create and configure a PgVector store.
 
         Args:
