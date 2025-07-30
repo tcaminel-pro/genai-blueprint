@@ -216,6 +216,7 @@ class VectorStoreFactory(BaseModel):
             )
         elif self.id == "PgVector":
             from langchain_postgres import PGEngine, PGVectorStore
+            from sqlalchemy.exc import ProgrammingError
 
             pgconf = global_config().merge_with("config/components/pgvector.yaml").get_dict("default_local_container")
             connection_string = (
@@ -235,9 +236,7 @@ class VectorStoreFactory(BaseModel):
                     overwrite_existing=False,
                 )
 
-            # add import AI!
-            except sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError as e:
-                print(e)
+            except ProgrammingError as e:
                 if "already exists" in str(e).lower():
                     logger.info(f"Use existing pgvector table : {table_name}")
                 else:
