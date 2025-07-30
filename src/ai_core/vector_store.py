@@ -355,7 +355,7 @@ class VectorStoreFactory(BaseModel):
         self._conf["pg_engine"] = pg_engine
         self._conf["table_name"] = table_name
         self._conf["schema_name"] = schema_name
-        
+
         return vector_store
 
     def clean(self):
