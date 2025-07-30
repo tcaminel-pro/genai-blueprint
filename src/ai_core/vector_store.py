@@ -224,12 +224,23 @@ class VectorStoreFactory(BaseModel):
             pg_engine = PGEngine.from_connection_string(url=connection_string)
             table_name = f"{pgconf['table_prefix']}_{self.embeddings_factory.short_name()}"
 
-            # chech that the table exists.  If so, skip init_vectorstore_table AI!
-
-            pg_engine.init_vectorstore_table(
-                table_name=table_name,
-                vector_size=self.embeddings_factory.get_dimension(),
-            )
+            # Check if table exists before initializing
+            import sqlalchemy as sa
+            try:
+                with pg_engine.engine.connect() as conn:
+                    if sa.inspect(conn).has_table(table_name, schema=pgconf["postgres_schema"]):
+                        logger.info(f"Table {table_name} already exists, skipping init_vectorstore_table")
+                    else:
+                        pg_engine.init_vectorstore_table(
+                            table_name=table_name,
+                            vector_size=self.embeddings_factory.get_dimension(),
+                        )
+            except Exception as e:
+                logger.warning(f"Error checking table existence: {e}, proceeding with init_vectorstore_table")
+                pg_engine.init_vectorstore_table(
+                    table_name=table_name,
+                    vector_size=self.embeddings_factory.get_dimension(),
+                )
             vector_store = PGVectorStore.create(
                 engine=pg_engine,
                 table_name=table_name,
