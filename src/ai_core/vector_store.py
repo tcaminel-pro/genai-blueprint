@@ -292,75 +292,45 @@ class VectorStoreFactory(BaseModel):
             collection_metadata=self.collection_metadata,
         )
 
-    def _create_pg_vector_store(
-        self, connection_string: str, qualified_table_name: str, metadata_columns: list[dict]
-    ) -> VectorStore:
-        """Create and configure a PgVector store.
-
-        Args:
-            connection_string : Connection URL (possibly prefix)
-            qualified_table_name : schema_name.table_name . "schema_name." can be omitted for public schema
-            embeddings: The embedding model to use
-
-        Returns:
-            Configured PgVector store instance
-        """
-        from langchain_postgres import Column, PGEngine, PGVectorStore
+    def _create_pg_vector_store(self, embeddings: Embeddings) -> VectorStore:
+        """Create and configure a PgVector store."""
+        from langchain_postgres import PGEngine, PGVectorStore
         from sqlalchemy.exc import ProgrammingError
 
-        # Ensure connection string has proper prefix
-        if not connection_string.startswith("postgresql"):
-            if not connection_string.startswith("//"):
-                connection_string = "//" + connection_string
-            full_url = f"postgresql+asyncpg:{connection_string}"
-        else:
-            full_url = connection_string
-
-        # Parse qualified table name
-        if "." in qualified_table_name:
-            schema_name, table_name = qualified_table_name.split(".", 1)
-        else:
-            schema_name = "public"
-            table_name = qualified_table_name
-
-        pg_engine = PGEngine.from_connection_string(url=full_url)
+        # Use config dict to override YAML values
+        postgres_url = self.config.get("postgres_url") or global_config().get_str("vector_store.postgres_url")
+        table_prefix = self.config.get("table_prefix") or "vectorstore"
+        schema_name = self.config.get("postgres_schema") or "public"
+        
+        connection_string = f"postgresql+asyncpg:{postgres_url}"
+        table_name = f"{table_prefix}_{self.embeddings_factory.short_name()}"
+        
+        pg_engine = PGEngine.from_connection_string(url=connection_string)
         try:
             pg_engine.init_vectorstore_table(
                 table_name=table_name,
                 schema_name=schema_name,
                 vector_size=self.embeddings_factory.get_dimension(),
                 overwrite_existing=False,
-                metadata_columns=[Column(e["name"], e["data_type"]) for e in metadata_columns],
             )
             logger.info(f"pgvector vector table created: {table_name=} {schema_name=}")
-        except ProgrammingError as e:  # quick and dirty trick to test table exixtence.  There might be better !
+        except ProgrammingError as e:
             if "already exists" in str(e).lower():
                 logger.debug(f"Use existing pgvector table : {table_name}")
             else:
                 raise
-        from langchain_postgres.v2.indexes import HNSWIndex
 
         vector_store = PGVectorStore.create_sync(
             engine=pg_engine,
             table_name=table_name,
             schema_name=schema_name,
-            embedding_service=self.embeddings_factory.get(),
-            metadata_columns=[e["name"] for e in metadata_columns],
+            embedding_service=embeddings,
         )
-
-        try:
-            index = HNSWIndex(name="hnsw-index")
-            vector_store.apply_vector_index(index)
-        except ProgrammingError as e:  # quick and dirty trick to test table exixtence.  There might be better !
-            if "already exists" in str(e).lower():
-                pass
-            else:
-                raise
-
+        
         self._conf["pg_engine"] = pg_engine
         self._conf["table_name"] = table_name
         self._conf["schema_name"] = schema_name
-
+        
         return vector_store
 
     def clean(self):
