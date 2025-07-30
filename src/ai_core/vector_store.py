@@ -111,6 +111,7 @@ class VectorStoreFactory(BaseModel):
     collection_metadata: dict[str, str] | None = None
     cache_embeddings: bool = False
     _record_manager: SQLRecordManager | None = None
+    _conf: dict = {}
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -214,6 +215,7 @@ class VectorStoreFactory(BaseModel):
                 embedding=embeddings,
             )
         elif self.id == "PgVector":
+            import sqlalchemy as sa
             from langchain_postgres import PGEngine, PGVectorStore
 
             pgconf = global_config().merge_with("config/components/pgvector.yaml").get_dict("default_local_container")
@@ -223,30 +225,27 @@ class VectorStoreFactory(BaseModel):
             )
             pg_engine = PGEngine.from_connection_string(url=connection_string)
             table_name = f"{pgconf['table_prefix']}_{self.embeddings_factory.short_name()}"
-
-            # Check if table exists before initializing
-            import sqlalchemy as sa
-            try:
-                with pg_engine.engine.connect() as conn:
-                    if sa.inspect(conn).has_table(table_name, schema=pgconf["postgres_schema"]):
-                        logger.info(f"Table {table_name} already exists, skipping init_vectorstore_table")
-                    else:
-                        pg_engine.init_vectorstore_table(
-                            table_name=table_name,
-                            vector_size=self.embeddings_factory.get_dimension(),
-                        )
-            except Exception as e:
-                logger.warning(f"Error checking table existence: {e}, proceeding with init_vectorstore_table")
+            schema_name = pgconf["postgres_schema"]
+            logger.info(f"get or create pgvector {table_name=} {schema_name=}")
+            # fix : Inspection on an AsyncEngine is currently not supported. Please obtain a connection then use ``conn.run_sync`` to pass a callable where it's possible to call ``inspect`` on the passed connection. AI!
+            if sa.inspect(pg_engine._pool).has_table(table_name, schema=schema_name):
+                logger.info(f"Table {table_name} already exists, skipping init_vectorstore_table")
+            else:
                 pg_engine.init_vectorstore_table(
                     table_name=table_name,
+                    schema_name=schema_name,
                     vector_size=self.embeddings_factory.get_dimension(),
+                    overwrite_existing=False,
                 )
-            vector_store = PGVectorStore.create(
+            vector_store = PGVectorStore.create_sync(
                 engine=pg_engine,
                 table_name=table_name,
-                schema_name=pgconf["postgres_schema"],
+                schema_name=schema_name,
                 embedding_service=embeddings,
             )
+            self._conf["pg_engine"] = pg_engine
+            self._conf["table_name"] = table_name
+            self._conf["schema_name"] = schema_name
         else:
             raise ValueError(f"Unknown vector store: {self.id}")
 
@@ -339,6 +338,16 @@ class VectorStoreFactory(BaseModel):
             return self.vector_store._collection.count()  # type: ignore
         else:
             raise NotImplementedError(f"Don't know how to get collection count for {self.vector_store}")
+
+    def clean(self):
+        if self.id == "PgVector":
+            from langchain_postgres import PGEngine
+
+            if pg_engine := self._conf.get("pg_engine"):
+                assert isinstance(pg_engine, PGEngine)
+                pg_engine.drop_table(table_name=self._conf["table_name"], schema_name=self._conf["schema_name"])
+            else:
+                raise NotImplementedError(f"Don't'clean' method for {self.vector_store}")
 
 
 def search_one(vc: VectorStore, query: str) -> list[Document]:
