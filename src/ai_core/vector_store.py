@@ -215,8 +215,8 @@ class VectorStoreFactory(BaseModel):
                 embedding=embeddings,
             )
         elif self.id == "PgVector":
-            from langchain_postgres import PGEngine, PGVectorStore
             import asyncpg.exceptions
+            from langchain_postgres import PGEngine, PGVectorStore
 
             pgconf = global_config().merge_with("config/components/pgvector.yaml").get_dict("default_local_container")
             connection_string = (
@@ -227,6 +227,8 @@ class VectorStoreFactory(BaseModel):
             table_name = f"{pgconf['table_prefix']}_{self.embeddings_factory.short_name()}"
             schema_name = pgconf["postgres_schema"]
             logger.info(f"get or create pgvector {table_name=} {schema_name=}")
+
+            # Quick and dirty test to check if it exists. Probably a better solution exists
             try:
                 pg_engine.init_vectorstore_table(
                     table_name=table_name,
@@ -234,8 +236,9 @@ class VectorStoreFactory(BaseModel):
                     vector_size=self.embeddings_factory.get_dimension(),
                     overwrite_existing=False,
                 )
-            except asyncpg.exceptions.DuplicateTableError as ex:
-                print(ex)
+            except asyncpg.exceptions.DuplicateTableError:
+                logger.info(f"Use existing pgvector table : {table_name}")
+
             vector_store = PGVectorStore.create_sync(
                 engine=pg_engine,
                 table_name=table_name,
