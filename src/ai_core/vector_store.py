@@ -227,8 +227,27 @@ class VectorStoreFactory(BaseModel):
             table_name = f"{pgconf['table_prefix']}_{self.embeddings_factory.short_name()}"
             schema_name = pgconf["postgres_schema"]
             logger.info(f"get or create pgvector {table_name=} {schema_name=}")
-            # fix : Inspection on an AsyncEngine is currently not supported. Please obtain a connection then use ``conn.run_sync`` to pass a callable where it's possible to call ``inspect`` on the passed connection. AI!
-            if sa.inspect(pg_engine._pool).has_table(table_name, schema=schema_name):
+
+            def check_table_exists(conn):
+                inspector = sa.inspect(conn)
+                return inspector.has_table(table_name, schema=schema_name)
+
+            # Use run_sync to check if table exists
+            import asyncio
+            try:
+                loop = asyncio.get_event_loop()
+                table_exists = loop.run_until_complete(
+                    pg_engine._pool.run_sync(check_table_exists)
+                )
+            except RuntimeError:
+                # No event loop, create new one
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                table_exists = loop.run_until_complete(
+                    pg_engine._pool.run_sync(check_table_exists)
+                )
+
+            if table_exists:
                 logger.info(f"Table {table_name} already exists, skipping init_vectorstore_table")
             else:
                 pg_engine.init_vectorstore_table(
