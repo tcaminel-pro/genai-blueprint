@@ -27,7 +27,7 @@ Example:
     >>> factory = VectorStoreFactory(
     ...     id="Chroma",
     ...     embeddings_factory=EmbeddingsFactory(),
-    ...     chroma_collection_name="my_documents"
+    ...     table_name="my_documents"
     ... )
     >>>
     >>> # Add documents to the store
@@ -59,8 +59,6 @@ from src.utils.config_mngr import global_config
 # List of known Vector Stores (created as Literal so can be checked by MyPy)
 VECTOR_STORE_ENGINE = Literal["Chroma", "Chroma_in_memory", "InMemory", "Sklearn", "PgVector"]
 
-chroma_collection_name = global_config().get_str("vector_store.chroma_collection_name")
-
 
 class VectorStoreFactory(BaseModel):
     """Factory for creating and managing vector stores with advanced configuration.
@@ -81,13 +79,14 @@ class VectorStoreFactory(BaseModel):
         >>> factory = VectorStoreFactory(
         ...     id="Chroma",
         ...     embeddings_factory=EmbeddingsFactory(),
-        ...     config={"chroma_collection_name": "documents", "chroma_path": "/custom/path"}
+        ...     config={"table_name": "documents", "chroma_path": "/custom/path"}
         ... )
         >>> factory.add_documents([Document(page_content="example")])
     """
 
     id: Annotated[VECTOR_STORE_ENGINE | None, Field(validate_default=True)] = None
     embeddings_factory: EmbeddingsFactory
+    table_name_prefix: str = "embeddings"
     config: dict[str, str] = {}
     index_document: bool = False
     collection_metadata: dict[str, str] | None = None
@@ -99,18 +98,15 @@ class VectorStoreFactory(BaseModel):
 
     @computed_field
     @property
-    def collection_full_name(self) -> str:
-        """Generate a unique collection name by combining collection and embeddings ID.
+    def table_name(self) -> str:
+        """Generate a name by combining collection and embeddings ID.
 
         Returns:
             Unique collection name to prevent conflicts
         """
         assert self.embeddings_factory
-        embeddings_id = self.embeddings_factory.info.id
-        collection_name = self.config.get("chroma_collection_name") or global_config().get_str(
-            "vector_store.chroma_collection_name"
-        )
-        return f"{collection_name}_{embeddings_id}"
+        embeddings_id = self.embeddings_factory.short_name()
+        return f"{self.table_name_prefix}_{embeddings_id}"
 
     @computed_field
     def description(self) -> str:
@@ -119,7 +115,7 @@ class VectorStoreFactory(BaseModel):
         Returns:
             Comprehensive configuration description string
         """
-        r = f"{str(self.id)}/{self.collection_full_name}"
+        r = f"{str(self.id)}/{self.table_name}"
         if self.id == "Chroma":
             r += " => 'on disk'"
         if self.index_document and self._record_manager:
@@ -183,7 +179,7 @@ class VectorStoreFactory(BaseModel):
                 embedding=embeddings,
             )
         elif self.id == "PgVector":
-            vector_store = self._create_pg_vector_store(embeddings)
+            vector_store = self._create_pg_vector_store()
         else:
             raise ValueError(f"Unknown vector store: {self.id}")
 
@@ -192,7 +188,7 @@ class VectorStoreFactory(BaseModel):
             # NOT TESTED
             db_url = global_config().get_str("vector_store.record_manager")
             logger.info(f"vector store record manager : {db_url}")
-            namespace = f"{self.id}/{self.collection_full_name}"
+            namespace = f"{self.id}/{self.table_name}"
             self._record_manager = SQLRecordManager(
                 namespace,
                 db_url=db_url,
@@ -292,22 +288,21 @@ class VectorStoreFactory(BaseModel):
         return Chroma(
             embedding_function=embeddings,
             persist_directory=persist_directory,
-            chroma_collection_name=self.collection_full_name,
+            collection_name=self.table_name,
             collection_metadata=self.collection_metadata,
         )
 
-    def _create_pg_vector_store(self, embeddings: Embeddings) -> VectorStore:
+    def _create_pg_vector_store(self) -> VectorStore:
         """Create and configure a PgVector store."""
         from langchain_postgres import PGEngine, PGVectorStore
         from sqlalchemy.exc import ProgrammingError
 
         # Use config dict to override YAML values
         postgres_url = self.config.get("postgres_url") or global_config().get_str("vector_store.postgres_url")
-        table_prefix = self.config.get("table_prefix") or "vectorstore"
         schema_name = self.config.get("postgres_schema") or "public"
 
         connection_string = f"postgresql+asyncpg:{postgres_url}"
-        table_name = f"{table_prefix}_{self.embeddings_factory.short_name()}"
+        table_name = self.table_name
 
         pg_engine = PGEngine.from_connection_string(url=connection_string)
         try:
@@ -328,7 +323,7 @@ class VectorStoreFactory(BaseModel):
             engine=pg_engine,
             table_name=table_name,
             schema_name=schema_name,
-            embedding_service=embeddings,
+            embedding_service=self.embeddings_factory.get(),
         )
 
         self._conf["pg_engine"] = pg_engine
