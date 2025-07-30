@@ -291,10 +291,12 @@ class VectorStoreFactory(BaseModel):
             collection_metadata=self.collection_metadata,
         )
 
-    def _create_pg_vector_store(self, embeddings: Embeddings) -> VectorStore:
+    def _create_pg_vector_store(self, connection_string: str, qualified_table_name: str, embeddings: Embeddings) -> VectorStore:
         """Create and configure a PgVector store.
 
         Args:
+            connection_string : Connection URL (possibly prefix)
+            qualified_table_name : schema_name.table_name . "schema_name." can be omitted for public schema
             embeddings: The embedding model to use
 
         Returns:
@@ -303,14 +305,13 @@ class VectorStoreFactory(BaseModel):
         from langchain_postgres import Column, PGEngine, PGVectorStore
         from sqlalchemy.exc import ProgrammingError
 
-        pgconf = global_config().merge_with("config/components/pgvector.yaml").get_dict("default_local_container")
-        connection_string = (
-            f"postgresql+asyncpg://{pgconf['postgres_user']}:{pgconf['postgres_password']}@{pgconf['postgres_host']}"
-            f":{pgconf['postgres_port']}/{pgconf['postgres_db']}"
-        )
         pg_engine = PGEngine.from_connection_string(url=connection_string)
         table_name = f"vectorstore_{self.embeddings_factory.short_name()}"
-        schema_name = pgconf.get("postgres_schema") or "public"
+
+        #  complete.  full_url is url + 'postgresql+asyncpg:' if not already there AI!
+        schema_name = ...
+        table_name = ....
+        full_url = 
 
         metadata_list = pgconf.get("metadata_columns") or []
         try:
