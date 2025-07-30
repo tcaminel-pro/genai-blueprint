@@ -63,7 +63,7 @@ def maintenance_procedure_vectors(text: str) -> VectorStore:
     """
     vs_factory = VectorStoreFactory(
         id=VECTOR_STORE_ID,
-        collection_name="maintenance_procedure",
+        chroma_collection_name="maintenance_procedure",
         embeddings_factory=EmbeddingsFactory(),
     )
 

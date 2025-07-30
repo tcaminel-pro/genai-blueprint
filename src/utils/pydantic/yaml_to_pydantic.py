@@ -205,7 +205,7 @@ def test1() -> None:
 
     # Test validation
     try:
-        invalid_person = PersonClass(name="Jane")
+        _ = PersonClass(name="Jane")
     except Exception as e:
         print("Validation error (expected):", str(e))
 

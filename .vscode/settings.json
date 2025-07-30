@@ -97,6 +97,7 @@
     "openai",
     "openrouter",
     "Ordalie",
+    "pgvector",
     "pydantic",
     "pygraphviz",
     "Pylance",

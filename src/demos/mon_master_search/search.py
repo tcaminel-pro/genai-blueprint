@@ -34,7 +34,7 @@ def get_sparse_retriever(embeddings_model_id: str) -> Runnable:
     retriever = VectorStoreFactory(
         id="Chroma",
         embeddings_factory=embeddings_factory,
-        collection_name="offres_formation",
+        chroma_collection_name="offres_formation",
     ).as_retriever_configurable(top_k=DEFAULT_RESULT_COUNT)
     return retriever
 

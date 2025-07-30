@@ -27,7 +27,7 @@ Example:
     >>> factory = VectorStoreFactory(
     ...     id="Chroma",
     ...     embeddings_factory=EmbeddingsFactory(),
-    ...     collection_name="my_documents"
+    ...     chroma_collection_name="my_documents"
     ... )
     >>>
     >>> # Add documents to the store
@@ -40,11 +40,11 @@ Example:
     >>> results = factory.vector_store.similarity_search("query")
 """
 
-import os
 from collections.abc import Iterable
 from functools import cached_property
 from typing import Annotated, Literal, get_args
 
+from langchain.embeddings.base import Embeddings
 from langchain.indexes import IndexingResult, SQLRecordManager, index
 from langchain.schema import Document
 from langchain.vectorstores.base import VectorStore
@@ -52,7 +52,6 @@ from langchain_core.runnables import ConfigurableField
 from langchain_core.vectorstores.base import VectorStoreRetriever
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
-from upath import UPath
 
 from src.ai_core.embeddings import EmbeddingsFactory
 from src.utils.config_mngr import global_config
@@ -60,24 +59,7 @@ from src.utils.config_mngr import global_config
 # List of known Vector Stores (created as Literal so can be checked by MyPy)
 VECTOR_STORE_ENGINE = Literal["Chroma", "Chroma_in_memory", "InMemory", "Sklearn", "PgVector"]
 
-default_collection = global_config().get_str("vector_store.default_collection")
-
-
-def get_vector_vector_store_path() -> str:
-    """Determine the appropriate path for storing vector databases.
-
-    Supports both Modal cloud environments and local development setups.
-
-    Returns:
-        Path to the vector store storage directory
-    """
-    if modal_volume := os.environ.get("MODAL_VOLUME_PATH"):
-        # Running in Modal environment
-        return modal_volume
-    else:
-        # Local development
-        dir = global_config().get_dir_path("vector_store.path", create_if_not_exists=True)
-        return str(dir)
+chroma_collection_name = global_config().get_str("vector_store.chroma_collection_name")
 
 
 class VectorStoreFactory(BaseModel):
@@ -90,7 +72,7 @@ class VectorStoreFactory(BaseModel):
     Attributes:
         id: Identifier for the vector store backend
         embeddings_factory: Factory for creating embedding models
-        collection_name: Name of the vector store collection
+        chroma_collection_name: Name of the vector store collection
         index_document: Flag to enable document deduplication and indexing
         collection_metadata: Optional metadata for the collection
         cache_embeddings: Flag to enable embedding caching
@@ -99,14 +81,14 @@ class VectorStoreFactory(BaseModel):
         >>> factory = VectorStoreFactory(
         ...     id="Chroma",
         ...     embeddings_factory=EmbeddingsFactory(),
-        ...     collection_name="documents"
+        ...     chroma_collection_name="documents"
         ... )
         >>> factory.add_documents([Document(page_content="example")])
     """
 
     id: Annotated[VECTOR_STORE_ENGINE | None, Field(validate_default=True)] = None
     embeddings_factory: EmbeddingsFactory
-    collection_name: str = default_collection
+    chroma_collection_name: str = chroma_collection_name
     index_document: bool = False
     collection_metadata: dict[str, str] | None = None
     cache_embeddings: bool = False
@@ -125,7 +107,7 @@ class VectorStoreFactory(BaseModel):
         """
         assert self.embeddings_factory
         embeddings_id = self.embeddings_factory.info.id
-        return f"{self.collection_name}_{embeddings_id}"
+        return f"{self.chroma_collection_name}_{embeddings_id}"
 
     @computed_field
     def description(self) -> str:
@@ -136,7 +118,7 @@ class VectorStoreFactory(BaseModel):
         """
         r = f"{str(self.id)}/{self.collection_full_name}"
         if self.id == "Chroma":
-            r += f" => '{get_vector_vector_store_path()}'"
+            r += " => 'on disk'"
         if self.index_document and self._record_manager:
             r += f" indexer: {self._record_manager}"
         r += f" cache_embeddings: {self.cache_embeddings}"
@@ -182,10 +164,9 @@ class VectorStoreFactory(BaseModel):
             ValueError: If an unsupported vector store backend is specified
         """
         embeddings = self.embeddings_factory.get(cached=self.cache_embeddings)
-        store_path = get_vector_vector_store_path()
         vector_store = None
         if self.id in ["Chroma", "Chroma_in_memory"]:
-            vector_store = self._create_chroma_vector_store(embeddings, store_path)
+            vector_store = self._create_chroma_vector_store(embeddings)
         elif self.id == "InMemory":
             from langchain_core.vectorstores import InMemoryVectorStore
 
@@ -198,7 +179,6 @@ class VectorStoreFactory(BaseModel):
             vector_store = SKLearnVectorStore(
                 embedding=embeddings,
             )
-
         elif self.id == "PgVector":
             vector_store = self._create_pg_vector_store(embeddings)
         else:
@@ -206,9 +186,10 @@ class VectorStoreFactory(BaseModel):
 
         logger.info(f"get vector store  : {self.description}")
         if self.index_document:
-            db_url = f"sqlite:///{get_vector_vector_store_path()}/record_manager_cache.sql"
+            # NOT TESTED
+            db_url = global_config().get_str("vector_store.record_manager")
             logger.info(f"vector store record manager : {db_url}")
-            namespace = f"{id}/{self.collection_full_name}"
+            namespace = f"{self.id}/{self.collection_full_name}"
             self._record_manager = SQLRecordManager(
                 namespace,
                 db_url=db_url,
@@ -294,36 +275,23 @@ class VectorStoreFactory(BaseModel):
         else:
             raise NotImplementedError(f"Don't know how to get collection count for {self.vector_store}")
 
-    def _create_chroma_vector_store(self, embeddings, store_path: str) -> VectorStore:
-        """Create and configure a Chroma vector store.
-
-        Args:
-            embeddings: The embedding model to use
-            store_path: Path for persistent storage (if applicable)
-
-        Returns:
-            Configured Chroma vector store instance
-        """
+    def _create_chroma_vector_store(self, embeddings: Embeddings) -> VectorStore:
+        """Create and configure a Chroma vector store."""
         from langchain_chroma import Chroma
 
-        if self.id == "Chroma":
-            # Persistent storage
-            UPath(store_path).mkdir(parents=True, exist_ok=True)
-            return Chroma(
-                embedding_function=embeddings,
-                persist_directory=store_path,
-                collection_name=self.collection_full_name,
-                collection_metadata=self.collection_metadata,
-            )
+        if self.id == "Chroma":  # Persistent storage
+            store_path = global_config().get_dir_path("vector_store.chroma_path", create_if_not_exists=True)
+            persist_directory = str(store_path)
         else:  # Chroma_in_memory
-            # In-memory storage
-            return Chroma(
-                embedding_function=embeddings,
-                collection_name=self.collection_full_name,
-                collection_metadata=self.collection_metadata,
-            )
+            persist_directory = None
+        return Chroma(
+            embedding_function=embeddings,
+            persist_directory=persist_directory,
+            chroma_collection_name=self.collection_full_name,
+            collection_metadata=self.collection_metadata,
+        )
 
-    def _create_pg_vector_store(self, embeddings) -> VectorStore:
+    def _create_pg_vector_store(self, embeddings: Embeddings) -> VectorStore:
         """Create and configure a PgVector store.
 
         Args:
@@ -332,7 +300,7 @@ class VectorStoreFactory(BaseModel):
         Returns:
             Configured PgVector store instance
         """
-        from langchain_postgres import PGEngine, PGVectorStore
+        from langchain_postgres import Column, PGEngine, PGVectorStore
         from sqlalchemy.exc import ProgrammingError
 
         pgconf = global_config().merge_with("config/components/pgvector.yaml").get_dict("default_local_container")
@@ -341,30 +309,43 @@ class VectorStoreFactory(BaseModel):
             f":{pgconf['postgres_port']}/{pgconf['postgres_db']}"
         )
         pg_engine = PGEngine.from_connection_string(url=connection_string)
-        table_name = f"{pgconf['table_prefix']}_{self.embeddings_factory.short_name()}"
-        schema_name = pgconf["postgres_schema"]
+        table_name = f"vectorstore_{self.embeddings_factory.short_name()}"
+        schema_name = pgconf.get("postgres_schema") or "public"
 
+        metadata_list = pgconf.get("metadata_columns") or []
         try:
             pg_engine.init_vectorstore_table(
                 table_name=table_name,
                 schema_name=schema_name,
                 vector_size=self.embeddings_factory.get_dimension(),
                 overwrite_existing=False,
+                metadata_columns=[Column(e["name"], e["data_type"]) for e in metadata_list],
             )
             logger.info(f"pgvector vector table created: {table_name=} {schema_name=}")
-        except ProgrammingError as e:
-            # quick and dirty trick to test table exixtence.  There might be better !
+        except ProgrammingError as e:  # quick and dirty trick to test table exixtence.  There might be better !
             if "already exists" in str(e).lower():
                 logger.debug(f"Use existing pgvector table : {table_name}")
             else:
                 raise
+        from langchain_postgres.v2.indexes import HNSWIndex
 
         vector_store = PGVectorStore.create_sync(
             engine=pg_engine,
             table_name=table_name,
             schema_name=schema_name,
             embedding_service=embeddings,
+            metadata_columns=[e["name"] for e in metadata_list],
         )
+
+        try:
+            index = HNSWIndex(name="hnsw-index")
+            vector_store.apply_vector_index(index)
+        except ProgrammingError as e:  # quick and dirty trick to test table exixtence.  There might be better !
+            if "already exists" in str(e).lower():
+                pass
+            else:
+                raise
+
         self._conf["pg_engine"] = pg_engine
         self._conf["table_name"] = table_name
         self._conf["schema_name"] = schema_name

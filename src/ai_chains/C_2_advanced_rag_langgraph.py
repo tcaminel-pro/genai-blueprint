@@ -139,7 +139,7 @@ def retriever() -> BaseRetriever:
 
     vs_factory = VectorStoreFactory(
         id="Chroma_in_memory",
-        collection_name="rag-chroma",
+        chroma_collection_name="rag-chroma",
         embeddings_factory=EmbeddingsFactory(),
     )
     vectorstore = vs_factory.vector_store

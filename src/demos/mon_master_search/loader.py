@@ -166,7 +166,7 @@ def create_embeddings(embeddings_id: str = EMBEDDINGS_MODEL) -> None:
     vector_factory = VectorStoreFactory(
         id="Chroma",
         embeddings_factory=embeddings_factory,
-        collection_name="offres_formation",
+        chroma_collection_name="offres_formation",
         index_document=True,
     )
     docs = list(load_objects_from_jsonl(FILES, Document))

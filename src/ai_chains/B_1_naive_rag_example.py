@@ -25,7 +25,7 @@ def get_retriever_fn(query: str | None, config: RunnableConfig):
         raise FileNotFoundError(f"Path in does not exists: {path}")
     vector_store = VectorStoreFactory(
         id=None,
-        collection_name="test_rag",
+        chroma_collection_name="test_rag",
         embeddings_factory=EmbeddingsFactory(),  # take default one
     ).vector_store
 
