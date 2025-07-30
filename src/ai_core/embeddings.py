@@ -275,6 +275,12 @@ class EmbeddingsFactory(BaseModel):
         cached_embedder = CacheBackedEmbeddings.from_bytes_store(self.get(), file_store, namespace=self.embeddings_id)  # type: ignore
         return cached_embedder
 
+    def short_name(self) -> str:
+        """Return the model ID without the provider (everything before the last underscore)."""
+        return self.info.id.rsplit("_", maxsplit=1)[0]
+    
+    def get_dimension(self) -> int : 
+
 
 def get_embeddings(
     embeddings_id: str | None = None,
