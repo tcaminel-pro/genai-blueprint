@@ -214,9 +214,12 @@ class VectorStoreFactory(BaseModel):
             vector_store = SKLearnVectorStore(
                 embedding=embeddings,
             )
+        # refactor : put that code for PgVector in a separate method AI!
         elif self.id == "PgVector":
             from langchain_postgres import PGEngine, PGVectorStore
             from sqlalchemy.exc import ProgrammingError
+
+
 
             pgconf = global_config().merge_with("config/components/pgvector.yaml").get_dict("default_local_container")
             connection_string = (
@@ -226,7 +229,6 @@ class VectorStoreFactory(BaseModel):
             pg_engine = PGEngine.from_connection_string(url=connection_string)
             table_name = f"{pgconf['table_prefix']}_{self.embeddings_factory.short_name()}"
             schema_name = pgconf["postgres_schema"]
-            logger.info(f"get or create pgvector {table_name=} {schema_name=}")
 
             try:
                 pg_engine.init_vectorstore_table(
@@ -235,10 +237,11 @@ class VectorStoreFactory(BaseModel):
                     vector_size=self.embeddings_factory.get_dimension(),
                     overwrite_existing=False,
                 )
-
+                logger.info(f"pgvector vector table created: {table_name=} {schema_name=}")
             except ProgrammingError as e:
+                # quick and dirty trick to test table exixtence.  There might be better !
                 if "already exists" in str(e).lower():
-                    logger.info(f"Use existing pgvector table : {table_name}")
+                    logger.debug(f"Use existing pgvector table : {table_name}")
                 else:
                     raise
 
