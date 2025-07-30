@@ -109,10 +109,10 @@ def _read_embeddings_list_file() -> list[EmbeddingsInfo]:
             for provider_info in model_entry["providers"]:
                 for provider, model_name in provider_info.items():
                     embedding_info = {
-                        "id": f"{model_id}_{provider}", 
-                        "provider": provider, 
+                        "id": f"{model_id}_{provider}",
+                        "provider": provider,
                         "model": model_name,
-                        "dimension": dimension
+                        "dimension": dimension,
                     }
                     embeddings.append(EmbeddingsInfo(**embedding_info))
     return embeddings
