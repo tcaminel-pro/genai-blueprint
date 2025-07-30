@@ -58,6 +58,7 @@ class EmbeddingsInfo(BaseModel):
         model: Provider-specific model name
         key: Optional API key for accessing the model
         prefix: Optional prefix required by some models in API calls
+        dimension: Dimension of the embeddings model
     """
 
     id: str
@@ -65,6 +66,7 @@ class EmbeddingsInfo(BaseModel):
     model: str
     key: str | None = None
     prefix: str = ""
+    dimension: int | None = None
 
     def __hash__(self) -> int:
         return hash(self.id)
@@ -102,10 +104,16 @@ def _read_embeddings_list_file() -> list[EmbeddingsInfo]:
     embeddings = []
     if "embeddings" in data:
         for model_entry in data["embeddings"]:
-            model_id = model_entry["id"]
+            model_id = model_entry["model"]["id"]
+            dimension = model_entry.get("dimension")
             for provider_info in model_entry["providers"]:
                 for provider, model_name in provider_info.items():
-                    embedding_info = {"id": f"{model_id}_{provider}", "provider": provider, "model": model_name}
+                    embedding_info = {
+                        "id": f"{model_id}_{provider}", 
+                        "provider": provider, 
+                        "model": model_name,
+                        "dimension": dimension
+                    }
                     embeddings.append(EmbeddingsInfo(**embedding_info))
     return embeddings
 
@@ -280,28 +288,17 @@ class EmbeddingsFactory(BaseModel):
         return self.info.id.rsplit("_", maxsplit=1)[0]
 
     def get_dimension(self) -> int:
-        """Get the dimension of the embeddings model from YAML configuration.
+        """Get the dimension of the embeddings model from configuration.
 
         Returns:
             The dimension of the embeddings model
 
         Raises:
-            ValueError: If dimension is not configured in YAML file
+            ValueError: If dimension is not configured
         """
-        yml_file = global_config().get_file_path("embeddings.list")
-        with open(yml_file) as f:
-            data = yaml.safe_load(f)
-
-        # Find the model configuration
-        model_id = self.short_name()
-        for model_entry in data.get("embeddings", []):
-            if model_entry.get("model", {}).get("id") == model_id:
-                dimension = model_entry.get("dimension")
-                if dimension is None:
-                    raise ValueError(f"Dimension not configured for model '{model_id}' in YAML file")
-                return dimension
-
-        raise ValueError(f"Model '{model_id}' not found in YAML configuration")
+        if self.info.dimension is None:
+            raise ValueError(f"Dimension not configured for model '{self.info.id}'")
+        return self.info.dimension
 
 
 def get_embeddings(
