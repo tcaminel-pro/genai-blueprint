@@ -184,6 +184,7 @@ class VectorStoreFactory(BaseModel):
         embeddings = self.embeddings_factory.get(cached=self.cache_embeddings)
         store_path = get_vector_vector_store_path()
         vector_store = None
+        # refactor : put that code for Chroma and Chroma_in_memory in the same separate method AI!
         if self.id == "Chroma":
             from langchain_chroma import Chroma
 
@@ -214,7 +215,7 @@ class VectorStoreFactory(BaseModel):
             vector_store = SKLearnVectorStore(
                 embedding=embeddings,
             )
-        # refactor : put that code for PgVector in a separate method AI!
+
         elif self.id == "PgVector":
             vector_store = self._create_pg_vector_store(embeddings)
         else:
