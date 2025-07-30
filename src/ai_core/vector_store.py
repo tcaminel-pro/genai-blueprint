@@ -5,11 +5,12 @@ interacting with vector stores across multiple storage backends. It supports
 advanced document indexing, retrieval, and vector database operations.
 
 Key Features:
-- Multi-backend vector store support (Chroma, In-Memory, Sklearn)
+- Multi-backend vector store support (Chroma, In-Memory, Sklearn, PgVector)
 - Flexible document indexing and deduplication
 - Configurable retrieval strategies
 - Seamless integration with embedding models
 - Advanced search and filtering capabilities
+- Generic configuration system with YAML override support
 
 Supported Backends:
 - Chroma (persistent and in-memory)
@@ -20,14 +21,22 @@ Supported Backends:
 Design Patterns:
 - Factory Method for vector store creation
 - Configurable retrieval strategies
+- Generic configuration via dict parameter
 - Singleton-like access to vector stores
 
 Example:
-    >>> # Create a vector store factory
+    >>> # Create a vector store factory with generic configuration
     >>> factory = VectorStoreFactory(
     ...     id="Chroma",
     ...     embeddings_factory=EmbeddingsFactory(),
-    ...     table_name="my_documents"
+    ...     config={"chroma_collection_name": "documents", "chroma_path": "/custom/path"}
+    ... )
+    >>>
+    >>> # PgVector example with configuration overrides
+    >>> pg_factory = VectorStoreFactory(
+    ...     id="PgVector",
+    ...     embeddings_factory=EmbeddingsFactory(),
+    ...     config={"postgres_url": "//user:pass@localhost:5432/db", "postgres_schema": "vector_store"}
     ... )
     >>>
     >>> # Add documents to the store
@@ -70,6 +79,7 @@ class VectorStoreFactory(BaseModel):
     Attributes:
         id: Identifier for the vector store backend
         embeddings_factory: Factory for creating embedding models
+        table_name_prefix: Prefix for generated table/collection names
         config: Dictionary of vector store specific configuration that overrides YAML values
         index_document: Flag to enable document deduplication and indexing
         collection_metadata: Optional metadata for the collection
@@ -79,7 +89,7 @@ class VectorStoreFactory(BaseModel):
         >>> factory = VectorStoreFactory(
         ...     id="Chroma",
         ...     embeddings_factory=EmbeddingsFactory(),
-        ...     config={"table_name": "documents", "chroma_path": "/custom/path"}
+        ...     config={"chroma_path": "/custom/path"}
         ... )
         >>> factory.add_documents([Document(page_content="example")])
     """
