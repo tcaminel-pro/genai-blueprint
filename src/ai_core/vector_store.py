@@ -15,6 +15,7 @@ Supported Backends:
 - Chroma (persistent and in-memory)
 - InMemoryVectorStore
 - SKLearnVectorStore
+- PgVector
 
 Design Patterns:
 - Factory Method for vector store creation
@@ -47,9 +48,7 @@ from typing import Annotated, Literal, get_args
 from langchain.indexes import IndexingResult, SQLRecordManager, index
 from langchain.schema import Document
 from langchain.vectorstores.base import VectorStore
-from langchain_chroma import Chroma
 from langchain_core.runnables import ConfigurableField
-from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_core.vectorstores.base import VectorStoreRetriever
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
@@ -59,7 +58,7 @@ from src.ai_core.embeddings import EmbeddingsFactory
 from src.utils.config_mngr import global_config
 
 # List of known Vector Stores (created as Literal so can be checked by MyPy)
-VECTOR_STORE_ENGINE = Literal["Chroma", "Chroma_in_memory", "InMemory", "Sklearn"]
+VECTOR_STORE_ENGINE = Literal["Chroma", "Chroma_in_memory", "InMemory", "Sklearn", "PgVector"]
 
 default_collection = global_config().get_str("vector_store.default_collection")
 
@@ -183,10 +182,11 @@ class VectorStoreFactory(BaseModel):
         """
         embeddings = self.embeddings_factory.get(cached=self.cache_embeddings)
         store_path = get_vector_vector_store_path()
-
+        vector_store = None
         if self.id == "Chroma":
-            UPath(store_path).mkdir(parents=True, exist_ok=True)
+            from langchain_chroma import Chroma
 
+            UPath(store_path).mkdir(parents=True, exist_ok=True)
             vector_store = Chroma(
                 embedding_function=embeddings,
                 persist_directory=store_path,
@@ -194,12 +194,16 @@ class VectorStoreFactory(BaseModel):
                 collection_metadata=self.collection_metadata,
             )
         elif self.id == "Chroma_in_memory":
+            from langchain_chroma import Chroma
+
             vector_store = Chroma(
                 embedding_function=embeddings,
                 collection_name=self.collection_full_name,
                 collection_metadata=self.collection_metadata,
             )
         elif self.id == "InMemory":
+            from langchain_core.vectorstores import InMemoryVectorStore
+
             vector_store = InMemoryVectorStore(
                 embedding=embeddings,
             )
@@ -208,6 +212,29 @@ class VectorStoreFactory(BaseModel):
 
             vector_store = SKLearnVectorStore(
                 embedding=embeddings,
+            )
+        elif self.id == "PgVector":
+            from langchain_postgres import PGEngine, PGVectorStore
+
+            pgconf = global_config().merge_with("config/components/pgvector.yaml").get_dict("default_local_container")
+            connection_string = (
+                f"postgresql+asyncpg://{pgconf['postgres_user']}:{pgconf['postgres_password']}@{pgconf['postgres_host']}"
+                f":{pgconf['postgres_port']}/{pgconf['postgres_db']}"
+            )
+            pg_engine = PGEngine.from_connection_string(url=connection_string)
+            table_name = f"{pgconf['table_prefix']}_{self.embeddings_factory.short_name()}"
+
+            # chech that the table exists.  If so, skip init_vectorstore_table AI!
+
+            pg_engine.init_vectorstore_table(
+                table_name=table_name,
+                vector_size=self.embeddings_factory.get_dimension(),
+            )
+            vector_store = PGVectorStore.create(
+                engine=pg_engine,
+                table_name=table_name,
+                schema_name=pgconf["postgres_schema"],
+                embedding_service=embeddings,
             )
         else:
             raise ValueError(f"Unknown vector store: {self.id}")
@@ -222,7 +249,7 @@ class VectorStoreFactory(BaseModel):
                 db_url=db_url,
             )
             self._record_manager.create_schema()
-
+        assert vector_store
         return vector_store
 
     def as_retriever_configurable(self, top_k: int = 4, filter: dict | None = None) -> VectorStoreRetriever:
