@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Type, Union
 
 import yaml
 from pydantic import BaseModel, Field, create_model
+from rich import print
 
 
 class YamlToPydantic:
@@ -67,7 +68,6 @@ class YamlToPydantic:
         Returns:
             A dynamically created Pydantic class
         """
-        # Clear existing classes
         self.created_classes.clear()
 
         # First pass: create all class definitions
@@ -139,26 +139,7 @@ class YamlToPydantic:
         return new_class
 
 
-# Convenience functions for backward compatibility
-def yaml_type_to_python_type(yaml_type: str) -> type:
-    """Convert YAML type string to Python type."""
-    converter = YamlToPydantic()
-    return converter.yaml_type_to_python_type(yaml_type)
-
-
-def create_class_from_yaml(yaml_content: str, class_name: str | None = None) -> Type[BaseModel]:
-    """Create a Pydantic class from YAML content string."""
-    converter = YamlToPydantic()
-    return converter.create_class_from_yaml(yaml_content, class_name)
-
-
-def create_class_from_dict(yaml_data: dict, class_name: str | None = None) -> Type[BaseModel]:
-    """Create a Pydantic class from dictionary data."""
-    converter = YamlToPydantic()
-    return converter.create_class_from_dict(yaml_data, class_name)
-
-
-if __name__ == "__main__":
+def test1() -> None:
     # Test the functionality
     test_yaml = """
     Person:
@@ -208,7 +189,8 @@ if __name__ == "__main__":
     """
 
     # Test with string content
-    PersonClass = create_class_from_yaml(test_yaml, "Person")
+    converter = YamlToPydantic()
+    PersonClass = converter.create_class_from_yaml(test_yaml, "Person")
 
     # Create instances
     person_data = {
@@ -217,8 +199,6 @@ if __name__ == "__main__":
         "email": [{"url": "john@example.com"}, {"url": "myssf@gmail.com", "email_type": "pro"}],
         "address": {"street": "123 Main St", "city": "Anytown", "zip_code": "12345"},
     }
-
-    from rich import print
 
     person = PersonClass(**person_data)
     print("Created person:", person)
@@ -230,3 +210,32 @@ if __name__ == "__main__":
         print("Validation error (expected):", str(e))
 
     print("All tests completed successfully!")
+
+
+def test2() -> None:
+    from src.utils.config_mngr import global_config
+
+    demo = (
+        global_config()
+        .merge_with("config/demos/document_extractor.yaml")
+        .get_dict("Document_extractor_demo.0", expected_keys=["schema", "key", "top_class"])
+    )
+
+    converter = YamlToPydantic()
+    PersonClass = converter.create_class_from_dict(demo["schema"], demo["top_class"])
+    print(PersonClass)
+
+    person_data = {
+        "name": "John Doe",
+        "age": 30,
+        "email": [{"url": "john@example.com"}, {"url": "myssf@gmail.com", "email_type": "pro"}],
+        "address": {"street": "123 Main St", "city": "Anytown", "zip_code": "12345"},
+    }
+
+    person = PersonClass(**person_data)
+    print("Created person:", person)
+
+
+if __name__ == "__main__":
+    test1()
+    test2()

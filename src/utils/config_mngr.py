@@ -196,7 +196,7 @@ class OmegaConfig(BaseModel):
         if not isinstance(value, ListConfig):
             raise TypeError(f"Configuration value for '{key}' is not a list (its a {type(value)})")
 
-        result = list(value)
+        result = OmegaConf.to_container(value, resolve=True)
 
         # Type validation if type parameter is provided
         if value_type is not Any:
@@ -222,12 +222,12 @@ class OmegaConfig(BaseModel):
         value = self.get(key)
         if not isinstance(value, DictConfig):
             raise TypeError(f"Configuration value for '{key}' is not a dict (its a {type(value)})")
-        result = dict(value)
+        result = OmegaConf.to_container(value, resolve=True)
         if expected_keys is not None:
             missing_keys = [k for k in expected_keys if k not in result]
             if missing_keys:
                 raise KeyError(f"Missing required keys '{key}': {', '.join(missing_keys)}")
-        return result  # type: ignore
+        return result  # pyright: ignore[reportReturnType]
 
     def get_dir_path(self, key: str, create_if_not_exists: bool = False) -> UPath:
         """Get a directory path. Can be local or remote  (https, S3, webdav, sftp,...)

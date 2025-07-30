@@ -94,39 +94,19 @@ def main() -> None:
     from langchain_community.embeddings import FakeEmbeddings
     from rich import print
 
-    import src.demos.ekg.rainbow_model as m
+    from src.utils.config_mngr import global_config
+
+    demo = (
+        global_config()
+        .merge_with("config/demos/document_extractor.yaml")
+        .get_dict("Document_extractor_demo.1", expected_keys=["schema", "key", "top_class"])
+    )
+    m = create_class_from_dict(demo["schema"], demo["top_class"])
 
     """Quick test of the embedding utilities using fake embeddings."""
     # Create fake embeddings for testing
     fake_embeddings = FakeEmbeddings(size=1536)
 
-    # Create a sample project
-    sample_project = m.RainbowProjectAnalysis(
-        identification=m.ProjectIdentification(
-            name="AI Agent Development Project",
-            customer="TechCorp Inc",
-            status="Pursuit",
-            start_date=date(2024, 8, 1),
-            end_date=date(2024, 12, 31),
-        ),
-        description=m.ProjectDescription(
-            objectives=["Build AI agents for customer service", "Reduce response time by 50%"],
-            scope="End-to-end AI agent implementation",
-            success_metrics=["Response time < 2min", "95% accuracy rate"],
-        ),
-        team=[m.PersonRole(name="John Doe", role="Project Manager", organization="Our Company")],
-        delivery=m.DeliveryInfo(
-            business_lines=["AI Solutions", "Consulting"],
-            locations=["New York", "London"],
-            technologies=["Python", "LangChain", "OpenAI"],
-        ),
-        financials=m.FinancialMetrics(tcv=500000.0, annual_revenue=500000.0, project_margin=25.0),
-        risks=[m.RiskAnalysis(risk_description="Tight timeline", mitigation_strategy="Add resources")],
-        competition=m.CompetitiveLandscape(competitors=["BigConsulting Inc"], competitive_position="Strong"),
-        bidding=m.BiddingStrategy(strategy_type="Prime", win_themes=["Technical expertise", "Experience"]),
-        similarity=m.SimilarityAttributes(keywords=["AI", "automation", "customer service"]),
-        source="Test data",
-    )
 
     # Test field embeddings
     print("Generating field embeddings...")
