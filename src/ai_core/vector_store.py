@@ -184,25 +184,8 @@ class VectorStoreFactory(BaseModel):
         embeddings = self.embeddings_factory.get(cached=self.cache_embeddings)
         store_path = get_vector_vector_store_path()
         vector_store = None
-        # refactor : put that code for Chroma and Chroma_in_memory in the same separate method AI!
-        if self.id == "Chroma":
-            from langchain_chroma import Chroma
-
-            UPath(store_path).mkdir(parents=True, exist_ok=True)
-            vector_store = Chroma(
-                embedding_function=embeddings,
-                persist_directory=store_path,
-                collection_name=self.collection_full_name,
-                collection_metadata=self.collection_metadata,
-            )
-        elif self.id == "Chroma_in_memory":
-            from langchain_chroma import Chroma
-
-            vector_store = Chroma(
-                embedding_function=embeddings,
-                collection_name=self.collection_full_name,
-                collection_metadata=self.collection_metadata,
-            )
+        if self.id in ["Chroma", "Chroma_in_memory"]:
+            vector_store = self._create_chroma_vector_store(embeddings, store_path)
         elif self.id == "InMemory":
             from langchain_core.vectorstores import InMemoryVectorStore
 
@@ -310,6 +293,35 @@ class VectorStoreFactory(BaseModel):
             return self.vector_store._collection.count()  # type: ignore
         else:
             raise NotImplementedError(f"Don't know how to get collection count for {self.vector_store}")
+
+    def _create_chroma_vector_store(self, embeddings, store_path: str) -> VectorStore:
+        """Create and configure a Chroma vector store.
+
+        Args:
+            embeddings: The embedding model to use
+            store_path: Path for persistent storage (if applicable)
+
+        Returns:
+            Configured Chroma vector store instance
+        """
+        from langchain_chroma import Chroma
+
+        if self.id == "Chroma":
+            # Persistent storage
+            UPath(store_path).mkdir(parents=True, exist_ok=True)
+            return Chroma(
+                embedding_function=embeddings,
+                persist_directory=store_path,
+                collection_name=self.collection_full_name,
+                collection_metadata=self.collection_metadata,
+            )
+        else:  # Chroma_in_memory
+            # In-memory storage
+            return Chroma(
+                embedding_function=embeddings,
+                collection_name=self.collection_full_name,
+                collection_metadata=self.collection_metadata,
+            )
 
     def _create_pg_vector_store(self, embeddings) -> VectorStore:
         """Create and configure a PgVector store.
