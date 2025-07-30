@@ -216,44 +216,7 @@ class VectorStoreFactory(BaseModel):
             )
         # refactor : put that code for PgVector in a separate method AI!
         elif self.id == "PgVector":
-            from langchain_postgres import PGEngine, PGVectorStore
-            from sqlalchemy.exc import ProgrammingError
-
-
-
-            pgconf = global_config().merge_with("config/components/pgvector.yaml").get_dict("default_local_container")
-            connection_string = (
-                f"postgresql+asyncpg://{pgconf['postgres_user']}:{pgconf['postgres_password']}@{pgconf['postgres_host']}"
-                f":{pgconf['postgres_port']}/{pgconf['postgres_db']}"
-            )
-            pg_engine = PGEngine.from_connection_string(url=connection_string)
-            table_name = f"{pgconf['table_prefix']}_{self.embeddings_factory.short_name()}"
-            schema_name = pgconf["postgres_schema"]
-
-            try:
-                pg_engine.init_vectorstore_table(
-                    table_name=table_name,
-                    schema_name=schema_name,
-                    vector_size=self.embeddings_factory.get_dimension(),
-                    overwrite_existing=False,
-                )
-                logger.info(f"pgvector vector table created: {table_name=} {schema_name=}")
-            except ProgrammingError as e:
-                # quick and dirty trick to test table exixtence.  There might be better !
-                if "already exists" in str(e).lower():
-                    logger.debug(f"Use existing pgvector table : {table_name}")
-                else:
-                    raise
-
-            vector_store = PGVectorStore.create_sync(
-                engine=pg_engine,
-                table_name=table_name,
-                schema_name=schema_name,
-                embedding_service=embeddings,
-            )
-            self._conf["pg_engine"] = pg_engine
-            self._conf["table_name"] = table_name
-            self._conf["schema_name"] = schema_name
+            vector_store = self._create_pg_vector_store(embeddings)
         else:
             raise ValueError(f"Unknown vector store: {self.id}")
 
@@ -346,6 +309,54 @@ class VectorStoreFactory(BaseModel):
             return self.vector_store._collection.count()  # type: ignore
         else:
             raise NotImplementedError(f"Don't know how to get collection count for {self.vector_store}")
+
+    def _create_pg_vector_store(self, embeddings) -> VectorStore:
+        """Create and configure a PgVector store.
+
+        Args:
+            embeddings: The embedding model to use
+
+        Returns:
+            Configured PgVector store instance
+        """
+        from langchain_postgres import PGEngine, PGVectorStore
+        from sqlalchemy.exc import ProgrammingError
+
+        pgconf = global_config().merge_with("config/components/pgvector.yaml").get_dict("default_local_container")
+        connection_string = (
+            f"postgresql+asyncpg://{pgconf['postgres_user']}:{pgconf['postgres_password']}@{pgconf['postgres_host']}"
+            f":{pgconf['postgres_port']}/{pgconf['postgres_db']}"
+        )
+        pg_engine = PGEngine.from_connection_string(url=connection_string)
+        table_name = f"{pgconf['table_prefix']}_{self.embeddings_factory.short_name()}"
+        schema_name = pgconf["postgres_schema"]
+
+        try:
+            pg_engine.init_vectorstore_table(
+                table_name=table_name,
+                schema_name=schema_name,
+                vector_size=self.embeddings_factory.get_dimension(),
+                overwrite_existing=False,
+            )
+            logger.info(f"pgvector vector table created: {table_name=} {schema_name=}")
+        except ProgrammingError as e:
+            # quick and dirty trick to test table exixtence.  There might be better !
+            if "already exists" in str(e).lower():
+                logger.debug(f"Use existing pgvector table : {table_name}")
+            else:
+                raise
+
+        vector_store = PGVectorStore.create_sync(
+            engine=pg_engine,
+            table_name=table_name,
+            schema_name=schema_name,
+            embedding_service=embeddings,
+        )
+        self._conf["pg_engine"] = pg_engine
+        self._conf["table_name"] = table_name
+        self._conf["schema_name"] = schema_name
+        
+        return vector_store
 
     def clean(self):
         if self.id == "PgVector":
