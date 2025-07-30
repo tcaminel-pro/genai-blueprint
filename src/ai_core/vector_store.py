@@ -215,7 +215,6 @@ class VectorStoreFactory(BaseModel):
                 embedding=embeddings,
             )
         elif self.id == "PgVector":
-            import sqlalchemy as sa
             from langchain_postgres import PGEngine, PGVectorStore
 
             pgconf = global_config().merge_with("config/components/pgvector.yaml").get_dict("default_local_container")
@@ -227,35 +226,16 @@ class VectorStoreFactory(BaseModel):
             table_name = f"{pgconf['table_prefix']}_{self.embeddings_factory.short_name()}"
             schema_name = pgconf["postgres_schema"]
             logger.info(f"get or create pgvector {table_name=} {schema_name=}")
-
-            def check_table_exists(conn):
-                inspector = sa.inspect(conn)
-                return inspector.has_table(table_name, schema=schema_name)
-
-            # Use run_sync to check if table exists
-            import asyncio
             try:
-                loop = asyncio.get_event_loop()
-                table_exists = loop.run_until_complete(
-                    pg_engine._pool.run_sync(check_table_exists)
-                )
-            except RuntimeError:
-                # No event loop, create new one
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                table_exists = loop.run_until_complete(
-                    pg_engine._pool.run_sync(check_table_exists)
-                )
-
-            if table_exists:
-                logger.info(f"Table {table_name} already exists, skipping init_vectorstore_table")
-            else:
                 pg_engine.init_vectorstore_table(
                     table_name=table_name,
                     schema_name=schema_name,
                     vector_size=self.embeddings_factory.get_dimension(),
                     overwrite_existing=False,
                 )
+            # add import AI!
+            except asyncpg.exceptions.DuplicateTableError as ex:
+                print(ex)
             vector_store = PGVectorStore.create_sync(
                 engine=pg_engine,
                 table_name=table_name,
