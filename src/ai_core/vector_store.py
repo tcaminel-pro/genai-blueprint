@@ -215,7 +215,6 @@ class VectorStoreFactory(BaseModel):
                 embedding=embeddings,
             )
         elif self.id == "PgVector":
-            import asyncpg.exceptions
             from langchain_postgres import PGEngine, PGVectorStore
 
             pgconf = global_config().merge_with("config/components/pgvector.yaml").get_dict("default_local_container")
@@ -228,34 +227,17 @@ class VectorStoreFactory(BaseModel):
             schema_name = pgconf["postgres_schema"]
             logger.info(f"get or create pgvector {table_name=} {schema_name=}")
 
-            # Check if table exists before attempting to create it
-            from sqlalchemy.exc import ProgrammingError
-
-            def table_exists(conn):
-                from sqlalchemy import inspect
-
-                inspector = inspect(conn)
-                return inspector.has_table(table_name, schema=schema_name)
-
             try:
-                # First check if table already exists
-                import asyncio
+                pg_engine.init_vectorstore_table(
+                    table_name=table_name,
+                    schema_name=schema_name,
+                    vector_size=self.embeddings_factory.get_dimension(),
+                    overwrite_existing=False,
+                )
 
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                exists = loop.run_until_complete(pg_engine._pool.run_sync(table_exists))
-
-                if not exists:
-                    pg_engine.init_vectorstore_table(
-                        table_name=table_name,
-                        schema_name=schema_name,
-                        vector_size=self.embeddings_factory.get_dimension(),
-                        overwrite_existing=False,
-                    )
-                else:
-                    logger.info(f"Use existing pgvector table : {table_name}")
-
-            except ProgrammingError as e:
+            # add import AI!
+            except sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError as e:
+                print(e)
                 if "already exists" in str(e).lower():
                     logger.info(f"Use existing pgvector table : {table_name}")
                 else:
