@@ -107,7 +107,9 @@ class VectorStoreFactory(BaseModel):
         """
         assert self.embeddings_factory
         embeddings_id = self.embeddings_factory.info.id
-        collection_name = self.config.get("chroma_collection_name") or global_config().get_str("vector_store.chroma_collection_name")
+        collection_name = self.config.get("chroma_collection_name") or global_config().get_str(
+            "vector_store.chroma_collection_name"
+        )
         return f"{collection_name}_{embeddings_id}"
 
     @computed_field
@@ -281,7 +283,9 @@ class VectorStoreFactory(BaseModel):
         from langchain_chroma import Chroma
 
         if self.id == "Chroma":  # Persistent storage
-            store_path = self.config.get("chroma_path") or global_config().get_dir_path("vector_store.chroma_path", create_if_not_exists=True)
+            store_path = self.config.get("chroma_path") or global_config().get_dir_path(
+                "vector_store.chroma_path", create_if_not_exists=True
+            )
             persist_directory = str(store_path)
         else:  # Chroma_in_memory
             persist_directory = None
@@ -301,10 +305,10 @@ class VectorStoreFactory(BaseModel):
         postgres_url = self.config.get("postgres_url") or global_config().get_str("vector_store.postgres_url")
         table_prefix = self.config.get("table_prefix") or "vectorstore"
         schema_name = self.config.get("postgres_schema") or "public"
-        
+
         connection_string = f"postgresql+asyncpg:{postgres_url}"
         table_name = f"{table_prefix}_{self.embeddings_factory.short_name()}"
-        
+
         pg_engine = PGEngine.from_connection_string(url=connection_string)
         try:
             pg_engine.init_vectorstore_table(
@@ -326,11 +330,11 @@ class VectorStoreFactory(BaseModel):
             schema_name=schema_name,
             embedding_service=embeddings,
         )
-        
+
         self._conf["pg_engine"] = pg_engine
         self._conf["table_name"] = table_name
         self._conf["schema_name"] = schema_name
-        
+
         return vector_store
 
     def clean(self):
