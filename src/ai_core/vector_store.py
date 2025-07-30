@@ -216,6 +216,7 @@ class VectorStoreFactory(BaseModel):
             )
         elif self.id == "PgVector":
             from langchain_postgres import PGEngine, PGVectorStore
+            import asyncpg.exceptions
 
             pgconf = global_config().merge_with("config/components/pgvector.yaml").get_dict("default_local_container")
             connection_string = (
@@ -233,7 +234,6 @@ class VectorStoreFactory(BaseModel):
                     vector_size=self.embeddings_factory.get_dimension(),
                     overwrite_existing=False,
                 )
-            # add import AI!
             except asyncpg.exceptions.DuplicateTableError as ex:
                 print(ex)
             vector_store = PGVectorStore.create_sync(
