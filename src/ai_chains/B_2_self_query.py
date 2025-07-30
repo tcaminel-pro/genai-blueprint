@@ -85,7 +85,7 @@ document_content_description = "Brief summary of a movie"
 def vector_store() -> VectorStore:
     vector_store = VectorStoreFactory(
         id="Chroma_in_memory",
-        chroma_collection_name="test_self_query",
+        table_name_prefix="test_self_query",
         embeddings_factory=EmbeddingsFactory(),
     ).vector_store  # take default one
     vector_store.add_documents(docs)

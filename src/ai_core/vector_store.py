@@ -28,8 +28,9 @@ Example:
     >>> # Create a vector store factory with generic configuration
     >>> factory = VectorStoreFactory(
     ...     id="Chroma",
+            table_suffix = "documents",
     ...     embeddings_factory=EmbeddingsFactory(),
-    ...     config={"chroma_collection_name": "documents", "chroma_path": "/custom/path"}
+    ...     config={"chroma_path": "/custom/path"}
     ... )
     >>>
     >>> # PgVector example with configuration overrides

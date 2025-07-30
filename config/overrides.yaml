@@ -62,7 +62,7 @@ container:
   vector_store:
     default: Chroma
     path: ${paths.data_root}/vector_store
-    chroma_collection_name: "chroma_collection_name"
+    table_name: "table_name"
   monitoring: 
     default:  langsmith
   external_data: ${paths.data_root}/external
