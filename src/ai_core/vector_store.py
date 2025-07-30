@@ -305,14 +305,23 @@ class VectorStoreFactory(BaseModel):
         from langchain_postgres import Column, PGEngine, PGVectorStore
         from sqlalchemy.exc import ProgrammingError
 
-        pg_engine = PGEngine.from_connection_string(url=connection_string)
-        table_name = f"vectorstore_{self.embeddings_factory.short_name()}"
+        # Ensure connection string has proper prefix
+        if not connection_string.startswith("postgresql"):
+            full_url = f"postgresql+asyncpg:{connection_string}"
+        else:
+            full_url = connection_string
 
-        #  complete.  full_url is url + 'postgresql+asyncpg:' if not already there AI!
-        schema_name = ...
-        table_name = ....
-        full_url = 
+        # Parse qualified table name
+        if "." in qualified_table_name:
+            schema_name, table_name = qualified_table_name.split(".", 1)
+        else:
+            schema_name = "public"
+            table_name = qualified_table_name
 
+        pg_engine = PGEngine.from_connection_string(url=full_url)
+
+        # Get configuration for metadata columns
+        pgconf = global_config().get_dict("vector_store")
         metadata_list = pgconf.get("metadata_columns") or []
         try:
             pg_engine.init_vectorstore_table(
