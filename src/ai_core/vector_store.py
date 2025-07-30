@@ -72,7 +72,7 @@ class VectorStoreFactory(BaseModel):
     Attributes:
         id: Identifier for the vector store backend
         embeddings_factory: Factory for creating embedding models
-        chroma_collection_name: Name of the vector store collection
+        config: Dictionary of vector store specific configuration that overrides YAML values
         index_document: Flag to enable document deduplication and indexing
         collection_metadata: Optional metadata for the collection
         cache_embeddings: Flag to enable embedding caching
@@ -81,14 +81,14 @@ class VectorStoreFactory(BaseModel):
         >>> factory = VectorStoreFactory(
         ...     id="Chroma",
         ...     embeddings_factory=EmbeddingsFactory(),
-        ...     chroma_collection_name="documents"
+        ...     config={"chroma_collection_name": "documents", "chroma_path": "/custom/path"}
         ... )
         >>> factory.add_documents([Document(page_content="example")])
     """
 
     id: Annotated[VECTOR_STORE_ENGINE | None, Field(validate_default=True)] = None
     embeddings_factory: EmbeddingsFactory
-    chroma_collection_name: str = chroma_collection_name
+    config: dict[str, str] = {}
     index_document: bool = False
     collection_metadata: dict[str, str] | None = None
     cache_embeddings: bool = False
@@ -107,7 +107,8 @@ class VectorStoreFactory(BaseModel):
         """
         assert self.embeddings_factory
         embeddings_id = self.embeddings_factory.info.id
-        return f"{self.chroma_collection_name}_{embeddings_id}"
+        collection_name = self.config.get("chroma_collection_name") or global_config().get_str("vector_store.chroma_collection_name")
+        return f"{collection_name}_{embeddings_id}"
 
     @computed_field
     def description(self) -> str:
@@ -280,7 +281,7 @@ class VectorStoreFactory(BaseModel):
         from langchain_chroma import Chroma
 
         if self.id == "Chroma":  # Persistent storage
-            store_path = global_config().get_dir_path("vector_store.chroma_path", create_if_not_exists=True)
+            store_path = self.config.get("chroma_path") or global_config().get_dir_path("vector_store.chroma_path", create_if_not_exists=True)
             persist_directory = str(store_path)
         else:  # Chroma_in_memory
             persist_directory = None
