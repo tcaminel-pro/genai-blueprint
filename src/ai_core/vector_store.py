@@ -228,16 +228,38 @@ class VectorStoreFactory(BaseModel):
             schema_name = pgconf["postgres_schema"]
             logger.info(f"get or create pgvector {table_name=} {schema_name=}")
 
-            # Quick and dirty test to check if it exists. Probably a better solution exists
+            # Check if table exists before attempting to create it
+            from sqlalchemy.exc import ProgrammingError
+            
+            def table_exists(conn):
+                from sqlalchemy import inspect
+                inspector = inspect(conn)
+                return inspector.has_table(table_name, schema=schema_name)
+            
             try:
-                pg_engine.init_vectorstore_table(
-                    table_name=table_name,
-                    schema_name=schema_name,
-                    vector_size=self.embeddings_factory.get_dimension(),
-                    overwrite_existing=False,
+                # First check if table already exists
+                import asyncio
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                exists = loop.run_until_complete(
+                    pg_engine._pool.run_sync(table_exists)
                 )
-            except asyncpg.exceptions.DuplicateTableError:
-                logger.info(f"Use existing pgvector table : {table_name}")
+                
+                if not exists:
+                    pg_engine.init_vectorstore_table(
+                        table_name=table_name,
+                        schema_name=schema_name,
+                        vector_size=self.embeddings_factory.get_dimension(),
+                        overwrite_existing=False,
+                    )
+                else:
+                    logger.info(f"Use existing pgvector table : {table_name}")
+                    
+            except ProgrammingError as e:
+                if "already exists" in str(e).lower():
+                    logger.info(f"Use existing pgvector table : {table_name}")
+                else:
+                    raise
 
             vector_store = PGVectorStore.create_sync(
                 engine=pg_engine,
