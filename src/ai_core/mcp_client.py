@@ -166,8 +166,7 @@ def get_mcp_servers_dict(filter: list[str] | None = None) -> dict:
     """
     servers = global_config().merge_with("config/demos/graph_rag.yaml").get_dict("mcpServers")
     # Filter out servers that are explicitly disabled
-    servers = {name: config for name, config in servers.items() if not config.get("disabled", True)}
-    debug(servers)
+    servers = {name: config for name, config in servers.items() if not config.get("disabled", False)}
     if filter is not None:
         missing_servers = [name for name in filter if name not in servers]
         if missing_servers:
@@ -183,7 +182,6 @@ def get_mcp_servers_dict(filter: list[str] | None = None) -> dict:
             except Exception as e:
                 print(f"Skipping MCP server {name} due to configuration error: {str(e)}")
                 logger.warning(f"Skipping MCP server {name} due to configuration error: {str(e)}")
-    debug(result_dict)
     return result_dict
 
 

@@ -383,13 +383,18 @@ class LlmFactory(BaseModel):
 
             # _ = llm_params.pop("response_format", None) or {}
             # Not sure.  See https://openrouter.ai/docs/structured-outputs
-            # avoid fp4
-            filer_quantizations = {"provider": {"quantizations": ["fp8", "unknown", "fp16", "fp32", "bf16"]}}
+
+            #  Attempt to avoid fp4 quantization.  But might not work for all cases
+            openrouter_provider = self.info.model.partition("/")[0]
+            extra_body = None
+            if openrouter_provider not in ["openai", "anthropic", "mistralai"]:
+                extra_body = {"provider": {"quantizations": ["fp8", "unknown", "fp16", "fp32", "bf16"]}}
+
             llm = ChatOpenAI(
                 base_url=OPENROUTER_API_BASE,
                 model=self.info.model,
                 api_key=api_key,
-                extra_body=filer_quantizations,
+                extra_body=extra_body,
                 **llm_params,
             )
         elif self.info.provider == "huggingface":

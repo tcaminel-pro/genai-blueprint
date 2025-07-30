@@ -1,53 +1,18 @@
-import os
-import sys
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import asyncio
 
-from browser_use import Agent, Controller
-from browser_use.browser.browser import Browser, BrowserConfig
-from langchain_openai import ChatOpenAI
+from dotenv import load_dotenv
 
-# "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-browser_path = "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
-browser = Browser(
-    config=BrowserConfig(
-        headless=False,
-        # NOTE: you need to close your chrome browser - so that this can open your browser in debug mode
-        chrome_instance_path=browser_path,
-    )
-)
-controller = Controller()
+load_dotenv()
+from browser_use import Agent
+from browser_use.llm import ChatOpenAI
 
 
-async def main() -> None:
-    task = "In docs.google.com write my Papa a quick thank you for everything letter \n - Magnus"
-    task += " and save the document as pdf"
-    model = ChatOpenAI(model="gpt-4o")
+async def main():
     agent = Agent(
-        task=task,
-        llm=model,
-        controller=controller,
-        browser=browser,
+        task="Compare the price of gpt-4o and DeepSeek-V3",
+        llm=ChatOpenAI(model="o4-mini", temperature=1.0),
     )
-
     await agent.run()
-    await browser.close()
-
-    input("Press Enter to close...")
-
-
-# if __name__ == "__main__":
-#     asyncio.run(main())
-
-
-async def main() -> None:
-    agent = Agent(
-        task="Go to Reddit, search for 'browser-use' in the search bar, click on the first post and return the first comment.",
-        llm=ChatOpenAI(model="gpt-4o"),
-    )
-    result = await agent.run()
-    print(result)
 
 
 asyncio.run(main())

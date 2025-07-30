@@ -22,6 +22,7 @@ import typer
 from typer import Option
 from upath import UPath
 
+from src.ai_extra.browser_use_langchain import ChatLangchain
 from src.utils.config_mngr import global_config
 
 
@@ -284,7 +285,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             window_size={"width": 800, "height": 600},
         )
 
-        llm = get_llm(llm_id=llm_id)
+        llm = ChatLangchain(chat=get_llm(llm_id=llm_id))
         agent = Agent(task=task, llm=llm, browser_session=browser_session)
         history = asyncio.run(agent.run())
         print(history.final_result())
