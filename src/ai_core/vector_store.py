@@ -50,6 +50,7 @@ Example:
     >>> results = factory.vector_store.similarity_search("query")
 """
 
+import os
 from collections.abc import Iterable
 from functools import cached_property
 from typing import Annotated, Literal, get_args
@@ -64,7 +65,7 @@ from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
 from src.ai_core.embeddings import EmbeddingsFactory
-from src.utils.config_mngr import global_config
+from src.utils.config_mngr import global_config, global_config_reload
 
 try:
     from langchain_postgres.v2.hybrid_search_config import HybridSearchConfig
@@ -384,132 +385,6 @@ class VectorStoreFactory(BaseModel):
             else:
                 raise NotImplementedError(f"Don't'clean' method for {self.vector_store}")
 
-    def add_hybrid_search_to_existing_table(
-        self,
-        tsv_column: str = "content_tsv",
-        tsv_lang: str = "pg_catalog.english",
-        index_name: str | None = None,
-        index_type: str = "GIN",
-    ) -> None:
-        """Add TSV column and GIN index to an existing PostgreSQL vector store table.
-
-        This method alters an existing table to support hybrid search by:
-        1. Adding a TSV (text search vector) column
-        2. Creating a GIN index on the TSV column
-        3. Setting up a trigger to auto-update the TSV column
-
-        Args:
-            tsv_column: Name of the TSV column to add
-            tsv_lang: Language configuration for text search
-            index_name: Name of the GIN index (defaults to f"{table_name}_tsv_index")
-            index_type: Type of index (typically "GIN")
-
-        Example:
-            >>> factory = VectorStoreFactory(
-            ...     id="PgVector",
-            ...     embeddings_factory=embeddings_factory
-            ... )
-            >>> factory.add_hybrid_search_to_existing_table(
-            ...     tsv_column="content_tsv",
-            ...     tsv_lang="pg_catalog.english"
-            ... )
-        """
-        if self.id != "PgVector":
-            raise ValueError("Hybrid search can only be added to PgVector stores")
-
-        pg_engine = self._conf.get("pg_engine")
-        if not pg_engine:
-            raise ValueError("PostgreSQL engine not found")
-
-        table_name = self._conf["table_name"]
-        schema_name = self._conf["schema_name"]
-        content_column = "content"  # Default content column name
-
-        if index_name is None:
-            index_name = f"{table_name}_tsv_index"
-
-        # SQL commands to add TSV column and index
-        alter_sql = f"""
-        ALTER TABLE {schema_name}.{table_name}
-        ADD COLUMN IF NOT EXISTS {tsv_column} tsvector;
-        """
-
-        # Create GIN index on TSV column
-        index_sql = f"""
-        CREATE INDEX IF NOT EXISTS {index_name}
-        ON {schema_name}.{table_name}
-        USING {index_type} ({tsv_column});
-        """
-
-        # Create trigger function to auto-update TSV column
-        trigger_function_sql = f"""
-        CREATE OR REPLACE FUNCTION update_{table_name}_tsv()
-        RETURNS TRIGGER AS $$
-        BEGIN
-            NEW.{tsv_column} := to_tsvector('{tsv_lang}', NEW.{content_column});
-            RETURN NEW;
-        END;
-        $$ LANGUAGE plpgsql;
-        """
-
-        # Create trigger to execute function on INSERT/UPDATE
-        trigger_sql = f"""
-        DROP TRIGGER IF EXISTS trigger_update_{table_name}_tsv ON {schema_name}.{table_name};
-        CREATE TRIGGER trigger_update_{table_name}_tsv
-            BEFORE INSERT OR UPDATE ON {schema_name}.{table_name}
-            FOR EACH ROW
-            EXECUTE FUNCTION update_{table_name}_tsv();
-        """
-
-        # Execute all SQL commands
-        import sqlalchemy
-
-        with pg_engine._engine.connect() as conn:
-            conn.execute(sqlalchemy.text(alter_sql))
-            conn.execute(sqlalchemy.text(index_sql))
-            conn.execute(sqlalchemy.text(trigger_function_sql))
-            conn.execute(sqlalchemy.text(trigger_sql))
-            conn.commit()
-
-        logger.info(
-            f"Added hybrid search support to table {schema_name}.{table_name}: "
-            f"TSV column={tsv_column}, GIN index={index_name}"
-        )
-
-    def update_existing_records_tsv(
-        self, tsv_column: str = "content_tsv", tsv_lang: str = "pg_catalog.english"
-    ) -> None:
-        """Update TSV values for existing records in the table.
-
-        Args:
-            tsv_column: Name of the TSV column to update
-            tsv_lang: Language configuration for text search
-        """
-        if self.id != "PgVector":
-            raise ValueError("TSV update can only be applied to PgVector stores")
-
-        pg_engine = self._conf.get("pg_engine")
-        if not pg_engine:
-            raise ValueError("PostgreSQL engine not found")
-
-        table_name = self._conf["table_name"]
-        schema_name = self._conf["schema_name"]
-        content_column = "content"  # Default content column name
-
-        update_sql = f"""
-        UPDATE {schema_name}.{table_name}
-        SET {tsv_column} = to_tsvector('{tsv_lang}', {content_column})
-        WHERE {content_column} IS NOT NULL;
-        """
-
-        import sqlalchemy
-
-        with pg_engine._engine.connect() as conn:
-            result = conn.execute(sqlalchemy.text(update_sql))
-            conn.commit()
-
-        logger.info(f"Updated TSV values for {result.rowcount} existing records in {schema_name}.{table_name}")
-
 
 def search_one(vc: VectorStore, query: str) -> list[Document]:
     """Perform a similarity search to find the single most relevant document.
@@ -526,7 +401,6 @@ def search_one(vc: VectorStore, query: str) -> list[Document]:
 
 if __name__ == "__main__":
     """Quick test script for hybrid search functionality."""
-    import os
     import sys
 
     try:
@@ -536,15 +410,20 @@ if __name__ == "__main__":
         sys.exit(1)
 
     from langchain_core.documents import Document
+
     from src.ai_core.embeddings import EmbeddingsFactory
 
     # Test configuration
-    postgres_url = os.getenv("POSTGRES_URL", "postgresql://user:password@localhost:5432/db")
+    os.environ["POSTGRES_USER"] = "tcl"
+    os.environ["POSTGRES_PASSWORD"] = "tcl"
+    global_config_reload()
+
+    postgres_url = global_config().get_str("vector_store.postgres_url")
 
     print("🧪 Testing hybrid search with PostgreSQL...")
 
     # Create embeddings factory
-    embeddings_factory = EmbeddingsFactory(embeddings_id="fake")
+    embeddings_factory = EmbeddingsFactory(embeddings_id="embeddings_768_fake")
 
     # Create vector store with hybrid search enabled
     factory = VectorStoreFactory(
@@ -596,7 +475,8 @@ if __name__ == "__main__":
     finally:
         # Clean up
         try:
-            factory.clean()
-            print("🧹 Cleaned up test table")
+            pass
+            # factory.clean()
+            # print("🧹 Cleaned up test table")
         except Exception as e:
             print(f"⚠️  Warning: Could not clean up - {e}")
