@@ -47,7 +47,6 @@ Example:
     ...     embeddings_factory=EmbeddingsFactory(),
     ...     hybrid_search=True,
     ...     hybrid_search_config={
-    ...         "tsv_column": "content_tsv",
     ...         "tsv_lang": "pg_catalog.english",
     ...         "fusion_function_parameters": {"primary_results_weight": 0.5, "secondary_results_weight": 0.5},
     ...     }
