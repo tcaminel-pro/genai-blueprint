@@ -11,12 +11,13 @@ Key Features:
 - Seamless integration with embedding models
 - Advanced search and filtering capabilities
 - Generic configuration system with YAML override support
+- Hybrid search support for PostgreSQL (vector + full-text search)
 
 Supported Backends:
 - Chroma (persistent and in-memory)
 - InMemoryVectorStore
 - SKLearnVectorStore
-- PgVector
+- PgVector (with hybrid search support)
 
 Design Patterns:
 - Factory Method for vector store creation
@@ -40,6 +41,18 @@ Example:
     ...     config={"postgres_url": "//user:pass@localhost:5432/db", "postgres_schema": "vector_store"}
     ... )
     >>>
+    >>> # PgVector with hybrid search (vector + full-text)
+    >>> hybrid_factory = VectorStoreFactory(
+    ...     id="PgVector",
+    ...     embeddings_factory=EmbeddingsFactory(),
+    ...     hybrid_search=True,
+    ...     hybrid_search_config={
+    ...         "tsv_column": "content_tsv",
+    ...         "tsv_lang": "pg_catalog.english",
+    ...         "fusion_function_parameters": {"primary_results_weight": 0.5, "secondary_results_weight": 0.5},
+    ...     }
+    ... )
+    >>>
     >>> # Add documents to the store
     >>> factory.add_documents([
     ...     Document(page_content="First document"),
@@ -48,6 +61,16 @@ Example:
     >>>
     >>> # Perform similarity search
     >>> results = factory.vector_store.similarity_search("query")
+    >>>
+    >>> # Perform hybrid search (PostgreSQL only)
+    >>> from langchain_postgres.v2.hybrid_search_config import HybridSearchConfig
+    >>> results = hybrid_factory.vector_store.similarity_search(
+    ...     "search query",
+    ...     hybrid_search_config=HybridSearchConfig(
+    ...         tsv_column="content_tsv",
+    ...         fusion_function_parameters={"primary_results_weight": 0.5, "secondary_results_weight": 0.5}
+    ...     )
+    ... )
 """
 
 import os
@@ -93,6 +116,8 @@ class VectorStoreFactory(BaseModel):
         index_document: Flag to enable document deduplication and indexing
         collection_metadata: Optional metadata for the collection
         cache_embeddings: Flag to enable embedding caching
+        hybrid_search: Flag to enable hybrid search (PostgreSQL only)
+        hybrid_search_config: Configuration for hybrid search parameters
 
     Example:
         >>> factory = VectorStoreFactory(
@@ -101,6 +126,17 @@ class VectorStoreFactory(BaseModel):
         ...     config={"chroma_path": "/custom/path"}
         ... )
         >>> factory.add_documents([Document(page_content="example")])
+        >>>
+        >>> # Hybrid search example
+        >>> hybrid_factory = VectorStoreFactory(
+        ...     id="PgVector",
+        ...     embeddings_factory=EmbeddingsFactory(),
+        ...     hybrid_search=True,
+        ...     hybrid_search_config={
+        ...         "tsv_column": "content_tsv",
+        ...         "tsv_lang": "pg_catalog.english"
+        ...     }
+        ... )
     """
 
     id: Annotated[VECTOR_STORE_ENGINE | None, Field(validate_default=True)] = None
