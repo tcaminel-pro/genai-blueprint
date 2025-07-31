@@ -522,3 +522,81 @@ def search_one(vc: VectorStore, query: str) -> list[Document]:
         List containing the most similar document
     """
     return vc.similarity_search(query, k=1)
+
+
+if __name__ == "__main__":
+    """Quick test script for hybrid search functionality."""
+    import os
+    import sys
+
+    try:
+        from langchain_postgres.v2.hybrid_search_config import HybridSearchConfig
+    except ImportError:
+        print("langchain-postgres not available. Install with: uv add langchain-postgres")
+        sys.exit(1)
+
+    from langchain_core.documents import Document
+    from src.ai_core.embeddings import EmbeddingsFactory
+
+    # Test configuration
+    postgres_url = os.getenv("POSTGRES_URL", "postgresql://user:password@localhost:5432/db")
+    
+    print("🧪 Testing hybrid search with PostgreSQL...")
+    
+    # Create embeddings factory
+    embeddings_factory = EmbeddingsFactory(embeddings_id="fake")
+    
+    # Create vector store with hybrid search enabled
+    factory = VectorStoreFactory(
+        id="PgVector",
+        embeddings_factory=embeddings_factory,
+        config={"postgres_url": postgres_url},
+        hybrid_search=True,
+        hybrid_search_config={
+            "tsv_column": "content_tsv",
+            "tsv_lang": "pg_catalog.english",
+            "fusion_function_parameters": {
+                "primary_results_weight": 0.5,
+                "secondary_results_weight": 0.5,
+            }
+        }
+    )
+    
+    try:
+        # Add test documents
+        test_docs = [
+            Document(page_content="PostgreSQL is a powerful open-source database system"),
+            Document(page_content="Hybrid search combines vector similarity and full-text search"),
+            Document(page_content="GIN indexes are used for full-text search in PostgreSQL"),
+            Document(page_content="LangChain provides excellent vector store integration")
+        ]
+        
+        print("📄 Adding test documents...")
+        factory.add_documents(test_docs)
+        
+        # Perform hybrid search
+        print("🔍 Performing hybrid search...")
+        results = factory.vector_store.similarity_search(
+            "database search", 
+            k=2,
+            hybrid_search_config=HybridSearchConfig(
+                tsv_column="content_tsv",
+                fusion_function_parameters={"primary_results_weight": 0.5, "secondary_results_weight": 0.5}
+            )
+        )
+        
+        print(f"✅ Found {len(results)} results:")
+        for i, doc in enumerate(results, 1):
+            print(f"  {i}. {doc.page_content}")
+            
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        print("💡 Make sure PostgreSQL is running and POSTGRES_URL is set correctly")
+        
+    finally:
+        # Clean up
+        try:
+            factory.clean()
+            print("🧹 Cleaned up test table")
+        except Exception as e:
+            print(f"⚠️  Warning: Could not clean up - {e}")
