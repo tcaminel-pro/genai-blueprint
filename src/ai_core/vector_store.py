@@ -66,6 +66,12 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validat
 from src.ai_core.embeddings import EmbeddingsFactory
 from src.utils.config_mngr import global_config
 
+try:
+    from langchain_postgres.v2.hybrid_search_config import HybridSearchConfig
+    HAS_HYBRID_SEARCH = True
+except ImportError:
+    HAS_HYBRID_SEARCH = False
+
 # List of known Vector Stores (created as Literal so can be checked by MyPy)
 VECTOR_STORE_ENGINE = Literal["Chroma", "Chroma_in_memory", "InMemory", "Sklearn", "PgVector"]
 
@@ -102,6 +108,8 @@ class VectorStoreFactory(BaseModel):
     index_document: bool = False
     collection_metadata: dict[str, str] | None = None
     cache_embeddings: bool = False
+    hybrid_search: bool = False
+    hybrid_search_config: dict | None = None
     _record_manager: SQLRecordManager | None = None
     _conf: dict = {}
 
@@ -316,14 +324,35 @@ class VectorStoreFactory(BaseModel):
         table_name = self.table_name
 
         pg_engine = PGEngine.from_connection_string(url=connection_string)
+        
+        # Prepare hybrid search configuration if enabled
+        hybrid_search_config = None
+        if self.hybrid_search and HAS_HYBRID_SEARCH:
+            hybrid_config = self.hybrid_search_config or {}
+            hybrid_search_config = HybridSearchConfig(
+                tsv_column=hybrid_config.get("tsv_column", "content_tsv"),
+                tsv_lang=hybrid_config.get("tsv_lang", "pg_catalog.english"),
+                fts_query=hybrid_config.get("fts_query", ""),
+                fusion_function=hybrid_config.get("fusion_function"),
+                fusion_function_parameters=hybrid_config.get("fusion_function_parameters", {}),
+                primary_top_k=hybrid_config.get("primary_top_k", 4),
+                secondary_top_k=hybrid_config.get("secondary_top_k", 4),
+                index_name=hybrid_config.get("index_name", f"{table_name}_tsv_index"),
+                index_type=hybrid_config.get("index_type", "GIN"),
+            )
+            logger.info(f"Hybrid search enabled with config: {hybrid_search_config}")
+
         try:
             pg_engine.init_vectorstore_table(
                 table_name=table_name,
                 schema_name=schema_name,
                 vector_size=self.embeddings_factory.get_dimension(),
                 overwrite_existing=False,
+                hybrid_search_config=hybrid_search_config,
             )
             logger.info(f"pgvector vector table created: {table_name=} {schema_name=}")
+            if self.hybrid_search and hybrid_search_config:
+                logger.info(f"Hybrid search configured with TSV column: {hybrid_search_config.tsv_column}")
         except ProgrammingError as e:
             if "already exists" in str(e).lower():
                 logger.debug(f"Use existing pgvector table : {table_name}")
@@ -335,6 +364,7 @@ class VectorStoreFactory(BaseModel):
             table_name=table_name,
             schema_name=schema_name,
             embedding_service=self.embeddings_factory.get(),
+            hybrid_search_config=hybrid_search_config,
         )
 
         self._conf["pg_engine"] = pg_engine
