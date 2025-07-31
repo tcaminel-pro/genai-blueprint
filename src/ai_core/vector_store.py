@@ -68,6 +68,7 @@ from src.utils.config_mngr import global_config
 
 try:
     from langchain_postgres.v2.hybrid_search_config import HybridSearchConfig
+
     HAS_HYBRID_SEARCH = True
 except ImportError:
     HAS_HYBRID_SEARCH = False
@@ -324,7 +325,7 @@ class VectorStoreFactory(BaseModel):
         table_name = self.table_name
 
         pg_engine = PGEngine.from_connection_string(url=connection_string)
-        
+
         # Prepare hybrid search configuration if enabled
         hybrid_search_config = None
         if self.hybrid_search and HAS_HYBRID_SEARCH:
