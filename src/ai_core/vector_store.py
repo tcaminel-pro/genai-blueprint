@@ -540,12 +540,12 @@ if __name__ == "__main__":
 
     # Test configuration
     postgres_url = os.getenv("POSTGRES_URL", "postgresql://user:password@localhost:5432/db")
-    
+
     print("🧪 Testing hybrid search with PostgreSQL...")
-    
+
     # Create embeddings factory
     embeddings_factory = EmbeddingsFactory(embeddings_id="fake")
-    
+
     # Create vector store with hybrid search enabled
     factory = VectorStoreFactory(
         id="PgVector",
@@ -558,41 +558,41 @@ if __name__ == "__main__":
             "fusion_function_parameters": {
                 "primary_results_weight": 0.5,
                 "secondary_results_weight": 0.5,
-            }
-        }
+            },
+        },
     )
-    
+
     try:
         # Add test documents
         test_docs = [
             Document(page_content="PostgreSQL is a powerful open-source database system"),
             Document(page_content="Hybrid search combines vector similarity and full-text search"),
             Document(page_content="GIN indexes are used for full-text search in PostgreSQL"),
-            Document(page_content="LangChain provides excellent vector store integration")
+            Document(page_content="LangChain provides excellent vector store integration"),
         ]
-        
+
         print("📄 Adding test documents...")
         factory.add_documents(test_docs)
-        
+
         # Perform hybrid search
         print("🔍 Performing hybrid search...")
         results = factory.vector_store.similarity_search(
-            "database search", 
+            "database search",
             k=2,
             hybrid_search_config=HybridSearchConfig(
                 tsv_column="content_tsv",
-                fusion_function_parameters={"primary_results_weight": 0.5, "secondary_results_weight": 0.5}
-            )
+                fusion_function_parameters={"primary_results_weight": 0.5, "secondary_results_weight": 0.5},
+            ),
         )
-        
+
         print(f"✅ Found {len(results)} results:")
         for i, doc in enumerate(results, 1):
             print(f"  {i}. {doc.page_content}")
-            
+
     except Exception as e:
         print(f"❌ Error: {e}")
         print("💡 Make sure PostgreSQL is running and POSTGRES_URL is set correctly")
-        
+
     finally:
         # Clean up
         try:
