@@ -392,18 +392,18 @@ class VectorStoreFactory(BaseModel):
         index_type: str = "GIN",
     ) -> None:
         """Add TSV column and GIN index to an existing PostgreSQL vector store table.
-        
+
         This method alters an existing table to support hybrid search by:
         1. Adding a TSV (text search vector) column
         2. Creating a GIN index on the TSV column
         3. Setting up a trigger to auto-update the TSV column
-        
+
         Args:
             tsv_column: Name of the TSV column to add
             tsv_lang: Language configuration for text search
             index_name: Name of the GIN index (defaults to f"{table_name}_tsv_index")
             index_type: Type of index (typically "GIN")
-            
+
         Example:
             >>> factory = VectorStoreFactory(
             ...     id="PgVector",
@@ -416,33 +416,33 @@ class VectorStoreFactory(BaseModel):
         """
         if self.id != "PgVector":
             raise ValueError("Hybrid search can only be added to PgVector stores")
-            
+
         from langchain_postgres import PGEngine
-        
+
         pg_engine = self._conf.get("pg_engine")
         if not pg_engine:
             raise ValueError("PostgreSQL engine not found")
-        
+
         table_name = self._conf["table_name"]
         schema_name = self._conf["schema_name"]
         content_column = "content"  # Default content column name
-        
+
         if index_name is None:
             index_name = f"{table_name}_tsv_index"
-        
+
         # SQL commands to add TSV column and index
         alter_sql = f"""
         ALTER TABLE {schema_name}.{table_name}
         ADD COLUMN IF NOT EXISTS {tsv_column} tsvector;
         """
-        
+
         # Create GIN index on TSV column
         index_sql = f"""
         CREATE INDEX IF NOT EXISTS {index_name}
         ON {schema_name}.{table_name}
         USING {index_type} ({tsv_column});
         """
-        
+
         # Create trigger function to auto-update TSV column
         trigger_function_sql = f"""
         CREATE OR REPLACE FUNCTION update_{table_name}_tsv()
@@ -453,7 +453,7 @@ class VectorStoreFactory(BaseModel):
         END;
         $$ LANGUAGE plpgsql;
         """
-        
+
         # Create trigger to execute function on INSERT/UPDATE
         trigger_sql = f"""
         DROP TRIGGER IF EXISTS trigger_update_{table_name}_tsv ON {schema_name}.{table_name};
@@ -462,56 +462,57 @@ class VectorStoreFactory(BaseModel):
             FOR EACH ROW
             EXECUTE FUNCTION update_{table_name}_tsv();
         """
-        
+
         # Execute all SQL commands
         import sqlalchemy
+
         with pg_engine._engine.connect() as conn:
             conn.execute(sqlalchemy.text(alter_sql))
             conn.execute(sqlalchemy.text(index_sql))
             conn.execute(sqlalchemy.text(trigger_function_sql))
             conn.execute(sqlalchemy.text(trigger_sql))
             conn.commit()
-        
+
         logger.info(
             f"Added hybrid search support to table {schema_name}.{table_name}: "
             f"TSV column={tsv_column}, GIN index={index_name}"
         )
 
-    def update_existing_records_tsv(self, tsv_column: str = "content_tsv", tsv_lang: str = "pg_catalog.english") -> None:
+    def update_existing_records_tsv(
+        self, tsv_column: str = "content_tsv", tsv_lang: str = "pg_catalog.english"
+    ) -> None:
         """Update TSV values for existing records in the table.
-        
+
         Args:
             tsv_column: Name of the TSV column to update
             tsv_lang: Language configuration for text search
         """
         if self.id != "PgVector":
             raise ValueError("TSV update can only be applied to PgVector stores")
-            
+
         from langchain_postgres import PGEngine
-        
+
         pg_engine = self._conf.get("pg_engine")
         if not pg_engine:
             raise ValueError("PostgreSQL engine not found")
-        
+
         table_name = self._conf["table_name"]
         schema_name = self._conf["schema_name"]
         content_column = "content"  # Default content column name
-        
+
         update_sql = f"""
         UPDATE {schema_name}.{table_name}
         SET {tsv_column} = to_tsvector('{tsv_lang}', {content_column})
         WHERE {content_column} IS NOT NULL;
         """
-        
+
         import sqlalchemy
+
         with pg_engine._engine.connect() as conn:
             result = conn.execute(sqlalchemy.text(update_sql))
             conn.commit()
-        
-        logger.info(
-            f"Updated TSV values for {result.rowcount} existing records "
-            f"in {schema_name}.{table_name}"
-        )
+
+        logger.info(f"Updated TSV values for {result.rowcount} existing records in {schema_name}.{table_name}")
 
 
 def search_one(vc: VectorStore, query: str) -> list[Document]:
