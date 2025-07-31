@@ -417,8 +417,6 @@ class VectorStoreFactory(BaseModel):
         if self.id != "PgVector":
             raise ValueError("Hybrid search can only be added to PgVector stores")
 
-        from langchain_postgres import PGEngine
-
         pg_engine = self._conf.get("pg_engine")
         if not pg_engine:
             raise ValueError("PostgreSQL engine not found")
@@ -489,8 +487,6 @@ class VectorStoreFactory(BaseModel):
         """
         if self.id != "PgVector":
             raise ValueError("TSV update can only be applied to PgVector stores")
-
-        from langchain_postgres import PGEngine
 
         pg_engine = self._conf.get("pg_engine")
         if not pg_engine:
