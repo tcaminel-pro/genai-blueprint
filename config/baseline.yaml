@@ -26,8 +26,7 @@ vector_store:
   default: Chroma
   chroma_path: ${paths.data_root}/vector_store
   record_manager: sqlite:///${paths.data_root}/vector_store/record_manager_cache.sql
-  postgres_url: //${oc.env:POSTGRES_USER,unknown_user}:${oc.env:POSTGRES_PASSWORD,password}@localhost:6024/ekg
-  # postgres_url: //${os.env:POSTGRES_USER}:${os.env:POSTGRES_PASSWORD}@localhost:6024/genai_training
+  postgres_url: postgresql://${oc.env:POSTGRES_USER,unknown_user}:${oc.env:POSTGRES_PASSWORD,password}@localhost:6024/ekg
   postgres_schema: public
 documents:
   base: ./use_case_data

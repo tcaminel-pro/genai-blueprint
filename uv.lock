@@ -673,14 +673,14 @@ wheels = [
 
 [[package]]
 name = "click"
-version = "8.1.8"
+version = "8.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorama", marker = "platform_system == 'Windows'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b9/2e/0090cbf739cee7d23781ad4b89a9894a41538e4fcf4c31dcdd705b78eb8b/click-8.1.8.tar.gz", hash = "sha256:ed53c9d8990d83c2a27deae68e4ee337473f6330c040a31d4225c9574d16096a", size = 226593 }
+sdist = { url = "https://files.pythonhosted.org/packages/60/6c/8ca2efa64cf75a977a0d7fac081354553ebe483345c734fb6b6515d96bbc/click-8.2.1.tar.gz", hash = "sha256:27c491cc05d968d271d5a1db13e3b5a184636d9d930f148c50b038f0d0646202", size = 286342 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7e/d4/7ebdbd03970677812aac39c869717059dbb71a4cfc033ca6e5221787892c/click-8.1.8-py3-none-any.whl", hash = "sha256:63c132bbbed01578a06712a2d1f497bb62d9c1c0d329b7903a866228027263b2", size = 98188 },
+    { url = "https://files.pythonhosted.org/packages/85/32/10bb5764d90a8eee674e9dc6f4db6a0ab47c8c4d0d83c27f7c39ac415a4d/click-8.2.1-py3-none-any.whl", hash = "sha256:61a3265b914e850b85317d0b3109c7f8cd35a670f963866005d6ef1d5175a12b", size = 102215 },
 ]
 
 [[package]]
@@ -3044,7 +3044,7 @@ wheels = [
 
 [[package]]
 name = "modal"
-version = "1.1.0"
+version = "1.1.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -3061,9 +3061,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "watchfiles" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/35/68/88094cff7381e447012b8499da5cbd973ffd72afb8d78cced6a52a835ae3/modal-1.1.0.tar.gz", hash = "sha256:190ea96d45fbdfd6d6cb545a736bf1ef5599511d346ae94cfd773528a33b6097", size = 555957 }
+sdist = { url = "https://files.pythonhosted.org/packages/c2/26/68f143ce009b1f20c61edb6d8bbc18b505afd33c0f2b44830872269e46c9/modal-1.1.1.tar.gz", hash = "sha256:f353ca3b6151abec0b253c398198261859ceab79dbaa2238a58d068ce889b2c0", size = 569267 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/56/19/96c8cc6334225b7e880d1dd2aa4c96e236a7c914d90204ce8b51711912e9/modal-1.1.0-py3-none-any.whl", hash = "sha256:985f47427f214e098768995782fda3915141af5f84007815db0c10c45e4a6a16", size = 643413 },
+    { url = "https://files.pythonhosted.org/packages/e3/b1/26904e24dfde0420f12f963a7e35d50defb461edc6c9bbbbf3716789ffd4/modal-1.1.1-py3-none-any.whl", hash = "sha256:ec2e2f68848a29228b61a646d2af7ac239558c005b66ca996d7c6c5de587ae36", size = 657544 },
 ]
 
 [[package]]
@@ -7572,21 +7572,20 @@ wheels = [
 
 [[package]]
 name = "unstructured-client"
-version = "0.41.0"
+version = "0.42.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
     { name = "cryptography" },
     { name = "httpcore" },
     { name = "httpx" },
-    { name = "nest-asyncio" },
     { name = "pydantic" },
     { name = "pypdf" },
     { name = "requests-toolbelt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/be/bc/bebe604e39c5039d4d6dc490f789cb31ec5950436bdf4170afa159949a24/unstructured_client-0.41.0.tar.gz", hash = "sha256:af1184b932815b1dd2e5946cbffac1f6218206f3898709f6b5347862918ddb3d", size = 91277 }
+sdist = { url = "https://files.pythonhosted.org/packages/78/5a/105324474293feadb86220809d9480c4da6b23ad42c3e10aee3377f8fa05/unstructured_client-0.42.0.tar.gz", hash = "sha256:ce9579142fc59b9194ff97b29696bce823985084a745753091b96debcfbcbf79", size = 90834 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/cb/2d/0a8bc35831655e944440c2c95b4c80661f4a54750f269ec4c460475de9ee/unstructured_client-0.41.0-py3-none-any.whl", hash = "sha256:07ed2a1721b76b30ab0034e89d873b3a7da2d4a17dea097718b4da91e1a6e2d6", size = 211048 },
+    { url = "https://files.pythonhosted.org/packages/a9/3f/58a7dfb337d016ecb651a0b9a5575ad06a308c70f55f9bbe8277669215b7/unstructured_client-0.42.0-py3-none-any.whl", hash = "sha256:2894c269385aede7602bfbe152dcc14ea80855f35c51750ba335285303220b04", size = 207110 },
 ]
 
 [[package]]

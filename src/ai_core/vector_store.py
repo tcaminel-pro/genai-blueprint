@@ -82,7 +82,7 @@ from langchain.indexes import IndexingResult, SQLRecordManager, index
 from langchain.schema import Document
 from langchain.vectorstores.base import VectorStore
 from loguru import logger
-from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, PostgresDsn, computed_field, field_validator
 
 from src.ai_core.embeddings import EmbeddingsFactory
 from src.utils.config_mngr import global_config, global_config_reload
@@ -313,9 +313,16 @@ class VectorStoreFactory(BaseModel):
         postgres_url = self.config.get("postgres_url") or global_config().get_str("vector_store.postgres_url")
         schema_name = self.config.get("postgres_schema") or "public"
 
-        connection_string = f"postgresql+asyncpg:{postgres_url}"
-        table_name = self.table_name
+        l, _, r = postgres_url.partition("//")
+        if not l.startswith("postgres"):
+            raise ValueError("postgres_url should start with postgresql://  or postgresql+asyncpg://")
+        connection_string = f"postgresql+asyncpg://{r}"
+        try:
+            PostgresDsn(connection_string)
+        except Exception as e:
+            raise ValueError(f"Incorrect Postgres URL : {connection_string}") from e
 
+        table_name = self.table_name
         pg_engine = PGEngine.from_connection_string(url=connection_string)
 
         # Prepare hybrid search configuration if enabled
@@ -364,6 +371,8 @@ class VectorStoreFactory(BaseModel):
         debug(vector_store)
         if self.hybrid_search and hybrid_search_config:
             try:
+                tsv_index_query = f"""CREATE INDEX langchain_tsv_index ON "{schema_name}"."{table_name}" 
+                USING GIN("content_tsv);"""
                 #  Always fail : apply_hybrid_search_index not implemented (only async version exists)
                 vector_store._engine._run_as_async(vector_store.__vs.apply_hybrid_search_index())
                 logger.info(f"Applied hybrid search index on {table_name}")
