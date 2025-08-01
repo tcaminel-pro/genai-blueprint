@@ -68,13 +68,13 @@ class PydanticRag(BaseModel):
         """Analyze markdown document and return structured data."""
         # System prompt for extraction
         system = f"Extract structured information from the document below into {self._top_class.__name__} schema. Answer with a JSON document. Avoid explanations or extra text."
-        
+
         # User prompt with markdown content
         user = "Document to analyze:\n---\n{input}\n---"
-        
+
         # Create chain that combines prompt and LLM with structured output
         chain = def_prompt(system=system, user=user) | self._llm.with_structured_output(self._top_class)
-        
+
         return chain.invoke({"input": markdown})
 
     def analyze_and_store(self, markdown: str) -> None:
