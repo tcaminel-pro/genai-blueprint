@@ -1,14 +1,15 @@
 from typing import Any, List, Type, TypeVar
 from uuid import uuid4
 
+from langchain_community.vectorstores import PGVector
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
-from langchain_community.vectorstores import PGVector
-from pydantic import BaseModel, PrivateAttr, PostgresDsn
+from pydantic import BaseModel, PostgresDsn, PrivateAttr
 
 from src.ai_core.embeddings import get_embeddings
 from src.ai_core.llm import get_llm
 from src.utils.pydantic.yaml_to_pydantic import YamlToPydantic
+
 from .pydantic_embeddings import generate_field_documents
 
 T = TypeVar("T", bound=BaseModel)
