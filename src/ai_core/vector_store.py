@@ -443,6 +443,7 @@ if __name__ == "__main__":
         embeddings_factory=embeddings_factory,
         config={
             "postgres_url": postgres_url,
+            "metadata_columns": [{"name": "test_matadata", "data_type": "TEXT"}],
             "hybrid_search": True,
             "hybrid_search_config": {
                 "tsv_column": "content_tsv",
