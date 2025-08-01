@@ -1,12 +1,11 @@
 from typing import Any, List, Type, TypeVar
 from uuid import uuid4
 
-from langchain_community.vectorstores import PGVector
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 from pydantic import BaseModel, PostgresDsn, PrivateAttr
 
-from src.ai_core.embeddings import get_embeddings
+from src.ai_core.embeddings import EmbeddingsFactory
 from src.ai_core.llm import get_llm
 from src.ai_core.prompts import def_prompt
 from src.utils.pydantic.yaml_to_pydantic import YamlToPydantic
@@ -56,15 +55,15 @@ class PydanticRag(BaseModel):
 
     def _init_vector_store(self) -> None:
         """Initialize the vector store with embeddings model."""
-        embeddings = get_embeddings(self.embeddings_id)
+
         from src.ai_core.vector_store import VectorStoreFactory
 
         # Configure vector store with custom metadata for fields
         self._vector_store = VectorStoreFactory(
             id="pgvector",
-            embeddings=embeddings,
-            connection=self.postgres_url.unicode_string(),
-            collection_name=self.collection_name,
+            embeddings_factory=EmbeddingsFactory(embeddings_id=self.embeddings_id),
+            config={"postgres_url": postgres_url},
+            hybrid_search=True,
             metadata_columns=["document_id", "field_name", "model_class"],
         ).get()
 

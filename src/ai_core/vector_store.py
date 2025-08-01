@@ -82,7 +82,7 @@ from langchain.indexes import IndexingResult, SQLRecordManager, index
 from langchain.schema import Document
 from langchain.vectorstores.base import VectorStore
 from loguru import logger
-from pydantic import BaseModel, ConfigDict, Field, PostgresDsn, computed_field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
 from src.ai_core.embeddings import EmbeddingsFactory
 from src.utils.config_mngr import global_config, global_config_reload
