@@ -74,7 +74,7 @@ Example:
 
 import os
 from collections.abc import Iterable
-from typing import Annotated, Literal, get_args
+from typing import Annotated, Any, Literal, get_args
 
 from devtools import debug
 from langchain.embeddings.base import Embeddings
@@ -132,7 +132,7 @@ class VectorStoreFactory(BaseModel):
     id: Annotated[VECTOR_STORE_ENGINE | None, Field(validate_default=True)] = None
     embeddings_factory: EmbeddingsFactory
     table_name_prefix: str = "embeddings"
-    config: dict[str, str] = {}
+    config: dict[str, Any] = {}
     index_document: bool = False
     collection_metadata: dict[str, str] | None = None
     cache_embeddings: bool = False
@@ -305,13 +305,14 @@ class VectorStoreFactory(BaseModel):
 
     def _create_pg_vector_store(self) -> VectorStore:
         """Create and configure a PgVector store."""
-        from langchain_postgres import PGEngine, PGVectorStore
+        from langchain_postgres import Column, PGEngine, PGVectorStore
         from langchain_postgres.v2.hybrid_search_config import HybridSearchConfig
         from sqlalchemy.exc import ProgrammingError
 
         # Use config dict to override YAML values
         postgres_url = self.config.get("postgres_url") or global_config().get_str("vector_store.postgres_url")
         schema_name = self.config.get("postgres_schema") or "public"
+        metadata_columns = self.config.get("metadata_columns") or []
 
         l, _, r = postgres_url.partition("//")
         if not l.startswith("postgres"):
@@ -349,6 +350,7 @@ class VectorStoreFactory(BaseModel):
                 vector_size=self.embeddings_factory.get_dimension(),
                 overwrite_existing=False,
                 hybrid_search_config=hybrid_search_config,
+                metadata_columns=[Column(e["name"], e["data_type"]) for e in metadata_columns],
             )
             logger.info(f"pgvector vector table created: {table_name=} {schema_name=}")
             if self.hybrid_search and hybrid_search_config:
@@ -364,6 +366,7 @@ class VectorStoreFactory(BaseModel):
             table_name=table_name,
             schema_name=schema_name,
             embedding_service=self.embeddings_factory.get(),
+            metadata_columns=[e["name"] for e in metadata_columns],
             hybrid_search_config=hybrid_search_config,
         )
 
