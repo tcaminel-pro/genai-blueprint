@@ -136,8 +136,6 @@ class VectorStoreFactory(BaseModel):
     index_document: bool = False
     collection_metadata: dict[str, str] | None = None
     cache_embeddings: bool = False
-    hybrid_search: bool = False
-    hybrid_search_config: dict | None = None
     _record_manager: SQLRecordManager | None = None
     _conf: dict = {}
 
@@ -328,8 +326,9 @@ class VectorStoreFactory(BaseModel):
 
         # Prepare hybrid search configuration if enabled
         hybrid_search_config = None
-        if self.hybrid_search:
-            hybrid_config = self.hybrid_search_config or {}
+        hybrid_search = self.config.get("hybrid_search", False)
+        if hybrid_search:
+            hybrid_config = self.config.get("hybrid_search_config", {})
             hybrid_search_config = HybridSearchConfig(
                 tsv_column=hybrid_config.get("tsv_column", "content_tsv"),
                 tsv_lang=hybrid_config.get("tsv_lang", "pg_catalog.english"),
@@ -353,7 +352,7 @@ class VectorStoreFactory(BaseModel):
                 metadata_columns=[Column(e["name"], e["data_type"]) for e in metadata_columns],
             )
             logger.info(f"pgvector vector table created: {table_name=} {schema_name=}")
-            if self.hybrid_search and hybrid_search_config:
+            if hybrid_search and hybrid_search_config:
                 logger.info(f"Hybrid search configured with TSV column: {hybrid_search_config.tsv_column}")
         except ProgrammingError as e:
             if "already exists" in str(e).lower():
@@ -372,7 +371,7 @@ class VectorStoreFactory(BaseModel):
 
         # Apply hybrid search index if enabled
         debug(vector_store)
-        if self.hybrid_search and hybrid_search_config:
+        if hybrid_search and hybrid_search_config:
             try:
                 tsv_index_query = f"""CREATE INDEX langchain_tsv_index ON "{schema_name}"."{table_name}" 
                 USING GIN("content_tsv);"""
@@ -442,15 +441,17 @@ if __name__ == "__main__":
     factory = VectorStoreFactory(
         id="PgVector",
         embeddings_factory=embeddings_factory,
-        config={"postgres_url": postgres_url},
-        hybrid_search=True,
-        hybrid_search_config={
-            "tsv_column": "content_tsv",
-            "tsv_lang": "pg_catalog.english",
-            "fusion_function_parameters": {
-                "primary_results_weight": 0.5,
-                "secondary_results_weight": 0.5,
-            },
+        config={
+            "postgres_url": postgres_url,
+            "hybrid_search": True,
+            "hybrid_search_config": {
+                "tsv_column": "content_tsv",
+                "tsv_lang": "pg_catalog.english",
+                "fusion_function_parameters": {
+                    "primary_results_weight": 0.5,
+                    "secondary_results_weight": 0.5,
+                },
+            }
         },
     )
 
