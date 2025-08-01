@@ -4,7 +4,6 @@ from uuid import uuid4
 from langchain_community.vectorstores import PGVector
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
-from langchain_core.language_models.base import BaseChatModel
 from pydantic import BaseModel, PostgresDsn, PrivateAttr
 
 from src.ai_core.embeddings import get_embeddings
