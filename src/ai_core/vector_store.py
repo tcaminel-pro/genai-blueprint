@@ -74,16 +74,13 @@ Example:
 
 import os
 from collections.abc import Iterable
-from functools import cached_property
 from typing import Annotated, Literal, get_args
 
+from devtools import debug
 from langchain.embeddings.base import Embeddings
 from langchain.indexes import IndexingResult, SQLRecordManager, index
 from langchain.schema import Document
 from langchain.vectorstores.base import VectorStore
-from langchain_core.runnables import ConfigurableField
-from langchain_core.vectorstores.base import VectorStoreRetriever
-from langchain_postgres.v2.hybrid_search_config import HybridSearchConfig
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
@@ -201,9 +198,7 @@ class VectorStoreFactory(BaseModel):
             raise ValueError(f"Unknown Vector Store: {id}")
         return id
 
-    @computed_field
-    @cached_property
-    def vector_store(self) -> VectorStore:
+    def get(self) -> VectorStore:
         """Create and configure a vector store based on the specified backend.
 
         Returns:
@@ -247,40 +242,6 @@ class VectorStoreFactory(BaseModel):
         assert vector_store
         return vector_store
 
-    def as_retriever_configurable(self, top_k: int = 4, filter: dict | None = None) -> VectorStoreRetriever:
-        """Configure a retriever with a specific number of most relevant documents.
-
-        .. deprecated:: 0.1.0
-           This method will be removed in a future version.
-
-        Args:
-            top_k: Number of documents to retrieve (default 4)
-            filter: Optional filter criteria for documents
-
-        Returns:
-            Configurable vector store retriever
-        """
-        import warnings
-
-        warnings.warn(
-            "as_retriever_configurable() is deprecated and will be removed in a future version. "
-            "Use as_retriever() with search_kwargs instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        search_kwargs = {"k": top_k}
-        if filter:
-            search_kwargs |= {"filter": filter}
-
-        retriever = self.vector_store.as_retriever(
-            search_kwargs=search_kwargs,
-        ).configurable_fields(
-            search_kwargs=ConfigurableField(
-                id="search_kwargs",
-            )
-        )
-        return retriever  # type: ignore
-
     def add_documents(self, docs: Iterable[Document]) -> IndexingResult | list[str]:
         """Add documents to the vector store with optional deduplication.
 
@@ -296,9 +257,9 @@ class VectorStoreFactory(BaseModel):
             2. Indexed addition with deduplication
         """
         if not self.index_document:
-            return self.vector_store.add_documents(list(docs))
+            return self.get().add_documents(list(docs))
         else:
-            vector_store = self.vector_store
+            vector_store = self.get()
             assert self._record_manager
 
             info = index(
@@ -320,9 +281,9 @@ class VectorStoreFactory(BaseModel):
             NotImplementedError: For unsupported vector store backends
         """
         if self.id in ["Chroma", "Chroma_in_memory"]:
-            return self.vector_store._collection.count()  # type: ignore
+            return self.get()._collection.count()  # type: ignore
         else:
-            raise NotImplementedError(f"Don't know how to get collection count for {self.vector_store}")
+            raise NotImplementedError(f"Don't know how to get collection count for {self.get()}")
 
     def _create_chroma_vector_store(self, embeddings: Embeddings) -> VectorStore:
         """Create and configure a Chroma vector store."""
@@ -345,6 +306,7 @@ class VectorStoreFactory(BaseModel):
     def _create_pg_vector_store(self) -> VectorStore:
         """Create and configure a PgVector store."""
         from langchain_postgres import PGEngine, PGVectorStore
+        from langchain_postgres.v2.hybrid_search_config import HybridSearchConfig/we
         from sqlalchemy.exc import ProgrammingError
 
         # Use config dict to override YAML values
@@ -355,23 +317,6 @@ class VectorStoreFactory(BaseModel):
         table_name = self.table_name
 
         pg_engine = PGEngine.from_connection_string(url=connection_string)
-
-        try:
-            pg_engine.init_vectorstore_table(
-                table_name=table_name,
-                schema_name=schema_name,
-                vector_size=self.embeddings_factory.get_dimension(),
-                overwrite_existing=False,
-                hybrid_search_config=hybrid_search_config,
-            )
-            logger.info(f"pgvector vector table created: {table_name=} {schema_name=}")
-            if self.hybrid_search and hybrid_search_config:
-                logger.info(f"Hybrid search configured with TSV column: {hybrid_search_config.tsv_column}")
-        except ProgrammingError as e:
-            if "already exists" in str(e).lower():
-                logger.debug(f"Use existing pgvector table : {table_name}")
-            else:
-                raise
 
         # Prepare hybrid search configuration if enabled
         hybrid_search_config = None
@@ -390,6 +335,23 @@ class VectorStoreFactory(BaseModel):
             )
             logger.info(f"Hybrid search enabled with config: {hybrid_search_config}")
 
+        try:
+            pg_engine.init_vectorstore_table(
+                table_name=table_name,
+                schema_name=schema_name,
+                vector_size=self.embeddings_factory.get_dimension(),
+                overwrite_existing=False,
+                hybrid_search_config=hybrid_search_config,
+            )
+            logger.info(f"pgvector vector table created: {table_name=} {schema_name=}")
+            if self.hybrid_search and hybrid_search_config:
+                logger.info(f"Hybrid search configured with TSV column: {hybrid_search_config.tsv_column}")
+        except ProgrammingError as e:
+            if "already exists" in str(e).lower():
+                logger.debug(f"Use existing pgvector table : {table_name}")
+            else:
+                raise
+
         vector_store = PGVectorStore.create_sync(
             engine=pg_engine,
             table_name=table_name,
@@ -399,8 +361,10 @@ class VectorStoreFactory(BaseModel):
         )
 
         # Apply hybrid search index if enabled
+        debug(self.hybrid_search, hybrid_search_config)
         if self.hybrid_search and hybrid_search_config:
             try:
+                #  Always fail : apply_hybrid_search_index not implemented (only async version exists)
                 vector_store.apply_hybrid_search_index()
                 logger.info(f"Applied hybrid search index on {table_name}")
             except Exception as e:
@@ -420,7 +384,7 @@ class VectorStoreFactory(BaseModel):
                 assert isinstance(pg_engine, PGEngine)
                 pg_engine.drop_table(table_name=self._conf["table_name"], schema_name=self._conf["schema_name"])
             else:
-                raise NotImplementedError(f"Don't'clean' method for {self.vector_store}")
+                raise NotImplementedError(f"Don't'clean' method for {self.get()}")
 
 
 def search_one(vc: VectorStore, query: str) -> list[Document]:
@@ -492,7 +456,7 @@ if __name__ == "__main__":
 
         # Perform hybrid search
         print("🔍 Performing hybrid search...")
-        results = factory.vector_store.similarity_search(
+        results = factory.get().similarity_search(
             "database search",
             k=2,
             hybrid_search_config=HybridSearchConfig(
@@ -507,6 +471,8 @@ if __name__ == "__main__":
 
     except Exception as e:
         print(f"❌ Error: {e}")
+        debug(e)
+        raise e
         print("💡 Make sure PostgreSQL is running and POSTGRES_URL is set correctly")
 
     finally:
