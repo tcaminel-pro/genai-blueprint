@@ -398,6 +398,14 @@ class VectorStoreFactory(BaseModel):
             hybrid_search_config=hybrid_search_config,
         )
 
+        # Apply hybrid search index if enabled
+        if self.hybrid_search and hybrid_search_config:
+            try:
+                vector_store.apply_hybrid_search_index()
+                logger.info(f"Applied hybrid search index on {table_name}")
+            except Exception as e:
+                logger.warning(f"Failed to apply hybrid search index: {e}")
+
         self._conf["pg_engine"] = pg_engine
         self._conf["table_name"] = table_name
         self._conf["schema_name"] = schema_name
