@@ -306,7 +306,7 @@ class VectorStoreFactory(BaseModel):
     async def _create_pg_vector_store(self) -> VectorStore:
         """Create and configure a PgVector store."""
         from langchain_postgres import PGEngine, PGVectorStore
-        from langchain_postgres.v2.hybrid_search_config import HybridSearchConfig/we
+        from langchain_postgres.v2.hybrid_search_config import HybridSearchConfig
         from sqlalchemy.exc import ProgrammingError
 
         # Use config dict to override YAML values
@@ -325,18 +325,13 @@ class VectorStoreFactory(BaseModel):
             hybrid_search_config = HybridSearchConfig(
                 tsv_column=hybrid_config.get("tsv_column", "content_tsv"),
                 tsv_lang=hybrid_config.get("tsv_lang", "pg_catalog.english"),
-                fts_query=hybrid_config.get("fts_query", ""),
                 fusion_function=hybrid_config.get("fusion_function"),
                 fusion_function_parameters=hybrid_config.get("fusion_function_parameters", {}),
-                primary_top_k=hybrid_config.get("primary_top_k", 4),
-                secondary_top_k=hybrid_config.get("secondary_top_k", 4),
-                index_name=hybrid_config.get("index_name", f"{table_name}_tsv_index"),
-                index_type=hybrid_config.get("index_type", "GIN"),
             )
             logger.info(f"Hybrid search enabled with config: {hybrid_search_config}")
 
         try:
-            pg_engine.init_vectorstore_table(
+            await pg_engine.ainit_vectorstore_table(
                 table_name=table_name,
                 schema_name=schema_name,
                 vector_size=self.embeddings_factory.get_dimension(),
@@ -352,7 +347,7 @@ class VectorStoreFactory(BaseModel):
             else:
                 raise
 
-        vector_store = PGVectorStore.create_sync(
+        vector_store = await PGVectorStore.create_async(
             engine=pg_engine,
             table_name=table_name,
             schema_name=schema_name,
@@ -364,8 +359,7 @@ class VectorStoreFactory(BaseModel):
         debug(self.hybrid_search, hybrid_search_config)
         if self.hybrid_search and hybrid_search_config:
             try:
-                #  Always fail : apply_hybrid_search_index not implemented (only async version exists)
-                vector_store.apply_hybrid_search_index()
+                await vector_store.aapply_hybrid_search_index()
                 logger.info(f"Applied hybrid search index on {table_name}")
             except Exception as e:
                 logger.warning(f"Failed to apply hybrid search index: {e}")
