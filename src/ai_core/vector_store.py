@@ -311,6 +311,35 @@ class VectorStoreFactory(BaseModel):
         postgres_url = self.config.get("postgres_url") or global_config().get_str("vector_store.postgres_url")
         schema_name = self.config.get("postgres_schema") or "public"
         metadata_columns = self.config.get("metadata_columns") or []
+        
+        # Validate metadata_columns format
+        if metadata_columns:
+            if not isinstance(metadata_columns, list):
+                raise ValueError("metadata_columns must be a list")
+            
+            for i, column in enumerate(metadata_columns):
+                if not isinstance(column, dict):
+                    raise ValueError(f"metadata_columns[{i}] must be a dictionary")
+                
+                if "name" not in column:
+                    raise ValueError(f"metadata_columns[{i}] missing required key: 'name'")
+                
+                if "data_type" not in column:
+                    raise ValueError(f"metadata_columns[{i}] missing required key: 'data_type'")
+                
+                # Validate PostgreSQL data type
+                valid_postgres_types = {
+                    "TEXT", "VARCHAR", "CHAR", "INTEGER", "INT", "BIGINT", "SMALLINT",
+                    "DECIMAL", "NUMERIC", "REAL", "DOUBLE PRECISION", "BOOLEAN", "BOOL",
+                    "DATE", "TIME", "TIMESTAMP", "JSON", "JSONB"
+                }
+                
+                data_type = column["data_type"].upper()
+                if data_type not in valid_postgres_types:
+                    raise ValueError(
+                        f"metadata_columns[{i}]['data_type'] '{column['data_type']}' is not a valid PostgreSQL data type. "
+                        f"Valid types include: {', '.join(sorted(valid_postgres_types))}"
+                    )
 
         l, _, r = postgres_url.partition("//")
         if not l.startswith("postgres"):
