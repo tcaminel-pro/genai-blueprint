@@ -451,7 +451,7 @@ if __name__ == "__main__":
                     "primary_results_weight": 0.5,
                     "secondary_results_weight": 0.5,
                 },
-            }
+            },
         },
     )
 
