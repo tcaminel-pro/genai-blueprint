@@ -31,11 +31,15 @@ class SearchMode(Enum):
 @cache
 def get_sparse_retriever(embeddings_model_id: str) -> Runnable:
     embeddings_factory = EmbeddingsFactory(embeddings_id=embeddings_model_id)
-    retriever = VectorStoreFactory(
-        id="Chroma",
-        embeddings_factory=embeddings_factory,
-        table_name_prefix="offres_formation",
-    ).as_retriever_configurable(top_k=DEFAULT_RESULT_COUNT)
+    retriever = (
+        VectorStoreFactory(
+            id="Chroma",
+            embeddings_factory=embeddings_factory,
+            table_name_prefix="offres_formation",
+        )
+        .get()
+        .as_retriever(search_kwargs={"k": DEFAULT_RESULT_COUNT})
+    )
     return retriever
 
 

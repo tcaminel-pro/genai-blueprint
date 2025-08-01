@@ -87,7 +87,7 @@ def vector_store() -> VectorStore:
         id="Chroma_in_memory",
         table_name_prefix="test_self_query",
         embeddings_factory=EmbeddingsFactory(),
-    ).vector_store  # take default one
+    ).get()  # take default one
     vector_store.add_documents(docs)
     return vector_store
 

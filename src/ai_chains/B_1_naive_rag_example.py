@@ -27,7 +27,7 @@ def get_retriever_fn(query: str | None, config: RunnableConfig):
         id=None,
         table_name_prefix="test_rag",
         embeddings_factory=EmbeddingsFactory(),  # take default one
-    ).vector_store
+    ).get()
 
     logger.info(f"indexing text document  {path} in VectorStore")
     loader = TextLoader(path)

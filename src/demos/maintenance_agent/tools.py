@@ -72,7 +72,7 @@ def maintenance_procedure_vectors(text: str) -> VectorStore:
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     texts = text_splitter.split_documents(documents)
     vs_factory.add_documents(texts)
-    return vs_factory.vector_store
+    return vs_factory.get()
 
 
 examples = [

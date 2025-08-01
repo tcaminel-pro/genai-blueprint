@@ -198,7 +198,7 @@ class VectorStoreFactory(BaseModel):
             raise ValueError(f"Unknown Vector Store: {id}")
         return id
 
-    async def get(self) -> VectorStore:
+    def get(self) -> VectorStore:
         """Create and configure a vector store based on the specified backend.
 
         Returns:
@@ -224,7 +224,7 @@ class VectorStoreFactory(BaseModel):
                 embedding=embeddings,
             )
         elif self.id == "PgVector":
-            vector_store = await self._create_pg_vector_store()
+            vector_store = self._create_pg_vector_store()
         else:
             raise ValueError(f"Unknown vector store: {self.id}")
 
@@ -242,7 +242,7 @@ class VectorStoreFactory(BaseModel):
         assert vector_store
         return vector_store
 
-    async def add_documents(self, docs: Iterable[Document]) -> IndexingResult | list[str]:
+    def add_documents(self, docs: Iterable[Document]) -> IndexingResult | list[str]:
         """Add documents to the vector store with optional deduplication.
 
         Args:
@@ -257,10 +257,9 @@ class VectorStoreFactory(BaseModel):
             2. Indexed addition with deduplication
         """
         if not self.index_document:
-            vs = await self.get()
-            return vs.add_documents(list(docs))
+            return self.get().add_documents(list(docs))
         else:
-            vector_store = await self.get()
+            vector_store = self.get()
             assert self._record_manager
 
             info = index(
@@ -272,7 +271,7 @@ class VectorStoreFactory(BaseModel):
             )
             return info
 
-    async def document_count(self):
+    def document_count(self):
         """Count the number of documents in the vector store.
 
         Returns:
@@ -282,8 +281,7 @@ class VectorStoreFactory(BaseModel):
             NotImplementedError: For unsupported vector store backends
         """
         if self.id in ["Chroma", "Chroma_in_memory"]:
-            vs = await self.get()
-            return vs._collection.count()  # type: ignore
+            return self.get()._collection.count()  # type: ignore
         else:
             raise NotImplementedError(f"Don't know how to get collection count for {self.get()}")
 
@@ -305,7 +303,7 @@ class VectorStoreFactory(BaseModel):
             collection_metadata=self.collection_metadata,
         )
 
-    async def _create_pg_vector_store(self) -> VectorStore:
+    def _create_pg_vector_store(self) -> VectorStore:
         """Create and configure a PgVector store."""
         from langchain_postgres import PGEngine, PGVectorStore
         from langchain_postgres.v2.hybrid_search_config import HybridSearchConfig
@@ -327,13 +325,18 @@ class VectorStoreFactory(BaseModel):
             hybrid_search_config = HybridSearchConfig(
                 tsv_column=hybrid_config.get("tsv_column", "content_tsv"),
                 tsv_lang=hybrid_config.get("tsv_lang", "pg_catalog.english"),
+                fts_query=hybrid_config.get("fts_query", ""),
                 fusion_function=hybrid_config.get("fusion_function"),
                 fusion_function_parameters=hybrid_config.get("fusion_function_parameters", {}),
+                primary_top_k=hybrid_config.get("primary_top_k", 4),
+                secondary_top_k=hybrid_config.get("secondary_top_k", 4),
+                index_name=hybrid_config.get("index_name", f"{table_name}_tsv_index"),
+                index_type=hybrid_config.get("index_type", "GIN"),
             )
             logger.info(f"Hybrid search enabled with config: {hybrid_search_config}")
 
         try:
-            await pg_engine.ainit_vectorstore_table(
+            pg_engine.init_vectorstore_table(
                 table_name=table_name,
                 schema_name=schema_name,
                 vector_size=self.embeddings_factory.get_dimension(),
@@ -349,7 +352,7 @@ class VectorStoreFactory(BaseModel):
             else:
                 raise
 
-        vector_store = await PGVectorStore.create_async(
+        vector_store = PGVectorStore.create_sync(
             engine=pg_engine,
             table_name=table_name,
             schema_name=schema_name,
@@ -358,10 +361,11 @@ class VectorStoreFactory(BaseModel):
         )
 
         # Apply hybrid search index if enabled
-        debug(self.hybrid_search, hybrid_search_config)
+        debug(vector_store)
         if self.hybrid_search and hybrid_search_config:
             try:
-                await vector_store.aapply_hybrid_search_index()
+                #  Always fail : apply_hybrid_search_index not implemented (only async version exists)
+                vector_store._engine._run_as_async(vector_store.__vs.apply_hybrid_search_index())
                 logger.info(f"Applied hybrid search index on {table_name}")
             except Exception as e:
                 logger.warning(f"Failed to apply hybrid search index: {e}")
@@ -372,13 +376,13 @@ class VectorStoreFactory(BaseModel):
 
         return vector_store
 
-    async def clean(self):
+    def clean(self):
         if self.id == "PgVector":
             from langchain_postgres import PGEngine
 
             if pg_engine := self._conf.get("pg_engine"):
                 assert isinstance(pg_engine, PGEngine)
-                await pg_engine.adrop_table(table_name=self._conf["table_name"], schema_name=self._conf["schema_name"])
+                pg_engine.drop_table(table_name=self._conf["table_name"], schema_name=self._conf["schema_name"])
             else:
                 raise NotImplementedError(f"Don't'clean' method for {self.get()}")
 
@@ -398,7 +402,6 @@ def search_one(vc: VectorStore, query: str) -> list[Document]:
 
 if __name__ == "__main__":
     """Quick test script for hybrid search functionality."""
-    import asyncio
     import sys
 
     try:
@@ -411,76 +414,72 @@ if __name__ == "__main__":
 
     from src.ai_core.embeddings import EmbeddingsFactory
 
-    async def main():
-        # Test configuration
-        os.environ["POSTGRES_USER"] = "tcl"
-        os.environ["POSTGRES_PASSWORD"] = "tcl"
-        global_config_reload()
+    # Test configuration
+    os.environ["POSTGRES_USER"] = "tcl"
+    os.environ["POSTGRES_PASSWORD"] = "tcl"
+    global_config_reload()
 
-        postgres_url = global_config().get_str("vector_store.postgres_url")
+    postgres_url = global_config().get_str("vector_store.postgres_url")
 
-        print("🧪 Testing hybrid search with PostgreSQL...")
+    print("🧪 Testing hybrid search with PostgreSQL...")
 
-        # Create embeddings factory
-        embeddings_factory = EmbeddingsFactory(embeddings_id="embeddings_768_fake")
+    # Create embeddings factory
+    embeddings_factory = EmbeddingsFactory(embeddings_id="embeddings_768_fake")
 
-        # Create vector store with hybrid search enabled
-        factory = VectorStoreFactory(
-            id="PgVector",
-            embeddings_factory=embeddings_factory,
-            config={"postgres_url": postgres_url},
-            hybrid_search=True,
-            hybrid_search_config={
-                "tsv_column": "content_tsv",
-                "tsv_lang": "pg_catalog.english",
-                "fusion_function_parameters": {
-                    "primary_results_weight": 0.5,
-                    "secondary_results_weight": 0.5,
-                },
+    # Create vector store with hybrid search enabled
+    factory = VectorStoreFactory(
+        id="PgVector",
+        embeddings_factory=embeddings_factory,
+        config={"postgres_url": postgres_url},
+        hybrid_search=True,
+        hybrid_search_config={
+            "tsv_column": "content_tsv",
+            "tsv_lang": "pg_catalog.english",
+            "fusion_function_parameters": {
+                "primary_results_weight": 0.5,
+                "secondary_results_weight": 0.5,
             },
+        },
+    )
+
+    try:
+        # Add test documents
+        test_docs = [
+            Document(page_content="PostgreSQL is a powerful open-source database system"),
+            Document(page_content="Hybrid search combines vector similarity and full-text search"),
+            Document(page_content="GIN indexes are used for full-text search in PostgreSQL"),
+            Document(page_content="LangChain provides excellent vector store integration"),
+        ]
+
+        print("📄 Adding test documents...")
+        factory.add_documents(test_docs)
+
+        # Perform hybrid search
+        print("🔍 Performing hybrid search...")
+        results = factory.get().similarity_search(
+            "database search",
+            k=2,
+            hybrid_search_config=HybridSearchConfig(
+                tsv_column="content_tsv",
+                fusion_function_parameters={"primary_results_weight": 0.5, "secondary_results_weight": 0.5},
+            ),
         )
 
+        print(f"✅ Found {len(results)} results:")
+        for i, doc in enumerate(results, 1):
+            print(f"  {i}. {doc.page_content}")
+
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        debug(e)
+        raise e
+        print("💡 Make sure PostgreSQL is running and POSTGRES_URL is set correctly")
+
+    finally:
+        # Clean up
         try:
-            # Add test documents
-            test_docs = [
-                Document(page_content="PostgreSQL is a powerful open-source database system"),
-                Document(page_content="Hybrid search combines vector similarity and full-text search"),
-                Document(page_content="GIN indexes are used for full-text search in PostgreSQL"),
-                Document(page_content="LangChain provides excellent vector store integration"),
-            ]
-
-            print("📄 Adding test documents...")
-            await factory.add_documents(test_docs)
-
-            # Perform hybrid search
-            print("🔍 Performing hybrid search...")
-            vs = await factory.get()
-            results = vs.similarity_search(
-                "database search",
-                k=2,
-                hybrid_search_config=HybridSearchConfig(
-                    tsv_column="content_tsv",
-                    fusion_function_parameters={"primary_results_weight": 0.5, "secondary_results_weight": 0.5},
-                ),
-            )
-
-            print(f"✅ Found {len(results)} results:")
-            for i, doc in enumerate(results, 1):
-                print(f"  {i}. {doc.page_content}")
-
+            pass
+            # factory.clean()
+            # print("🧹 Cleaned up test table")
         except Exception as e:
-            print(f"❌ Error: {e}")
-            debug(e)
-            raise e
-            print("💡 Make sure PostgreSQL is running and POSTGRES_URL is set correctly")
-
-        finally:
-            # Clean up
-            try:
-                pass
-                # await factory.clean()
-                # print("🧹 Cleaned up test table")
-            except Exception as e:
-                print(f"⚠️  Warning: Could not clean up - {e}")
-
-    asyncio.run(main())
+            print(f"⚠️  Warning: Could not clean up - {e}")

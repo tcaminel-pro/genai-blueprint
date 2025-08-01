@@ -60,7 +60,7 @@ def retriever() -> BaseRetriever:
         table_name_prefix="rag-chroma",
         embeddings_factory=EmbeddingsFactory(),
     )
-    vectorstore = vs_factory.vector_store
+    vectorstore = vs_factory.get()
 
     if vs_factory.document_count() == 0:
         logger.info("indexing documents...")

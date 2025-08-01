@@ -1,7 +1,6 @@
 import pytest
 from langchain.schema import Document
 
-import os
 from src.ai_core.embeddings import EmbeddingsFactory
 from src.ai_core.vector_store import VectorStoreFactory
 from src.utils.config_mngr import global_config
@@ -81,8 +80,11 @@ def test_vector_store_retriever() -> None:
     assert len(results) == 1
 
 
+postgres_url = global_config().get_str("vector_store.postgres_url", None)
+
+
 @pytest.mark.skipif(not HAS_HYBRID_SEARCH, reason="langchain-postgres not available")
-@pytest.mark.skipif(not os.getenv("POSTGRES_URL"), reason="POSTGRES_URL not configured")
+@pytest.mark.skipif(not postgres_url, reason="POSTGRES_URL not configured")
 def test_pgvector_hybrid_search_creation() -> None:
     """Test PgVector creation with hybrid search enabled."""
     vs_factory = VectorStoreFactory(
@@ -105,7 +107,7 @@ def test_pgvector_hybrid_search_creation() -> None:
 
 
 @pytest.mark.skipif(not HAS_HYBRID_SEARCH, reason="langchain-postgres not available")
-@pytest.mark.skipif(not os.getenv("POSTGRES_URL"), reason="POSTGRES_URL not configured")
+@pytest.mark.skipif(not postgres_url, reason="POSTGRES_URL not configured")
 def test_pgvector_hybrid_search_functionality() -> None:
     """Test PgVector hybrid search functionality."""
     vs_factory = VectorStoreFactory(
@@ -148,7 +150,7 @@ def test_pgvector_hybrid_search_functionality() -> None:
 
 
 @pytest.mark.skipif(not HAS_HYBRID_SEARCH, reason="langchain-postgres not available")
-@pytest.mark.skipif(not os.getenv("POSTGRES_URL"), reason="POSTGRES_URL not configured")
+@pytest.mark.skipif(not postgres_url, reason="POSTGRES_URL not configured")
 def test_pgvector_hybrid_search_with_weights() -> None:
     """Test PgVector hybrid search with different weight configurations."""
     vs_factory = VectorStoreFactory(
@@ -203,7 +205,7 @@ def test_pgvector_hybrid_search_with_weights() -> None:
 
 
 @pytest.mark.skipif(not HAS_HYBRID_SEARCH, reason="langchain-postgres not available")
-@pytest.mark.skipif(not os.getenv("POSTGRES_URL"), reason="POSTGRES_URL not configured")
+@pytest.mark.skipif(not postgres_url, reason="POSTGRES_URL not configured")
 def test_pgvector_basic_connection() -> None:
     """Test basic PgVector connection without hybrid search."""
     vs_factory = VectorStoreFactory(

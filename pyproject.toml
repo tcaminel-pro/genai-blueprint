@@ -19,6 +19,7 @@ dependencies = [
     "python-dotenv>=1.1.1",
     "langchain-postgres>=0.0.15",
     "psycopg[binary]>=3.2.9",
+    "synchronicity>=0.10.2",
 ]
 
 [project.urls]
