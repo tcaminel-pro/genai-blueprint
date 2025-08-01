@@ -4,10 +4,12 @@ from uuid import uuid4
 from langchain_community.vectorstores import PGVector
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
+from langchain_core.language_models.base import BaseChatModel
 from pydantic import BaseModel, PostgresDsn, PrivateAttr
 
 from src.ai_core.embeddings import get_embeddings
 from src.ai_core.llm import get_llm
+from src.ai_core.prompts import def_prompt
 from src.utils.pydantic.yaml_to_pydantic import YamlToPydantic
 
 from .pydantic_embeddings import generate_field_documents
@@ -50,7 +52,8 @@ class PydanticRag(BaseModel):
 
     def _init_llm(self) -> None:
         """Initialize the language model for document analysis."""
-        self._llm = get_llm(llm_id=self.llm_id, streaming=False)
+        # Use temperature=0.0 for structured extraction
+        self._llm = get_llm(llm_id=self.llm_id, streaming=False, temperature=0.0)
 
     def _init_vector_store(self) -> None:
         """Initialize the vector store with embeddings model."""
@@ -62,11 +65,17 @@ class PydanticRag(BaseModel):
         )
 
     def analyze_document(self, markdown: str) -> BaseModel:
-        """Analyze markdown document and return structured data (Placeholder)."""
-        # TODO: Implement analysis using LLM conversion to structured data
-        # This would involve converting markdown to the top_class format
-        # Currently returns a default instance as placeholder
-        return self._top_class()
+        """Analyze markdown document and return structured data."""
+        # System prompt for extraction
+        system = f"Extract structured information from the document below into {self._top_class.__name__} schema. Answer with a JSON document. Avoid explanations or extra text."
+        
+        # User prompt with markdown content
+        user = "Document to analyze:\n---\n{input}\n---"
+        
+        # Create chain that combines prompt and LLM with structured output
+        chain = def_prompt(system=system, user=user) | self._llm.with_structured_output(self._top_class)
+        
+        return chain.invoke({"input": markdown})
 
     def analyze_and_store(self, markdown: str) -> None:
         """Analyze markdown and store field embeddings in vector store."""
