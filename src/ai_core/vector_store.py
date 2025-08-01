@@ -303,7 +303,7 @@ class VectorStoreFactory(BaseModel):
             collection_metadata=self.collection_metadata,
         )
 
-    def _create_pg_vector_store(self) -> VectorStore:
+    async def _create_pg_vector_store(self) -> VectorStore:
         """Create and configure a PgVector store."""
         from langchain_postgres import PGEngine, PGVectorStore
         from langchain_postgres.v2.hybrid_search_config import HybridSearchConfig/we
