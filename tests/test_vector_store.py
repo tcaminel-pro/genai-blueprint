@@ -8,6 +8,7 @@ from src.utils.config_mngr import global_config
 
 try:
     from langchain_postgres.v2.hybrid_search_config import HybridSearchConfig
+
     HAS_HYBRID_SEARCH = True
 except ImportError:
     HAS_HYBRID_SEARCH = False
@@ -81,9 +82,7 @@ def test_vector_store_retriever() -> None:
 
 
 @pytest.mark.skipif(not HAS_HYBRID_SEARCH, reason="langchain-postgres not available")
-@pytest.mark.skipif(
-    not os.getenv("POSTGRES_URL"), reason="POSTGRES_URL not configured"
-)
+@pytest.mark.skipif(not os.getenv("POSTGRES_URL"), reason="POSTGRES_URL not configured")
 def test_pgvector_hybrid_search_creation() -> None:
     """Test PgVector creation with hybrid search enabled."""
     vs_factory = VectorStoreFactory(
@@ -99,16 +98,14 @@ def test_pgvector_hybrid_search_creation() -> None:
             },
         },
     )
-    
+
     # Should create successfully
     db = vs_factory.get()
     assert db is not None
 
 
 @pytest.mark.skipif(not HAS_HYBRID_SEARCH, reason="langchain-postgres not available")
-@pytest.mark.skipif(
-    not os.getenv("POSTGRES_URL"), reason="POSTGRES_URL not configured"
-)
+@pytest.mark.skipif(not os.getenv("POSTGRES_URL"), reason="POSTGRES_URL not configured")
 def test_pgvector_hybrid_search_functionality() -> None:
     """Test PgVector hybrid search functionality."""
     vs_factory = VectorStoreFactory(
@@ -124,18 +121,18 @@ def test_pgvector_hybrid_search_functionality() -> None:
             },
         },
     )
-    
+
     db = vs_factory.get()
-    
+
     # Add test documents
     test_docs = [
         Document(page_content="PostgreSQL is a powerful database with full-text search"),
         Document(page_content="Vector search uses embeddings for similarity"),
         Document(page_content="Hybrid search combines vector and text search"),
     ]
-    
+
     db.add_documents(test_docs)
-    
+
     # Perform hybrid search
     results = db.similarity_search(
         "database search",
@@ -145,15 +142,13 @@ def test_pgvector_hybrid_search_functionality() -> None:
             fusion_function_parameters={"primary_results_weight": 0.5, "secondary_results_weight": 0.5},
         ),
     )
-    
+
     assert len(results) == 2
     assert all(isinstance(doc, Document) for doc in results)
 
 
 @pytest.mark.skipif(not HAS_HYBRID_SEARCH, reason="langchain-postgres not available")
-@pytest.mark.skipif(
-    not os.getenv("POSTGRES_URL"), reason="POSTGRES_URL not configured"
-)
+@pytest.mark.skipif(not os.getenv("POSTGRES_URL"), reason="POSTGRES_URL not configured")
 def test_pgvector_hybrid_search_with_weights() -> None:
     """Test PgVector hybrid search with different weight configurations."""
     vs_factory = VectorStoreFactory(
@@ -165,18 +160,18 @@ def test_pgvector_hybrid_search_with_weights() -> None:
             "tsv_lang": "pg_catalog.english",
         },
     )
-    
+
     db = vs_factory.get()
-    
+
     # Add test documents
     test_docs = [
         Document(page_content="Vector databases are great for AI applications"),
         Document(page_content="Full-text search indexes text content efficiently"),
         Document(page_content="Hybrid search combines the best of both worlds"),
     ]
-    
+
     db.add_documents(test_docs)
-    
+
     # Test with vector bias
     results_vector = db.similarity_search(
         "vector database",
@@ -189,7 +184,7 @@ def test_pgvector_hybrid_search_with_weights() -> None:
             },
         ),
     )
-    
+
     # Test with text bias
     results_text = db.similarity_search(
         "text search",
@@ -202,29 +197,27 @@ def test_pgvector_hybrid_search_with_weights() -> None:
             },
         ),
     )
-    
+
     assert len(results_vector) == 2
     assert len(results_text) == 2
 
 
 @pytest.mark.skipif(not HAS_HYBRID_SEARCH, reason="langchain-postgres not available")
-@pytest.mark.skipif(
-    not os.getenv("POSTGRES_URL"), reason="POSTGRES_URL not configured"
-)
+@pytest.mark.skipif(not os.getenv("POSTGRES_URL"), reason="POSTGRES_URL not configured")
 def test_pgvector_basic_connection() -> None:
     """Test basic PgVector connection without hybrid search."""
     vs_factory = VectorStoreFactory(
         id="PgVector",
         embeddings_factory=EmbeddingsFactory(embeddings_id=EMBEDDINGS_MODEL_ID),
     )
-    
+
     # Should create successfully
     db = vs_factory.get()
     assert db is not None
-    
+
     # Test basic functionality
     test_docs = [Document(page_content="Test document for connection")]
     db.add_documents(test_docs)
-    
+
     results = db.similarity_search("test", k=1)
     assert len(results) >= 1
