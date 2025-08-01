@@ -24,6 +24,7 @@ class PydanticRag(BaseModel):
         llm_id: ID for LLM used in analysis
         collection_name: Name of vector store collection (default: "pydantic_fields")
     """
+
     model_definition: str
     postgres_url: PostgresDsn
     embeddings_id: str
@@ -44,10 +45,8 @@ class PydanticRag(BaseModel):
     def create_pydantic_class(self) -> None:
         """Create Pydantic class from YAML definition."""
         converter = YamlToPydantic()
-        self._top_class = converter.create_class_from_yaml(
-            self.model_definition
-        )
-        
+        self._top_class = converter.create_class_from_yaml(self.model_definition)
+
     def _init_llm(self) -> None:
         """Initialize the language model for document analysis."""
         self._llm = get_llm(llm_id=self.llm_id, streaming=False)
