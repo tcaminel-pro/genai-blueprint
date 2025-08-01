@@ -304,7 +304,7 @@ class VectorStoreFactory(BaseModel):
     def _create_pg_vector_store(self) -> VectorStore:
         """Create and configure a PgVector store."""
         from src.ai_extra.pgvector_factory import create_pg_vector_store
-        
+
         return create_pg_vector_store(
             embeddings_factory=self.embeddings_factory,
             table_name=self.table_name,
