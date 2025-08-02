@@ -338,13 +338,6 @@ def search_one(vc: VectorStore, query: str) -> list[Document]:
 
 if __name__ == "__main__":
     """Quick test script for hybrid search functionality."""
-    import sys
-
-    try:
-        from langchain_postgres.v2.hybrid_search_config import HybridSearchConfig
-    except ImportError:
-        print("langchain-postgres not available. Install with: uv add langchain-postgres")
-        sys.exit(1)
 
     from langchain_core.documents import Document
 
@@ -371,7 +364,6 @@ if __name__ == "__main__":
             "metadata_columns": [{"name": "test_matadata", "data_type": "TEXT"}],
             "hybrid_search": True,
             "hybrid_search_config": {
-                "tsv_column": "content_tsv",
                 "tsv_lang": "pg_catalog.english",
                 "fusion_function_parameters": {
                     "primary_results_weight": 0.5,
