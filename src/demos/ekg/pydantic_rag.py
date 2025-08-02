@@ -87,3 +87,57 @@ class PydanticRag(BaseModel):
     def query_vectorstore(self, query: str, k: int = 4) -> List[Document]:
         """Search the vector store for similar field data."""
         return self._vector_store.similarity_search(query, k=k)
+
+
+if __name__ == "__main__":
+    """Minimal runnable demo.
+
+    Prerequisites:
+      1. Postgres running on postgresql://localhost:5432/postgres
+      2. OPENAI_API_KEY in the environment
+      3. uv add rich (for pretty printing)
+
+    Run:
+        uv run python -m src.demos.ekg.pydantic_rag
+    """
+    from rich import print
+
+    EXAMPLE_YAML = """
+    name: Person
+    description: Basic contact card
+    fields:
+      name:
+        type: str
+        description: Full name of the person
+      age:
+        type: int
+        description: Age in years
+      email:
+        type: str
+        description: Primary e-mail address
+    """
+
+    rag = PydanticRag(
+        model_definition=EXAMPLE_YAML,
+        postgres_url="postgresql://localhost:5432/postgres",
+        embeddings_id="openai",
+        llm_id="gpt-4o",
+    )
+
+    # A tiny markdown document
+    doc_text = """
+    # Jane Doe
+    Jane is 29 years old and can be reached at jane.doe@example.com.
+    """
+
+    # 1. Analyse → structured Pydantic object
+    person = rag.analyze_document(doc_text)
+    print("Structured result:", person)
+
+    # 2. Index the document
+    rag.store_document(person)
+    print("Document stored.")
+
+    # 3. Query the vector store
+    hits = rag.query_vectorstore("e-mail address", k=2)
+    print("Vector hits:", hits)
