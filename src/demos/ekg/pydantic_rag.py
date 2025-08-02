@@ -36,22 +36,13 @@ class PydanticRag(BaseModel):
     _vector_store: VectorStore = PrivateAttr()
     _llm: Any = PrivateAttr()
 
-    def __init__(self, **data: Any) -> None:
+    def model_post_init(self, __context: Any) -> None:
         """Initialize with configuration and create required components."""
-        super().__init__(**data)
-        self.create_pydantic_class()
-        self._init_llm()
-        self._init_vector_store()
-
-    def create_pydantic_class(self) -> None:
         """Create Pydantic class from YAML definition."""
         converter = YamlToPydantic()
         self._top_class = converter.create_class_from_yaml(self.model_definition)
-
-    def _init_llm(self) -> None:
-        """Initialize the language model for document analysis."""
-        # Use temperature=0.0 for structured extraction
         self._llm = get_llm(llm_id=self.llm_id, streaming=False, temperature=0.0)
+        self._init_vector_store()
 
     def _init_vector_store(self) -> None:
         """Initialize the vector store with embeddings model."""
@@ -59,7 +50,7 @@ class PydanticRag(BaseModel):
 
         postgres_url = str(self.postgres_url)
         self._vector_store = VectorStoreFactory(
-            id="pgvector",
+            id="PgVector",
             embeddings_factory=EmbeddingsFactory(embeddings_id=self.embeddings_id),
             config={
                 "postgres_url": postgres_url,
@@ -75,21 +66,12 @@ class PydanticRag(BaseModel):
 
     def analyze_document(self, markdown: str) -> BaseModel:
         """Analyze markdown document and return structured data."""
-        # System prompt for extraction
-        system = f"Extract structured information from the document below into {self._top_class.__name__} schema. Answer with a JSON document. Avoid explanations or extra text."
-
-        # User prompt with markdown content
+        system = f"""
+            Extract structured information from the document below into {self._top_class.__name__} schema. 
+            Answer with a JSON document. Avoid explanations or extra text."""
         user = "Document to analyze:\n---\n{input}\n---"
-
-        # Create chain that combines prompt and LLM with structured output
         chain = def_prompt(system=system, user=user) | self._llm.with_structured_output(self._top_class)
-
         return chain.invoke({"input": markdown})
-
-    def analyze_and_store(self, markdown: str) -> None:
-        """Analyze markdown and store field embeddings in vector store."""
-        document = self.analyze_document(markdown)
-        self.store_document(document)
 
     def store_document(self, document: BaseModel) -> None:
         """Store a document's field embeddings in vector store."""
