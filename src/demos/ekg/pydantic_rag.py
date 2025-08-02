@@ -55,16 +55,22 @@ class PydanticRag(BaseModel):
 
     def _init_vector_store(self) -> None:
         """Initialize the vector store with embeddings model."""
-
         from src.ai_core.vector_store import VectorStoreFactory
 
-        # Configure vector store with custom metadata for fields
+        postgres_url = str(self.postgres_url)
         self._vector_store = VectorStoreFactory(
             id="pgvector",
             embeddings_factory=EmbeddingsFactory(embeddings_id=self.embeddings_id),
-            config={"postgres_url": postgres_url},
-            hybrid_search=True,
-            metadata_columns=["document_id", "field_name", "model_class"],
+            config={
+                "postgres_url": postgres_url,
+                "hybrid_search": True,
+                "metadata_columns": [
+                    {"name": "document_id", "data_type": "VARCHAR"},
+                    {"name": "field_name", "data_type": "VARCHAR"},
+                    {"name": "model_class", "data_type": "VARCHAR"},
+                ],
+            },
+            table_name_prefix=self.collection_name,
         ).get()
 
     def analyze_document(self, markdown: str) -> BaseModel:
