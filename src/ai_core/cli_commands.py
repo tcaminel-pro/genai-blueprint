@@ -47,14 +47,14 @@ def register_commands(cli_app: typer.Typer) -> None:
         # Default models info
         default_llm = LlmFactory(llm_id=None)
         default_embeddings = EmbeddingsFactory(embeddings_id=None)
-        
+
         models_table = Table(title="Default Models", show_header=True, header_style="bold magenta")
         models_table.add_column("Type", style="cyan")
         models_table.add_column("Model ID", style="green")
-        
+
         models_table.add_row("LLM", str(default_llm.llm_id))
         models_table.add_row("Embeddings", str(default_embeddings.embeddings_id))
-        
+
         console.print(models_table)
 
         # API keys info
@@ -62,12 +62,12 @@ def register_commands(cli_app: typer.Typer) -> None:
         keys_table.add_column("Provider", style="cyan")
         keys_table.add_column("Environment Variable", style="green")
         keys_table.add_column("Status", style="yellow")
-        
+
         for provider, (_, key_name) in PROVIDER_INFO.items():
             if key_name:
                 status = "[green]✓ set[/green]" if key_name in os.environ else "[red]✗ not set[/red]"
                 keys_table.add_row(provider, key_name, status)
-        
+
         console.print(keys_table)
 
     @cli_app.command()
