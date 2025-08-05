@@ -21,6 +21,8 @@ from typing import Annotated, Optional
 import typer
 from typer import Option
 
+from src.ai_core.embeddings import EmbeddingsFactory
+from src.ai_core.llm import LlmFactory
 from src.utils.config_mngr import global_config
 
 
@@ -30,14 +32,16 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         Display current configuration and available API keys.
         """
+
+        # Use Rich to pretty print output AI!
         from src.ai_core.llm import PROVIDER_INFO
 
         config = global_config()
         print(f"Selected configuration: {config.selected_config}")
 
         # Show default models
-        default_llm = config.get_str("llm.default_model")
-        default_embeddings = config.get_str("llm.default_embeddings", "text-embedding-3-small")
+        default_llm = LlmFactory(llm_id=None)
+        default_embeddings = EmbeddingsFactory(embeddings_id=None)
         print(f"\nDefault LLM: {default_llm}")
         print(f"Default Embeddings: {default_embeddings}")
 
