@@ -24,6 +24,7 @@ from typer import Option
 from src.utils.config_mngr import global_config
 
 
+# print current default LLM and embeddings model AI!
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def config_info() -> None:
