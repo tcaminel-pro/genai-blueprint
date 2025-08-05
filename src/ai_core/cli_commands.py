@@ -37,7 +37,7 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         # Show default models
         default_llm = config.get_str("llm.default_model")
-        default_embeddings = config.get_str("llm.default_embeddings")
+        default_embeddings = config.get_str("llm.default_embeddings", "text-embedding-3-small")
         print(f"\nDefault LLM: {default_llm}")
         print(f"Default Embeddings: {default_embeddings}")
 
