@@ -33,23 +33,42 @@ def register_commands(cli_app: typer.Typer) -> None:
         Display current configuration and available API keys.
         """
 
-        # Use Rich to pretty print output AI!
         from src.ai_core.llm import PROVIDER_INFO
+        from rich.console import Console
+        from rich.table import Table
+        from rich.panel import Panel
 
         config = global_config()
-        print(f"Selected configuration: {config.selected_config}")
+        console = Console()
 
-        # Show default models
+        # Configuration info
+        console.print(Panel(f"[bold blue]Selected configuration:[/bold blue] {config.selected_config}", expand=False))
+
+        # Default models info
         default_llm = LlmFactory(llm_id=None)
         default_embeddings = EmbeddingsFactory(embeddings_id=None)
-        print(f"\nDefault LLM: {default_llm}")
-        print(f"Default Embeddings: {default_embeddings}")
+        
+        models_table = Table(title="Default Models", show_header=True, header_style="bold magenta")
+        models_table.add_column("Type", style="cyan")
+        models_table.add_column("Model ID", style="green")
+        
+        models_table.add_row("LLM", str(default_llm.llm_id))
+        models_table.add_row("Embeddings", str(default_embeddings.embeddings_id))
+        
+        console.print(models_table)
 
-        # Show available API keys
-        print("\nAvailable API keys:")
+        # API keys info
+        keys_table = Table(title="Available API Keys", show_header=True, header_style="bold magenta")
+        keys_table.add_column("Provider", style="cyan")
+        keys_table.add_column("Environment Variable", style="green")
+        keys_table.add_column("Status", style="yellow")
+        
         for provider, (_, key_name) in PROVIDER_INFO.items():
-            if key_name and key_name in os.environ:
-                print(f"  {provider}: {key_name} = {'*' * 8} (set)")
+            if key_name:
+                status = "[green]✓ set[/green]" if key_name in os.environ else "[red]✗ not set[/red]"
+                keys_table.add_row(provider, key_name, status)
+        
+        console.print(keys_table)
 
     @cli_app.command()
     def llm(
