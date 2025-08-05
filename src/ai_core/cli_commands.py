@@ -36,7 +36,7 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         config = global_config()
         print(f"Selected configuration: {config.selected_config}")
-        
+
         # Show default models
         default_llm = config.get_str("llm.default_model")
         default_embeddings = config.get_str("llm.default_embeddings")
