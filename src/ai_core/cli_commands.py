@@ -24,7 +24,6 @@ from typer import Option
 from src.utils.config_mngr import global_config
 
 
-# print current default LLM and embeddings model AI!
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def config_info() -> None:
@@ -32,9 +31,17 @@ def register_commands(cli_app: typer.Typer) -> None:
         Display current configuration and available API keys.
         """
         from src.ai_core.llm import PROVIDER_INFO
+        from src.ai_core.llm import LlmFactory
+        from src.ai_core.embeddings import EmbeddingsFactory
 
         config = global_config()
         print(f"Selected configuration: {config.selected_config}")
+        
+        # Show default models
+        default_llm = config.get_str("llm.default_model")
+        default_embeddings = config.get_str("llm.default_embeddings")
+        print(f"\nDefault LLM: {default_llm}")
+        print(f"Default Embeddings: {default_embeddings}")
 
         # Show available API keys
         print("\nAvailable API keys:")
