@@ -31,8 +31,6 @@ def register_commands(cli_app: typer.Typer) -> None:
         Display current configuration and available API keys.
         """
         from src.ai_core.llm import PROVIDER_INFO
-        from src.ai_core.llm import LlmFactory
-        from src.ai_core.embeddings import EmbeddingsFactory
 
         config = global_config()
         print(f"Selected configuration: {config.selected_config}")
