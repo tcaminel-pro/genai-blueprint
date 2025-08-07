@@ -19,6 +19,7 @@ from unidecode import unidecode
 
 try:
     from langchain_community.storage import SQLStore
+
     HAS_SQL_STORE = True
 except ImportError:
     HAS_SQL_STORE = False
@@ -55,13 +56,14 @@ def _encode_key(key: str | dict) -> str:
 
 class StorageInfo(BaseModel):
     """Information about a storage backend configuration.
-    
+
     Attributes:
         id: Unique identifier for the storage backend
         backend: Storage backend type ("file" or "sql")
         engine: Storage engine implementation
         config: Configuration dictionary for the storage backend
     """
+
     id: str
     backend: StorageBackend
     engine: StorageEngine
@@ -70,7 +72,7 @@ class StorageInfo(BaseModel):
 
 class KVStoreFactory(BaseModel):
     """Factory for creating and managing key-value stores for Pydantic objects.
-    
+
     Handles creation of storage backends with appropriate configuration
     based on storage type and provider.
 
@@ -106,21 +108,16 @@ class KVStoreFactory(BaseModel):
             # Fallback to default configuration
             data = {
                 "backends": [
-                    {
-                        "id": "file",
-                        "backend": "file",
-                        "engine": "LocalFileStore",
-                        "config": {"path": "kv_store"}
-                    },
+                    {"id": "file", "backend": "file", "engine": "LocalFileStore", "config": {"path": "kv_store"}},
                     {
                         "id": "sql",
-                        "backend": "sql", 
+                        "backend": "sql",
                         "engine": "SQLStore",
-                        "config": {"url": "postgres.url", "namespace_prefix": "kv_store"}
-                    }
+                        "config": {"url": "postgres.url", "namespace_prefix": "kv_store"},
+                    },
                 ]
             }
-        
+
         backends = []
         for backend_entry in data.get("backends", []):
             backends.append(StorageInfo(**backend_entry))
@@ -154,7 +151,7 @@ class KVStoreFactory(BaseModel):
 
 class BaseKVStore:
     """Base class for key-value storage implementations."""
-    
+
     def __init__(self, model_class: type[T], storage_info: StorageInfo):
         self.model_class = model_class
         self.storage_info = storage_info
@@ -171,7 +168,7 @@ class BaseKVStore:
 
 class FileKVStore(BaseKVStore):
     """File-based key-value store using LocalFileStore."""
-    
+
     def __init__(self, model_class: type[T], storage_info: StorageInfo):
         super().__init__(model_class, storage_info)
         path_key = storage_info.config.get("path", "kv_store.path")
@@ -190,10 +187,10 @@ class FileKVStore(BaseKVStore):
         """Load a Pydantic object from file storage."""
         encoded_key = _encode_key(key) + ".json"
         stored_bytes = self.store.mget([encoded_key])[0]
-        
+
         if not stored_bytes:
             return None
-            
+
         try:
             logger.debug(f"Loaded {self.namespace}/{encoded_key} from file storage")
             return self.model_class.model_validate_json(stored_bytes.decode("utf-8"))
@@ -207,20 +204,20 @@ class FileKVStore(BaseKVStore):
 
 class SQLKVStore(BaseKVStore):
     """SQL-based key-value store using SQLStore."""
-    
+
     def __init__(self, model_class: type[T], storage_info: StorageInfo):
         super().__init__(model_class, storage_info)
-        
+
         if not HAS_SQL_STORE:
             raise ImportError("langchain_community is required for SQL storage")
-        
+
         url_key = storage_info.config.get("url", "postgres.url")
         namespace_prefix = storage_info.config.get("namespace_prefix", "kv_store")
-        
+
         db_url = global_config().get_str(url_key)
         if not db_url:
             raise ValueError(f"Database URL not found in configuration: {url_key}")
-        
+
         self.namespace = f"{namespace_prefix}_{self.namespace}"
         self.store = SQLStore(namespace=self.namespace, db_url=db_url)
         self.store.create_schema()
@@ -236,10 +233,10 @@ class SQLKVStore(BaseKVStore):
         """Load a Pydantic object from SQL storage."""
         encoded_key = _encode_key(key)
         stored_bytes = self.store.mget([encoded_key])[0]
-        
+
         if not stored_bytes:
             return None
-            
+
         try:
             logger.debug(f"Loaded {self.namespace}/{encoded_key} from SQL storage")
             return self.model_class.model_validate_json(stored_bytes.decode("utf-8"))
@@ -252,21 +249,13 @@ class SQLKVStore(BaseKVStore):
 
 
 # Convenience functions for backward compatibility
-def save_object_to_kvstore(
-    key: str | dict, 
-    obj: BaseModel, 
-    store_id: str | None = None
-) -> None:
+def save_object_to_kvstore(key: str | dict, obj: BaseModel, store_id: str | None = None) -> None:
     """Save a Pydantic object to the default key-value store."""
     store = KVStoreFactory(store_id=store_id).get_store(type(obj))
     store.save(key, obj)
 
 
-def load_object_from_kvstore(
-    model_class: type[T], 
-    key: str | dict, 
-    store_id: str | None = None
-) -> T | None:
+def load_object_from_kvstore(model_class: type[T], key: str | dict, store_id: str | None = None) -> T | None:
     """Load a Pydantic object from the default key-value store."""
     store = KVStoreFactory(store_id=store_id).get_store(model_class)
     return store.load(key)
@@ -282,7 +271,7 @@ if __name__ == "__main__":
 
     # Test the factory pattern
     print("Testing KVStoreFactory...")
-    
+
     # Test file storage
     print("\n1. Testing file storage:")
     file_store = KVStoreFactory(store_id="file").get_store(TestModel)
@@ -290,7 +279,7 @@ if __name__ == "__main__":
     file_store.save("test_key", test_model)
     retrieved = file_store.load("test_key")
     print(f"   File storage result: {retrieved}")
-    
+
     # Test SQL storage (if PostgreSQL URL is configured)
     print("\n2. Testing SQL storage:")
     try:
@@ -301,18 +290,18 @@ if __name__ == "__main__":
         print(f"   SQL storage result: {sql_retrieved}")
     except Exception as e:
         print(f"   SQL storage failed: {e}")
-    
+
     # Test backward compatibility functions
     print("\n3. Testing backward compatibility:")
     save_object_to_kvstore("compat_key", test_model)
     compat_retrieved = load_object_from_kvstore(TestModel, "compat_key")
     print(f"   Backward compatibility result: {compat_retrieved}")
-    
+
     # Test with dict keys
     print("\n4. Testing dict keys:")
     dict_key = {"user_id": 123, "session": "abc"}
     save_object_to_kvstore(dict_key, test_model)
     dict_retrieved = load_object_from_kvstore(TestModel, dict_key)
     print(f"   Dict key result: {dict_retrieved}")
-    
+
     print("\nAll tests completed!")
