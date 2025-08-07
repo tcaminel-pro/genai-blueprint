@@ -13,8 +13,10 @@ from pathlib import Path
 from typing import Literal, TypeVar
 
 from langchain.storage import LocalFileStore
+
 try:
     from langchain_community.storage import SQLStore
+
     HAS_SQL_STORE = True
 except ImportError:
     HAS_SQL_STORE = False
@@ -52,10 +54,7 @@ def _encode_key(key: str | dict) -> str:
 
 
 def save_object_to_kvstore(
-    key: str | dict, 
-    obj: BaseModel, 
-    file_store_path: Path | None = None,
-    backend: StorageBackend = "file"
+    key: str | dict, obj: BaseModel, file_store_path: Path | None = None, backend: StorageBackend = "file"
 ) -> None:
     """Save a Pydantic model to a key-value store.
 
@@ -76,12 +75,12 @@ def save_object_to_kvstore(
     if backend == "sql":
         if not HAS_SQL_STORE:
             raise ImportError("langchain_community is required for SQL storage")
-        
+
         namespace = f"kv_store_{class_name}"
         postgres_url = global_config().get_str("postgres.url")
         if not postgres_url:
             raise ValueError("PostgreSQL URL not found in configuration")
-        
+
         sql_store = SQLStore(namespace=namespace, db_url=postgres_url)
         sql_store.create_schema()
         sql_store.mset([(encoded_key, obj_bytes)])
@@ -89,7 +88,7 @@ def save_object_to_kvstore(
     else:  # file backend
         if file_store_path is None:
             file_store_path = global_config().get_dir_path("kv_store.path")
-        
+
         dir_root_name = file_store_path / class_name
         file_store = LocalFileStore(dir_root_name)
         file_store.mset([(encoded_key, obj_bytes)])
@@ -97,10 +96,7 @@ def save_object_to_kvstore(
 
 
 def load_object_from_kvstore(
-    model_class: type[T], 
-    key: str | dict, 
-    file_store_path: Path | None = None,
-    backend: StorageBackend = "file"
+    model_class: type[T], key: str | dict, file_store_path: Path | None = None, backend: StorageBackend = "file"
 ) -> T | None:
     """Read a Pydantic object from a key-value store.
 
@@ -119,24 +115,24 @@ def load_object_from_kvstore(
     if backend == "sql":
         if not HAS_SQL_STORE:
             raise ImportError("langchain_community is required for SQL storage")
-        
+
         namespace = f"kv_store_{class_name}"
         postgres_url = global_config().get_str("postgres.url")
         if not postgres_url:
             raise ValueError("PostgreSQL URL not found in configuration")
-        
+
         sql_store = SQLStore(namespace=namespace, db_url=postgres_url)
         stored_bytes = sql_store.mget([encoded_key])[0]
     else:  # file backend
         if file_store_path is None:
             file_store_path = global_config().get_dir_path("kv_store.path", create_if_not_exists=True)
-        
+
         file_store = LocalFileStore(file_store_path / class_name)
         stored_bytes = file_store.mget([encoded_key])[0]
 
     if not stored_bytes:
         return None
-    
+
     try:
         logger.debug(f"read '{class_name}/{encoded_key}' from {backend} KV store")
         return model_class.model_validate_json(stored_bytes.decode("utf-8"))
@@ -161,7 +157,7 @@ if __name__ == "__main__":
     with TemporaryDirectory(delete=False) as temp_dir:
         temp_path = Path(temp_dir)
         test_model = TestModel(name="test_object", value=42)
-        
+
         save_object_to_kvstore("unique_key", test_model, temp_path, backend="file")
         retrieved_model = load_object_from_kvstore(TestModel, "unique_key", temp_path, backend="file")
         print(f"File storage test: {retrieved_model}")
