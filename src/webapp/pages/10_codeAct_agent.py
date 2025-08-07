@@ -320,7 +320,6 @@ def display_header_and_demo_selector() -> str:
                 "",
                 icon=":material/settings:",
                 type="secondary",
-                use_container_width=False,
                 help="Open a YAML editor to modify and create demos configuration",
             ):
                 edit_config_dialog(CONF_YAML_FILE)

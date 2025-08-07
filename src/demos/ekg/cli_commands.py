@@ -7,8 +7,6 @@ from loguru import logger
 from typer import Option
 from upath import UPath
 
-from src.ai_core.prompts import def_prompt
-
 
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
@@ -189,6 +187,7 @@ async def process_markdown_batch(md_files: list[UPath], output_dir: UPath, batch
     """Process a batch of markdown files using LangChain batching."""
 
     from src.ai_core.llm import get_llm
+    from src.ai_core.prompts import def_prompt
     from src.demos.ekg.rainbow_model import RainbowProjectAnalysis
 
     # Setup LLM with structured output

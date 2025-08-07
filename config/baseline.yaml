@@ -1,5 +1,5 @@
 # Default application configuration
-# Can be overriden
+# Can be overriden in file 'overrides.yaml', with config selected either in code or by environment variable
 
    
 #####
@@ -20,7 +20,7 @@ llm:
   
 embeddings:
   list: ${paths.config}/providers/embeddings.yaml
-  default_model:  minilm_multilingual_local #ada_002_edenai #
+  default_model:  ada_002_openai
   cache: ${paths.data_root}/hf_models
 vector_store:
   default: Chroma

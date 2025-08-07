@@ -21,9 +21,6 @@ from typing import Annotated, Optional
 import typer
 from typer import Option
 
-from src.ai_core.embeddings import EmbeddingsFactory
-from src.ai_core.llm import LlmFactory
-from src.ai_core.vector_store import VectorStoreFactory
 from src.utils.config_mngr import global_config
 
 
@@ -38,25 +35,14 @@ def register_commands(cli_app: typer.Typer) -> None:
         from rich.panel import Panel
         from rich.table import Table
 
-        from src.ai_core.llm import PROVIDER_INFO
+        from src.ai_core.embeddings import EmbeddingsFactory
+        from src.ai_core.llm import PROVIDER_INFO, LlmFactory
+        from src.ai_core.vector_store import VectorStoreFactory
 
         config = global_config()
         console = Console()
 
-        # Configuration info
         console.print(Panel(f"[bold blue]Selected configuration:[/bold blue] {config.selected_config}", expand=False))
-
-        # Display BLUEPRINT_CONFIG AI info
-        blueprint_config = config.get("BLUEPRINT_CONFIG", {})
-        if blueprint_config:
-            blueprint_table = Table(title="BLUEPRINT_CONFIG AI", show_header=True, header_style="bold yellow")
-            blueprint_table.add_column("Key", style="cyan")
-            blueprint_table.add_column("Value", style="green")
-
-            for key, value in blueprint_config.items():
-                blueprint_table.add_row(key, str(value))
-
-            console.print(blueprint_table)
 
         # Default models info
         default_llm = LlmFactory(llm_id=None)

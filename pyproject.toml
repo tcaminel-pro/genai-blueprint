@@ -20,6 +20,7 @@ dependencies = [
     "langchain-postgres>=0.0.15",
     "psycopg[binary]>=3.2.9",
     "synchronicity>=0.10.2",
+    "deepagents>=0.0.3",
 ]
 
 [project.urls]

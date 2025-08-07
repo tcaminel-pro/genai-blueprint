@@ -97,7 +97,7 @@ async def main() -> None:
 
         col1, col2 = st.columns([1, 4])
         use_cache = col1.checkbox("Use cache", value=True, help="Use cached results if available")
-        submitted = col2.form_submit_button("Start Research", disabled=not search_input, use_container_width=True)
+        submitted = col2.form_submit_button("Start Research", disabled=not search_input, width="stretch")
 
         if submitted and search_input:
             log_tab, report_tab, context_tab, image_tab, sources_tab, stats_tab = st.tabs(

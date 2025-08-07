@@ -64,4 +64,4 @@ mcpServers:
     command: uvx
     args:
     - vizro-mcp
-    disabled: true
+    disabled: false
