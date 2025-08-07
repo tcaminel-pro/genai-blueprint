@@ -52,10 +52,10 @@ def register_commands(cli_app: typer.Typer) -> None:
             blueprint_table = Table(title="BLUEPRINT_CONFIG AI", show_header=True, header_style="bold yellow")
             blueprint_table.add_column("Key", style="cyan")
             blueprint_table.add_column("Value", style="green")
-            
+
             for key, value in blueprint_config.items():
                 blueprint_table.add_row(key, str(value))
-            
+
             console.print(blueprint_table)
 
         # Default models info
