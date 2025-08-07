@@ -27,7 +27,6 @@ from src.ai_core.vector_store import VectorStoreFactory
 from src.utils.config_mngr import global_config
 
 
-# display BLUEPRINT_CONFIG AI!
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def config_info() -> None:
@@ -46,6 +45,18 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         # Configuration info
         console.print(Panel(f"[bold blue]Selected configuration:[/bold blue] {config.selected_config}", expand=False))
+
+        # Display BLUEPRINT_CONFIG AI info
+        blueprint_config = config.get("BLUEPRINT_CONFIG", {})
+        if blueprint_config:
+            blueprint_table = Table(title="BLUEPRINT_CONFIG AI", show_header=True, header_style="bold yellow")
+            blueprint_table.add_column("Key", style="cyan")
+            blueprint_table.add_column("Value", style="green")
+            
+            for key, value in blueprint_config.items():
+                blueprint_table.add_row(key, str(value))
+            
+            console.print(blueprint_table)
 
         # Default models info
         default_llm = LlmFactory(llm_id=None)
