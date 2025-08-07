@@ -26,8 +26,8 @@ from src.ai_extra.browser_use_langchain import ChatLangchain
 from src.utils.config_mngr import global_config
 
 
-async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str] | None = None) -> None:
-    """Run an interactive shell for sending prompts to an MCP agent.
+async def run_deepagent_shell(llm_id: str | None, server_filter: list[str] | None = None, instructions: str | None = None) -> None:
+    """Run an interactive shell for sending prompts to a Deep Agent with MCP support.
 
     The MCP servers are started once before entering the shell loop.
     The user can type /quit to exit the shell.
@@ -35,10 +35,9 @@ async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str] | Non
     Args:
         llm_id: Optional ID of the language model to use
         server_filter: Optional list of server names to include in the agent
+        instructions: Optional custom instructions for the deep agent
     """
     from langchain_mcp_adapters.client import MultiServerMCPClient
-    from langgraph.checkpoint.memory import MemorySaver
-    from langgraph.prebuilt import create_react_agent
     from prompt_toolkit import PromptSession
     from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
     from prompt_toolkit.history import FileHistory
@@ -46,17 +45,25 @@ async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str] | Non
 
     from src.ai_core.llm import get_llm
     from src.ai_core.mcp_client import get_mcp_servers_dict
-    from src.utils.langgraph import print_astream
+    from deepagents import create_deep_agent
 
-    print(f"Starting MCP agent shell with servers: {server_filter if server_filter else 'all'}")
+    print(f"Starting Deep Agent shell with MCP servers: {server_filter if server_filter else 'all'}")
     print("Type /quit to exit; Use up/down arrows to navigate prompt history\n")
 
     # Initialize the model and MCP client once
     model = get_llm(llm_id=llm_id)
     client = MultiServerMCPClient(get_mcp_servers_dict(server_filter))
     tools = await client.get_tools()
-    config = {"configurable": {"thread_id": "1"}}
-    agent = create_react_agent(model, tools, checkpointer=MemorySaver())
+    
+    # Create deep agent with MCP tools
+    default_instructions = "You are an expert AI assistant with access to powerful tools. Use the available tools effectively to accomplish tasks."
+    agent_instructions = instructions or default_instructions
+    
+    agent = create_deep_agent(
+        tools=tools,
+        instructions=agent_instructions,
+        model=model,
+    )
 
     # Set up prompt history
     history_file = Path(".blueprint.input.history")
@@ -71,8 +78,14 @@ async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str] | Non
                 break
             if not user_input:
                 continue
-            resp = agent.astream({"messages": user_input}, config)
-            await print_astream(resp)
+            
+            result = agent.invoke({"messages": [{"role": "user", "content": user_input}]})
+            if "messages" in result and result["messages"]:
+                last_message = result["messages"][-1]
+                if hasattr(last_message, "content"):
+                    print(last_message.content)
+                else:
+                    print(str(last_message))
 
         except KeyboardInterrupt:
             print("\nReceived keyboard interrupt. Exiting...")
@@ -131,7 +144,7 @@ def register_commands(cli_app: typer.Typer) -> None:
                 print("Error: Input parameter or something in stdin is required")
                 return
 
-            asyncio.run(call_react_agent(input, llm_id=llm_id, mcp_server_filter=server))
+            asyncio.run(run_deepagent(input, llm_id=llm_id, mcp_server_filter=server, instructions=None))
 
     @cli_app.command()
     def smolagents(
@@ -260,6 +273,58 @@ def register_commands(cli_app: typer.Typer) -> None:
                 traceback.print_exc()
 
     @cli_app.command()
+    def deepagent(
+        input: Annotated[str | None, typer.Option(help="Input query or '-' to read from stdin")] = None,
+        server: Annotated[
+            list[str], typer.Option(help="MCP server names to connect to (e.g. playwright, filesystem, ..)")
+        ] = [],
+        all_servers: Annotated[bool, typer.Option(help="Connect to all configured servers")] = False,
+        cache: Annotated[str, typer.Option(help="Cache strategy: 'sqlite', 'memory' or 'no_cache'")] = "memory",
+        lc_verbose: Annotated[bool, Option("--verbose", "-v", help="Enable LangChain verbose mode")] = False,
+        lc_debug: Annotated[bool, Option("--debug", "-d", help="Enable LangChain debug mode")] = False,
+        llm_id: Annotated[
+            Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
+        ] = None,
+        shell: Annotated[bool, Option("--shell", "-s", help="Start an interactive shell to send prompts")] = False,
+        instructions: Annotated[
+            Optional[str], Option("--instructions", "-i", help="Custom instructions for the deep agent")
+        ] = None,
+    ) -> None:
+        """
+        Run a Deep Agent with MCP support using deepagents library.
+
+        Example:
+            echo "research latest AI developments" | uv run cli deepagent --server tavily
+
+        Use --shell to start an interactive shell where you can send multiple prompts to the agent.
+        """
+        from langchain.globals import set_debug, set_verbose
+
+        from src.ai_core.cache import LlmCache
+        from src.ai_core.llm import LlmFactory
+
+        set_debug(lc_debug)
+        set_verbose(lc_verbose)
+        LlmCache.set_method(cache)
+
+        if llm_id is not None:
+            if llm_id not in LlmFactory.known_items():
+                print(f"Error: {llm_id} is unknown llm_id.\nShould be in {LlmFactory.known_items()}")
+                return
+            global_config().set("llm.default_model", llm_id)
+
+        if shell:
+            asyncio.run(run_deepagent_shell(llm_id, None if all_servers else server, instructions))
+        else:
+            if not input and not sys.stdin.isatty():
+                input = sys.stdin.read()
+            if not input or len(input) < 5:
+                print("Error: Input parameter or something in stdin is required")
+                return
+
+            asyncio.run(run_deepagent(input, llm_id=llm_id, mcp_server_filter=server, instructions=instructions))
+
+    @cli_app.command()
     def browser_agent(
         task: Annotated[str, typer.Argument(help="The task for the browser agent to execute")],
         headless: Annotated[bool, typer.Option(help="Run browser in headless mode")] = False,
@@ -289,6 +354,41 @@ def register_commands(cli_app: typer.Typer) -> None:
         agent = Agent(task=task, llm=llm, browser_session=browser_session)
         history = asyncio.run(agent.run())
         print(history.final_result())
+
+    @cli_app.command()
+    async def run_deepagent(
+        query: str,
+        llm_id: str | None = None,
+        mcp_server_filter: list[str] | None = None,
+        instructions: str | None = None,
+    ) -> None:
+        """Run a single query with a Deep Agent that has MCP support."""
+        from langchain_mcp_adapters.client import MultiServerMCPClient
+        
+        from src.ai_core.llm import get_llm
+        from src.ai_core.mcp_client import get_mcp_servers_dict
+        from deepagents import create_deep_agent
+
+        model = get_llm(llm_id=llm_id)
+        client = MultiServerMCPClient(get_mcp_servers_dict(mcp_server_filter))
+        tools = await client.get_tools()
+
+        default_instructions = "You are an expert AI assistant with access to powerful tools. Use the available tools effectively to accomplish tasks."
+        agent_instructions = instructions or default_instructions
+        
+        agent = create_deep_agent(
+            tools=tools,
+            instructions=agent_instructions,
+            model=model,
+        )
+        
+        result = agent.invoke({"messages": [{"role": "user", "content": query}]})
+        if "messages" in result and result["messages"]:
+            last_message = result["messages"][-1]
+            if hasattr(last_message, "content"):
+                print(last_message.content)
+            else:
+                print(str(last_message))
 
     @cli_app.command()
     def fabric(
