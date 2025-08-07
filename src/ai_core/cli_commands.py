@@ -23,9 +23,11 @@ from typer import Option
 
 from src.ai_core.embeddings import EmbeddingsFactory
 from src.ai_core.llm import LlmFactory
+from src.ai_core.vector_store import VectorStoreFactory
 from src.utils.config_mngr import global_config
 
 
+# display BLUEPRINT_CONFIG AI!
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def config_info() -> None:
@@ -33,10 +35,11 @@ def register_commands(cli_app: typer.Typer) -> None:
         Display current configuration and available API keys.
         """
 
-        from src.ai_core.llm import PROVIDER_INFO
         from rich.console import Console
-        from rich.table import Table
         from rich.panel import Panel
+        from rich.table import Table
+
+        from src.ai_core.llm import PROVIDER_INFO
 
         config = global_config()
         console = Console()
@@ -47,13 +50,15 @@ def register_commands(cli_app: typer.Typer) -> None:
         # Default models info
         default_llm = LlmFactory(llm_id=None)
         default_embeddings = EmbeddingsFactory(embeddings_id=None)
+        default_vector_store = VectorStoreFactory(id=None, embeddings_factory=default_embeddings)
 
-        models_table = Table(title="Default Models", show_header=True, header_style="bold magenta")
+        models_table = Table(title="Default Components", show_header=True, header_style="bold magenta")
         models_table.add_column("Type", style="cyan")
         models_table.add_column("Model ID", style="green")
 
         models_table.add_row("LLM", str(default_llm.llm_id))
         models_table.add_row("Embeddings", str(default_embeddings.embeddings_id))
+        models_table.add_row("Vector-store", str(default_vector_store.id))
 
         console.print(models_table)
 
