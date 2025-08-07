@@ -26,7 +26,9 @@ from src.ai_extra.browser_use_langchain import ChatLangchain
 from src.utils.config_mngr import global_config
 
 
-async def run_deepagent_shell(llm_id: str | None, server_filter: list[str] | None = None, instructions: str | None = None) -> None:
+async def run_deepagent_shell(
+    llm_id: str | None, server_filter: list[str] | None = None, instructions: str | None = None
+) -> None:
     """Run an interactive shell for sending prompts to a Deep Agent with MCP support.
 
     The MCP servers are started once before entering the shell loop.
@@ -54,11 +56,11 @@ async def run_deepagent_shell(llm_id: str | None, server_filter: list[str] | Non
     model = get_llm(llm_id=llm_id)
     client = MultiServerMCPClient(get_mcp_servers_dict(server_filter))
     tools = await client.get_tools()
-    
+
     # Create deep agent with MCP tools
     default_instructions = "You are an expert AI assistant with access to powerful tools. Use the available tools effectively to accomplish tasks."
     agent_instructions = instructions or default_instructions
-    
+
     agent = create_deep_agent(
         tools=tools,
         instructions=agent_instructions,
@@ -78,7 +80,7 @@ async def run_deepagent_shell(llm_id: str | None, server_filter: list[str] | Non
                 break
             if not user_input:
                 continue
-            
+
             result = agent.invoke({"messages": [{"role": "user", "content": user_input}]})
             if "messages" in result and result["messages"]:
                 last_message = result["messages"][-1]
@@ -364,7 +366,7 @@ def register_commands(cli_app: typer.Typer) -> None:
     ) -> None:
         """Run a single query with a Deep Agent that has MCP support."""
         from langchain_mcp_adapters.client import MultiServerMCPClient
-        
+
         from src.ai_core.llm import get_llm
         from src.ai_core.mcp_client import get_mcp_servers_dict
         from deepagents import create_deep_agent
@@ -375,13 +377,13 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         default_instructions = "You are an expert AI assistant with access to powerful tools. Use the available tools effectively to accomplish tasks."
         agent_instructions = instructions or default_instructions
-        
+
         agent = create_deep_agent(
             tools=tools,
             instructions=agent_instructions,
             model=model,
         )
-        
+
         result = agent.invoke({"messages": [{"role": "user", "content": query}]})
         if "messages" in result and result["messages"]:
             last_message = result["messages"][-1]
