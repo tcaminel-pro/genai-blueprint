@@ -23,7 +23,7 @@ from loguru import logger
 from pydantic import BaseModel, ConfigDict
 from streamlit import session_state as sss
 
-from src.ai_core.llm import get_llm
+from src.ai_core.llm_factory import get_llm
 from src.ai_core.mcp_client import get_mcp_servers_dict
 from src.ai_core.prompts import dedent_ws, dict_input_message
 from src.utils.config_mngr import global_config

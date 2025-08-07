@@ -7,7 +7,7 @@ import yaml
 from langchain.schema import Document
 from pydantic import BaseModel
 
-from src.ai_core.embeddings import get_embeddings
+from src.ai_core.embeddings_factory import get_embeddings
 
 
 def generate_field_embeddings(

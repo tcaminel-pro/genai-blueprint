@@ -5,8 +5,8 @@ from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 from pydantic import BaseModel, PostgresDsn, PrivateAttr
 
-from src.ai_core.embeddings import EmbeddingsFactory
-from src.ai_core.llm import get_llm
+from src.ai_core.embeddings_factory import EmbeddingsFactory
+from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import def_prompt
 from src.utils.pydantic.yaml_to_pydantic import YamlToPydantic
 
@@ -46,7 +46,7 @@ class PydanticRag(BaseModel):
 
     def _init_vector_store(self) -> None:
         """Initialize the vector store with embeddings model."""
-        from src.ai_core.vector_store import VectorStoreFactory
+        from src.ai_core.vector_store_factory import VectorStoreFactory
 
         postgres_url = str(self.postgres_url)
         self._vector_store = VectorStoreFactory(

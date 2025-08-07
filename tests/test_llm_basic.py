@@ -8,7 +8,7 @@ This module contains tests that verify:
 
 from langchain_core.messages.ai import AIMessage
 
-from src.ai_core.llm import get_llm
+from src.ai_core.llm_factory import get_llm
 
 # global_config().select_config("pytest")
 

@@ -15,7 +15,7 @@ from langchain.output_parsers import PydanticOutputParser
 from langchain_core.runnables import Runnable
 from pydantic import BaseModel, Field
 
-from src.ai_core.llm import get_llm
+from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import def_prompt
 
 T = TypeVar("T", bound=BaseModel)

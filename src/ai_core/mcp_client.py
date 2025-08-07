@@ -44,7 +44,7 @@ from mcp.client.stdio import stdio_client
 from mcpadapt.core import MCPAdapt
 from mcpadapt.langchain_adapter import LangChainAdapter
 
-from src.ai_core.llm import get_llm
+from src.ai_core.llm_factory import get_llm
 from src.utils.config_mngr import global_config
 from src.utils.langgraph import print_astream
 

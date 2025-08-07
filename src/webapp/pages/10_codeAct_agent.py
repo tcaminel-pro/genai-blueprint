@@ -32,7 +32,7 @@ from smolagents import (
 from streamlit import session_state as sss
 from streamlit_folium import st_folium
 
-from src.ai_core.llm import LlmFactory
+from src.ai_core.llm_factory import LlmFactory
 from src.ai_core.mcp_client import dict_to_stdio_server_list, get_mcp_servers_dict
 from src.ai_core.prompts import dedent_ws
 from src.utils.config_mngr import global_config, import_from_qualified

@@ -19,9 +19,9 @@ from src.ai_core.chain_registry import (
     RunnableItem,
     register_runnable,
 )
-from src.ai_core.embeddings import EmbeddingsFactory
-from src.ai_core.llm import get_llm
-from src.ai_core.vector_store import VectorStoreFactory
+from src.ai_core.embeddings_factory import EmbeddingsFactory
+from src.ai_core.llm_factory import get_llm
+from src.ai_core.vector_store_factory import VectorStoreFactory
 
 # cSpell:disable
 

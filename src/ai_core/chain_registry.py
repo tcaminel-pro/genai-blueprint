@@ -131,7 +131,7 @@ class ChainRegistry(BaseModel):
         for module in modules:
             try:
                 importlib.import_module(module)
-                logger.info(f"load module '{module}'")
+                logger.debug(f"load module '{module}'")
             except Exception as ex:
                 logger.exception(f"Cannot load module {module}: {ex}")
 

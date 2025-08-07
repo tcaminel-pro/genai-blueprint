@@ -527,7 +527,7 @@ def get_llm(
     info += " -json_mode" if json_mode else ""
     info += f" -cache: {cache}" if cache else ""
     info += f" -extra: {kwargs}" if kwargs else ""
-    logger.info(info)
+    logger.debug(info)
     return factory.get()
 
 

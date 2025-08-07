@@ -10,10 +10,10 @@ from loguru import logger
 from rich import print  # noqa: F401
 
 from src.ai_core.chain_registry import Example, RunnableItem, register_runnable
-from src.ai_core.embeddings import EmbeddingsFactory
-from src.ai_core.llm import get_llm
+from src.ai_core.embeddings_factory import EmbeddingsFactory
+from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import def_prompt
-from src.ai_core.vector_store import VectorStoreFactory
+from src.ai_core.vector_store_factory import VectorStoreFactory
 
 
 def get_retriever_fn(query: str | None, config: RunnableConfig):

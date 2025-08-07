@@ -35,9 +35,9 @@ def register_commands(cli_app: typer.Typer) -> None:
         from rich.panel import Panel
         from rich.table import Table
 
-        from src.ai_core.embeddings import EmbeddingsFactory
-        from src.ai_core.llm import PROVIDER_INFO, LlmFactory
-        from src.ai_core.vector_store import VectorStoreFactory
+        from src.ai_core.embeddings_factory import EmbeddingsFactory
+        from src.ai_core.llm_factory import PROVIDER_INFO, LlmFactory
+        from src.ai_core.vector_store_factory import VectorStoreFactory
 
         config = global_config()
         console = Console()
@@ -102,7 +102,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         from rich import print as pprint
 
         from src.ai_core.cache import LlmCache
-        from src.ai_core.llm import LlmFactory
+        from src.ai_core.llm_factory import LlmFactory
 
         set_debug(lc_debug)
         set_verbose(lc_verbose)
@@ -179,7 +179,7 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         from src.ai_core.cache import LlmCache
         from src.ai_core.chain_registry import ChainRegistry
-        from src.ai_core.llm import LlmFactory
+        from src.ai_core.llm_factory import LlmFactory
 
         set_debug(lc_debug)
         set_verbose(lc_verbose)
@@ -234,9 +234,9 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         List the known LLMs, embeddings models, and vector stores.
         """
-        from src.ai_core.embeddings import EmbeddingsFactory
-        from src.ai_core.llm import LlmFactory
-        from src.ai_core.vector_store import VectorStoreFactory
+        from src.ai_core.embeddings_factory import EmbeddingsFactory
+        from src.ai_core.llm_factory import LlmFactory
+        from src.ai_core.vector_store_factory import VectorStoreFactory
 
         print("factories:")
         tab = 2 * " "
@@ -257,7 +257,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         import yaml
 
-        from src.ai_core.llm import LlmFactory
+        from src.ai_core.llm_factory import LlmFactory
 
         data = [llm.model_dump() for llm in LlmFactory.known_list()]
         with open(file_name, "w") as file:
@@ -277,7 +277,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         from rich.console import Console
         from rich.table import Table
 
-        from src.ai_core.embeddings import EmbeddingsFactory
+        from src.ai_core.embeddings_factory import EmbeddingsFactory
 
         if model_id is not None:
             if model_id not in EmbeddingsFactory.known_items():
@@ -358,7 +358,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         from langchain_community.utils.math import cosine_similarity
 
-        from src.ai_core.embeddings import EmbeddingsFactory, get_embeddings
+        from src.ai_core.embeddings_factory import EmbeddingsFactory, get_embeddings
 
         if len(sentences) < 2:
             print("Error: At least 2 sentences are required")

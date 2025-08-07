@@ -1,8 +1,8 @@
 import pytest
 from langchain.schema import Document
 
-from src.ai_core.embeddings import EmbeddingsFactory
-from src.ai_core.vector_store import VectorStoreFactory
+from src.ai_core.embeddings_factory import EmbeddingsFactory
+from src.ai_core.vector_store_factory import VectorStoreFactory
 from src.utils.config_mngr import global_config
 
 try:

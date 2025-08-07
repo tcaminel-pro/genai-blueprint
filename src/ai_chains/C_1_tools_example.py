@@ -11,7 +11,7 @@ from src.ai_core.chain_registry import (
     RunnableItem,
     register_runnable,
 )
-from src.ai_core.llm import get_llm
+from src.ai_core.llm_factory import get_llm
 
 
 @tool

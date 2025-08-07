@@ -10,7 +10,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from src.ai_core.llm import LlmFactory
+from src.ai_core.llm_factory import LlmFactory
 from src.utils.config_mngr import global_config
 
 try:

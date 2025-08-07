@@ -84,7 +84,7 @@ from langchain.vectorstores.base import VectorStore
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
-from src.ai_core.embeddings import EmbeddingsFactory
+from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.utils.config_mngr import global_config, global_config_reload
 
 # List of known Vector Stores (created as Literal so can be checked by MyPy)
@@ -341,7 +341,7 @@ if __name__ == "__main__":
 
     from langchain_core.documents import Document
 
-    from src.ai_core.embeddings import EmbeddingsFactory
+    from src.ai_core.embeddings_factory import EmbeddingsFactory
 
     # Test configuration
     os.environ["POSTGRES_USER"] = "tcl"

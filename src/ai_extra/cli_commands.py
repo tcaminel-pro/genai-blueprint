@@ -44,7 +44,7 @@ async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str] | Non
     from prompt_toolkit.history import FileHistory
     from prompt_toolkit.patch_stdout import patch_stdout
 
-    from src.ai_core.llm import get_llm
+    from src.ai_core.llm_factory import get_llm
     from src.ai_core.mcp_client import get_mcp_servers_dict
     from src.utils.langgraph import print_astream
 
@@ -109,7 +109,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         from langchain.globals import set_debug, set_verbose
 
         from src.ai_core.cache import LlmCache
-        from src.ai_core.llm import LlmFactory
+        from src.ai_core.llm_factory import LlmFactory
         from src.ai_core.mcp_client import call_react_agent
 
         set_debug(lc_debug)
@@ -150,7 +150,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         from smolagents import CodeAgent, Tool
         from smolagents.default_tools import TOOL_MAPPING
 
-        from src.ai_core.llm import LlmFactory
+        from src.ai_core.llm_factory import LlmFactory
 
         if llm_id is not None:
             if llm_id not in LlmFactory.known_items():
@@ -274,7 +274,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         from browser_use import Agent, BrowserSession
 
-        from src.ai_core.llm import LlmFactory, get_llm
+        from src.ai_core.llm_factory import LlmFactory, get_llm
         from src.ai_extra.browser_use_langchain import ChatLangchain
 
         if llm_id is not None and llm_id not in LlmFactory.known_items():
@@ -311,7 +311,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         from langchain.globals import set_debug, set_verbose
 
-        from src.ai_core.llm import LlmFactory
+        from src.ai_core.llm_factory import LlmFactory
         from src.ai_extra.fabric_chain import get_fabric_chain
 
         set_debug(debug_mode)

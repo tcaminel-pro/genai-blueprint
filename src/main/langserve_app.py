@@ -15,7 +15,7 @@ from src.ai_core.chain_registry import ChainRegistry
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import Runnable, RunnablePassthrough
 
-from src.ai_core.llm import get_llm
+from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import def_prompt
 
 load_dotenv(verbose=True)

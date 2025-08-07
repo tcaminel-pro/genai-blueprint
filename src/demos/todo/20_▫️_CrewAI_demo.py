@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from src.ai_core.llm import LlmFactory
+from src.ai_core.llm_factory import LlmFactory
 
 try:
     import pandas as pd

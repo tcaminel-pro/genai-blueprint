@@ -11,7 +11,7 @@ from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from langchain_core.tools import tool
 from loguru import logger
 
-from src.ai_core.llm import get_llm
+from src.ai_core.llm_factory import get_llm
 from src.utils.config_mngr import global_config
 
 LLM_ID = None  # take default

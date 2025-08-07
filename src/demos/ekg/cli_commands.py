@@ -46,7 +46,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         from loguru import logger
         from upath import UPath
 
-        from src.ai_core.llm import LlmFactory
+        from src.ai_core.llm_factory import LlmFactory
 
         if llm_id is not None and llm_id not in LlmFactory.known_items():
             logger.error(f"Unknown llm_id: {llm_id}. Valid options: {LlmFactory.known_items()}")
@@ -137,7 +137,7 @@ def register_commands(cli_app: typer.Typer) -> None:
            uv run cli generate-fake-rainbow sample_project.json --output-dir=./generated --count=3
            uv run cli generate-fake-rainbow "data/**/*.json" --recursive --output-dir=./generated
         """
-        from src.ai_core.llm import LlmFactory
+        from src.ai_core.llm_factory import LlmFactory
         from src.demos.ekg.generate_fake_rainbows import generate_fake_rainbows_from_samples
 
         if llm_id is not None and llm_id not in LlmFactory.known_items():
@@ -186,7 +186,7 @@ def register_commands(cli_app: typer.Typer) -> None:
 async def process_markdown_batch(md_files: list[UPath], output_dir: UPath, batch_size: int = 5) -> None:
     """Process a batch of markdown files using LangChain batching."""
 
-    from src.ai_core.llm import get_llm
+    from src.ai_core.llm_factory import get_llm
     from src.ai_core.prompts import def_prompt
     from src.demos.ekg.rainbow_model import RainbowProjectAnalysis
 

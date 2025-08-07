@@ -27,7 +27,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 from loguru import logger  # noqa: F401
 
-from src.ai_core.llm import get_llm
+from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import dedent_ws, dict_input_message
 from src.demos.maintenance_agent.dummy_data import dummy_database
 from src.demos.maintenance_agent.tools import (

@@ -24,10 +24,10 @@ from loguru import logger
 from pydantic import BaseModel
 from unidecode import unidecode
 
-from src.ai_core.embeddings import EmbeddingsFactory
-from src.ai_core.llm import get_llm
+from src.ai_core.embeddings_factory import EmbeddingsFactory
+from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import def_prompt
-from src.ai_core.vector_store import VectorStoreFactory
+from src.ai_core.vector_store_factory import VectorStoreFactory
 from src.ai_extra.bm25s_retriever import BM25FastRetriever, get_spacy_preprocess_fn
 from src.demos.mon_master_search.model_subset import (
     ACRONYMS,

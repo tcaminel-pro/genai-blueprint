@@ -6,7 +6,7 @@ from langchain_core.runnables import RunnableConfig, RunnableLambda
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
 
-from src.ai_core.llm import get_llm, llm_config
+from src.ai_core.llm_factory import get_llm, llm_config
 from src.ai_extra.react_agent_structured_output import create_react_structured_output_graph
 
 

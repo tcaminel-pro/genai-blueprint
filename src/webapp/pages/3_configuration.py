@@ -13,7 +13,7 @@ import streamlit as st
 from langchain.globals import set_debug, set_verbose
 
 from src.ai_core.cache import LlmCache
-from src.ai_core.llm import PROVIDER_INFO, LlmFactory
+from src.ai_core.llm_factory import PROVIDER_INFO, LlmFactory
 from src.utils.config_mngr import global_config
 
 
@@ -183,7 +183,7 @@ def main() -> None:
         if st.button("Run Test"):
             from langchain_core.messages import HumanMessage
 
-            from src.ai_core.llm import get_llm
+            from src.ai_core.llm_factory import get_llm
 
             with st.spinner("Running LLM test..."):
                 try:

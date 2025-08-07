@@ -4,7 +4,7 @@ from autogen_ext.models.openai import OpenAIChatCompletionClient
 from autogen_openaiext_client import GroqChatCompletionClient
 from langchain_openai import ChatOpenAI
 
-from src.ai_core.llm import LlmFactory
+from src.ai_core.llm_factory import LlmFactory
 
 
 def get_autogen_model_from_llm_id(llm_id: str, **kwargs) -> OpenAIChatCompletionClient:

@@ -19,7 +19,7 @@ from langgraph.graph import START, StateGraph
 from langgraph.pregel import Pregel
 from typing_extensions import Annotated
 
-from src.ai_core.llm import get_llm
+from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import dedent_ws, def_prompt
 
 
