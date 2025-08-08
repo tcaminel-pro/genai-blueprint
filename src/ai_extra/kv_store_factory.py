@@ -20,6 +20,7 @@ class KvStoreFactory(BaseModel):
         id: Identifier for the storage backend type
         root: Root namespace or directory for the storage
     """
+
     id: str
     root: str = ""
 
