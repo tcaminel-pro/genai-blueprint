@@ -1,20 +1,37 @@
-#  Add doc AI!
+"""Factory for creating and managing key-value stores with LangChain storage backends.
+
+Provides a factory pattern for creating ByteStore instances with support for
+different storage backends like local file storage and PostgreSQL.
+"""
+
 from langchain.storage import LocalFileStore
 from langchain_core.stores import ByteStore
 from pydantic import BaseModel
 
 from src.utils.config_mngr import global_config
 
-# KV_STORE_TYPE = Literal["file", "Chroma_in_memory", "InMemory", "Sklearn", "PgVector"]
-
 kvstore_config = global_config().get_dict("kv_store")
 
 
 class KvStoreFactory(BaseModel):
+    """Factory for creating key-value stores with configurable backends.
+
+    Attributes:
+        id: Identifier for the storage backend type
+        root: Root namespace or directory for the storage
+    """
     id: str
     root: str = ""
 
     def get(self) -> ByteStore:
+        """Create and return a ByteStore instance based on the configured backend.
+
+        Returns:
+            ByteStore: A configured ByteStore instance
+
+        Raises:
+            ValueError: If the specified storage backend is not supported
+        """
         if self.id == "file":
             path = global_config().get_dir_path(f"kv_store.{self.id}.path")
             return LocalFileStore(path / self.root)
