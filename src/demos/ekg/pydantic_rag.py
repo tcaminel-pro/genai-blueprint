@@ -10,7 +10,7 @@ from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import def_prompt
 from src.utils.pydantic.yaml_to_pydantic import YamlToPydantic
 
-from .pydantic_embeddings import generate_field_documents
+from src.demos.ekg.pydantic_embeddings import generate_field_documents
 
 T = TypeVar("T", bound=BaseModel)
 
