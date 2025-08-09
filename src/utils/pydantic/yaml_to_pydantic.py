@@ -105,10 +105,10 @@ class YamlToPydantic:
             raise ValueError(
                 f"Invalid class definition for '{class_name}'. Expected dict with 'fields' key, got string: {class_def}"
             )
-            
+
         description = class_def.get("description", "")
         fields_def = class_def.get("fields", class_def)
-        
+
         # Ensure fields_def is a dict
         if not isinstance(fields_def, dict):
             raise ValueError(
