@@ -100,8 +100,20 @@ class YamlToPydantic:
         if class_name in self.created_classes and self.created_classes[class_name] is not None:
             return self.created_classes[class_name]
 
+        # Handle case where class_def is a string (shouldn't happen with proper YAML)
+        if isinstance(class_def, str):
+            raise ValueError(
+                f"Invalid class definition for '{class_name}'. Expected dict with 'fields' key, got string: {class_def}"
+            )
+            
         description = class_def.get("description", "")
         fields_def = class_def.get("fields", class_def)
+        
+        # Ensure fields_def is a dict
+        if not isinstance(fields_def, dict):
+            raise ValueError(
+                f"Invalid fields definition for '{class_name}'. Expected dict, got {type(fields_def)}: {fields_def}"
+            )
 
         fields = {}
         for field_name, field_def in fields_def.items():

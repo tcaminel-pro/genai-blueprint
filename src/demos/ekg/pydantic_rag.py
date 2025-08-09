@@ -102,18 +102,18 @@ if __name__ == "__main__":
     from rich import print
 
     EXAMPLE_YAML = """
-    name: Person
-    description: Basic contact card
-    fields:
-      name:
-        type: str
-        description: Full name of the person
-      age:
-        type: int
-        description: Age in years
-      email:
-        type: str
-        description: Primary e-mail address
+    Person:
+      description: Basic contact card
+      fields:
+        name:
+          type: str
+          description: Full name of the person
+        age:
+          type: int
+          description: Age in years
+        email:
+          type: str
+          description: Primary e-mail address
     """
 
     rag = PydanticRag(
