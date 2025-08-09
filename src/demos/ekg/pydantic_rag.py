@@ -8,9 +8,8 @@ from pydantic import BaseModel, PostgresDsn, PrivateAttr
 from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import def_prompt
-from src.utils.pydantic.yaml_to_pydantic import YamlToPydantic
-
 from src.demos.ekg.pydantic_embeddings import generate_field_documents
+from src.utils.pydantic.yaml_to_pydantic import YamlToPydantic
 
 T = TypeVar("T", bound=BaseModel)
 
