@@ -9,6 +9,7 @@ from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import def_prompt
 from src.demos.ekg.pydantic_embeddings import generate_field_documents
+from src.utils.config_mngr import global_config
 from src.utils.pydantic.yaml_to_pydantic import YamlToPydantic
 
 T = TypeVar("T", bound=BaseModel)
@@ -28,7 +29,7 @@ class PydanticRag(BaseModel):
     model_definition: str
     postgres_url: PostgresDsn
     embeddings_id: str
-    llm_id: str
+    llm_id: str | None
     collection_name: str = "pydantic_fields"
 
     _top_class: Type[BaseModel] = PrivateAttr()
@@ -116,11 +117,13 @@ if __name__ == "__main__":
           description: Primary e-mail address
     """
 
+    url = global_config().get("vector_store.postgres_url")
+
     rag = PydanticRag(
         model_definition=EXAMPLE_YAML,
-        postgres_url="postgresql://localhost:5432/postgres",
-        embeddings_id="openai",
-        llm_id="gpt-4o",
+        postgres_url=url,
+        embeddings_id="qwen3_06b_deepinfra",
+        llm_id=None,
     )
 
     # A tiny markdown document
@@ -129,13 +132,13 @@ if __name__ == "__main__":
     Jane is 29 years old and can be reached at jane.doe@example.com.
     """
 
-    # 1. Analyse → structured Pydantic object
-    person = rag.analyze_document(doc_text)
-    print("Structured result:", person)
+    # # 1. Analyse → structured Pydantic object
+    # person = rag.analyze_document(doc_text)
+    # print("Structured result:", person)
 
-    # 2. Index the document
-    rag.store_document(person)
-    print("Document stored.")
+    # # 2. Index the document
+    # rag.store_document(person)
+    # print("Document stored.")
 
     # 3. Query the vector store
     hits = rag.query_vectorstore("e-mail address", k=2)
