@@ -26,7 +26,7 @@ vector_store:
   default: Chroma
   chroma_path: ${paths.data_root}/vector_store
   record_manager: sqlite:///${paths.data_root}/vector_store/record_manager_cache.sql
-  postgres_url: postgresql://${oc.env:POSTGRES_USER,unknown_user}:${oc.env:POSTGRES_PASSWORD,password}@localhost:6024/ekg
+  postgres_url: postgresql://${oc.env:POSTGRES_USER,unknown_user}:${oc.env:POSTGRES_PASSWORD,password}@localhost:5432/ekg
   postgres_schema: public
 documents:
   base: ./use_case_data
@@ -34,7 +34,8 @@ monitoring:
   langsmith : true
   project: GenAI_demo
 kv_store:
-  path: ${paths.data_root}/kv_store
+  file:
+    path: ${paths.data_root}/kv_store
 
 external_data: ${oc.env:ONEDRIVE, null}/_ongoing/training_GenAI
 

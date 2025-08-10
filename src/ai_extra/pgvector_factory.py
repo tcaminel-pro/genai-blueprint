@@ -4,11 +4,18 @@ This module provides factory functions for creating and configuring
 PgVector stores with support for hybrid search and advanced features.
 """
 
+# see https://github.com/langchain-ai/langchain-postgres
+# https://github.com/langchain-ai/langchain-postgres/blob/main/examples/pg_vectorstore.ipynb
+# https://github.com/langchain-ai/langchain-postgres/blob/main/examples/pg_vectorstore_how_to.ipynb
+
+
+# TODO : Add vector on full text index
+# 
 from typing import Any
 
 from devtools import debug
 from langchain_postgres import Column, PGEngine, PGVectorStore
-from langchain_postgres.v2.hybrid_search_config import HybridSearchConfig
+from langchain_postgres.v2.hybrid_search_config import HybridSearchConfig, reciprocal_rank_fusion
 from loguru import logger
 from pydantic import PostgresDsn
 from sqlalchemy.exc import ProgrammingError
@@ -51,10 +58,10 @@ def create_pg_vector_store(
             if "data_type" not in column:
                 raise ValueError(f"metadata_columns[{i}] missing required key: 'data_type'")
 
-    l, _, r = postgres_url.partition("//")
-    if not l.startswith("postgres"):
+    left, _, right = postgres_url.partition("//")
+    if not left.startswith("postgres"):
         raise ValueError("postgres_url should start with postgresql://  or postgresql+asyncpg://")
-    connection_string = f"postgresql+asyncpg://{r}"
+    connection_string = f"postgresql+asyncpg://{right}"
     try:
         PostgresDsn(connection_string)
     except Exception as e:
@@ -72,7 +79,7 @@ def create_pg_vector_store(
             tsv_column=hybrid_config.get("tsv_column", "content_tsv"),
             tsv_lang=hybrid_config.get("tsv_lang", "pg_catalog.english"),
             fts_query=hybrid_config.get("fts_query", ""),
-            fusion_function=hybrid_config.get("fusion_function") or rank_fusion,
+            fusion_function=hybrid_config.get("fusion_function") or reciprocal_rank_fusion,
             fusion_function_parameters=hybrid_config.get("fusion_function_parameters", {}),
             primary_top_k=hybrid_config.get("primary_top_k", 4),
             secondary_top_k=hybrid_config.get("secondary_top_k", 4),

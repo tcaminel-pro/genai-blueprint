@@ -35,16 +35,22 @@ embeddings:
     dimension: 1024
 
   - model:
+      id: qwen3_06b
+    providers:
+      - deepinfra: Qwen/Qwen3-Embedding-0.6B
+    dimension: 1024
+
+  - model:
+      id: qwen3_4b
+    providers:
+      - deepinfra: Qwen/Qwen3-Embedding-4B
+    dimension: 2560
+
+  - model:
       id: camembert_large
     providers:
       - huggingface: dangvantuan/sentence-camembert-large
     dimension: 1024
-
-  - model:
-      id: embedding_001
-    providers:
-      - google_genai: text-embedding-ada-002
-    dimension: 1536
 
   - model:
       id: gte15_base

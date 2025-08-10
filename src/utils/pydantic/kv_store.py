@@ -1,4 +1,4 @@
-"""Local file-based storage for Pydantic objects.
+"""Key_value storage for Pydantic objects.
 
 Provides functions to save and retrieve Pydantic object using a key-value store.
 Keys are automatically encoded for filesystem compatibility.
@@ -8,15 +8,13 @@ Supports both string and dictionary keys.
 import hashlib
 import json
 import re
-from pathlib import Path
 from typing import TypeVar
 
-from langchain.storage import LocalFileStore
 from loguru import logger
 from pydantic import BaseModel, ValidationError
 from unidecode import unidecode
 
-from src.utils.config_mngr import global_config
+from src.ai_extra.kv_store_factory import KvStoreFactory
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -42,7 +40,7 @@ def _encode_key(key: str | dict) -> str:
     return encoded_key + ".json"  # add json so the file can be easily viewed
 
 
-def save_object_to_kvstore(key: str | dict, obj: BaseModel, file_store_path: Path | None = None) -> None:
+def save_object_to_kvstore(key: str | dict, obj: BaseModel, kv_store_id: str = "file") -> None:
     """Save a Pydantic model to a local file-based key-value store.
 
     The model is saved to a directory based on the model's class name. The key is
@@ -56,21 +54,17 @@ def save_object_to_kvstore(key: str | dict, obj: BaseModel, file_store_path: Pat
     # Use the lowercase class name of the Pydantic model if no config_key is provided
     class_name = obj.__class__.__name__
 
-    if file_store_path is None:
-        file_store_path = global_config().get_dir_path("kv_store.path")
-
-    dir_root_name = file_store_path / class_name
-    file_store = LocalFileStore(dir_root_name)
+    kv_store = KvStoreFactory(id=kv_store_id, root=class_name).get()
 
     obj_bytes = obj.model_dump_json().encode("utf-8")
     # Encode key to ensure it's filesystem-friendly
     encoded_key = _encode_key(key)
-    file_store.mset([(encoded_key, obj_bytes)])
-    logger.debug(f"add key '{class_name}/{encoded_key}' to local kv_store {file_store_path}'")
+    kv_store.mset([(encoded_key, obj_bytes)])
+    logger.debug(f"add key '{class_name}/{encoded_key}' to kv_store {kv_store}'")
 
 
-def load_object_from_kvstore(model_class: type[T], key: str | dict, file_store_path: Path | None = None) -> T | None:
-    """Read a Pydantic object from a local file-based key-value store.
+def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id: str = "file") -> T | None:
+    """Read a Pydantic object from a key-value store.
 
     Args:
         model_class: Pydantic model class to reconstruct.
@@ -82,15 +76,12 @@ def load_object_from_kvstore(model_class: type[T], key: str | dict, file_store_p
     """
     # Use the lowercase class name of the Pydantic model
 
-    if file_store_path is None:
-        file_store_path = global_config().get_dir_path("kv_store.path", create_if_not_exists=True)
     class_name = model_class.__name__
-    file_store = LocalFileStore(file_store_path / class_name)
-
+    kv_store = KvStoreFactory(id=kv_store_id, root=class_name).get()
     # Encode key to ensure it's filesystem-friendly
     encoded_key = _encode_key(key)
 
-    stored_bytes = file_store.mget([encoded_key])[0]
+    stored_bytes = kv_store.mget([encoded_key])[0]
     if not stored_bytes:
         return None
     else:
@@ -114,8 +105,7 @@ if __name__ == "__main__":
         value: int
 
     with TemporaryDirectory(delete=False) as temp_dir:
-        temp_path = Path(temp_dir)
         test_model = TestModel(name="test_object", value=42)
-        save_object_to_kvstore("unique_key", test_model, temp_path)
-        retrieved_model = load_object_from_kvstore(TestModel, "unique_key", temp_path)
+        save_object_to_kvstore("unique_key", test_model, "file")
+        retrieved_model = load_object_from_kvstore(TestModel, "unique_key", "file")
         print(retrieved_model)

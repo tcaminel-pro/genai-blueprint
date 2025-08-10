@@ -2,6 +2,8 @@
 
 Provides a factory pattern for creating ByteStore instances with support for
 different storage backends like local file storage and PostgreSQL.
+
+WORK IN PROGRESS
 """
 
 from langchain.storage import LocalFileStore
@@ -29,9 +31,6 @@ class KvStoreFactory(BaseModel):
 
         Returns:
             ByteStore: A configured ByteStore instance
-
-        Raises:
-            ValueError: If the specified storage backend is not supported
         """
         if self.id == "file":
             path = global_config().get_dir_path(f"kv_store.{self.id}.path")

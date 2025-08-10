@@ -74,7 +74,7 @@ rebase: ## Sync local repo with remote one (changes are stashed before!)
 AIDER_OPTS=--watch-files --lint-cmd "ruff format" --read vibe_coding/CONVENTIONS.md --editor "code --wait"
 
 aider:  ## Call aider-chat (a coding assistant)
-	aider $(AIDER_OPTS) --model openrouter/deepseek/deepseek-chat
+	aider $(AIDER_OPTS) --cache-prompts --model openrouter/deepseek/deepseek-chat
 aider-gemini:
 	aider $(AIDER_OPTS) --cache-prompts --model openrouter/google/gemini-2.5-pro ;   
 aider-sonnet:
@@ -84,7 +84,9 @@ aider-r1:
 aider-qwen:
 	aider $(AIDER_OPTS) --model openrouter/qwen/qwen3-coder ; 
 aider-k2:
-	aider $(AIDER_OPTS) --model openrouter/moonshotai/kimi-k2
+	aider $(AIDER_OPTS) --cache-prompts --model openrouter/moonshotai/kimi-k2
+aider-gpt:
+	aider $(AIDER_OPTS) --model openrouter/openai/gpt-oss-120b 
 
 lint: ## Run Ruff an all Python files to format fix imports
 	ruff check --select I --fix
@@ -227,5 +229,5 @@ load-env:
 ##############################
 
 postgres:
-	docker run --name pgvector-container -e POSTGRES_USER=tcl -e POSTGRES_PASSWORD=tcl -e POSTGRES_DB=ekg -p 6024:5432 -d pgvector/pgvector:pg17
+	docker run --name pgvector-container -e POSTGRES_USER=tcl -e POSTGRES_PASSWORD=tcl -e POSTGRES_DB=ekg -p 5432:5432 -d pgvector/pgvector:pg17
 
