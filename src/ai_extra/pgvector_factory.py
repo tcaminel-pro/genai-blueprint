@@ -72,7 +72,7 @@ def create_pg_vector_store(
             tsv_column=hybrid_config.get("tsv_column", "content_tsv"),
             tsv_lang=hybrid_config.get("tsv_lang", "pg_catalog.english"),
             fts_query=hybrid_config.get("fts_query", ""),
-            fusion_function=hybrid_config.get("fusion_function"),
+            fusion_function=hybrid_config.get("fusion_function") or rank_fusion,
             fusion_function_parameters=hybrid_config.get("fusion_function_parameters", {}),
             primary_top_k=hybrid_config.get("primary_top_k", 4),
             secondary_top_k=hybrid_config.get("secondary_top_k", 4),
@@ -115,7 +115,7 @@ def create_pg_vector_store(
             tsv_index_query = f"""CREATE INDEX langchain_tsv_index ON "{schema_name}"."{table_name}"                   
             USING GIN("content_tsv);"""
             #  Always fail : apply_hybrid_search_index not implemented (only async version exists)
-            vector_store._engine._run_as_async(vector_store.__vs.apply_hybrid_search_index())
+            vector_store._engine._run_as_async(vector_store.apply_hybrid_search_index())
             logger.info(f"Applied hybrid search index on {table_name}")
         except Exception as e:
             logger.warning(f"Failed to apply hybrid search index: {e}")
