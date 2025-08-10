@@ -180,13 +180,13 @@ if __name__ == "__main__":
     Jane is 29 years old and can be reached at jane.doe@example.com.
     """
 
-    # # 1. Analyse → structured Pydantic object
-    # person = rag.analyze_document(doc_text)
-    # print("Structured result:", person)
+    # 1. Analyse → structured Pydantic object
+    person = rag.analyze_document(doc_text)
+    print("Structured result:", person)
 
-    # # 2. Index the document
-    # rag.store_document(person)
-    # print("Document stored.")
+    # 2. Index the document
+    rag.store_document(person)
+    print("Document stored.")
 
     # 3. Query the vector store
     hits = rag.query_vectorstore("e-mail address", k=2)
