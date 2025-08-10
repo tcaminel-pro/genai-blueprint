@@ -1,6 +1,7 @@
 from typing import Any, List, Type, TypeVar
 from uuid import uuid4
 
+import yaml
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 from pydantic import BaseModel, PostgresDsn, PrivateAttr
@@ -8,7 +9,6 @@ from pydantic import BaseModel, PostgresDsn, PrivateAttr
 from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import def_prompt
-from src.demos.ekg.pydantic_embeddings import generate_field_documents
 from src.utils.config_mngr import global_config
 from src.utils.pydantic.yaml_to_pydantic import YamlToPydantic
 
@@ -87,6 +87,54 @@ class PydanticRag(BaseModel):
     def query_vectorstore(self, query: str, k: int = 4) -> List[Document]:
         """Search the vector store for similar field data."""
         return self._vector_store.similarity_search(query, k=k)
+
+
+def generate_field_documents(
+    model_instance: BaseModel,
+    include_null: bool = False,
+) -> List[Document]:
+    """Generate LangChain Document objects for each field in a Pydantic model.
+
+    Creates Document objects with YAML content as page_content and metadata
+    including field information.
+
+    Args:
+        model_instance: An instance of a Pydantic model
+        include_null: Whether to include fields with None values
+
+    Returns:
+        List of Document objects ready for indexing
+    """
+    documents = []
+
+    for field_name, field_value in model_instance.model_dump().items():
+        if field_value is None and not include_null:
+            continue
+
+        field_info = type(model_instance).model_fields[field_name]
+
+        yaml_content = yaml.dump(
+            {
+                "value": field_value,
+                "description": field_info.description,
+                "type": str(type(field_value).__name__) if field_value is not None else "None",
+            },
+            default_flow_style=False,
+            sort_keys=False,
+        )
+
+        doc = Document(
+            page_content=field_value,
+            metadata={
+                "field_name": field_name,
+                "model_class": model_instance.__class__.__name__,
+                "description": field_info.description or "",
+                "type": str(type(field_value).__name__) if field_value is not None else "None",
+            },
+        )
+        documents.append(doc)
+
+    return documents
 
 
 if __name__ == "__main__":
