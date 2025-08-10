@@ -124,7 +124,7 @@ def generate_field_documents(
         )
 
         doc = Document(
-            page_content=field_value,
+            page_content=str(field_value),
             metadata={
                 "field_name": field_name,
                 "model_class": model_instance.__class__.__name__,
