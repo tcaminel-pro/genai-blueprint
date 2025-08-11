@@ -258,16 +258,8 @@ class OmegaConfig(BaseModel):
             raise FileNotFoundError(f"File path for '{key}' does not exist: '{path}'")
         return path
 
-    def get_dsn(self, key: str, driver: str | None = None):
-        """Get a Database Source Name (DSN) as SQLAlchemy URL object.
-        
-        Args:
-            key: Configuration key containing the database URL
-            driver: Optional driver to add if not already specified
-            
-        Returns:
-            SQLAlchemy URL object
-        """
+    def get_dsn(self, key: str, driver: str | None = None) -> str:
+        """Get a Database Source Name (DSN) compliant with SQLAlchemy URL format."""
         from sqlalchemy.engine.url import make_url
 
         db_url = self.get_str(key)
@@ -277,9 +269,10 @@ class OmegaConfig(BaseModel):
             # If driver is specified and not already in the URL, add it
             if driver and "+" not in str(url.drivername):
                 drivername = f"{url.drivername}+{driver}"
-                return url.set(drivername=drivername)
+                new_url = url.set(drivername=drivername)
+                return new_url.render_as_string(hide_password=False)
 
-            return url
+            return url.render_as_string(hide_password=False)
 
         except Exception as e:
             raise ValueError(f"Invalid database URL for key '{key}': {db_url}") from e

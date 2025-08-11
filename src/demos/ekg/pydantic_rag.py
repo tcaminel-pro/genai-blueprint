@@ -4,7 +4,7 @@ from uuid import uuid4
 import yaml
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
-from pydantic import BaseModel, PostgresDsn, PrivateAttr
+from pydantic import BaseModel, PrivateAttr
 
 from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.ai_core.llm_factory import get_llm
@@ -27,7 +27,7 @@ class PydanticRag(BaseModel):
     """
 
     model_definition: str
-    postgres_url: PostgresDsn
+    postgres_url: str
     embeddings_id: str
     llm_id: str | None
     collection_name: str = "pydantic_fields"
@@ -48,12 +48,11 @@ class PydanticRag(BaseModel):
         """Initialize the vector store with embeddings model."""
         from src.ai_core.vector_store_factory import VectorStoreFactory
 
-        postgres_url = str(self.postgres_url)
         self._vector_store = VectorStoreFactory(
             id="PgVector",
             embeddings_factory=EmbeddingsFactory(embeddings_id=self.embeddings_id),
             config={
-                "postgres_url": postgres_url,
+                "postgres_url": self.postgres_url,
                 "hybrid_search": True,
                 "metadata_columns": [
                     {"name": "document_id", "data_type": "VARCHAR"},
@@ -165,7 +164,8 @@ if __name__ == "__main__":
           description: Primary e-mail address
     """
 
-    url = global_config().get("vector_store.postgres_url")
+    url = global_config().get_dsn("vector_store.postgres_url", driver="asyncpg")
+    print(url)
 
     rag = PydanticRag(
         model_definition=EXAMPLE_YAML,

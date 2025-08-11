@@ -1,6 +1,6 @@
 
 Document_extractor_demo:
-- for_test:
+- schema_name: test
   key: Person.name
   top_class: Person
   schema:
@@ -50,7 +50,7 @@ Document_extractor_demo:
             required: false
 
 
-- Rainbow File:
+- schema_name: Rainbow File
   version: 1.0
   key: ProjectIdentification.opportunity_id
   top_class: RainbowProjectAnalysis
