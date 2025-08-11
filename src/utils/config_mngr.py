@@ -264,10 +264,12 @@ class OmegaConfig(BaseModel):
 
         db_url = self.get_str(key)
 
+
         try:
             url = make_url(db_url)
             # If driver is specified and not already in the URL, add it
             if driver and "+" not in str(url.drivername):
+                # The password is removed ('postgresql+ff://tcl:***@localhost:5432/ekg'). Fix it AI!
                 drivername = f"{url.drivername}+{driver}"
                 new_url = url.set(drivername=drivername)
                 return str(new_url)
