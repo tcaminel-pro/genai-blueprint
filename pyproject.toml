@@ -12,15 +12,10 @@ dependencies = [
     "omegaconf>=2.3.0",
     "fastapi[standard]>=0.115.6",
     "rich[jupyter]>=13.9.4",
-    "prompt-toolkit>=3.0.51",
     "universal-pathlib>=0.2.6",
     "pip>=25.1.1",
     "modal>=1.0.5",
     "python-dotenv>=1.1.1",
-    "langchain-postgres>=0.0.15",
-    "psycopg[binary]>=3.2.9",
-    "synchronicity>=0.10.2",
-    "deepagents>=0.0.3",
 ]
 
 [project.urls]
@@ -48,6 +43,7 @@ ai = [
     "langchain-groq>=0.2",
     "langchain-chroma>=0.2",
     "langchain-tavily>=0.2.10",
+    "deepagents>=0.0.3",
     # "litellm>=1",
     "litellm>=1.67.2",
     "chromadb>=1.0",
@@ -73,6 +69,12 @@ ai_extra = [
     "st-cytoscape>=0.0.5",
     "ipycytoscape>=1.3.3",
     "fuzzysearch>=0.8.0",
+]
+
+postgres = [
+    "langchain-postgres>=0.0.15",
+    "psycopg[binary]>=3.2.9",
+    "psycopg2-binary>=2.9.10",
 ]
 demos = [
     "bs4>=0.0.2",
@@ -138,6 +140,7 @@ default-groups = [
     #    "autogen",
     #  "transformers",
     "dev",
+    "postgres",
 ]
 
 [tool.hatch.build.targets.sdist]

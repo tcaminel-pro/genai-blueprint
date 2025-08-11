@@ -21,7 +21,7 @@ from typing import Any, Callable, Optional, TypeVar
 from dotenv import load_dotenv
 from loguru import logger
 from omegaconf import DictConfig, ListConfig, OmegaConf
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, PostgresDsn
 from upath import UPath
 
 from src.utils.singleton import once
@@ -257,6 +257,21 @@ class OmegaConfig(BaseModel):
         if not path.exists() and check_if_exists:
             raise FileNotFoundError(f"File path for '{key}' does not exist: '{path}'")
         return path
+
+    def get_dsn(self, key: str, driver: str = "asyncpg") -> str:
+        """Get a  Database Source Name (DSN) (compliant with SQL Alchemy URL).   Only Postress is supported yet : it select the given driver"""
+        db_url = self.get_str(key)
+        left, _, right = db_url.partition("//")
+        if not left.startswith("postgres"):
+            raise ValueError(
+                f"key '{key}' should start with postgresql://  or postgresql+asyncpg://. Other db not (yet) supported"
+            )
+        connection_string = f"postgresql+{driver}://{right}"
+        try:
+            PostgresDsn(connection_string)
+        except Exception as e:
+            raise ValueError(f"Incorrect Postgres URL for key {key} : {connection_string}") from e
+        return connection_string
 
 
 def global_config() -> OmegaConfig:

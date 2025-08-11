@@ -26,7 +26,7 @@ vector_store:
   default: Chroma
   chroma_path: ${paths.data_root}/vector_store
   record_manager: sqlite:///${paths.data_root}/vector_store/record_manager_cache.sql
-  postgres_url: postgresql://${oc.env:POSTGRES_USER,unknown_user}:${oc.env:POSTGRES_PASSWORD,password}@localhost:5432/ekg
+  postgres_url: ${paths.postgres}
   postgres_schema: public
 documents:
   base: ./use_case_data
