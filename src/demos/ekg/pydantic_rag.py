@@ -78,19 +78,19 @@ class PydanticRag(BaseModel):
 
     def get_top_class(self) -> type[BaseModel]:
         return self._top_class
-    
+
     def get_key(self) -> str:
         """Extract the actual key value from a model instance using dotted notation from key field definition."""
-        key_path = self._key_field.split('.')
+        key_path = self._key_field.split(".")
         model_data = self.model_dump()
-        
+
         current_value = model_data
         for key_part in key_path:
             if isinstance(current_value, dict):
                 current_value = current_value.get(key_part)
             else:
                 return str(current_value) if current_value is not None else ""
-        
+
         return str(current_value) if current_value is not None else ""
 
     def store_chunks(self, chunks: list[Document]) -> None:
