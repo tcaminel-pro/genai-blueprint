@@ -268,9 +268,17 @@ class OmegaConfig(BaseModel):
             url = make_url(db_url)
             # If driver is specified and not already in the URL, add it
             if driver and "+" not in str(url.drivername):
-                drivername = f"{url.drivername}+{driver}"
-                new_url = url.set(drivername=drivername)
-                return str(new_url)
+                # Manually construct new URL string instead of using url.set
+                original_driver = str(url.drivername)
+                new_driver = f"{original_driver}+{driver}"
+                
+                # Split the URL and replace the driver
+                url_str = str(url)
+                url_parts = url_str.split("://", 1)
+                if len(url_parts) == 2:
+                    return f"{new_driver}://{url_parts[1]}"
+                else:
+                    return url_str
 
             return db_url
 
