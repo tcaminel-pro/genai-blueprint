@@ -259,7 +259,8 @@ class OmegaConfig(BaseModel):
         return path
 
     def get_dsn(self, key: str, driver: str | None = None) -> str:
-        """Get a Database Source Name (DSN) compliant with SQLAlchemy URL format."""
+        """Get a Database Source Name (DSN) compliant with SQLAlchemy URL format.
+        The driver part of the connection can be changed (ex: postgress+"asyncpg")"""
         from sqlalchemy.engine.url import make_url
 
         db_url = self.get_str(key)

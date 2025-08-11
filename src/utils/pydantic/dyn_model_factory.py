@@ -1,4 +1,4 @@
-"""Create Pydantic classes dynamically from YAML definitions."""
+"""Create Pydantic classes dynamically from a definitions."""
 
 from typing import Any, Dict, List, Type, Union
 
@@ -7,11 +7,10 @@ from pydantic import BaseModel, Field, create_model
 from rich import print
 
 
-class YamlToPydantic:
+class PydanticModelFactory:
     """Convert YAML definitions to Pydantic classes dynamically."""
 
     def __init__(self) -> None:
-        """Initialize the YamlToPydantic converter."""
         self.created_classes: Dict[str, Type[BaseModel]] = {}
 
     def yaml_type_to_python_type(self, yaml_type: str) -> type:
@@ -41,23 +40,6 @@ class YamlToPydantic:
 
         return type_mapping.get(yaml_type, str)
 
-    def create_class_from_yaml(self, yaml_content: str, class_name: str | None = None) -> Type[BaseModel]:
-        """Create a Pydantic class from YAML content string.
-
-        Args:
-            yaml_content: YAML content as string
-            class_name: Optional name for the class to return
-
-        Returns:
-            A dynamically created Pydantic class
-        """
-        yaml_data = yaml.safe_load(yaml_content)
-
-        if not yaml_data:
-            raise ValueError("Invalid YAML content")
-
-        return self.create_class_from_dict(yaml_data, class_name)
-
     def create_class_from_dict(self, yaml_data: dict, class_name: str | None = None) -> Type[BaseModel]:
         """Create a Pydantic class from dictionary data.
 
@@ -86,14 +68,12 @@ class YamlToPydantic:
 
         return list(self.created_classes.values())[0]
 
-    def _create_model_with_description(self, model_name: str, description: str, fields: dict) -> Type[BaseModel]:
+    def _create_model(self, model_name: str, description: str, fields: dict) -> Type[BaseModel]:
         """Create a Pydantic model with a programmatic description."""
+        config_dict = {"extra": "allow"}
         if description:
-            # Create config dict with description
-            config_dict = {"description": description}
-            return create_model(model_name, __config__=config_dict, __base__=BaseModel, **fields)
-        else:
-            return create_model(model_name, __base__=BaseModel, **fields)
+            config_dict |= {"description": description}
+        return create_model(model_name, __config__=config_dict, __base__=BaseModel, **fields)
 
     def _create_class(self, class_name: str, class_def: Dict[str, Any], yaml_data: dict) -> Type[BaseModel]:
         """Internal method to create a single Pydantic class."""
@@ -146,7 +126,7 @@ class YamlToPydantic:
                 else:
                     fields[field_name] = (Union[field_type, None], Field(None, **field_info))
 
-        new_class = self._create_model_with_description(class_name, description, fields)
+        new_class = self._create_model(class_name, description, fields)
         self.created_classes[class_name] = new_class
         return new_class
 
@@ -201,8 +181,10 @@ def test1() -> None:
     """
 
     # Test with string content
-    converter = YamlToPydantic()
-    PersonClass = converter.create_class_from_yaml(test_yaml, "Person")
+    converter = PydanticModelFactory()
+    yaml_data = yaml.safe_load(test_yaml)
+
+    PersonClass = converter.create_class_from_dict(yaml_data, "Person")
 
     # Create instances
     person_data = {
@@ -233,7 +215,7 @@ def test2() -> None:
         .get_dict("Document_extractor_demo.0", expected_keys=["schema", "key", "top_class"])
     )
 
-    converter = YamlToPydantic()
+    converter = PydanticModelFactory()
     PersonClass = converter.create_class_from_dict(demo["schema"], demo["top_class"])
     print(PersonClass)
 
@@ -245,6 +227,8 @@ def test2() -> None:
     }
 
     person = PersonClass(**person_data)
+    person.extra_field = "extra field value"  # type: ignore
+    person.__setattr__("another_extra_field", 25)
     print("Created person:", person)
 
 

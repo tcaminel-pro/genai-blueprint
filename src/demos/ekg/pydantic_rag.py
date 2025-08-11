@@ -120,11 +120,7 @@ class PydanticRag(BaseModel):
         """
         documents = []
         model_data = model_instance.model_dump()
-
-        # Safely get doc_id if it exists
         doc_id = getattr(model_instance, "doc_id", None)
-        if doc_id is None:
-            doc_id = str(uuid4())
 
         for field_name, field_value in model_data.items():
             if field_value is None:
