@@ -1,8 +1,9 @@
-from typing import Any, List, Type, TypeVar
+from typing import Any, List, Sequence, Type, TypeVar
 from uuid import uuid4
 
 import yaml
 from langchain_core.documents import Document
+from langchain_core.documents.transformers import BaseDocumentTransformer
 from langchain_core.vectorstores import VectorStore
 from pydantic import BaseModel, PrivateAttr
 
@@ -77,7 +78,11 @@ class PydanticRag(BaseModel):
 
     def chunck(self, structured_doc: BaseModel) -> list[Document]:
         """Get Langchain Documents from structured dic"""
-        field_docs = generate_field_documents(structured_doc)
+        transformer = PydanticFieldDocumentTransformer(include_null=False)
+        field_docs = transformer.transform_documents([Document(
+            page_content="",
+            metadata={"structured_doc": structured_doc}
+        )])
         doc_id = str(uuid4())
         for doc in field_docs:
             doc.metadata["document_id"] = doc_id
@@ -96,6 +101,76 @@ class PydanticRag(BaseModel):
 
 
 
+class PydanticFieldDocumentTransformer(BaseDocumentTransformer, BaseModel):
+    """Transform Pydantic model instances into LangChain Documents for each field.
+    
+    This transformer takes Pydantic model instances and converts them into individual
+    Document objects, one for each field in the model. This enables fine-grained
+    indexing and retrieval of structured data.
+    
+    Attributes:
+        include_null: Whether to include fields with None values in the output
+    """
+    
+    include_null: bool = False
+    
+    def transform_documents(
+        self, documents: Sequence[Document], **kwargs: Any
+    ) -> Sequence[Document]:
+        """Transform Pydantic model instances into field-based Documents.
+        
+        Args:
+            documents: Sequence of Documents containing Pydantic model instances
+                      in their metadata under the key 'structured_doc'
+            **kwargs: Additional arguments passed to the transformer
+        
+        Returns:
+            Sequence of Documents, one for each field in the model instances
+        """
+        transformed_documents = []
+        
+        for doc in documents:
+            model_instance = doc.metadata.get("structured_doc")
+            if not isinstance(model_instance, BaseModel):
+                continue
+                
+            for field_name, field_value in model_instance.model_dump().items():
+                if field_value is None and not self.include_null:
+                    continue
+
+                field_info = type(model_instance).model_fields[field_name]
+
+                yaml_content = yaml.dump(
+                    {
+                        "value": field_value,
+                        "description": field_info.description,
+                        "type": str(type(field_value).__name__) if field_value is not None else "None",
+                    },
+                    default_flow_style=False,
+                    sort_keys=False,
+                )
+
+                field_doc = Document(
+                    page_content=str(field_value),
+                    metadata={
+                        "field_name": field_name,
+                        "model_class": model_instance.__class__.__name__,
+                        "description": field_info.description or "",
+                        "type": str(type(field_value).__name__) if field_value is not None else "None",
+                    },
+                )
+                transformed_documents.append(field_doc)
+        
+        return transformed_documents
+    
+    async def atransform_documents(
+        self, documents: Sequence[Document], **kwargs: Any
+    ) -> Sequence[Document]:
+        """Asynchronously transform documents (delegates to sync version)."""
+        return self.transform_documents(documents, **kwargs)
+
+
+# Backward compatibility function
 def generate_field_documents(
     model_instance: BaseModel,
     include_null: bool = False,
@@ -112,36 +187,10 @@ def generate_field_documents(
     Returns:
         List of Document objects ready for indexing
     """
-    documents = []
-
-    for field_name, field_value in model_instance.model_dump().items():
-        if field_value is None and not include_null:
-            continue
-
-        field_info = type(model_instance).model_fields[field_name]
-
-        yaml_content = yaml.dump(
-            {
-                "value": field_value,
-                "description": field_info.description,
-                "type": str(type(field_value).__name__) if field_value is not None else "None",
-            },
-            default_flow_style=False,
-            sort_keys=False,
-        )
-
-        doc = Document(
-            page_content=str(field_value),
-            metadata={
-                "field_name": field_name,
-                "model_class": model_instance.__class__.__name__,
-                "description": field_info.description or "",
-                "type": str(type(field_value).__name__) if field_value is not None else "None",
-            },
-        )
-        documents.append(doc)
-
-    return documents
+    transformer = PydanticFieldDocumentTransformer(include_null=include_null)
+    return list(transformer.transform_documents([
+        Document(page_content="", metadata={"structured_doc": model_instance})
+    ]))
 
 
 if __name__ == "__main__":
