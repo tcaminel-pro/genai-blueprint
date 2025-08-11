@@ -79,10 +79,9 @@ class PydanticRag(BaseModel):
     def chunck(self, structured_doc: BaseModel) -> list[Document]:
         """Get Langchain Documents from structured dic"""
         transformer = PydanticFieldDocumentTransformer(include_null=False)
-        field_docs = transformer.transform_documents([Document(
-            page_content="",
-            metadata={"structured_doc": structured_doc}
-        )])
+        field_docs = transformer.transform_documents(
+            [Document(page_content="", metadata={"structured_doc": structured_doc})]
+        )
         doc_id = str(uuid4())
         for doc in field_docs:
             doc.metadata["document_id"] = doc_id
@@ -99,41 +98,37 @@ class PydanticRag(BaseModel):
         return self._vector_store.similarity_search(query, k=k)
 
 
-
-
 class PydanticFieldDocumentTransformer(BaseDocumentTransformer, BaseModel):
     """Transform Pydantic model instances into LangChain Documents for each field.
-    
+
     This transformer takes Pydantic model instances and converts them into individual
     Document objects, one for each field in the model. This enables fine-grained
     indexing and retrieval of structured data.
-    
+
     Attributes:
         include_null: Whether to include fields with None values in the output
     """
-    
+
     include_null: bool = False
-    
-    def transform_documents(
-        self, documents: Sequence[Document], **kwargs: Any
-    ) -> Sequence[Document]:
+
+    def transform_documents(self, documents: Sequence[Document], **kwargs: Any) -> Sequence[Document]:
         """Transform Pydantic model instances into field-based Documents.
-        
+
         Args:
             documents: Sequence of Documents containing Pydantic model instances
                       in their metadata under the key 'structured_doc'
             **kwargs: Additional arguments passed to the transformer
-        
+
         Returns:
             Sequence of Documents, one for each field in the model instances
         """
         transformed_documents = []
-        
+
         for doc in documents:
             model_instance = doc.metadata.get("structured_doc")
             if not isinstance(model_instance, BaseModel):
                 continue
-                
+
             for field_name, field_value in model_instance.model_dump().items():
                 if field_value is None and not self.include_null:
                     continue
@@ -160,12 +155,10 @@ class PydanticFieldDocumentTransformer(BaseDocumentTransformer, BaseModel):
                     },
                 )
                 transformed_documents.append(field_doc)
-        
+
         return transformed_documents
-    
-    async def atransform_documents(
-        self, documents: Sequence[Document], **kwargs: Any
-    ) -> Sequence[Document]:
+
+    async def atransform_documents(self, documents: Sequence[Document], **kwargs: Any) -> Sequence[Document]:
         """Asynchronously transform documents (delegates to sync version)."""
         return self.transform_documents(documents, **kwargs)
 
@@ -188,9 +181,9 @@ def generate_field_documents(
         List of Document objects ready for indexing
     """
     transformer = PydanticFieldDocumentTransformer(include_null=include_null)
-    return list(transformer.transform_documents([
-        Document(page_content="", metadata={"structured_doc": model_instance})
-    ]))
+    return list(
+        transformer.transform_documents([Document(page_content="", metadata={"structured_doc": model_instance})])
+    )
 
 
 if __name__ == "__main__":
