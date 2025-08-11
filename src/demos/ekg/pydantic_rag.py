@@ -8,7 +8,8 @@ from pydantic import BaseModel, PrivateAttr
 from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import def_prompt
-from src.utils.pydantic.yaml_to_pydantic import YamlToPydantic
+from src.utils.pydantic.dyn_model_factory import PydanticModelFactory
+from src.utils.pydantic.kv_store import load_object_from_kvstore, save_object_to_kvstore
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -28,6 +29,7 @@ class PydanticRag(BaseModel):
     postgres_url: str
     embeddings_id: str
     llm_id: str | None
+    kv_store_id: str | None = None
     collection_name: str = "pydantic_fields"
 
     _top_class: Type[BaseModel] = PrivateAttr()
@@ -42,7 +44,7 @@ class PydanticRag(BaseModel):
         for k in required_keys:
             if self.model_definition.get(k) is None:
                 raise ValueError("Model should have key '{k}'")
-        converter = YamlToPydantic()
+        converter = PydanticModelFactory()
         self._top_class = converter.create_class_from_dict(self.model_definition["schema"])
         self._key_field = self.model_definition["key"]
         self._llm = get_llm(llm_id=self.llm_id, streaming=False, temperature=0.0)
@@ -67,14 +69,26 @@ class PydanticRag(BaseModel):
             table_name_prefix=self.collection_name,
         ).get()
 
-    def analyze_document(self, markdown: str) -> BaseModel:
+    def analyze_document(self, doc_id: str, markdown: str) -> BaseModel:
         """Analyze markdown document and return structured data."""
-        system = f"""
-            Extract structured information from the document below into {self._top_class.__name__} schema. 
-            Answer with a JSON document. Avoid explanations or extra text."""
-        user = "Document to analyze:\n---\n{input}\n---"
-        chain = def_prompt(system=system, user=user) | self._llm.with_structured_output(self._top_class)
-        return chain.invoke({"input": markdown})
+
+        # self._doc_id = doc_id
+        analyzed_doc: BaseModel | None = None
+        if self.kv_store_id:
+            analyzed_doc = load_object_from_kvstore(self.get_top_class(), key=doc_id, kv_store_id=self.kv_store_id)
+        if not analyzed_doc:
+            system = f"""
+                Extract structured information from the document below into {self._top_class.__name__} schema. 
+                Answer with a JSON document. Avoid explanations or extra text."""
+            user = "Document to analyze:\n---\n{input}\n---"
+            chain = def_prompt(system=system, user=user) | self._llm.with_structured_output(self._top_class)
+            analyzed_doc = chain.invoke({"input": markdown})
+            assert analyzed_doc
+            analyzed_doc.__setattr__("doc_id", doc_id)
+            if self.kv_store_id:
+                save_object_to_kvstore(doc_id, analyzed_doc, kv_store_id="file")
+
+        return analyzed_doc
 
     def get_top_class(self) -> type[BaseModel]:
         return self._top_class
@@ -85,13 +99,6 @@ class PydanticRag(BaseModel):
         model_data = self.model_dump()
 
         current_value = model_data
-        for key_part in key_path:
-            if isinstance(current_value, dict):
-                current_value = current_value.get(key_part)
-            else:
-                return str(current_value) if current_value is not None else ""
-
-        return str(current_value) if current_value is not None else ""
 
     def store_chunks(self, chunks: list[Document]) -> None:
         """Store a document's field embeddings in vector store."""
@@ -101,11 +108,7 @@ class PydanticRag(BaseModel):
         """Search the vector store for similar field data."""
         return self._vector_store.similarity_search(query, k=k)
 
-    def chunck(
-        self,
-        model_instance: BaseModel,
-        include_null: bool = False,
-    ) -> List[Document]:
+    def chunck(self, model_instance: BaseModel) -> list[Document]:
         """Generate LangChain Document objects for each field in a Pydantic model.
 
         Creates Document objects with YAML content as page_content and metadata
@@ -115,8 +118,7 @@ class PydanticRag(BaseModel):
             model_instance: An instance of a Pydantic model
             include_null: Whether to include fields with None values
 
-        Returns:
-            List of Document objects ready for indexing
+
         """
         documents = []
         for field_name, field_value in model_instance.model_dump().items():
