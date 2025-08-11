@@ -260,26 +260,26 @@ class OmegaConfig(BaseModel):
 
     def get_dsn(self, key: str, driver: str = "asyncpg") -> str:
         """Get a Database Source Name (DSN) compliant with SQLAlchemy URL format.
-        
+
         Validates the DSN using SQLAlchemy's URL parsing to support any database backend.
         """
         from sqlalchemy.engine.url import make_url
-        
+
         db_url = self.get_str(key)
-        
+
         try:
             # Validate the URL using SQLAlchemy
             url = make_url(db_url)
-            
+
             # If driver is specified and not already in the URL, add it
             if driver and "+" not in str(url.drivername):
                 # Replace the driver with the specified one
                 drivername = f"{url.drivername}+{driver}"
                 new_url = url.set(drivername=drivername)
                 return str(new_url)
-                
+
             return db_url
-            
+
         except Exception as e:
             raise ValueError(f"Invalid database URL for key '{key}': {db_url}") from e
 
