@@ -1,16 +1,13 @@
-from typing import Any, List, Sequence, Type, TypeVar
-from uuid import uuid4
+from typing import Any, List, Type, TypeVar
 
 import yaml
 from langchain_core.documents import Document
-from langchain_core.documents.transformers import BaseDocumentTransformer
 from langchain_core.vectorstores import VectorStore
 from pydantic import BaseModel, PrivateAttr
 
 from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import def_prompt
-from src.utils.config_mngr import global_config
 from src.utils.pydantic.yaml_to_pydantic import YamlToPydantic
 
 T = TypeVar("T", bound=BaseModel)
@@ -35,13 +32,19 @@ class PydanticRag(BaseModel):
 
     _top_class: Type[BaseModel] = PrivateAttr()
     _vector_store: VectorStore = PrivateAttr()
+    _key_field: str = PrivateAttr()
     _llm: Any = PrivateAttr()
 
     def model_post_init(self, __context: Any) -> None:
         """Initialize with configuration and create required components."""
         """Create Pydantic class from YAML definition."""
+        required_keys = ["schema", "key", "top_class"]
+        for k in required_keys:
+            if self.model_definition.get(k) is None:
+                raise ValueError("Model should have key '{k}'")
         converter = YamlToPydantic()
-        self._top_class = converter.create_class_from_dict(self.model_definition)
+        self._top_class = converter.create_class_from_dict(self.model_definition["schema"])
+        self._key_field = self.model_definition["key"]
         self._llm = get_llm(llm_id=self.llm_id, streaming=False, temperature=0.0)
         self._init_vector_store()
 
@@ -75,19 +78,10 @@ class PydanticRag(BaseModel):
 
     def get_top_class(self) -> type[BaseModel]:
         return self._top_class
-
-    def chunck(self, structured_doc: BaseModel) -> list[Document]:
-        """Get Langchain Documents from structured dic"""
-        transformer = PydanticFieldDocumentTransformer(include_null=False)
-        field_docs = transformer.transform_documents(
-            [Document(page_content="", metadata={"structured_doc": structured_doc})]
-        )
-        doc_id = str(uuid4())
-        for doc in field_docs:
-            doc.metadata["document_id"] = doc_id
-            doc.metadata["field_name"] = doc.metadata.get("field_name", "")
-            doc.metadata["model_class"] = type(structured_doc).__name__
-        return field_docs
+    
+    def get_key(self) -> str:
+        
+        _key_field
 
     def store_chunks(self, chunks: list[Document]) -> None:
         """Store a document's field embeddings in vector store."""
@@ -97,147 +91,39 @@ class PydanticRag(BaseModel):
         """Search the vector store for similar field data."""
         return self._vector_store.similarity_search(query, k=k)
 
+    def chunck(
+        self,
+        model_instance: BaseModel,
+        include_null: bool = False,
+    ) -> List[Document]:
+        """Generate LangChain Document objects for each field in a Pydantic model.
 
-class PydanticFieldDocumentTransformer(BaseDocumentTransformer, BaseModel):
-    """Transform Pydantic model instances into LangChain Documents for each field.
-
-    This transformer takes Pydantic model instances and converts them into individual
-    Document objects, one for each field in the model. This enables fine-grained
-    indexing and retrieval of structured data.
-
-    Attributes:
-        include_null: Whether to include fields with None values in the output
-    """
-
-    include_null: bool = False
-
-    def transform_documents(self, documents: Sequence[Document], **kwargs: Any) -> Sequence[Document]:
-        """Transform Pydantic model instances into field-based Documents.
+        Creates Document objects with YAML content as page_content and metadata
+        including field information.
 
         Args:
-            documents: Sequence of Documents containing Pydantic model instances
-                      in their metadata under the key 'structured_doc'
-            **kwargs: Additional arguments passed to the transformer
+            model_instance: An instance of a Pydantic model
+            include_null: Whether to include fields with None values
 
         Returns:
-            Sequence of Documents, one for each field in the model instances
+            List of Document objects ready for indexing
         """
-        transformed_documents = []
-
-        for doc in documents:
-            model_instance = doc.metadata.get("structured_doc")
-            if not isinstance(model_instance, BaseModel):
+        documents = []
+        for field_name, field_value in model_instance.model_dump().items():
+            if field_value is None:
                 continue
 
-            for field_name, field_value in model_instance.model_dump().items():
-                if field_value is None and not self.include_null:
-                    continue
+            field_info = type(model_instance).model_fields[field_name]
 
-                field_info = type(model_instance).model_fields[field_name]
-
-                yaml_content = yaml.dump(
-                    {
-                        "value": field_value,
-                        "description": field_info.description,
-                        "type": str(type(field_value).__name__) if field_value is not None else "None",
-                    },
-                    default_flow_style=False,
-                    sort_keys=False,
-                )
-
-                field_doc = Document(
-                    page_content=str(field_value),
-                    metadata={
-                        "field_name": field_name,
-                        "model_class": model_instance.__class__.__name__,
-                        "description": field_info.description or "",
-                        "type": str(type(field_value).__name__) if field_value is not None else "None",
-                    },
-                )
-                transformed_documents.append(field_doc)
-
-        return transformed_documents
-
-    async def atransform_documents(self, documents: Sequence[Document], **kwargs: Any) -> Sequence[Document]:
-        """Asynchronously transform documents (delegates to sync version)."""
-        return self.transform_documents(documents, **kwargs)
-
-
-# Backward compatibility function
-def generate_field_documents(
-    model_instance: BaseModel,
-    include_null: bool = False,
-) -> List[Document]:
-    """Generate LangChain Document objects for each field in a Pydantic model.
-
-    Creates Document objects with YAML content as page_content and metadata
-    including field information.
-
-    Args:
-        model_instance: An instance of a Pydantic model
-        include_null: Whether to include fields with None values
-
-    Returns:
-        List of Document objects ready for indexing
-    """
-    transformer = PydanticFieldDocumentTransformer(include_null=include_null)
-    return list(
-        transformer.transform_documents([Document(page_content="", metadata={"structured_doc": model_instance})])
-    )
-
-
-if __name__ == "__main__":
-    """Minimal runnable demo.
-
-    Prerequisites:
-      1. Postgres running on postgresql://localhost:5432/postgres
-      2. OPENAI_API_KEY in the environment
-      3. uv add rich (for pretty printing)
-
-    Run:
-        uv run python -m src.demos.ekg.pydantic_rag
-    """
-    from rich import print
-
-    EXAMPLE_YAML = """
-    Person:
-      description: Basic contact card
-      fields:
-        name:
-          type: str
-          description: Full name of the person
-        age:
-          type: int
-          description: Age in years
-        email:
-          type: str
-          description: Primary e-mail address
-    """
-
-    url = global_config().get_dsn("vector_store.postgres_url", driver="asyncpg")
-    print(url)
-
-    rag = PydanticRag(
-        model_definition=EXAMPLE_YAML,
-        postgres_url=url,
-        embeddings_id="qwen3_06b_deepinfra",
-        llm_id=None,
-    )
-
-    # A tiny markdown document
-    doc_text = """
-    # Jane Doe
-    Jane is 29 years old and can be reached at jane.doe@example.com.
-    """
-
-    # 1. Analyse → structured Pydantic object
-    person = rag.analyze_document(doc_text)
-    print("Structured result:", person)
-
-    # 2. Index the document
-    rag.store_document(person)
-    print("Document stored.")
-
-    # 3. Query the vector store
-    hits = rag.query_vectorstore("e-mail address", k=2)
-    print("Vector hits:", hits)
+            page_content = yaml.dump({"value": field_value, "description": field_info.description})
+            field_doc = Document(
+                page_content=page_content,
+                metadata={
+                    "field_name": field_name,
+                    "model_class": model_instance.__class__.__name__,
+                    "description": field_info.description or "",
+                    "type": str(type(field_value).__name__) if field_value is not None else "None",
+                },
+            )
+            documents.append(field_doc)
+        return documents
