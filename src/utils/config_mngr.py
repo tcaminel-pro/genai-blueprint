@@ -258,23 +258,30 @@ class OmegaConfig(BaseModel):
             raise FileNotFoundError(f"File path for '{key}' does not exist: '{path}'")
         return path
 
-    # extand to support any database.  Use AlchemySQL to check that the DSN is correct AI!
     def get_dsn(self, key: str, driver: str = "asyncpg") -> str:
-        """Get a  Database Source Name (DSN) (compliant with SQL Alchemy URL).   Only Postress and Sqlite are supported yet : it select the given driver"""
-
-        KNOWN_DB = ["postgres", "sqlite"]
+        """Get a Database Source Name (DSN) compliant with SQLAlchemy URL format.
+        
+        Validates the DSN using SQLAlchemy's URL parsing to support any database backend.
+        """
+        from sqlalchemy.engine.url import make_url
+        
         db_url = self.get_str(key)
-        left, _, right = db_url.partition("//")
-        if left not in KNOWN_DB:
-            raise ValueError(
-                f"key '{key}' should start with postgresql://  or postgresql+asyncpg:// ot sqlite. Other db not (yet) supported"
-            )
-        connection_string = f"{left}+{driver}://{right}"
+        
         try:
-            AnyUrl(connection_string)
+            # Validate the URL using SQLAlchemy
+            url = make_url(db_url)
+            
+            # If driver is specified and not already in the URL, add it
+            if driver and "+" not in str(url.drivername):
+                # Replace the driver with the specified one
+                drivername = f"{url.drivername}+{driver}"
+                new_url = url.set(drivername=drivername)
+                return str(new_url)
+                
+            return db_url
+            
         except Exception as e:
-            raise ValueError(f"Incorrect Postgres URL for key {key} : {connection_string}") from e
-        return connection_string
+            raise ValueError(f"Invalid database URL for key '{key}': {db_url}") from e
 
 
 def global_config() -> OmegaConfig:
