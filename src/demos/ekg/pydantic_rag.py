@@ -120,12 +120,12 @@ class PydanticRag(BaseModel):
         """
         documents = []
         model_data = model_instance.model_dump()
-        
+
         # Safely get doc_id if it exists
-        doc_id = getattr(model_instance, 'doc_id', None)
+        doc_id = getattr(model_instance, "doc_id", None)
         if doc_id is None:
             doc_id = str(uuid4())
-        
+
         for field_name, field_value in model_data.items():
             if field_value is None:
                 continue
@@ -134,17 +134,14 @@ class PydanticRag(BaseModel):
             if field_info is None:
                 continue
 
-            page_content = yaml.dump({
-                "value": field_value, 
-                "description": getattr(field_info, 'description', None)
-            })
-            
+            page_content = yaml.dump({"value": field_value, "description": getattr(field_info, "description", None)})
+
             field_doc = Document(
                 page_content=page_content,
                 metadata={
                     "field_name": field_name,
                     "model_class": model_instance.__class__.__name__,
-                    "description": getattr(field_info, 'description', '') or "",
+                    "description": getattr(field_info, "description", "") or "",
                     "type": str(type(field_value).__name__) if field_value is not None else "None",
                     "doc_id": doc_id,
                 },
