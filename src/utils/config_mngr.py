@@ -271,7 +271,7 @@ class OmegaConfig(BaseModel):
                 # Manually construct new URL string instead of using url.set
                 original_driver = str(url.drivername)
                 new_driver = f"{original_driver}+{driver}"
-                
+
                 # Split the URL and replace the driver
                 url_str = str(url)
                 url_parts = url_str.split("://", 1)
