@@ -26,7 +26,7 @@ class PydanticRag(BaseModel):
         collection_name: Name of vector store collection (default: "pydantic_fields")
     """
 
-    model_definition: str
+    model_definition: dict
     postgres_url: str
     embeddings_id: str
     llm_id: str | None
@@ -40,7 +40,7 @@ class PydanticRag(BaseModel):
         """Initialize with configuration and create required components."""
         """Create Pydantic class from YAML definition."""
         converter = YamlToPydantic()
-        self._top_class = converter.create_class_from_yaml(self.model_definition)
+        self._top_class = converter.create_class_from_dict(self.model_definition)
         self._llm = get_llm(llm_id=self.llm_id, streaming=False, temperature=0.0)
         self._init_vector_store()
 
@@ -72,20 +72,28 @@ class PydanticRag(BaseModel):
         chain = def_prompt(system=system, user=user) | self._llm.with_structured_output(self._top_class)
         return chain.invoke({"input": markdown})
 
-    def store_document(self, document: BaseModel) -> None:
-        """Store a document's field embeddings in vector store."""
-        field_docs = generate_field_documents(document)
+    def get_top_class(self) -> type[BaseModel]:
+        return self._top_class
+
+    def chunck(self, structured_doc: BaseModel) -> list[Document]:
+        """Get Langchain Documents from structured dic"""
+        field_docs = generate_field_documents(structured_doc)
         doc_id = str(uuid4())
         for doc in field_docs:
             doc.metadata["document_id"] = doc_id
             doc.metadata["field_name"] = doc.metadata.get("field_name", "")
-            doc.metadata["model_class"] = type(document).__name__
-        if field_docs:
-            self._vector_store.add_documents(field_docs)
+            doc.metadata["model_class"] = type(structured_doc).__name__
+        return field_docs
+
+    def store_chunks(self, chunks: list[Document]) -> None:
+        """Store a document's field embeddings in vector store."""
+        self._vector_store.add_documents(chunks)
 
     def query_vectorstore(self, query: str, k: int = 4) -> List[Document]:
         """Search the vector store for similar field data."""
         return self._vector_store.similarity_search(query, k=k)
+
+
 
 
 def generate_field_documents(
