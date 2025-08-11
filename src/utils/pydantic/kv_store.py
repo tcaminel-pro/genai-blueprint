@@ -104,8 +104,18 @@ if __name__ == "__main__":
         name: str
         value: int
 
+    # Test file-based storage
     with TemporaryDirectory(delete=False) as temp_dir:
         test_model = TestModel(name="test_object", value=42)
         save_object_to_kvstore("unique_key", test_model, "file")
         retrieved_model = load_object_from_kvstore(TestModel, "unique_key", "file")
-        print(retrieved_model)
+        print("File storage test:", retrieved_model)
+
+    # Test SQL-based storage
+    try:
+        test_model_sql = TestModel(name="sql_test_object", value=123)
+        save_object_to_kvstore("sql_unique_key", test_model_sql, "sql")
+        retrieved_model_sql = load_object_from_kvstore(TestModel, "sql_unique_key", "sql")
+        print("SQL storage test:", retrieved_model_sql)
+    except Exception as e:
+        print(f"SQL storage test failed (expected if SQL not configured): {e}")
