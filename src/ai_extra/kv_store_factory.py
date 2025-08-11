@@ -36,10 +36,9 @@ class KvStoreFactory(BaseModel):
             path = global_config().get_dir_path(f"kv_store.{self.id}.path")
             return LocalFileStore(path / self.root)
         elif self.id == "sql":
-            # NOT TESTED
             from langchain_community.storage import SQLStore
 
-            db_url = global_config().get_dsn(f"kv_store.{self.id}.path", driver="psycopg2")  # async not supported yet
+            db_url = global_config().get_dsn(f"kv_store.{self.id}.path", driver=None)  #  async not supported yet
             store = SQLStore(namespace=self.root, db_url=db_url)
             store.create_schema()
             return SQLStore(namespace=self.root, db_url=db_url)

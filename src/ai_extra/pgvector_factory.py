@@ -39,7 +39,7 @@ def create_pg_vector_store(
         Configured PGVectorStore instance
     """
     # Use config dict to override YAML values
-    postgres_url = config.get("postgres_url") or global_config().get_dsn("vector_store.postgres_url")
+    postgres_url = config.get("postgres_url") or global_config().get_dsn("vector_store.postgres_url", "asyncpg")
     schema_name = config.get("postgres_schema") or "public"
     metadata_columns = config.get("metadata_columns") or []
 

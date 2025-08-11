@@ -21,7 +21,7 @@ from typing import Any, Callable, Optional, TypeVar
 from dotenv import load_dotenv
 from loguru import logger
 from omegaconf import DictConfig, ListConfig, OmegaConf
-from pydantic import AnyUrl, BaseModel, ConfigDict, PostgresDsn
+from pydantic import BaseModel, ConfigDict
 from upath import UPath
 
 from src.utils.singleton import once
@@ -258,22 +258,16 @@ class OmegaConfig(BaseModel):
             raise FileNotFoundError(f"File path for '{key}' does not exist: '{path}'")
         return path
 
-    def get_dsn(self, key: str, driver: str = "asyncpg") -> str:
-        """Get a Database Source Name (DSN) compliant with SQLAlchemy URL format.
-
-        Validates the DSN using SQLAlchemy's URL parsing to support any database backend.
-        """
+    def get_dsn(self, key: str, driver: str | None = None) -> str:
+        """Get a Database Source Name (DSN) compliant with SQLAlchemy URL format."""
         from sqlalchemy.engine.url import make_url
 
         db_url = self.get_str(key)
 
         try:
-            # Validate the URL using SQLAlchemy
             url = make_url(db_url)
-
             # If driver is specified and not already in the URL, add it
             if driver and "+" not in str(url.drivername):
-                # Replace the driver with the specified one
                 drivername = f"{url.drivername}+{driver}"
                 new_url = url.set(drivername=drivername)
                 return str(new_url)

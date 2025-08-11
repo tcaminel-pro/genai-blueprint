@@ -1,16 +1,15 @@
 """Unit tests for kv_store module."""
 
+import os
 import unittest
 from tempfile import TemporaryDirectory
-import os
-from pathlib import Path
 
 from pydantic import BaseModel
 
 from src.utils.pydantic.kv_store import (
-    save_object_to_kvstore,
+    _encode_to_alphanumeric,
     load_object_from_kvstore,
-    encode_to_alphanumeric,
+    save_object_to_kvstore,
 )
 
 
@@ -31,14 +30,14 @@ class TestKVStore(unittest.TestCase):
     def test_encode_to_alphanumeric(self):
         """Test alphanumeric encoding function."""
         # Test basic encoding
-        self.assertEqual(encode_to_alphanumeric("hello world"), "hello_world")
-        self.assertEqual(encode_to_alphanumeric("test-file.json"), "test-file.json")
+        self.assertEqual(_encode_to_alphanumeric("hello world"), "hello_world")
+        self.assertEqual(_encode_to_alphanumeric("test-file.json"), "test-file.json")
 
         # Test special characters
-        self.assertEqual(encode_to_alphanumeric("test@#$%^&*()"), "test_________")
+        self.assertEqual(_encode_to_alphanumeric("test@#$%^&*()"), "test_________")
 
         # Test unicode
-        self.assertEqual(encode_to_alphanumeric("café"), "cafe")
+        self.assertEqual(_encode_to_alphanumeric("café"), "cafe")
 
     def test_file_storage_basic(self):
         """Test basic file-based storage functionality."""
@@ -127,7 +126,6 @@ class TestKVStore(unittest.TestCase):
 
     def test_sql_storage_sqlite(self):
         """Test SQL storage with SQLite (fallback for PostgreSQL)."""
-        import sqlite3
 
         with TemporaryDirectory() as temp_dir:
             db_path = os.path.join(temp_dir, "test_kv_store.db")

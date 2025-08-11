@@ -21,7 +21,7 @@ T = TypeVar("T", bound=BaseModel)
 # TODO : Consider using EncoderBackedStore
 
 
-def encode_to_alphanumeric(input_string: str) -> str:
+def _encode_to_alphanumeric(input_string: str) -> str:
     """Encode a string to alphanumeric by first transliterating  it to ASCII, then replace  non alphanumeric char (plus . and -) by _."""
     ascii_string = unidecode(input_string)
     encoded_string = re.sub(r"[^a-zA-Z0-9_.-]", "_", ascii_string)
@@ -30,7 +30,7 @@ def encode_to_alphanumeric(input_string: str) -> str:
 
 def _encode_key(key: str | dict) -> str:
     if isinstance(key, str):
-        encoded_key = encode_to_alphanumeric(key)
+        encoded_key = _encode_to_alphanumeric(key)
     elif isinstance(key, dict):
         hash_object = hashlib.md5()
         hash_object.update(json.dumps(key, sort_keys=True).encode())
@@ -111,7 +111,7 @@ if __name__ == "__main__":
         retrieved_model = load_object_from_kvstore(TestModel, "unique_key", "file")
         print("File storage test:", retrieved_model)
 
-    # Test SQL-based storage
+    # Test Postgres SQL-based storage
     try:
         test_model_sql = TestModel(name="sql_test_object", value=123)
         save_object_to_kvstore("sql_unique_key", test_model_sql, "sql")
