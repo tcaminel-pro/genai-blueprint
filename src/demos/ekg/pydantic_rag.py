@@ -2,6 +2,7 @@ from typing import Any, List, Type, TypeVar
 
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
+from markpickle import dumps
 from pydantic import BaseModel, PrivateAttr
 
 from src.ai_core.embeddings_factory import EmbeddingsFactory
@@ -97,19 +98,17 @@ class PydanticRag(BaseModel):
     def get_key(self, obj: BaseModel) -> str:
         """Extract the actual key value from a model instance using dotted notation from key field definition."""
         key_path = self._key_field.split(".")
-
-        # Start with the original object
         current_value = obj
-
         # Navigate through the path
         for key_part in key_path:
             if isinstance(current_value, dict):
-                # Handle dictionary-like access
-                current_value = current_value[key_part]
+                current_value = current_value.get(key_part)
             else:
-                # Handle object attribute access
-                current_value = getattr(current_value, key_part)
-
+                current_value = getattr(current_value, key_part, None)
+            if current_value is None and key_part == key_path[0]:  # the fiest element might be the current field
+                current_value = obj
+        if current_value is None:
+            raise ValueError(f"incorrect key {self._key_field}")
         return str(current_value)
 
     def store_chunks(self, chunks: list[Document]) -> None:
@@ -137,17 +136,10 @@ class PydanticRag(BaseModel):
         for field_name, field_value in model_data.items():
             if field_value is None:
                 continue
-
             field_info = type(model_instance).model_fields.get(field_name)
             if field_info is None:
                 continue
-
-            # page_content = yaml.dump({"value": field_value, "description": getattr(field_info, "description", None)})
-            # description=  getattr(field_info, "description", None)
-            from markpickle import dumps
-
-            page_content = f"{dumps(field_value)}"
-
+            page_content = f"{dumps(field_value)}"  # serialize as Markdown
             field_doc = Document(
                 page_content=page_content,
                 metadata={
