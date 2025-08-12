@@ -40,7 +40,7 @@ class PydanticModelFactory:
 
         return type_mapping.get(yaml_type, str)
 
-    def create_class_from_dict(self, yaml_data: dict, class_name: str | None = None) -> Type[BaseModel]:
+    def create_class_from_dict(self, yaml_data: dict, class_name: str) -> Type[BaseModel]:
         """Create a Pydantic class from dictionary data.
 
         Args:
@@ -62,11 +62,8 @@ class PydanticModelFactory:
         for cls_name, cls_def in yaml_data.items():
             if cls_name not in self.created_classes or self.created_classes[cls_name] is None:
                 self._create_class(cls_name, cls_def, yaml_data)
-
-        if class_name:
-            return self.created_classes[class_name]
-
-        return list(self.created_classes.values())[0]
+        return self.created_classes[class_name]
+        #        return list(self.created_classes.values())[0]
 
     def _create_model(self, model_name: str, description: str, fields: dict) -> Type[BaseModel]:
         """Create a Pydantic model with a programmatic description."""
@@ -213,6 +210,32 @@ def test2() -> None:
         global_config()
         .merge_with("config/demos/document_extractor.yaml")
         .get_dict("Document_extractor_demo.0", expected_keys=["schema", "key", "top_class"])
+    )
+
+    converter = PydanticModelFactory()
+    PersonClass = converter.create_class_from_dict(demo["schema"], demo["top_class"])
+    print(PersonClass)
+
+    person_data = {
+        "name": "John Doe",
+        "age": 30,
+        "email": [{"url": "john@example.com"}, {"url": "myssf@gmail.com", "email_type": "pro"}],
+        "address": {"street": "123 Main St", "city": "Anytown", "zip_code": "12345"},
+    }
+
+    person = PersonClass(**person_data)
+    person.extra_field = "extra field value"  # type: ignore
+    person.__setattr__("another_extra_field", 25)
+    print("Created person:", person)
+
+
+def test3() -> None:
+    from src.utils.config_mngr import global_config
+
+    demo = (
+        global_config()
+        .merge_with("config/demos/document_extractor.yaml")
+        .get_dict("Document_extractor_demo.1", expected_keys=["schema", "key", "top_class"])
     )
 
     converter = PydanticModelFactory()

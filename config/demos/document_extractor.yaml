@@ -1,7 +1,7 @@
 
 Document_extractor_demo:
 - schema_name: test
-  key: Person.name
+  key: person.name
   top_class: Person
   schema:
     Person:

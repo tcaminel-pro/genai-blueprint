@@ -1,6 +1,5 @@
 from typing import Any, List, Type, TypeVar
 
-import yaml
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 from pydantic import BaseModel, PrivateAttr
@@ -45,7 +44,9 @@ class PydanticRag(BaseModel):
             if self.model_definition.get(k) is None:
                 raise ValueError("Model should have key '{k}'")
         converter = PydanticModelFactory()
-        self._top_class = converter.create_class_from_dict(self.model_definition["schema"])
+        self._top_class = converter.create_class_from_dict(
+            self.model_definition["schema"], self.model_definition["top_class"]
+        )
         self._key_field = self.model_definition["key"]
         self._llm = get_llm(llm_id=self.llm_id, streaming=False, temperature=0.0)
         self._init_vector_store()
@@ -69,13 +70,13 @@ class PydanticRag(BaseModel):
             table_name_prefix=self.collection_name,
         ).get()
 
-    def analyze_document(self, doc_id: str, markdown: str) -> BaseModel:
+    def analyze_document(self, document_id: str, markdown: str) -> BaseModel:
         """Analyze markdown document and return structured data."""
 
-        # self._doc_id = doc_id
+        # self._document_id = document_id
         analyzed_doc: BaseModel | None = None
         if self.kv_store_id:
-            analyzed_doc = load_object_from_kvstore(self.get_top_class(), key=doc_id, kv_store_id=self.kv_store_id)
+            analyzed_doc = load_object_from_kvstore(self.get_top_class(), key=document_id, kv_store_id=self.kv_store_id)
         if not analyzed_doc:
             system = f"""
                 Extract structured information from the document below into {self._top_class.__name__} schema. 
@@ -84,9 +85,9 @@ class PydanticRag(BaseModel):
             chain = def_prompt(system=system, user=user) | self._llm.with_structured_output(self._top_class)
             analyzed_doc = chain.invoke({"input": markdown})
             assert analyzed_doc
-            analyzed_doc.__setattr__("doc_id", doc_id)
+            analyzed_doc.__setattr__("document_id", document_id)
             if self.kv_store_id:
-                save_object_to_kvstore(doc_id, analyzed_doc, kv_store_id="file")
+                save_object_to_kvstore(document_id, analyzed_doc, kv_store_id="file")
 
         return analyzed_doc
 
@@ -104,9 +105,9 @@ class PydanticRag(BaseModel):
         """Store a document's field embeddings in vector store."""
         self._vector_store.add_documents(chunks)
 
-    def query_vectorstore(self, query: str, k: int = 4) -> List[Document]:
+    def query_vectorstore(self, query: str, k: int = 4, filter: dict = {}) -> List[Document]:
         """Search the vector store for similar field data."""
-        return self._vector_store.similarity_search(query, k=k)
+        return self._vector_store.similarity_search(query, k=k, filter=filter)
 
     def chunck(self, model_instance: BaseModel) -> list[Document]:
         """Generate LangChain Document objects for each field in a Pydantic model.
@@ -120,7 +121,7 @@ class PydanticRag(BaseModel):
         """
         documents = []
         model_data = model_instance.model_dump()
-        doc_id = getattr(model_instance, "doc_id", None)
+        document_id = getattr(model_instance, "document_id", None)
 
         for field_name, field_value in model_data.items():
             if field_value is None:
@@ -130,7 +131,11 @@ class PydanticRag(BaseModel):
             if field_info is None:
                 continue
 
-            page_content = yaml.dump({"value": field_value, "description": getattr(field_info, "description", None)})
+            # page_content = yaml.dump({"value": field_value, "description": getattr(field_info, "description", None)})
+            # description=  getattr(field_info, "description", None)
+            from markpickle import dumps
+
+            page_content = f"{dumps(field_value)}"
 
             field_doc = Document(
                 page_content=page_content,
@@ -138,8 +143,7 @@ class PydanticRag(BaseModel):
                     "field_name": field_name,
                     "model_class": model_instance.__class__.__name__,
                     "description": getattr(field_info, "description", "") or "",
-                    "type": str(type(field_value).__name__) if field_value is not None else "None",
-                    "doc_id": doc_id,
+                    "document_id": document_id,
                 },
             )
             documents.append(field_doc)

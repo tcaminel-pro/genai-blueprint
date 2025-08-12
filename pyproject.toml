@@ -16,6 +16,7 @@ dependencies = [
     "pip>=25.1.1",
     "modal>=1.0.5",
     "python-dotenv>=1.1.1",
+    "markpickle>=1.6.1",
 ]
 
 [project.urls]
