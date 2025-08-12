@@ -159,12 +159,22 @@ class PydanticRag(BaseModel):
         Returns:
             A BaseTool that can search the vector store for semantic matches.
         """
+        from pydantic import BaseModel, Field
+
+        class VectorSearchInput(BaseModel):
+            """Input schema for the vector search tool."""
+            query: str = Field(..., description="The search query to find semantically similar documents")
+            fields: Optional[List[str]] = Field(
+                None,
+                description="Optional list of field names to limit the search to specific fields in the documents"
+            )
 
         class VectorSearchTool(BaseTool):
             """Tool for searching the vector store for semantic matches."""
 
             name: str = "vector_search"
             description: str = self._create_tool_description()
+            args_schema: Type[BaseModel] = VectorSearchInput
 
             def _run(self, query: str, fields: Optional[List[str]] = None) -> List[Document]:
                 """Execute search against the vector store.
