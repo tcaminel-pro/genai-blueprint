@@ -163,10 +163,10 @@ class PydanticRag(BaseModel):
 
         class VectorSearchInput(BaseModel):
             """Input schema for the vector search tool."""
+
             query: str = Field(..., description="The search query to find semantically similar documents")
             fields: Optional[List[str]] = Field(
-                None,
-                description="Optional list of field names to limit the search to specific fields in the documents"
+                None, description="Optional list of field names to limit the search to specific fields in the documents"
             )
 
         class VectorSearchTool(BaseTool):
