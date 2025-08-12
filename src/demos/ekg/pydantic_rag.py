@@ -1,9 +1,10 @@
-from typing import Any, List, Type, TypeVar
+from typing import Any, List, Optional, Type, TypeVar
 
 from langchain_core.documents import Document
+from langchain_core.tools import BaseTool
 from langchain_core.vectorstores import VectorStore
 from markpickle import dumps
-from pydantic import BaseModel, PrivateAttr
+from pydantic import BaseModel, Field, PrivateAttr
 
 from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.ai_core.llm_factory import get_llm
@@ -151,3 +152,51 @@ class PydanticRag(BaseModel):
             )
             documents.append(field_doc)
         return documents
+
+    def create_vector_search_tool(self) -> BaseTool:
+        """Create a LangChain BaseTool for searching the vector store.
+        
+        Returns:
+            A BaseTool that can search the vector store for semantic matches.
+        """
+        
+        class VectorSearchTool(BaseTool):
+            """Tool for searching the vector store for semantic matches."""
+            
+            name: str = "vector_search"
+            description: str = self._create_tool_description()
+            
+            def _run(self, query: str, fields: Optional[List[str]] = None) -> List[Document]:
+                """Execute search against the vector store.
+                
+                Args:
+                    query: The user's search query
+                    fields: Optional list of field names to filter results
+                    
+                Returns:
+                    List of matching documents
+                """
+                filter_dict = {}
+                if fields:
+                    # Create filter for specific fields
+                    filter_dict = {"field_name": {"$in": fields}}
+                
+                return self._vector_store.similarity_search(query, k=4, filter=filter_dict)
+        
+        return VectorSearchTool()
+    
+    def _create_tool_description(self) -> str:
+        """Create a description for the tool based on top-level field descriptions."""
+        if not hasattr(self._top_class, 'model_fields'):
+            return "Search documents by semantic similarity across all fields"
+        
+        descriptions = []
+        for field_name, field_info in self._top_class.model_fields.items():
+            description = getattr(field_info, 'description', '')
+            if description:
+                descriptions.append(f"{field_name}: {description}")
+        
+        if not descriptions:
+            return "Search documents by semantic similarity across all fields"
+        
+        return "Search documents by semantic similarity. Fields: " + "; ".join(descriptions)
