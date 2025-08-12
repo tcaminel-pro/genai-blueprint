@@ -94,12 +94,9 @@ class PydanticRag(BaseModel):
     def get_top_class(self) -> type[BaseModel]:
         return self._top_class
 
-    def get_key(self) -> str:
+    def get_key(self, obj: BaseModel) -> str:
         """Extract the actual key value from a model instance using dotted notation from key field definition."""
         key_path = self._key_field.split(".")
-        model_data = self.model_dump()
-
-        current_value = model_data
 
     def store_chunks(self, chunks: list[Document]) -> None:
         """Store a document's field embeddings in vector store."""
