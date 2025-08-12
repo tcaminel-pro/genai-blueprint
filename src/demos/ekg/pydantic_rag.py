@@ -97,10 +97,10 @@ class PydanticRag(BaseModel):
     def get_key(self, obj: BaseModel) -> str:
         """Extract the actual key value from a model instance using dotted notation from key field definition."""
         key_path = self._key_field.split(".")
-        
+
         # Start with the original object
         current_value = obj
-        
+
         # Navigate through the path
         for key_part in key_path:
             if isinstance(current_value, dict):
@@ -109,7 +109,7 @@ class PydanticRag(BaseModel):
             else:
                 # Handle object attribute access
                 current_value = getattr(current_value, key_part)
-                
+
         return str(current_value)
 
     def store_chunks(self, chunks: list[Document]) -> None:
