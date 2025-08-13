@@ -4,6 +4,7 @@ from langchain_core.documents import Document
 from langchain_core.tools import BaseTool
 from langchain_core.tools.base import ArgsSchema
 from langchain_core.vectorstores import VectorStore
+from loguru import logger
 from markpickle import dumps
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
@@ -227,22 +228,20 @@ class PydanticRag(BaseModel):
             def model_post_init(self, __context: Any) -> None:
                 self._vector_store = PydanticRag.get_vector_store()
 
-            def _run(self, query: str, fields: Optional[List[str]] = None) -> List[str]:
+            def _run(self, query: str, selected_section: Optional[List[str]] = None) -> str:
                 """Execute search against the vector store."""
-                from loguru import logger
-
                 allowed = set(self._top_class_description.keys())
-                if fields:
-                    invalid = [f for f in fields if f not in allowed]
+                if selected_section:
+                    invalid = [f for f in selected_section if f not in allowed]
                     if invalid:
-                        logger.warning(f"Removing invalid fields: {invalid}")
-                        fields = [f for f in fields if f in allowed]
-                    filter_dict = {"field_name": {"$in": fields}} if fields else {}
+                        logger.warning(f"Removing invalid section: {invalid}")
+                        selected_section = [f for f in selected_section if f in allowed]
+                    filter_dict = {"field_name": {"$in": selected_section}} if selected_section else {}
                 else:
                     filter_dict = {}
 
                 docs = self._vector_store.similarity_search(query, k=4, filter=filter_dict)
-                return [doc.page_content for doc in docs]
+                return "\n".join([doc.page_content for doc in docs])
 
         return VectorSearchTool()
 

@@ -228,6 +228,13 @@ load-env:
 ##  MICS
 ##############################
 
-postgres:
-	docker run --name pgvector-container -e POSTGRES_USER=tcl -e POSTGRES_PASSWORD=tcl -e POSTGRES_DB=ekg -p 5432:5432 -d pgvector/pgvector:pg17
+postgres:                                                                              
+	docker rm -f pgvector-container 2>/dev/null || true
+	docker run --name pgvector-container \
+		-e POSTGRES_USER=tcl -e POSTGRES_PASSWORD=tcl -e POSTGRES_DB=ekg \
+		-p 5432:5432 \
+		-v /home/tcl/pgvector-data:/var/lib/postgresql/data \
+		-d pgvector/pgvector:pg17
+
+ 
 
