@@ -226,13 +226,19 @@ class PydanticRag(BaseModel):
             def model_post_init(self, __context: Any) -> None:
                 self._vector_store = PydanticRag.get_vector_store()
 
-            def _run(self, query: str, fields: Optional[List[str]] = None) -> List[Document]:
+            def _run(self, query: str, fields: Optional[List[str]] = None) -> List[str]:
                 """Execute search against the vector store."""
-                filter_dict = {}
-                if fields:   # Create filter for specific fields
+                allowed = set(self.get_top_class_fields().keys())
+                if fields:
+                    invalid = [f for f in fields if f not in allowed]
+                    if invalid:
+                        raise ValueError(f"Invalid fields: {invalid}")
                     filter_dict = {"field_name": {"$in": fields}}
+                else:
+                    filter_dict = {}
 
-                return self._vector_store.similarity_search(query, k=4, filter=filter_dict)
+                docs = self._vector_store.similarity_search(query, k=4, filter=filter_dict)
+                return [doc.page_content for doc in docs]
 
         return VectorSearchTool()
 
