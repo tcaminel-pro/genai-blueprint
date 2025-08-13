@@ -229,12 +229,15 @@ class PydanticRag(BaseModel):
 
             def _run(self, query: str, fields: Optional[List[str]] = None) -> List[str]:
                 """Execute search against the vector store."""
+                from loguru import logger
+
                 allowed = set(self._top_class_description.keys())
                 if fields:
                     invalid = [f for f in fields if f not in allowed]
                     if invalid:
-                        raise ValueError(f"Invalid fields: {invalid}")
-                    filter_dict = {"field_name": {"$in": fields}}
+                        logger.warning(f"Removing invalid fields: {invalid}")
+                        fields = [f for f in fields if f in allowed]
+                    filter_dict = {"field_name": {"$in": fields}} if fields else {}
                 else:
                     filter_dict = {}
 
