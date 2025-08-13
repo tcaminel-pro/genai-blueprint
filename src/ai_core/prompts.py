@@ -43,8 +43,9 @@ def dedent_ws(text: str) -> str:
     It also remove the first new_line if any
     """
     # text = text.strip("\n")
+
     text = text.replace("\t", "    ")
-    result = dedent(text).strip()
+    result = dedent(text)
     return result
 
 
