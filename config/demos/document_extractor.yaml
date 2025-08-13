@@ -175,8 +175,7 @@ Document_extractor_demo:
           type: "list[str]"
           description: "Technology combinations"
     RainbowProjectAnalysis:
-      description: "Input document for a review meeting (called 'Rainbow') that asses an opportunity 
-        and the business opportunity, before it's sent to the customer.'
+      description: "Input document for a review meeting (called 'Rainbow') that assesses an opportunity and the business opportunity, before it's sent to the customer."
       fields:
         identification:
           type: "ProjectIdentification"
