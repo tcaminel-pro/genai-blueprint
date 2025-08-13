@@ -195,22 +195,29 @@ class PydanticRag(BaseModel):
             """Input schema for the vector search tool."""
 
             query: str = Field(..., description="The query")
-            entity_id: Optional[str] = Field(None, description="id to filter research on a given document")
-            section: Optional[List[str]] = Field(
+            entity_key: Optional[str] = Field(
+                None, description=f"id to filter research on a given document: {self.get_key_description()}"
+            )
+            selected_section: Optional[List[str]] = Field(
                 None,
                 description=dedent_ws(
-                    f"""Optional list of section names to limit the search to specific section in the documents.
-                    Allowed section name SHOULD BE in that list: {self._create_fields_description()}"""
+                    f"""
+                    Optional list of section names to limit the search to specific section in the documents.\n
+                    Allowed section name SHOULD BE in that list: \n - {"\n- ".join([f"'{k}' ({v})" for k, v in self.get_top_class_fields().items()])}"""
                 ),
             )
 
         class VectorSearchTool(BaseTool):
             """Tool for searching the vector store for semantic matches."""
 
-            name: str = "vector_search"
+            name: str = f"{self.get_top_class().__name__}_retriever"
             description: str = dedent_ws(
-                f"""Retrieve information related to documents described as '{self.get_top_class_description()}.
-                The mandatory argument is the query.  Addtional arguemnts are '
+                f"""
+                Retrieve information related to documents described as '{self.get_top_class_description()}.
+                The mandatory argument is the query.  
+                Additional arguments are 
+                - entity_key:  an id to limit search to a given doc 
+                - selected_section:  a list of section names that best match the query. Select several if you are not sure.
                 """
             )
             args_schema: Optional[ArgsSchema] = VectorSearchInput
@@ -229,13 +236,8 @@ class PydanticRag(BaseModel):
 
         return VectorSearchTool()
 
-    def _create_fields_description(self) -> str:
-        """Create a description for the tool based on top-level field descriptions."""
-        descriptions = []
-        for field_name, field_info in self._top_class.model_fields.items():
-            description = getattr(field_info, "description", "")
-            if description:
-                descriptions.append(f"'{field_name}': {description}")
-            else:
-                descriptions.append(f"'{field_name}'")
-        return "; ".join(descriptions)
+    def get_top_class_fields(self) -> dict:
+        return {
+            field_name: getattr(field_info, "description", "")
+            for field_name, field_info in self._top_class.model_fields.items()
+        }

@@ -22,7 +22,6 @@ import typer
 from typer import Option
 from upath import UPath
 
-
 from src.utils.config_mngr import global_config
 
 
