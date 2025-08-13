@@ -69,7 +69,7 @@ class PydanticModelFactory:
     def _create_model(self, model_name: str, description: str, fields: dict) -> Type[BaseModel]:
         """Create a Pydantic model with a programmatic description."""
         from pydantic import ConfigDict
-        
+
         config_dict = ConfigDict(extra="allow")
         if description:
             config_dict["description"] = description
