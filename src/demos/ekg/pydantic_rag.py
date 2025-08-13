@@ -102,6 +102,10 @@ class PydanticRag(BaseModel):
     def get_top_class(self) -> type[BaseModel]:
         return self._top_class
 
+    def get_top_class_description(self) -> str:
+        """Return the description field associated with the top class in the schema."""
+        return self.model_definition.get("schema", {}).get(self._top_class.__name__, {}).get("description", "")
+
     def get_key(self, obj: BaseModel) -> str:
         """Extract the actual key value from a model instance using dotted notation from key field definition."""
         key_path = self._key_field.split(".")
