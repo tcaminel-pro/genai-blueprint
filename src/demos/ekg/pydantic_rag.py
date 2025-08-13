@@ -222,13 +222,14 @@ class PydanticRag(BaseModel):
                 """
             )
             args_schema: Optional[ArgsSchema] = VectorSearchInput
+            _top_class_description: dict = self.get_top_class_fields()
 
             def model_post_init(self, __context: Any) -> None:
                 self._vector_store = PydanticRag.get_vector_store()
 
             def _run(self, query: str, fields: Optional[List[str]] = None) -> List[str]:
                 """Execute search against the vector store."""
-                allowed = set(self.get_top_class_fields().keys())
+                allowed = set(self._top_class_description.keys())
                 if fields:
                     invalid = [f for f in fields if f not in allowed]
                     if invalid:
