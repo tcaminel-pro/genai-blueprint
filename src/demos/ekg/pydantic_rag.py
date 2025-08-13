@@ -2,15 +2,18 @@ from typing import Any, List, Optional, Type, TypeVar
 
 from langchain_core.documents import Document
 from langchain_core.tools import BaseTool
+from langchain_core.tools.base import ArgsSchema
 from langchain_core.vectorstores import VectorStore
 from markpickle import dumps
-from pydantic import BaseModel, Field, PrivateAttr
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
 from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import def_prompt
+from src.utils.config_mngr import global_config
 from src.utils.pydantic.dyn_model_factory import PydanticModelFactory
 from src.utils.pydantic.kv_store import load_object_from_kvstore, save_object_to_kvstore
+from src.utils.singleton import once
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -23,20 +26,43 @@ class PydanticRag(BaseModel):
         postgres_url: PostgreSQL connection URL
         embeddings_id: ID for embeddings model
         llm_id: ID for LLM used in analysis
-        collection_name: Name of vector store collection (default: "pydantic_fields")
     """
 
     model_definition: dict
-    postgres_url: str
-    embeddings_id: str
+    vector_store: VectorStore
     llm_id: str | None
     kv_store_id: str | None = None
-    collection_name: str = "pydantic_fields"
 
     _top_class: Type[BaseModel] = PrivateAttr()
-    _vector_store: VectorStore = PrivateAttr()
     _key_field: str = PrivateAttr()
     _llm: Any = PrivateAttr()
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    @staticmethod
+    @once
+    def get_vector_store() -> VectorStore:
+        """Initialize the vector store with embeddings model."""
+        from src.ai_core.vector_store_factory import VectorStoreFactory
+
+        EMBEDDINGS_ID = "qwen3_06b_deepinfra"
+        # KV_STORE = None
+        postgres_url = global_config().get_dsn("vector_store.postgres_url", driver="asyncpg")
+        vector_store = VectorStoreFactory(
+            id="PgVector",
+            embeddings_factory=EmbeddingsFactory(embeddings_id=EMBEDDINGS_ID),
+            config={
+                "postgres_url": postgres_url,
+                "hybrid_search": True,
+                "metadata_columns": [
+                    {"name": "document_id", "data_type": "VARCHAR"},
+                    {"name": "field_name", "data_type": "VARCHAR"},
+                    {"name": "model_class", "data_type": "VARCHAR"},
+                ],
+            },
+            table_name_prefix="pydantic_fields",
+        ).get()
+        return vector_store
 
     def model_post_init(self, __context: Any) -> None:
         """Initialize with configuration and create required components."""
@@ -51,26 +77,6 @@ class PydanticRag(BaseModel):
         )
         self._key_field = self.model_definition["key"]
         self._llm = get_llm(llm_id=self.llm_id, streaming=False, temperature=0.0)
-        self._init_vector_store()
-
-    def _init_vector_store(self) -> None:
-        """Initialize the vector store with embeddings model."""
-        from src.ai_core.vector_store_factory import VectorStoreFactory
-
-        self._vector_store = VectorStoreFactory(
-            id="PgVector",
-            embeddings_factory=EmbeddingsFactory(embeddings_id=self.embeddings_id),
-            config={
-                "postgres_url": self.postgres_url,
-                "hybrid_search": True,
-                "metadata_columns": [
-                    {"name": "document_id", "data_type": "VARCHAR"},
-                    {"name": "field_name", "data_type": "VARCHAR"},
-                    {"name": "model_class", "data_type": "VARCHAR"},
-                ],
-            },
-            table_name_prefix=self.collection_name,
-        ).get()
 
     def analyze_document(self, document_id: str, markdown: str) -> BaseModel:
         """Analyze markdown document and return structured data."""
@@ -114,11 +120,11 @@ class PydanticRag(BaseModel):
 
     def store_chunks(self, chunks: list[Document]) -> None:
         """Store a document's field embeddings in vector store."""
-        self._vector_store.add_documents(chunks)
+        self.vector_store.add_documents(chunks)
 
     def query_vectorstore(self, query: str, k: int = 4, filter: dict = {}) -> List[Document]:
         """Search the vector store for similar field data."""
-        return self._vector_store.similarity_search(query, k=k, filter=filter)
+        return self.vector_store.similarity_search(query, k=k, filter=filter)
 
     def chunck(self, model_instance: BaseModel) -> list[Document]:
         """Generate LangChain Document objects for each field in a Pydantic model.
@@ -159,7 +165,6 @@ class PydanticRag(BaseModel):
         Returns:
             A BaseTool that can search the vector store for semantic matches.
         """
-        from pydantic import BaseModel, Field
 
         class VectorSearchInput(BaseModel):
             """Input schema for the vector search tool."""
@@ -174,18 +179,14 @@ class PydanticRag(BaseModel):
 
             name: str = "vector_search"
             description: str = self._create_tool_description()
-            args_schema: Type[BaseModel] = VectorSearchInput
+            args_schema: Optional[ArgsSchema] = VectorSearchInput
+
+            def __init__(self, **kwargs):
+                super().__init__(**kwargs)
+                self._vector_store = PydanticRag.get_vector_store()
 
             def _run(self, query: str, fields: Optional[List[str]] = None) -> List[Document]:
-                """Execute search against the vector store.
-
-                Args:
-                    query: The user's search query
-                    fields: Optional list of field names to filter results
-
-                Returns:
-                    List of matching documents
-                """
+                """Execute search against the vector store."""
                 filter_dict = {}
                 if fields:
                     # Create filter for specific fields
@@ -204,7 +205,9 @@ class PydanticRag(BaseModel):
         for field_name, field_info in self._top_class.model_fields.items():
             description = getattr(field_info, "description", "")
             if description:
-                descriptions.append(f"{field_name}: {description}")
+                descriptions.append(f"'{field_name}': {description}")
+            else:
+                descriptions.append(f"'{field_name}'")
 
         if not descriptions:
             return "Search documents by semantic similarity across all fields"

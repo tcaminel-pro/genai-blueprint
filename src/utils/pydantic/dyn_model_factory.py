@@ -159,7 +159,7 @@ def test1() -> None:
             type: Address
             description: "Home address"
             required: false
-    
+
     Email:
       description: "email contact"
       fields:

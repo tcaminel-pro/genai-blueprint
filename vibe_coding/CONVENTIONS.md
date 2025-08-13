@@ -13,4 +13,4 @@
     - Use  ``` to format code in documentation (Fenced Code Blocks)
 - use loguru for logging.  
 - use rich for output pretty-printing
-- use 'uv' to manage packages and execute tests, code etc. Ex: uv pytest -v' to run pytest 
+- use 'uv' to manage packages and execute tests, code etc. Ex: uv run pytest -v' to run pytest 
