@@ -24,6 +24,7 @@ Example:
     ... )
 """
 
+import re
 from textwrap import dedent
 
 from langchain_core.prompts import (
@@ -42,11 +43,11 @@ def dedent_ws(text: str) -> str:
 
     It also remove the first new_line if any
     """
-    # text = text.strip("\n")
-
     text = text.replace("\t", "    ")
-    result = dedent(text)
-    return result
+    text = dedent(text)
+    # remove any remaining leading whitespace on every line
+    text = re.sub(r"^[ \t]+", "", text, flags=re.MULTILINE)
+    return text
 
 
 def def_prompt(system: str | None = None, user: str = "", other_msg: dict | None = None) -> BasePromptTemplate:
