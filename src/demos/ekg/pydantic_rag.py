@@ -173,12 +173,13 @@ class PydanticRag(BaseModel):
         class VectorSearchInput(BaseModel):
             """Input schema for the vector search tool."""
 
-            query: str = Field(..., description="The search query to find semantically similar documents")
-            fields: Optional[List[str]] = Field(
+            query: str = Field(..., description="The query")
+            entity_id: Optional[str] = Field(None, description="id to filter research on a given document")
+            section: Optional[List[str]] = Field(
                 None,
                 description=dedent_ws(
-                    f"""Optional list of field names to limit the search to specific fields in the documents.
-                    Allowed field name SHOILD BE in that list: {self._create_fields_description}"""
+                    f"""Optional list of section names to limit the search to specific section in the documents.
+                    Allowed section name SHOULD BE in that list: {self._create_fields_description()}"""
                 ),
             )
 
@@ -186,7 +187,11 @@ class PydanticRag(BaseModel):
             """Tool for searching the vector store for semantic matches."""
 
             name: str = "vector_search"
-            description: str = self._create_fields_description()
+            description: str = dedent_ws(
+                f"""Retrieve information related to documents described as '{self.get_top_class_description()}.
+                The mandatory argument is the query.  Addtional arguemnts are '
+                """
+            )
             args_schema: Optional[ArgsSchema] = VectorSearchInput
 
             def model_post_init(self, __context: Any) -> None:
