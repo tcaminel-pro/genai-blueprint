@@ -111,7 +111,7 @@ class PydanticRag(BaseModel):
         key_path = self._key_field.split(".")
         current_value = obj
         current_schema = self.model_definition.get("schema", {})
-        
+
         # Navigate through the path to get the value
         for key_part in key_path:
             if isinstance(current_value, dict):
@@ -120,10 +120,10 @@ class PydanticRag(BaseModel):
                 current_value = getattr(current_value, key_part, None)
             if current_value is None and key_part == key_path[0]:
                 current_value = obj
-        
+
         if current_value is None:
             raise ValueError(f"incorrect key {self._key_field}")
-        
+
         # Navigate through the schema to get the description
         description = ""
         temp_schema = current_schema
@@ -136,7 +136,7 @@ class PydanticRag(BaseModel):
                     # We're at the field level
                     description = temp_schema[key_part].get("description", "")
                     break
-        
+
         return str(current_value), description
 
     def store_chunks(self, chunks: list[Document]) -> None:
