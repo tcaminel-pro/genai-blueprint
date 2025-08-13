@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
 from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.ai_core.llm_factory import get_llm
-from src.ai_core.prompts import def_prompt
+from src.ai_core.prompts import dedent_ws, def_prompt
 from src.utils.config_mngr import global_config
 from src.utils.pydantic.dyn_model_factory import PydanticModelFactory
 from src.utils.pydantic.kv_store import load_object_from_kvstore, save_object_to_kvstore
@@ -171,18 +171,21 @@ class PydanticRag(BaseModel):
 
             query: str = Field(..., description="The search query to find semantically similar documents")
             fields: Optional[List[str]] = Field(
-                None, description="Optional list of field names to limit the search to specific fields in the documents"
+                None,
+                description=dedent_ws(
+                    f"""Optional list of field names to limit the search to specific fields in the documents.
+                    Allowed field name SHOILD BE in that list: {self._create_fields_description}"""
+                ),
             )
 
         class VectorSearchTool(BaseTool):
             """Tool for searching the vector store for semantic matches."""
 
             name: str = "vector_search"
-            description: str = self._create_tool_description()
+            description: str = self._create_fields_description()
             args_schema: Optional[ArgsSchema] = VectorSearchInput
 
-            def __init__(self, **kwargs):
-                super().__init__(**kwargs)
+            def model_post_init(self, __context: Any) -> None:
                 self._vector_store = PydanticRag.get_vector_store()
 
             def _run(self, query: str, fields: Optional[List[str]] = None) -> List[Document]:
@@ -196,11 +199,8 @@ class PydanticRag(BaseModel):
 
         return VectorSearchTool()
 
-    def _create_tool_description(self) -> str:
+    def _create_fields_description(self) -> str:
         """Create a description for the tool based on top-level field descriptions."""
-        if not hasattr(self._top_class, "model_fields"):
-            return "Search documents by semantic similarity across all fields"
-
         descriptions = []
         for field_name, field_info in self._top_class.model_fields.items():
             description = getattr(field_info, "description", "")
@@ -208,8 +208,4 @@ class PydanticRag(BaseModel):
                 descriptions.append(f"'{field_name}': {description}")
             else:
                 descriptions.append(f"'{field_name}'")
-
-        if not descriptions:
-            return "Search documents by semantic similarity across all fields"
-
-        return "Search documents by semantic similarity. Fields: " + "; ".join(descriptions)
+        return "; ".join(descriptions)
