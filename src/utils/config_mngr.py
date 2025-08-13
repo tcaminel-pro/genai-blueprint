@@ -204,11 +204,11 @@ class OmegaConfig(BaseModel):
             result = OmegaConf.to_container(value, resolve=True)
         else:
             result = value
-        
+
         # Ensure result is a list
         if not isinstance(result, list):
             raise TypeError(f"Expected list for key '{key}' but got {type(result)}")
-        
+
         # Type validation if type parameter is provided
         if value_type is not Any:
             for i, item in enumerate(result):
