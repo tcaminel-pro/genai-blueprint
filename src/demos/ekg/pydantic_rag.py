@@ -126,11 +126,11 @@ class PydanticRag(BaseModel):
         """Return the description of the key field from the model definition."""
         key_path = self._key_field.split(".")
         current_schema = self.model_definition.get("schema", {})
-        
+
         # Navigate through the schema to get the description
         description = ""
         temp_schema = current_schema
-        
+
         for key_part in key_path:
             if key_part in temp_schema:
                 if "fields" in temp_schema[key_part]:
@@ -140,7 +140,7 @@ class PydanticRag(BaseModel):
                     # We're at the field level
                     description = temp_schema[key_part].get("description", "")
                     break
-        
+
         return description
 
     def store_chunks(self, chunks: list[Document]) -> None:
