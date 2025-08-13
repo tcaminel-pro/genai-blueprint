@@ -75,12 +75,10 @@ class PydanticModelFactory:
         from pydantic import ConfigDict
 
         config_dict = ConfigDict(extra="allow")
+        
         if description:
-            # Use model_config approach instead
-            model_class = create_model(model_name, __base__=BaseModel, **fields)
-            model_class.model_config = config_dict
-            if description:
-                model_class.__doc__ = description
+            model_class = create_model(model_name, __config__=config_dict, __base__=BaseModel, **fields)
+            model_class.__doc__ = description
             return model_class
         return create_model(model_name, __config__=config_dict, __base__=BaseModel, **fields)
 
