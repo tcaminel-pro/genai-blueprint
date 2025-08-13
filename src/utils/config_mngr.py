@@ -199,7 +199,11 @@ class OmegaConfig(BaseModel):
         if not (isinstance(value, ListConfig) or isinstance(value, list)):
             raise TypeError(f"Configuration value for '{key}' is not a list (its a {type(value)})")
 
-        result = OmegaConf.to_container(value, resolve=True)
+        # Handle both ListConfig and regular Python lists
+        if isinstance(value, ListConfig):
+            result = OmegaConf.to_container(value, resolve=True)
+        else:
+            result = value
 
         # Type validation if type parameter is provided
         if value_type is not Any:
