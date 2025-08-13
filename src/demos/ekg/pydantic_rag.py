@@ -106,27 +106,31 @@ class PydanticRag(BaseModel):
         """Return the description field associated with the top class in the schema."""
         return self.model_definition.get("schema", {}).get(self._top_class.__name__, {}).get("description", "")
 
-    def get_key(self, obj: BaseModel) -> tuple[str, str]:
-        """Extract the actual key value and its description from a model instance using dotted notation from key field definition."""
+    def get_key(self, obj: BaseModel) -> str:
+        """Extract the actual key value from a model instance using dotted notation from key field definition."""
         key_path = self._key_field.split(".")
         current_value = obj
-        current_schema = self.model_definition.get("schema", {})
-
-        # Navigate through the path to get the value
+        # Navigate through the path
         for key_part in key_path:
             if isinstance(current_value, dict):
                 current_value = current_value.get(key_part)
             else:
                 current_value = getattr(current_value, key_part, None)
-            if current_value is None and key_part == key_path[0]:
+            if current_value is None and key_part == key_path[0]:  # the fiest element might be the current field
                 current_value = obj
-
         if current_value is None:
             raise ValueError(f"incorrect key {self._key_field}")
+        return str(current_value)
 
+    def get_key_description(self) -> str:
+        """Return the description of the key field from the model definition."""
+        key_path = self._key_field.split(".")
+        current_schema = self.model_definition.get("schema", {})
+        
         # Navigate through the schema to get the description
         description = ""
         temp_schema = current_schema
+        
         for key_part in key_path:
             if key_part in temp_schema:
                 if "fields" in temp_schema[key_part]:
@@ -136,8 +140,8 @@ class PydanticRag(BaseModel):
                     # We're at the field level
                     description = temp_schema[key_part].get("description", "")
                     break
-
-        return str(current_value), description
+        
+        return description
 
     def store_chunks(self, chunks: list[Document]) -> None:
         """Store a document's field embeddings in vector store."""
