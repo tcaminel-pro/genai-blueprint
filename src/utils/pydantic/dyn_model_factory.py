@@ -11,7 +11,7 @@ class PydanticModelFactory:
     """Convert YAML definitions to Pydantic classes dynamically."""
 
     def __init__(self) -> None:
-        self.created_classes: Dict[str, Type[BaseModel]] = {}
+        self.created_classes: Dict[str, Type[BaseModel] | None] = {}
 
     def yaml_type_to_python_type(self, yaml_type: str) -> type:
         """Convert YAML type string to Python type."""
@@ -29,14 +29,15 @@ class PydanticModelFactory:
             "Dict": Dict,
         }
 
-        if yaml_type.startswith("List[") or yaml_type.startswith("list["):
-            inner_type = yaml_type[5:-1]
-            return List[self.yaml_type_to_python_type(inner_type)]
-        elif yaml_type.startswith("Dict[") or yaml_type.startswith("dict["):
-            inner_types = yaml_type[5:-1].split(",")
-            key_type = self.yaml_type_to_python_type(inner_types[0].strip())
-            value_type = self.yaml_type_to_python_type(inner_types[1].strip())
-            return Dict[key_type, value_type]
+        if yaml_type.lower().startswith(("list[", "dict[")):
+            if yaml_type.lower().startswith("list["):
+                inner_type = yaml_type[5:-1]
+                return List[self.yaml_type_to_python_type(inner_type)]
+            else:  # dict[
+                inner_types = yaml_type[5:-1].split(",")
+                key_type = self.yaml_type_to_python_type(inner_types[0].strip())
+                value_type = self.yaml_type_to_python_type(inner_types[1].strip())
+                return Dict[key_type, value_type]
 
         return type_mapping.get(yaml_type, str)
 
@@ -53,7 +54,7 @@ class PydanticModelFactory:
         self.created_classes.clear()
 
         # First pass: create all class definitions
-        for cls_name, cls_def in yaml_data.items():
+        for cls_name, _ in yaml_data.items():
             if cls_name not in self.created_classes:
                 # Create placeholder classes to handle circular dependencies
                 self.created_classes[cls_name] = None
@@ -67,9 +68,11 @@ class PydanticModelFactory:
 
     def _create_model(self, model_name: str, description: str, fields: dict) -> Type[BaseModel]:
         """Create a Pydantic model with a programmatic description."""
-        config_dict = {"extra": "allow"}
+        from pydantic import ConfigDict
+        
+        config_dict = ConfigDict(extra="allow")
         if description:
-            config_dict |= {"description": description}
+            config_dict["description"] = description
         return create_model(model_name, __config__=config_dict, __base__=BaseModel, **fields)
 
     def _create_class(self, class_name: str, class_def: Dict[str, Any], yaml_data: dict) -> Type[BaseModel]:
@@ -98,7 +101,7 @@ class PydanticModelFactory:
                 yaml_type = field_def.get("type", "str")
                 is_required = field_def.get("required", False)
 
-                if yaml_type.startswith("list[") or yaml_type.startswith("List["):
+                if yaml_type.lower().startswith("list["):
                     inner_type = yaml_type[5:-1]
                     if inner_type in yaml_data:
                         if inner_type not in self.created_classes or self.created_classes[inner_type] is None:
