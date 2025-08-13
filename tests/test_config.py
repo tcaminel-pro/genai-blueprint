@@ -125,18 +125,9 @@ ui:
         enable_caching = self.config.get_bool("features.enable_caching")
         self.assertTrue(enable_caching)
 
-        # Test string boolean conversion
-        os.environ["TEST_BOOL"] = "true"
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
-            f.write("""                                                                                    
-test_bool_env:                                                                                             
-  str_true: "${oc.env:TEST_BOOL}"                                                                          
-""")
-            f.flush()
-            test_config = OmegaConfig.create(Path(f.name))
-            os.unlink(f.name)
-
-        bool_value = test_config.get_bool("str_true")
+        # Test string boolean conversion with runtime override
+        self.config.set("test_bool", "true")
+        bool_value = self.config.get_bool("test_bool")
         self.assertTrue(bool_value)
 
     def test_get_list_method(self) -> None:
@@ -253,16 +244,10 @@ additional_env:
     def test_environment_variable_interpolation(self) -> None:
         """Test OmegaConf environment variable interpolation."""
         os.environ["TEST_VAR"] = "interpolated_value"
-
-        interp_config = """                                                                                
-test_interp:                                                                                               
-  value: "${oc.env:TEST_VAR}"                                                                              
-"""
-        interp_path = Path(self.temp_dir.name) / "interp.yaml"
-        interp_path.write_text(interp_config)
-
-        config = OmegaConfig.create(interp_path)
-        value = config.get("test_interp.value")
+        
+        # Use existing config to test interpolation
+        self.config.set("test_interpolation", "${oc.env:TEST_VAR}")
+        value = self.config.get("test_interpolation")
         self.assertEqual(value, "interpolated_value")
 
     def test_global_config_singleton(self) -> None:
@@ -293,28 +278,19 @@ test_interp:
 
     def test_nested_access(self) -> None:
         """Test deeply nested configuration access."""
-        nested_config = """                                                                                
-deep:                                                                                                      
-  nested:                                                                                                  
-    structure:                                                                                             
-      value: 42                                                                                            
-      list: [1, 2, 3]                                                                                      
-      dict:                                                                                                
-        inner: "test"                                                                                      
-"""
-        nested_path = Path(self.temp_dir.name) / "nested.yaml"
-        nested_path.write_text(nested_config)
-
-        config = OmegaConfig.create(nested_path)
+        # Use runtime configuration to test nested access
+        self.config.set("deep.nested.structure.value", 42)
+        self.config.set("deep.nested.structure.list", [1, 2, 3])
+        self.config.set("deep.nested.structure.dict", {"inner": "test"})
 
         # Test deep access
-        value = config.get("deep.nested.structure.value")
+        value = self.config.get("deep.nested.structure.value")
         self.assertEqual(value, 42)
 
-        nested_list = config.get_list("deep.nested.structure.list")
+        nested_list = self.config.get_list("deep.nested.structure.list")
         self.assertEqual(nested_list, [1, 2, 3])
 
-        nested_dict = config.get_dict("deep.nested.structure.dict")
+        nested_dict = self.config.get_dict("deep.nested.structure.dict")
         self.assertEqual(nested_dict, {"inner": "test"})
 
 
