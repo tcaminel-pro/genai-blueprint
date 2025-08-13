@@ -57,7 +57,10 @@ class OmegaConfig(BaseModel):
         if not app_conf_path.exists():
             app_conf_path = Path("config/app_conf.yaml").absolute()
         assert app_conf_path.exists(), f"cannot find config file: '{app_conf_path}'"
+        return OmegaConfig.create(app_conf_path)
 
+    @staticmethod
+    def create(app_conf_path: Path) -> OmegaConfig:
         config = OmegaConf.load(app_conf_path)
         assert isinstance(config, DictConfig)
 
@@ -193,7 +196,7 @@ class OmegaConfig(BaseModel):
             ```
         """
         value = self.get(key, default)
-        if not isinstance(value, ListConfig):
+        if not (isinstance(value, ListConfig) or isinstance(value, list)):
             raise TypeError(f"Configuration value for '{key}' is not a list (its a {type(value)})")
 
         result = OmegaConf.to_container(value, resolve=True)
