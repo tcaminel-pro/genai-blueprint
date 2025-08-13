@@ -195,16 +195,16 @@ class PydanticRag(BaseModel):
             """Input schema for the vector search tool."""
 
             query: str = Field(..., description="The query")
-            entity_key: Optional[str] = Field(
-                None, description=f"id to filter research on a given document: {self.get_key_description()}"
-            )
-            selected_section: Optional[List[str]] = Field(
-                None,
+            selected_section: List[str] = Field(
+                ...,
                 description=dedent_ws(
                     f"""
-                    Optional list of section names to limit the search to specific section in the documents.\n
+                    List of sections relevant for the query.\n
                     Allowed section name SHOULD BE in that list: \n - {"\n- ".join([f"'{k}' ({v})" for k, v in self.get_top_class_fields().items()])}"""
                 ),
+            )
+            entity_key: Optional[str] = Field(
+                None, description=f"id to filter research on a given document: {self.get_key_description()}"
             )
 
         class VectorSearchTool(BaseTool):
@@ -214,10 +214,11 @@ class PydanticRag(BaseModel):
             description: str = dedent_ws(
                 f"""
                 Retrieve information related to documents described as '{self.get_top_class_description()}.
-                The mandatory argument is the query.  
-                Additional arguments are 
+                The mandatory argument are:
+                - query.  
+                - selected_section: a list of section names that best match the query. Select several if you are not sure.
+                Additional arguments: 
                 - entity_key:  an id to limit search to a given doc 
-                - selected_section:  a list of section names that best match the query. Select several if you are not sure.
                 """
             )
             args_schema: Optional[ArgsSchema] = VectorSearchInput
@@ -228,8 +229,7 @@ class PydanticRag(BaseModel):
             def _run(self, query: str, fields: Optional[List[str]] = None) -> List[Document]:
                 """Execute search against the vector store."""
                 filter_dict = {}
-                if fields:
-                    # Create filter for specific fields
+                if fields:   # Create filter for specific fields
                     filter_dict = {"field_name": {"$in": fields}}
 
                 return self._vector_store.similarity_search(query, k=4, filter=filter_dict)
