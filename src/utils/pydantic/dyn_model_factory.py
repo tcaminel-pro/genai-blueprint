@@ -63,7 +63,7 @@ class PydanticModelFactory:
         for cls_name, cls_def in yaml_data.items():
             if cls_name not in self.created_classes or self.created_classes[cls_name] is None:
                 self._create_class(cls_name, cls_def, yaml_data)
-        
+
         result = self.created_classes[class_name]
         if result is None:
             raise ValueError(f"Failed to create class '{class_name}'")
@@ -75,7 +75,7 @@ class PydanticModelFactory:
         from pydantic import ConfigDict
 
         config_dict = ConfigDict(extra="allow")
-        
+
         if description:
             model_class = create_model(model_name, __config__=config_dict, __base__=BaseModel, **fields)
             model_class.__doc__ = description
