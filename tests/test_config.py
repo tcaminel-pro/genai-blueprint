@@ -135,6 +135,37 @@ ui:
         with self.assertRaises(TypeError):
             self.config.get_list("llm.default_model")
 
+    def test_get_list_with_value_type(self) -> None:
+        """Test get_list with value type validation."""
+        # Test with string type validation
+        self.config.set("test_string_list", ["item1", "item2", "item3"])
+        string_list = self.config.get_list("test_string_list", value_type=str)
+        self.assertEqual(string_list, ["item1", "item2", "item3"])
+
+        # Test with integer type validation
+        self.config.set("test_int_list", [1, 2, 3, 4, 5])
+        int_list = self.config.get_list("test_int_list", value_type=int)
+        self.assertEqual(int_list, [1, 2, 3, 4, 5])
+
+        # Test with float type validation
+        self.config.set("test_float_list", [1.1, 2.2, 3.3])
+        float_list = self.config.get_list("test_float_list", value_type=float)
+        self.assertEqual(float_list, [1.1, 2.2, 3.3])
+
+        # Test type validation failure
+        self.config.set("test_mixed_list", ["string", 123, 3.14])
+        with self.assertRaises(TypeError):
+            self.config.get_list("test_mixed_list", value_type=str)
+
+        # Test with empty list
+        self.config.set("test_empty_list", [])
+        empty_list = self.config.get_list("test_empty_list", value_type=str)
+        self.assertEqual(empty_list, [])
+
+        # Test with default value and type validation
+        default_list = self.config.get_list("nonexistent.list", default=["default1", "default2"], value_type=str)
+        self.assertEqual(default_list, ["default1", "default2"])
+
     def test_get_dict_method(self) -> None:
         """Test get_dict type-safe method."""
         db_config = self.config.get_dict("db")
