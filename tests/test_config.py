@@ -244,7 +244,7 @@ additional_env:
     def test_environment_variable_interpolation(self) -> None:
         """Test OmegaConf environment variable interpolation."""
         os.environ["TEST_VAR"] = "interpolated_value"
-        
+
         # Use existing config to test interpolation
         self.config.set("test_interpolation", "${oc.env:TEST_VAR}")
         value = self.config.get("test_interpolation")
