@@ -3,10 +3,7 @@
 import os
 import tempfile
 from pathlib import Path
-from typing import Any
 from unittest import TestCase
-
-import pytest
 
 from src.utils.config_mngr import OmegaConfig, global_config, global_config_reload
 
