@@ -130,31 +130,46 @@ class PydanticRag(BaseModel):
         """Return the description of the key field from the model definition."""
         key_path = self._key_field.split(".")
         current_schema = self.model_definition.get("schema", {})
-
+        
+        # Start from the top class (RainbowProjectAnalysis)
+        top_class_name = self.model_definition.get("top_class", "")
+        if not top_class_name or top_class_name not in current_schema:
+            return ""
+            
         # Navigate through the schema to get the description
         description = ""
         temp_schema = current_schema
-
-        debug(key_path, temp_schema)
-
-        for key_part in key_path:
+        
+        # First, get the top class fields
+        if "fields" in current_schema[top_class_name]:
+            temp_schema = current_schema[top_class_name]["fields"]
+        
+        for i, key_part in enumerate(key_path):
             if key_part in temp_schema:
                 field_def = temp_schema[key_part]
-                if "description" in field_def:
+                
+                # Check if this is the last part of the path
+                if i == len(key_path) - 1:
                     description = field_def.get("description", "")
-
-                if "fields" in field_def:
-                    # We're at a nested class level, move to its fields
-                    temp_schema = field_def["fields"]
-                elif "type" in field_def:
-                    # We're at a field with a type, check if it's a referenced class
+                    break
+                
+                # Check if it's a reference to another class
+                if "type" in field_def:
                     field_type = field_def["type"]
+                    # Remove array brackets if present
+                    if field_type.startswith("list[") and field_type.endswith("]"):
+                        field_type = field_type[5:-1]
+                    
                     if field_type in current_schema:
-                        # This is a reference to another class, move to that class
-                        temp_schema = current_schema[field_type].get("fields", {})
+                        # Move to the referenced class's fields
+                        if "fields" in current_schema[field_type]:
+                            temp_schema = current_schema[field_type]["fields"]
+                        else:
+                            break
                     else:
-                        # We're at a primitive field, we've already got the description
                         break
+                else:
+                    break
             else:
                 # Key part not found
                 break
