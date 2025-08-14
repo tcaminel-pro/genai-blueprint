@@ -83,10 +83,13 @@ def print_step(step: Any, details: bool = True) -> None:
 
     elif isinstance(step, dict):
         for node, updates in step.items():
-            title = f"[bold blue]Update from: '{node}'[/bold blue]"
             if "messages" in updates:
-                console.print(Panel(updates["messages"][-1].pretty_repr(), title=title, border_style="dim"))
+                message_repr = updates["messages"][-1].pretty_repr()
+                title_line = message_repr.split("\n")[0]
+                title = f"[bold blue]{title_line}[/bold blue]"
+                console.print(Panel(message_repr, title=title, border_style="dim"))
             else:
+                title = f"[bold blue]Update from: '{node}'[/bold blue]"
                 content = updates if details else str(type(updates))
                 console.print(Panel(content, title=title, border_style="blue"))
 
@@ -95,10 +98,13 @@ def print_step(step: Any, details: bool = True) -> None:
         console.print(Panel(f"[bold magenta]Step Type: {step_type}[/bold magenta]", border_style="magenta"))
 
         for node, updates in content.items():
-            title = f"[bold yellow]Update from: {node}[/bold yellow]"
             if "messages" in updates:
-                console.print(Panel(updates["messages"][-1].pretty_repr(), title=title, border_style="dim"))
+                message_repr = updates["messages"][-1].pretty_repr()
+                title_line = message_repr.split("\n")[0]
+                title = f"[bold yellow]{title_line}[/bold yellow]"
+                console.print(Panel(message_repr, title=title, border_style="dim"))
             else:
+                title = f"[bold yellow]Update from: {node}[/bold yellow]"
                 detail_content = updates if details else str(type(updates).__name__)
                 console.print(Panel(detail_content, title=title, border_style="yellow"))
 
