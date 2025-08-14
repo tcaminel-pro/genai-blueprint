@@ -313,11 +313,13 @@ class PydanticRag(BaseModel):
                     fields_dict[field_name].append(doc)
 
                 result_parts = [f"# {_entity_key_name}: {entity_id}"]
-                
+
                 # Sort field names according to their order in get_top_class_fields()
                 field_order = list(self.get_top_class_fields().keys())
-                sorted_fields = sorted(fields_dict.keys(), key=lambda x: field_order.index(x) if x in field_order else len(field_order))
-                
+                sorted_fields = sorted(
+                    fields_dict.keys(), key=lambda x: field_order.index(x) if x in field_order else len(field_order)
+                )
+
                 for field_name in sorted_fields:
                     field_docs = fields_dict[field_name]
                     result_parts.append(f"## {field_name}")
