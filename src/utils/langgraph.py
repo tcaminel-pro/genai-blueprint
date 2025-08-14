@@ -72,39 +72,36 @@ async def print_astream(stream: AsyncIterator, content: bool = True) -> None:
 
 
 def print_step(step: Any, details: bool = True) -> None:
-    from rich.console import Console
-    from rich.pretty import Pretty
-    
-    console = Console()
-    
     if isinstance(step, AIMessage):
         if details:
-            console.print(Pretty(step.content))
+            print(step.content)
         else:
-            console.print("[bold]AI Message[/bold]")
+            print("AI Message")
     elif isinstance(step, dict):
         for node, updates in step.items():
-            console.print(f"[bold cyan]Update from: '{node}'[/bold cyan]")
+            print(f"Update from: '{node}'")
             if "messages" in updates:
-                console.print(Pretty(updates["messages"][-1]))
+                updates["messages"][-1].pretty_print()
             else:
                 if details:
-                    console.print(Pretty(updates))
+                    print(updates)
                 else:
-                    console.print(f"[dim]{type(updates)}[/dim]")
+                    print(type(updates))
 
     elif isinstance(step, tuple):
+        #        print(step)
         step_type, content = step
-        console.print(f"[bold magenta]step type: {step_type}[/bold magenta]")
+        print(f"step type: {step_type}")
         for node, updates in content.items():
-            console.print(f"[bold cyan]Update from: {node}[/bold cyan]")
+            print(f"Update from: {node}")
             if "messages" in updates:
-                console.print(Pretty(updates["messages"][-1]))
+                updates["messages"][-1].pretty_print()
             else:
                 if details:
-                    console.print(Pretty(updates))
+                    print(updates)
+                    # print(content)
                 else:
-                    console.print(f"[dim]{type(updates).__dim]")
+                    print(type(updates).__name__)
     else:
-        console.print(Pretty(step))
-    console.print()
+        print(str(step))
+    print("\n")
