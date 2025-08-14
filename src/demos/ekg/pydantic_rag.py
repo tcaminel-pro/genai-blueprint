@@ -135,6 +135,8 @@ class PydanticRag(BaseModel):
         description = ""
         temp_schema = current_schema
 
+        debug(key_path, temp_schema)
+
         for key_part in key_path:
             if key_part in temp_schema:
                 field_def = temp_schema[key_part]
