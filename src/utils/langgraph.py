@@ -87,7 +87,7 @@ def print_step(step: Any, details: bool = True) -> None:
                 title_line = message_repr.split("\n")[0]
                 title = f"[bold blue]{title_line}[/bold blue]"
                 body = "\n".join(message_repr.split("\n")[1:]) if "\n" in message_repr else ""
-                console.print(Panel(body, title=title, border_style="dim"))
+                console.print(Panel(body, title=title, border_style="blue"))
             else:
                 title = f"[bold blue]Update from: '{node}'[/bold blue]"
                 content = updates if details else str(type(updates))
