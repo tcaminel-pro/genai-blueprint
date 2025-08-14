@@ -72,36 +72,39 @@ async def print_astream(stream: AsyncIterator, content: bool = True) -> None:
 
 
 def print_step(step: Any, details: bool = True) -> None:
+    from rich.console import Console
+    from rich.pretty import Pretty
+    
+    console = Console()
+    
     if isinstance(step, AIMessage):
         if details:
-            print(step.content)
+            console.print(Pretty(step.content))
         else:
-            print("AI Message")
+            console.print("[bold]AI Message[/bold]")
     elif isinstance(step, dict):
         for node, updates in step.items():
-            print(f"Update from: '{node}'")
+            console.print(f"[bold cyan]Update from: '{node}'[/bold cyan]")
             if "messages" in updates:
-                updates["messages"][-1].pretty_print()
+                console.print(Pretty(updates["messages"][-1]))
             else:
                 if details:
-                    print(updates)
+                    console.print(Pretty(updates))
                 else:
-                    print(type(updates))
+                    console.print(f"[dim]{type(updates)}[/dim]")
 
     elif isinstance(step, tuple):
-        #        print(step)
         step_type, content = step
-        print(f"step type: {step_type}")
+        console.print(f"[bold magenta]step type: {step_type}[/bold magenta]")
         for node, updates in content.items():
-            print(f"Update from: {node}")
+            console.print(f"[bold cyan]Update from: {node}[/bold cyan]")
             if "messages" in updates:
-                updates["messages"][-1].pretty_print()
+                console.print(Pretty(updates["messages"][-1]))
             else:
                 if details:
-                    print(updates)
-                    # print(content)
+                    console.print(Pretty(updates))
                 else:
-                    print(type(updates).__name__)
+                    console.print(f"[dim]{type(updates).__dim]")
     else:
-        print(str(step))
-    print("\n")
+        console.print(Pretty(step))
+    console.print()
