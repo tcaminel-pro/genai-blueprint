@@ -87,7 +87,8 @@ def print_step(step: Any, details: bool = True) -> None:
                 message_repr = updates["messages"][-1].pretty_repr()
                 title_line = message_repr.split("\n")[0]
                 title = f"[bold blue]{title_line}[/bold blue]"
-                console.print(Panel(message_repr, title=title, border_style="dim"))
+                body = "\n".join(message_repr.split("\n")[1:]) if "\n" in message_repr else ""
+                console.print(Panel(body, title=title, border_style="dim"))
             else:
                 title = f"[bold blue]Update from: '{node}'[/bold blue]"
                 content = updates if details else str(type(updates))
@@ -102,7 +103,8 @@ def print_step(step: Any, details: bool = True) -> None:
                 message_repr = updates["messages"][-1].pretty_repr()
                 title_line = message_repr.split("\n")[0]
                 title = f"[bold yellow]{title_line}[/bold yellow]"
-                console.print(Panel(message_repr, title=title, border_style="dim"))
+                body = "\n".join(message_repr.split("\n")[1:]) if "\n" in message_repr else ""
+                console.print(Panel(body, title=title, border_style="dim"))
             else:
                 title = f"[bold yellow]Update from: {node}[/bold yellow]"
                 detail_content = updates if details else str(type(updates).__name__)
