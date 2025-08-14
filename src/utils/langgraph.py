@@ -86,7 +86,7 @@ def print_step(step: Any, details: bool = True) -> None:
             title = f"[bold blue]Update from: '{node}'[/bold blue]"
             if "messages" in updates:
                 console.print(Panel.fit(Text.from_markup(title)))
-                console.print(updates["messages"][-1].pretty_repr())
+                console.print(Panel(updates["messages"][-1].pretty_repr(), border_style="dim"))
             else:
                 content = updates if details else str(type(updates))
                 console.print(Panel(content, title=title, border_style="blue"))
@@ -99,7 +99,7 @@ def print_step(step: Any, details: bool = True) -> None:
             title = f"[bold yellow]Update from: {node}[/bold yellow]"
             if "messages" in updates:
                 console.print(Panel.fit(Text.from_markup(title)))
-                console.print(updates["messages"][-1].pretty_repr())
+                console.print(Panel(updates["messages"][-1].pretty_repr(), border_style="dim"))
             else:
                 detail_content = updates if details else str(type(updates).__name__)
                 console.print(Panel(detail_content, title=title, border_style="yellow"))
