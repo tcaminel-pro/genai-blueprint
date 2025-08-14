@@ -302,27 +302,27 @@ class PydanticRag(BaseModel):
                 docs = self._vector_store.similarity_search(query, k=4)
                 if not docs:
                     return "No information found"
-                
+
                 # Get entity_id from the first document (assuming all have same entity_id)
-                entity_id = docs[0].metadata.get('entity_id', 'unknown')
-                
+                entity_id = docs[0].metadata.get("entity_id", "unknown")
+
                 # Group documents by field_name
                 fields_dict = {}
                 for doc in docs:
-                    field_name = doc.metadata.get('field_name', '')
+                    field_name = doc.metadata.get("field_name", "")
                     if field_name not in fields_dict:
                         fields_dict[field_name] = []
                     fields_dict[field_name].append(doc)
-                
+
                 # Format output
                 result_parts = [f"# entity_id: {entity_id}"]
-                
+
                 for field_name, field_docs in fields_dict.items():
                     result_parts.append(f"## {field_name}")
                     for doc in field_docs:
                         content = doc.page_content.replace("#", "###")
                         result_parts.append(f"\n{content}")
-                
+
                 return "\n".join(result_parts)
 
         return VectorSearchTool()
