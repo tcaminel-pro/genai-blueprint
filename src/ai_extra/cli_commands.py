@@ -15,7 +15,6 @@ The commands are registered with a Typer CLI application and provide:
 
 import asyncio
 import sys
-from pathlib import Path
 from typing import Annotated, Optional
 
 import typer
@@ -25,69 +24,13 @@ from upath import UPath
 from src.utils.config_mngr import global_config
 
 
-async def run_mcp_agent_shell(llm_id: str | None, server_filter: list[str] | None = None) -> None:
-    """Run an interactive shell for sending prompts to an MCP agent.
-
-    The MCP servers are started once before entering the shell loop.
-    The user can type /quit to exit the shell.
-
-    Args:
-        llm_id: Optional ID of the language model to use
-        server_filter: Optional list of server names to include in the agent
-    """
-    from langchain_mcp_adapters.client import MultiServerMCPClient
-    from langgraph.checkpoint.memory import MemorySaver
-    from langgraph.prebuilt import create_react_agent
-    from prompt_toolkit import PromptSession
-    from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
-    from prompt_toolkit.history import FileHistory
-    from prompt_toolkit.patch_stdout import patch_stdout
-
-    from src.ai_core.llm_factory import get_llm
-    from src.ai_core.mcp_client import get_mcp_servers_dict
-    from src.utils.langgraph import print_astream
-
-    print(f"Starting MCP agent shell with servers: {server_filter if server_filter else 'all'}")
-    print("Type /quit to exit; Use up/down arrows to navigate prompt history\n")
-
-    # Initialize the model and MCP client once
-    model = get_llm(llm_id=llm_id)
-    client = MultiServerMCPClient(get_mcp_servers_dict(server_filter))
-    tools = await client.get_tools()
-    config = {"configurable": {"thread_id": "1"}}
-    agent = create_react_agent(model, tools, checkpointer=MemorySaver())
-
-    # Set up prompt history
-    history_file = Path(".blueprint.input.history")
-    session = PromptSession(history=FileHistory(str(history_file)))
-    while True:
-        try:
-            with patch_stdout():
-                user_input = await session.prompt_async("> ", auto_suggest=AutoSuggestFromHistory())
-
-            user_input = user_input.strip()
-            if user_input.lower() in ["/quit", "/exit", "/q"]:
-                break
-            if not user_input:
-                continue
-            resp = agent.astream({"messages": user_input}, config)
-            await print_astream(resp)
-
-        except KeyboardInterrupt:
-            print("\nReceived keyboard interrupt. Exiting...")
-            break
-        except Exception as e:
-            print(f"Error: {str(e)}")
-
-
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def mcp_agent(
         input: Annotated[str | None, typer.Option(help="Input query or '-' to read from stdin")] = None,
-        server: Annotated[
+        mcp: Annotated[
             list[str], typer.Option(help="MCP server names to connect to (e.g. playwright, filesystem, ..)")
         ] = [],
-        all_servers: Annotated[bool, typer.Option(help="Connect to all configured servers")] = False,
         cache: Annotated[str, typer.Option(help="Cache strategy: 'sqlite', 'memory' or 'no_cache'")] = "memory",
         lc_verbose: Annotated[bool, Option("--verbose", "-v", help="Enable LangChain verbose mode")] = False,
         lc_debug: Annotated[bool, Option("--debug", "-d", help="Enable LangChain debug mode")] = False,
@@ -101,28 +44,19 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         Example:
 
-        echo "get news from atos.net web site" | uv run cli mcp-agent --server playwright --server filesystem
+        echo "get news from atos.net web site" | uv run cli mcp-agent --mcp playwright --mcp filesystem
 
         Use --shell to start an interactive shell where you can send multiple prompts to the agent.
         """
-        from langchain.globals import set_debug, set_verbose
 
-        from src.ai_core.cache import LlmCache
-        from src.ai_core.llm_factory import LlmFactory
         from src.ai_core.mcp_client import call_react_agent
+        from src.utils.cli.langchain_setup import setup_langchain
+        from src.utils.cli.langgraph_agent_shell import run_langgraph_agent_shell
 
-        set_debug(lc_debug)
-        set_verbose(lc_verbose)
-        LlmCache.set_method(cache)
-
-        if llm_id is not None:
-            if llm_id not in LlmFactory.known_items():
-                print(f"Error: {llm_id} is unknown llm_id.\nShould be in {LlmFactory.known_items()}")
-                return
-            global_config().set("llm.default_model", llm_id)
+        setup_langchain(llm_id, lc_debug, lc_verbose, cache)
 
         if shell:
-            asyncio.run(run_mcp_agent_shell(llm_id, None if all_servers else server))
+            asyncio.run(run_langgraph_agent_shell(llm_id, mcp_server_names=mcp))
         else:
             if not input and not sys.stdin.isatty():
                 input = sys.stdin.read()
@@ -130,7 +64,7 @@ def register_commands(cli_app: typer.Typer) -> None:
                 print("Error: Input parameter or something in stdin is required")
                 return
 
-            asyncio.run(call_react_agent(input, llm_id=llm_id, mcp_server_filter=server))
+            asyncio.run(call_react_agent(input, llm_id=llm_id, mcp_server_filter=mcp))
 
     @cli_app.command()
     def smolagents(
@@ -150,12 +84,10 @@ def register_commands(cli_app: typer.Typer) -> None:
         from smolagents.default_tools import TOOL_MAPPING
 
         from src.ai_core.llm_factory import LlmFactory
+        from src.utils.cli.langchain_setup import setup_langchain
 
-        if llm_id is not None:
-            if llm_id not in LlmFactory.known_items():
-                print(f"Error: {llm_id} is unknown llm_id.\nShould be in {LlmFactory.known_items()}")
-                return
-            global_config().set("llm.default_model", llm_id)
+        if not setup_langchain(llm_id):
+            return
 
         model = LlmFactory(llm_id=llm_id).get_smolagent_model()
         available_tools = []

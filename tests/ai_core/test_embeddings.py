@@ -13,15 +13,17 @@ SENTENCE_2 = "Tokens can be words, phrases, or even individual characters."
 global_config().select_config("pytest")
 
 
-def test_default_embeddings() -> None:
+def test_fake_embeddings() -> None:
     """Test that default embeddings can be created and used."""
-    embedder = get_embeddings(None)
+
+    # global_config().set("llm.default_model", "embeddings_768_fake")
+    embedder = get_embeddings("embeddings_768_fake")
     vectors = embedder.embed_documents([SENTENCE_1, SENTENCE_2])
 
     # Basic validation of embeddings
     assert len(vectors) == 2
-    assert len(vectors[0]) > 0
-    assert len(vectors[1]) > 0
+    assert len(vectors[0]) == 768
+    assert len(vectors[1]) == 768
 
 
 def test_known_embeddings_list() -> None:

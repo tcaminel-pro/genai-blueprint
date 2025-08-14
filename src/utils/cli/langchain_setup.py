@@ -7,11 +7,16 @@ from src.ai_core.llm_factory import LlmFactory
 from src.utils.config_mngr import global_config
 
 
-def setup_langchain(llm_id: str | None, lc_debug: bool, lc_verbose: bool, cache: str):
+def setup_langchain(
+    llm_id: str | None, lc_debug: bool | None = None, lc_verbose: bool | None = None, cache: str | None = None
+):
     console = Console()
-    set_debug(lc_debug)
-    set_verbose(lc_verbose)
-    LlmCache.set_method(cache)
+    if lc_debug:
+        set_debug(lc_debug)
+    if lc_verbose:
+        set_verbose(lc_verbose)
+    if cache:
+        LlmCache.set_method(cache)
 
     if llm_id is not None:
         if llm_id not in LlmFactory.known_items():
@@ -19,7 +24,7 @@ def setup_langchain(llm_id: str | None, lc_debug: bool, lc_verbose: bool, cache:
                 Panel(
                     f"[red]Error:[/red] '{llm_id}' is not a valid model ID.\n"
                     f"Valid options are: {', '.join(LlmFactory.known_items())}",
-                    title="Configuration Error",
+                    title="Error",
                     style="red",
                 )
             )

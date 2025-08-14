@@ -13,7 +13,7 @@ from src.utils.pydantic.kv_store import (
 )
 
 
-class TestModel(BaseModel):
+class SampleModel(BaseModel):
     """Test model for kv_store testing."""
 
     name: str
@@ -25,7 +25,7 @@ class TestKVStore(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.test_model = TestModel(name="test_object", value=42)
+        self.test_model = SampleModel(name="test_object", value=42)
 
     def test_encode_to_alphanumeric(self):
         """Test alphanumeric encoding function."""
@@ -51,7 +51,7 @@ class TestKVStore(unittest.TestCase):
             key = "test_key"
             save_object_to_kvstore(key, self.test_model, "file")
 
-            retrieved = load_object_from_kvstore(TestModel, key, "file")
+            retrieved = load_object_from_kvstore(SampleModel, key, "file")
             self.assertIsNotNone(retrieved)
             self.assertEqual(retrieved.name, "test_object")
             self.assertEqual(retrieved.value, 42)
@@ -63,7 +63,7 @@ class TestKVStore(unittest.TestCase):
 
             global_config().set("kv_store.file.path", temp_dir)
 
-            retrieved = load_object_from_kvstore(TestModel, "nonexistent", "file")
+            retrieved = load_object_from_kvstore(SampleModel, "nonexistent", "file")
             self.assertIsNone(retrieved)
 
     def test_file_storage_dict_key(self):
@@ -76,7 +76,7 @@ class TestKVStore(unittest.TestCase):
             dict_key = {"user_id": 123, "session": "abc"}
             save_object_to_kvstore(dict_key, self.test_model, "file")
 
-            retrieved = load_object_from_kvstore(TestModel, dict_key, "file")
+            retrieved = load_object_from_kvstore(SampleModel, dict_key, "file")
             self.assertIsNotNone(retrieved)
             self.assertEqual(retrieved.name, "test_object")
 
@@ -91,10 +91,10 @@ class TestKVStore(unittest.TestCase):
             save_object_to_kvstore(key, self.test_model, "file")
 
             # Create new model and overwrite
-            new_model = TestModel(name="updated", value=99)
+            new_model = SampleModel(name="updated", value=99)
             save_object_to_kvstore(key, new_model, "file")
 
-            retrieved = load_object_from_kvstore(TestModel, key, "file")
+            retrieved = load_object_from_kvstore(SampleModel, key, "file")
             self.assertIsNotNone(retrieved)
             self.assertEqual(retrieved.name, "updated")
             self.assertEqual(retrieved.value, 99)
@@ -110,13 +110,13 @@ class TestKVStore(unittest.TestCase):
                 title: str
                 count: float
 
-            model1 = TestModel(name="model1", value=1)
+            model1 = SampleModel(name="model1", value=1)
             model2 = AnotherModel(title="model2", count=2.5)
 
             save_object_to_kvstore("key1", model1, "file")
             save_object_to_kvstore("key2", model2, "file")
 
-            retrieved1 = load_object_from_kvstore(TestModel, "key1", "file")
+            retrieved1 = load_object_from_kvstore(SampleModel, "key1", "file")
             retrieved2 = load_object_from_kvstore(AnotherModel, "key2", "file")
 
             self.assertIsNotNone(retrieved1)
@@ -137,10 +137,10 @@ class TestKVStore(unittest.TestCase):
             global_config().set("kv_store.sql.path", db_url)
 
             try:
-                model = TestModel(name="sql_test", value=123)
+                model = SampleModel(name="sql_test", value=123)
                 save_object_to_kvstore("sql_key", model, "sql")
 
-                retrieved = load_object_from_kvstore(TestModel, "sql_key", "sql")
+                retrieved = load_object_from_kvstore(SampleModel, "sql_key", "sql")
                 self.assertIsNotNone(retrieved)
                 self.assertEqual(retrieved.name, "sql_test")
                 self.assertEqual(retrieved.value, 123)

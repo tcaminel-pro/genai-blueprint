@@ -97,22 +97,14 @@ def register_commands(cli_app: typer.Typer) -> None:
         'cache' is the prompt caching strategy, and it can be either 'sqlite' (default) or 'memory'.
         """
 
-        from langchain.globals import set_debug, set_verbose
         from langchain_core.output_parsers import StrOutputParser
         from rich import print as pprint
 
-        from src.ai_core.cache import LlmCache
         from src.ai_core.llm_factory import LlmFactory
+        from src.utils.cli.langchain_setup import setup_langchain
 
-        set_debug(lc_debug)
-        set_verbose(lc_verbose)
-        LlmCache.set_method(cache)
-
-        if llm_id is not None:
-            if llm_id not in LlmFactory.known_items():
-                print(f"Error: {llm_id} is unknown llm_id.\nShould be in {LlmFactory.known_items()}")
-                return
-            global_config().set("llm.default_model", llm_id)
+        if not setup_langchain(llm_id, lc_debug, lc_verbose, cache):
+            return
 
         # Check if executed as part ot a pipe
         if not input and not sys.stdin.isatty():
@@ -175,21 +167,12 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
 
         from devtools import pprint
-        from langchain.globals import set_debug, set_verbose
 
-        from src.ai_core.cache import LlmCache
         from src.ai_core.chain_registry import ChainRegistry
-        from src.ai_core.llm_factory import LlmFactory
+        from src.utils.cli.langchain_setup import setup_langchain
 
-        set_debug(lc_debug)
-        set_verbose(lc_verbose)
-        LlmCache.set_method(cache)
-
-        if llm_id is not None:
-            if llm_id not in LlmFactory.known_items():
-                print(f"Error: {llm_id} is unknown llm_id.\nShould be in {LlmFactory.known_items()}")
-                return
-            global_config().set("llm.default_model", llm_id)
+        if not setup_langchain(llm_id, lc_debug, lc_verbose, cache):
+            return
 
         # Handle input from stdin if no input parameter provided
         if not input and not sys.stdin.isatty():  # Check if stdin has data (pipe/redirect)
