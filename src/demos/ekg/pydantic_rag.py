@@ -134,17 +134,28 @@ class PydanticRag(BaseModel):
         # Navigate through the schema to get the description
         description = ""
         temp_schema = current_schema
-        debug(temp_schema, key_path)
 
         for key_part in key_path:
             if key_part in temp_schema:
-                if "fields" in temp_schema[key_part]:
-                    # We're at a nested class level
-                    temp_schema = temp_schema[key_part]["fields"]
-                else:
-                    # We're at the field level
-                    description = temp_schema[key_part].get("description", "")
-                    break
+                field_def = temp_schema[key_part]
+                if "description" in field_def:
+                    description = field_def.get("description", "")
+                
+                if "fields" in field_def:
+                    # We're at a nested class level, move to its fields
+                    temp_schema = field_def["fields"]
+                elif "type" in field_def:
+                    # We're at a field with a type, check if it's a referenced class
+                    field_type = field_def["type"]
+                    if field_type in current_schema:
+                        # This is a reference to another class, move to that class
+                        temp_schema = current_schema[field_type].get("fields", {})
+                    else:
+                        # We're at a primitive field, we've already got the description
+                        break
+            else:
+                # Key part not found
+                break
 
         return description
 
