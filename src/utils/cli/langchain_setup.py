@@ -1,3 +1,6 @@
+# Add doc AI!
+
+
 from langchain.globals import set_debug, set_verbose
 from rich.console import Console
 from rich.panel import Panel
@@ -30,4 +33,4 @@ def setup_langchain(
             )
             return False
         global_config().set("llm.default_model", llm_id)
-        return True
+    return True
