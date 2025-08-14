@@ -227,11 +227,11 @@ class VectorStoreFactory(BaseModel):
         else:
             raise ValueError(f"Unknown vector store: {self.id}")
 
-        logger.info(f"get vector store  : {self.description}")
+        logger.debug(f"get vector store  : {self.description}")
         if self.index_document:
             # NOT TESTED
             db_url = global_config().get_str("vector_store.record_manager")
-            logger.info(f"vector store record manager : {db_url}")
+            logger.debug(f"vector store record manager : {db_url}")
             namespace = f"{self.id}/{self.table_name}"
             self._record_manager = SQLRecordManager(
                 namespace,
@@ -313,11 +313,12 @@ class VectorStoreFactory(BaseModel):
             conf=self._conf,
         )
 
-    def clean(self):
+    def delete_collection(self):
         if self.id == "PgVector":
             from langchain_postgres import PGEngine
 
             if pg_engine := self._conf.get("pg_engine"):
+                logger.info(f"drop file {self._conf['schema_name']}.{self._conf['table_name']}")
                 assert isinstance(pg_engine, PGEngine)
                 pg_engine.drop_table(table_name=self._conf["table_name"], schema_name=self._conf["schema_name"])
             else:

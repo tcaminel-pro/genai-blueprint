@@ -74,7 +74,7 @@ def create_pg_vector_store(
             index_name=hybrid_config.get("index_name", f"{table_name}_tsv_index"),
             index_type=hybrid_config.get("index_type", "GIN"),
         )
-        logger.info(f"Hybrid search enabled with config: {hybrid_search_config}")
+        logger.debug(f"Hybrid search enabled with config: {hybrid_search_config}")
 
     try:
         pg_engine.init_vectorstore_table(
@@ -113,7 +113,7 @@ def create_pg_vector_store(
             vector_store._engine._run_as_async(vector_store.apply_hybrid_search_index())
             logger.info(f"Applied hybrid search index on {table_name}")
         except Exception as e:
-            logger.warning(f"Failed to apply hybrid search index: {e}")
+            logger.debug(f"Failed to apply hybrid search index: {e}")
 
     conf["pg_engine"] = pg_engine
     conf["table_name"] = table_name

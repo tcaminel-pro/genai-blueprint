@@ -211,12 +211,11 @@ def register_commands(cli_app: typer.Typer) -> None:
         list_demos = (
             global_config().merge_with("config/demos/document_extractor.yaml").get_list("Document_extractor_demo")
         )
-        vector_store = PydanticRag.get_vector_store()
+        vector_store_factory = PydanticRag.get_vector_store_factory()
         rainbow_schema = next((item for item in list_demos if item.get("schema_name") == "Rainbow File"))
-
         rag = PydanticRag(
             model_definition=rainbow_schema,
-            vector_store=vector_store,
+            vector_store_factory=vector_store_factory,
             llm_id=None,
             kv_store_id="file",
         )

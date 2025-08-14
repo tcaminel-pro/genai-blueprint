@@ -52,7 +52,7 @@ Document_extractor_demo:
 
 - schema_name: Rainbow File
   version: 1.0
-  key: ProjectIdentification.opportunity_id
+  key: identification.opportunity_id
   top_class: RainbowProjectAnalysis
   schema:
     ProjectIdentification:

@@ -225,20 +225,40 @@ class PydanticRag(BaseModel):
             A BaseTool that can search the vector store for semantic matches.
         """
 
+        _entity_id_name: str = self._key_field.split(".")[-1]
+        _top_class_description: dict = self.get_top_class_fields()
+        _entity_key_name: str = self._key_field.split(".")[-1]
+
         class VectorSearchInput(BaseModel):
             """Input schema for the vector search tool."""
 
-            query: str = Field(..., description="The query")
-            selected_section: List[str] = Field(
+            query: str = Field(
+                ...,
+                description=dedent_ws(
+                    """
+                    The query to the semantic search vector store. 
+                    Provide several variants of the request to improve the semantic matching 
+                    (ex: broaden, examples,...) """
+                ),
+            )
+            selected_sections: List[str] = Field(
                 ...,
                 description=dedent_ws(
                     f"""
                     List of sections relevant for the query.\n
-                    Allowed section name SHOULD BE in that list: \n - {"\n- ".join([f"'{k}' ({v})" for k, v in self.get_top_class_fields().items()])}"""
+                    Allowed section name SHOULD BE in that list: \n - {"\n- ".join([f"'{k}' ({v})" for k, v in self.get_top_class_fields().items()])} \n
+                    Select only the most relevant sections (maximum 2)"""
                 ),
             )
-            entity_key: Optional[str] = Field(
-                None, description=f"id to filter research on a given document: {self.get_key_description()}"
+            entity_keys: list[str] = Field(
+                ...,
+                description=dedent_ws(
+                    f"""
+                    List of '{_entity_id_name}' mentionned in the discussion and whose user is talking about. 
+                    (for example the one returned by a search query and whose user wants more details).
+                    Return empty list if no '{_entity_id_name}' has been mentioned, or if the user request is not 
+                    related to previously returned  {_entity_id_name}"""
+                ),
             )
 
         class VectorSearchTool(BaseTool):
@@ -248,33 +268,42 @@ class PydanticRag(BaseModel):
             description: str = dedent_ws(
                 f"""
                 Retrieve information related to documents described as '{self.get_top_class_description()}.
-                The mandatory argument are:
-                - query.  
-                - selected_section: a list of section names that best match the query. Select several if you are not sure.
-                Additional arguments: 
-                - entity_key:  an id to limit search to a given doc 
+                Each document is related to a unique id '{_entity_id_name}', with is typically a  {self.get_key_description()}.
+                Argument are:
+                - expanded query.  
+                - selected_sections: a list of section names that best match the query. Select several if you are not sure.
+                - entity_keys:  list of '{_entity_id_name}' mentionned in the context / discussion..
                 """
             )
             args_schema: Optional[ArgsSchema] = VectorSearchInput
-            _top_class_description: dict = self.get_top_class_fields()
 
             def model_post_init(self, __context: Any) -> None:
                 self._vector_store = PydanticRag.get_vector_store_factory().get()
 
-            def _run(self, query: str, selected_section: Optional[List[str]] = None) -> str:
+            def _run(self, query: str, selected_sections: List[str], entity_keys: list[str] = []) -> str:
                 """Execute search against the vector store."""
-                allowed = set(self._top_class_description.keys())
-                if selected_section:
-                    invalid = [f for f in selected_section if f not in allowed]
-                    if invalid:
-                        logger.warning(f"Removing invalid section: {invalid}")
-                        selected_section = [f for f in selected_section if f in allowed]
-                    filter_dict = {"field_name": {"$in": selected_section}} if selected_section else {}
+                allowed = set(_top_class_description.keys())
+
+                invalid = [f for f in selected_sections if f not in allowed]
+                if invalid:
+                    logger.warning(f"Removing invalid section: {invalid}")
+                    selected_sections = [f for f in selected_sections if f in allowed]
+                section_filter = {"field_name": {"$in": selected_sections}} if selected_sections else {}
+                entity_filter = {"entity_id": {"$in": entity_keys}} if entity_keys else {}
+
+                if entity_filter:
+                    filter_dict = {"$and": [section_filter, entity_filter]}
                 else:
-                    filter_dict = {}
+                    filter_dict = section_filter
 
                 docs = self._vector_store.similarity_search(query, k=4, filter=filter_dict)
-                return "\n".join([doc.page_content for doc in docs])
+                if docs:
+                    title = f"# {_entity_key_name}: {docs[0].metadata.get('entity_id', '')}"
+                    body = f"\n{'\n'.join([doc.page_content for doc in docs])}"
+                    body = body.replace("#", "##")  # indent the level of markdown
+                    return title + body
+                else:
+                    return "No information found"
 
         return VectorSearchTool()
 
@@ -282,4 +311,5 @@ class PydanticRag(BaseModel):
         return {
             field_name: getattr(field_info, "description", "")
             for field_name, field_info in self._top_class.model_fields.items()
+            if field_name != "source"
         }

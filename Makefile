@@ -86,7 +86,7 @@ aider-qwen:
 aider-k2:
 	aider $(AIDER_OPTS) --cache-prompts --model openrouter/moonshotai/kimi-k2
 aider-gpt:
-	aider $(AIDER_OPTS) --model openrouter/openai/gpt-oss-120b 
+	aider $(AIDER_OPTS) --model openrouter/openai/gpt-oss-120b --reasoning-effort high
 
 lint: ## Run Ruff an all Python files to format fix imports
 	ruff check --select I --fix
@@ -238,3 +238,5 @@ postgres:
 
  
 
+qwen:
+	@OPENAI_API_KEY=$(OPENROUTER_API_KEY) OPENAI_BASE_URL="https://openrouter.ai/api/v1" OPENAI_MODEL="qwen/qwen3-coder" qwen
