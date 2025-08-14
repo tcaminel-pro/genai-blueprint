@@ -4,7 +4,6 @@ Provides utilities to setup and configure LangChain components including
 debug/verbose modes, cache strategies, and LLM model selection.
 """
 
-
 from langchain.globals import set_debug, set_verbose
 from rich.console import Console
 from rich.panel import Panel
