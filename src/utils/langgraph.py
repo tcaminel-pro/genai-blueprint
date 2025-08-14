@@ -5,7 +5,6 @@ Common code for Langgraph
 from typing import Any, AsyncIterator, Iterator
 
 from langchain_core.messages import AIMessage
-from rich import print
 
 
 def stream_node_response_content(stream: Iterator, node: str = "agent") -> Iterator:
@@ -74,7 +73,6 @@ async def print_astream(stream: AsyncIterator, content: bool = True) -> None:
 def print_step(step: Any, details: bool = True) -> None:
     from rich.console import Console
     from rich.panel import Panel
-    from rich.json import JSON
     from rich.text import Text
 
     console = Console()
