@@ -296,12 +296,17 @@ class PydanticRag(BaseModel):
                 else:
                     filter_dict = section_filter
 
-                docs = self._vector_store.similarity_search(query, k=4, filter=filter_dict)
+                debug(filter_dict)
+                filter_dict = {}
+
+                # docs = self._vector_store.similarity_search(query, k=4, filter=filter_dict)
+                docs = self._vector_store.similarity_search(query, k=4)
                 if docs:
-                    title = f"# {_entity_key_name}: {docs[0].metadata.get('entity_id', '')}"
-                    body = f"\n{'\n'.join([doc.page_content for doc in docs])}"
-                    body = body.replace("#", "##")  # indent the level of markdown
-                    return title + body
+                    l1 = f"# {_entity_key_name}: {docs[0].metadata.get('entity_id', '')}"
+                    l2 = f"## {docs[0].metadata.get('field_name', '')}"
+                    l3 = f"\n{'\n'.join([doc.page_content for doc in docs])}"
+                    l3 = l3.replace("#", "###")  # indent the level of markdown
+                    return l1 + l3
                 else:
                     return "No information found"
 
