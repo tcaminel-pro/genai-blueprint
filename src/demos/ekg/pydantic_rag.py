@@ -140,7 +140,7 @@ class PydanticRag(BaseModel):
                 field_def = temp_schema[key_part]
                 if "description" in field_def:
                     description = field_def.get("description", "")
-                
+
                 if "fields" in field_def:
                     # We're at a nested class level, move to its fields
                     temp_schema = field_def["fields"]
