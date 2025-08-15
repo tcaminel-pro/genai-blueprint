@@ -235,21 +235,19 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         # Create panels for each category
         llm_panel = Panel(
-            "\n".join(f"• {item}" for item in llm_items),
-            title="[bold blue]LLMs[/bold blue]",
-            border_style="blue"
+            "\n".join(f"• {item}" for item in llm_items), title="[bold blue]LLMs[/bold blue]", border_style="blue"
         )
-        
+
         embeddings_panel = Panel(
             "\n".join(f"• {item}" for item in embeddings_items),
             title="[bold green]Embeddings[/bold green]",
-            border_style="green"
+            border_style="green",
         )
-        
+
         vector_panel = Panel(
             "\n".join(f"• {item}" for item in vector_items),
             title="[bold magenta]Vector Stores[/bold magenta]",
-            border_style="magenta"
+            border_style="magenta",
         )
 
         # Display in 3 columns
