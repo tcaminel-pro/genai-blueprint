@@ -212,6 +212,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             result = chain.invoke(input)
             pprint(result)
 
+    # pretty print output with rich.  Display 3 columns AI!
     @cli_app.command()
     def list_models() -> None:
         """
