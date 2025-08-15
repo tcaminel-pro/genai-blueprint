@@ -78,7 +78,10 @@ def print_step(step: Any, details: bool = True) -> None:
 
     if isinstance(step, AIMessage):
         content = step.content if details else "AI Message"
-        console.print(Panel(content, title="[bold green]AIMessage[/bold green]", border_style="green"))
+        console.print(Panel(content, 
+                          title="[bold white on blue] AI Message [/bold white on blue]", 
+                          border_style="bright_blue", 
+                          style="bold white on blue"))
 
     elif isinstance(step, dict):
         for node, updates in step.items():
