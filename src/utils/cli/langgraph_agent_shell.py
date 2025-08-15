@@ -8,6 +8,9 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.patch_stdout import patch_stdout
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
 
 from src.ai_core.llm_factory import get_llm
 from src.ai_core.mcp_client import get_mcp_servers_dict
@@ -26,36 +29,57 @@ async def run_langgraph_agent_shell(
         llm_id: Optional ID of the language model to use
         server_filter: Optional list of server names to include in the agent
     """
-
+    console = Console()
+    
+    # Display welcome banner
+    welcome_text = Text("🤖 LangGraph Agent Shell", style="bold cyan")
     if mcp_server_names:
-        print(f"Starting MCP agent shell with servers: {mcp_server_names}")
-    print("Type /quit to exit; Use up/down arrows to navigate prompt history\n")
+        welcome_text.append(f"\nConnected to MCP servers: {', '.join(mcp_server_names)}", style="green")
+    
+    console.print(Panel(welcome_text, title="Welcome", border_style="bright_blue"))
+    console.print("[dim]Type /quit to exit; Use up/down arrows to navigate prompt history[/dim]\n")
 
     model = get_llm(llm_id=llm_id)
     if mcp_server_names:
-        client = MultiServerMCPClient(get_mcp_servers_dict(mcp_server_names))
-        tools = tools + await client.get_tools()
+        with console.status("[bold green]Connecting to MCP servers..."):
+            client = MultiServerMCPClient(get_mcp_servers_dict(mcp_server_names))
+            tools = tools + await client.get_tools()
+            console.print("[green]✓ MCP servers connected[/green]\n")
+    
     config = {"configurable": {"thread_id": "1"}}
     agent = create_react_agent(model, tools, checkpointer=MemorySaver())
 
     # Set up prompt history
     history_file = Path(".blueprint.input.history")
     session = PromptSession(history=FileHistory(str(history_file)))
+    
     while True:
         try:
             with patch_stdout():
-                user_input = await session.prompt_async("> ", auto_suggest=AutoSuggestFromHistory())
+                user_input = await session.prompt_async(
+                    "[bold cyan]>>> [/bold cyan]", 
+                    auto_suggest=AutoSuggestFromHistory()
+                )
 
             user_input = user_input.strip()
             if user_input.lower() in ["/quit", "/exit", "/q"]:
+                console.print("\n[bold yellow]Goodbye! 👋[/bold yellow]")
                 break
             if not user_input:
                 continue
-            resp = agent.astream({"messages": user_input}, config)
-            await print_astream(resp)
+            
+            # Display user prompt with styling
+            console.print(Panel(user_input, title="[bold blue]User[/bold blue]", border_style="blue"))
+            
+            # Process the response
+            with console.status("[bold green]Agent is thinking...[/bold green]"):
+                resp = agent.astream({"messages": user_input}, config)
+                await print_astream(resp)
+            
+            console.print()  # Add spacing between interactions
 
         except KeyboardInterrupt:
-            print("\nReceived keyboard interrupt. Exiting...")
+            console.print("\n[bold yellow]Received keyboard interrupt. Exiting...[/bold yellow]")
             break
         except Exception as e:
-            print(f"Error: {str(e)}")
+            console.print(Panel(f"[red]Error: {str(e)}[/red]", title="[bold red]Error[/bold red]", border_style="red"))
