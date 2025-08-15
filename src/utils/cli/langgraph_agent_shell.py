@@ -32,7 +32,7 @@ async def run_langgraph_agent_shell(
     console = Console()
 
     # Display welcome banner
-    welcome_text = Text("🤖 LangGraph Agent Shell", style="bold cyan")
+    welcome_text = Text("🤖 LangGraph Agent", style="bold cyan")
     if mcp_server_names:
         welcome_text.append(f"\nConnected to MCP servers: {', '.join(mcp_server_names)}", style="green")
 
@@ -71,7 +71,7 @@ async def run_langgraph_agent_shell(
             console.print(Panel(user_input, title="[bold blue]User[/bold blue]", border_style="blue"))
 
             # Process the response
-            with console.status("[bold green]Agent is thinking...[/bold green]"):
+            with console.status("[bold green]Agent is thinking...\n[/bold green]"):
                 resp = agent.astream({"messages": user_input}, config)
                 await print_astream(resp)
 
