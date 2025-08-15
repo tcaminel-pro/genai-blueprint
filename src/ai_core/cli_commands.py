@@ -212,27 +212,50 @@ def register_commands(cli_app: typer.Typer) -> None:
             result = chain.invoke(input)
             pprint(result)
 
-    # pretty print output with rich.  Display 3 columns AI!
     @cli_app.command()
     def list_models() -> None:
         """
         List the known LLMs, embeddings models, and vector stores.
         """
+        from rich.console import Console
+        from rich.columns import Columns
+        from rich.panel import Panel
+        from rich.text import Text
+
         from src.ai_core.embeddings_factory import EmbeddingsFactory
         from src.ai_core.llm_factory import LlmFactory
         from src.ai_core.vector_store_factory import VectorStoreFactory
 
-        print("factories:")
-        tab = 2 * " "
-        print(f"{tab}llm:")
-        for model in LlmFactory.known_items():
-            print(f"{tab}{tab}- {model}")
-        print(f"{tab}embeddings:")
-        for model in EmbeddingsFactory.known_items():
-            print(f"{tab}{tab}- {model}")
-        print(f"{tab}vector_store:")
-        for vc in VectorStoreFactory.known_items():
-            print(f"{tab}{tab}- {vc}")
+        console = Console()
+
+        # Get all items for each category
+        llm_items = LlmFactory.known_items()
+        embeddings_items = EmbeddingsFactory.known_items()
+        vector_items = VectorStoreFactory.known_items()
+
+        # Create panels for each category
+        llm_panel = Panel(
+            "\n".join(f"• {item}" for item in llm_items),
+            title="[bold blue]LLMs[/bold blue]",
+            border_style="blue"
+        )
+        
+        embeddings_panel = Panel(
+            "\n".join(f"• {item}" for item in embeddings_items),
+            title="[bold green]Embeddings[/bold green]",
+            border_style="green"
+        )
+        
+        vector_panel = Panel(
+            "\n".join(f"• {item}" for item in vector_items),
+            title="[bold magenta]Vector Stores[/bold magenta]",
+            border_style="magenta"
+        )
+
+        # Display in 3 columns
+        console.print("\n[bold]Available Models & Components[/bold]\n")
+        columns = Columns([llm_panel, embeddings_panel, vector_panel], equal=True, expand=True)
+        console.print(columns)
 
     @cli_app.command()
     def llm_info_dump(file_name: Annotated[Path, typer.Argument(help="Output YAML file path")]) -> None:
