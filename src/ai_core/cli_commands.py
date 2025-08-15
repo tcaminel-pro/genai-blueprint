@@ -257,11 +257,11 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         # Display LLMs in first row, embeddings and vector stores side by side in second row
         console.print("\n[bold]Available Models & Components[/bold]\n")
-        
+
         # LLMs panel takes full width
         console.print(llm_panel)
         console.print()
-        
+
         # Embeddings and vector stores side by side
         bottom_row = Columns([embeddings_panel, vector_panel], equal=True, expand=True)
         console.print(bottom_row)
