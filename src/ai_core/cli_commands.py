@@ -234,8 +234,13 @@ def register_commands(cli_app: typer.Typer) -> None:
         vector_items = VectorStoreFactory.known_items()
 
         # Create panels for each category
+        from rich.columns import Columns
+        
+        # Format LLM items in 2 columns
+        llm_content = Columns([f"• {item}" for item in llm_items], equal=True, expand=True)
+
         llm_panel = Panel(
-            "\n".join(f"• {item}" for item in llm_items), title="[bold blue]LLMs[/bold blue]", border_style="blue"
+            llm_content, title="[bold blue]LLMs[/bold blue]", border_style="blue"
         )
 
         embeddings_panel = Panel(
