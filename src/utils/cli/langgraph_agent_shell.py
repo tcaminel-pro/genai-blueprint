@@ -56,8 +56,12 @@ async def run_langgraph_agent_shell(
     while True:
         try:
             with patch_stdout():
+                from prompt_toolkit.styles import Style
+                prompt_style = Style.from_dict({
+                    'prompt': 'bold cyan',
+                })
                 user_input = await session.prompt_async(
-                    ">>> ", style="bold cyan", auto_suggest=AutoSuggestFromHistory()
+                    ">>> ", style='class:prompt', auto_suggest=AutoSuggestFromHistory()
                 )
 
             user_input = user_input.strip()
