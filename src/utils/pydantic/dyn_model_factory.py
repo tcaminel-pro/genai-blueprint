@@ -1,4 +1,9 @@
-"""Create Pydantic classes dynamically from a definitions."""
+"""Create Pydantic classes dynamically from YAML definitions.
+
+This module provides functionality to dynamically create Pydantic model classes
+from YAML configuration files. It handles type conversion, nested models,
+and field validation rules.
+"""
 
 from typing import Any, Dict, List, Type, Union
 
@@ -8,13 +13,51 @@ from rich import print
 
 
 class PydanticModelFactory:
-    """Convert YAML definitions to Pydantic classes dynamically."""
+    """Factory for creating Pydantic classes from YAML definitions.
+
+    Converts YAML schema definitions into dynamically generated Pydantic model
+    classes. Supports nested models, list types, and field validation configuration.
+
+    Example:
+        ```yaml
+        Person:
+          description: "A person model"
+          fields:
+            name:
+              type: str
+              required: true
+            age:
+              type: int
+              required: false
+        ```
+
+        ```python
+        factory = PydanticModelFactory()
+        Person = factory.create_class_from_dict(yaml_data, "Person")
+        person = Person(name="John", age=30)
+        ```
+    """
 
     def __init__(self) -> None:
         self.created_classes: Dict[str, Type[BaseModel] | None] = {}
 
     def yaml_type_to_python_type(self, yaml_type: str) -> type:
-        """Convert YAML type string to Python type."""
+        """Convert YAML type string to Python type.
+
+        Supports basic types (str, int, bool, etc.) and generic types (List[T], Dict[K,V]).
+
+        Args:
+            yaml_type: The type string from YAML (e.g., "str", "list[int]", "dict[str, int]")
+
+        Returns:
+            The corresponding Python type object.
+
+        Examples:
+            >>> factory.yaml_type_to_python_type("str")
+            <class 'str'>
+            >>> factory.yaml_type_to_python_type("list[int]")
+            typing.List[int]
+        """
         type_mapping = {
             "str": str,
             "string": str,
@@ -44,12 +87,32 @@ class PydanticModelFactory:
     def create_class_from_dict(self, yaml_data: dict, class_name: str) -> Type[BaseModel]:
         """Create a Pydantic class from dictionary data.
 
+        Processes YAML schema definitions and creates corresponding Pydantic model classes.
+        Handles circular dependencies by creating placeholder classes first.
+
         Args:
-            yaml_data: Dictionary containing class definitions
-            class_name: Optional name for the class to return
+            yaml_data: Dictionary containing class definitions with field specifications.
+            class_name: Name of the specific class to return from the definitions.
 
         Returns:
-            A dynamically created Pydantic class
+            A dynamically created Pydantic model class.
+
+        Raises:
+            ValueError: If the specified class cannot be created.
+
+        Example:
+            ```python
+            yaml_data = {
+                "Person": {
+                    "description": "A person model",
+                    "fields": {
+                        "name": {"type": "str", "required": True},
+                        "age": {"type": "int", "required": False}
+                    }
+                }
+            }
+            person_class = factory.create_class_from_dict(yaml_data, "Person")
+            ```
         """
         self.created_classes.clear()
 
@@ -68,10 +131,18 @@ class PydanticModelFactory:
         if result is None:
             raise ValueError(f"Failed to create class '{class_name}'")
         return result
-        #        return list(self.created_classes.values())[0]
 
     def _create_model(self, model_name: str, description: str, fields: dict) -> Type[BaseModel]:
-        """Create a Pydantic model with a programmatic description."""
+        """Create a Pydantic model with programmatic configuration.
+
+        Args:
+            model_name: Name of the model class.
+            description: Documentation string for the class.
+            fields: Dictionary of field definitions (name: (type, default)).
+
+        Returns:
+            The created Pydantic model class.
+        """
         from pydantic import ConfigDict
 
         config_dict = ConfigDict(extra="allow")
@@ -83,7 +154,21 @@ class PydanticModelFactory:
         return create_model(model_name, __config__=config_dict, __base__=BaseModel, **fields)
 
     def _create_class(self, class_name: str, class_def: Dict[str, Any], yaml_data: dict) -> Type[BaseModel]:
-        """Internal method to create a single Pydantic class."""
+        """Create a single Pydantic class from definition.
+
+        Processes field definitions, handles nested models, and creates the final Pydantic class.
+
+        Args:
+            class_name: Name of the class to create.
+            class_def: Dictionary containing class definition and fields.
+            yaml_data: Complete YAML data for resolving nested class references.
+
+        Returns:
+            The created Pydantic model class.
+
+        Raises:
+            ValueError: If the class definition is invalid or cannot be processed.
+        """
         if class_name in self.created_classes and self.created_classes[class_name] is not None:
             return self.created_classes[class_name]
 
@@ -139,7 +224,11 @@ class PydanticModelFactory:
 
 
 def test1() -> None:
-    # Test the functionality
+    """Test basic functionality with a comprehensive example.
+
+    Creates a family model with nested Email and Address classes,
+    demonstrates instantiation, validation, and error handling.
+    """
     test_yaml = """
     Person:
       description: "class for members of the family"
