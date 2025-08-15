@@ -296,10 +296,7 @@ class PydanticRag(BaseModel):
                 else:
                     filter_dict = section_filter
 
-                debug(filter_dict)
-                filter_dict = {}
-
-                docs = self._vector_store.similarity_search(query, k=4)
+                docs = self._vector_store.similarity_search(query, k=20, filter=filter_dict)
                 if not docs:
                     return "No information found"
                 entity_id = docs[0].metadata.get("entity_id", "unknown")
@@ -315,11 +312,10 @@ class PydanticRag(BaseModel):
                 result_parts = [f"# {_entity_key_name}: {entity_id}"]
 
                 # Sort field names according to their order in get_top_class_fields()
-                field_order = list(self.get_top_class_fields().keys())
+                field_order = list(_top_class_description.keys())
                 sorted_fields = sorted(
                     fields_dict.keys(), key=lambda x: field_order.index(x) if x in field_order else len(field_order)
                 )
-
                 for field_name in sorted_fields:
                     field_docs = fields_dict[field_name]
                     result_parts.append(f"## {field_name}")

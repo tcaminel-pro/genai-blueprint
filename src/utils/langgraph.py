@@ -95,8 +95,8 @@ def print_step(step: Any, details: bool = True) -> None:
                 body = "\n".join(message_repr.split("\n")[1:]) if "\n" in message_repr else ""
                 # Check if this is an AI Message to apply special styling
                 if "Ai Message" in title_line:
-                    title = f"[white on royal_blue1] {title_line} [/white on royal_blue1]"
-                    style = "white on royal_blue1"
+                    title = f"[white on color(17)] {title_line} [/white on color(17)]"
+                    style = "white on color(17)"
                 else:
                     title = f"[bold blue]{title_line}[/bold blue]"
                     style = ""
