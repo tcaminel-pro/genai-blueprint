@@ -57,7 +57,7 @@ async def run_langgraph_agent_shell(
         try:
             with patch_stdout():
                 user_input = await session.prompt_async(
-                    "[bold cyan]>>> [/bold cyan]", auto_suggest=AutoSuggestFromHistory()
+                    ">>> ", style="bold cyan", auto_suggest=AutoSuggestFromHistory()
                 )
 
             user_input = user_input.strip()
