@@ -30,12 +30,12 @@ async def run_langgraph_agent_shell(
         server_filter: Optional list of server names to include in the agent
     """
     console = Console()
-    
+
     # Display welcome banner
     welcome_text = Text("🤖 LangGraph Agent Shell", style="bold cyan")
     if mcp_server_names:
         welcome_text.append(f"\nConnected to MCP servers: {', '.join(mcp_server_names)}", style="green")
-    
+
     console.print(Panel(welcome_text, title="Welcome", border_style="bright_blue"))
     console.print("[dim]Type /quit to exit; Use up/down arrows to navigate prompt history[/dim]\n")
 
@@ -45,20 +45,19 @@ async def run_langgraph_agent_shell(
             client = MultiServerMCPClient(get_mcp_servers_dict(mcp_server_names))
             tools = tools + await client.get_tools()
             console.print("[green]✓ MCP servers connected[/green]\n")
-    
+
     config = {"configurable": {"thread_id": "1"}}
     agent = create_react_agent(model, tools, checkpointer=MemorySaver())
 
     # Set up prompt history
     history_file = Path(".blueprint.input.history")
     session = PromptSession(history=FileHistory(str(history_file)))
-    
+
     while True:
         try:
             with patch_stdout():
                 user_input = await session.prompt_async(
-                    "[bold cyan]>>> [/bold cyan]", 
-                    auto_suggest=AutoSuggestFromHistory()
+                    "[bold cyan]>>> [/bold cyan]", auto_suggest=AutoSuggestFromHistory()
                 )
 
             user_input = user_input.strip()
@@ -67,15 +66,15 @@ async def run_langgraph_agent_shell(
                 break
             if not user_input:
                 continue
-            
+
             # Display user prompt with styling
             console.print(Panel(user_input, title="[bold blue]User[/bold blue]", border_style="blue"))
-            
+
             # Process the response
             with console.status("[bold green]Agent is thinking...[/bold green]"):
                 resp = agent.astream({"messages": user_input}, config)
                 await print_astream(resp)
-            
+
             console.print()  # Add spacing between interactions
 
         except KeyboardInterrupt:
