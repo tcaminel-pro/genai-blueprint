@@ -78,17 +78,21 @@ def print_step(step: Any, details: bool = True) -> None:
 
     if isinstance(step, AIMessage):
         content = step.content if details else "AI Message"
-        console.print(Panel(content, 
-                          title="[bold white on blue] AI Message [/bold white on blue]", 
-                          border_style="bright_blue", 
-                          style="bold white on blue"))
+        console.print(
+            Panel(
+                content,
+                title="[bold white on blue] AI Message [/bold white on blue]",
+                border_style="bright_blue",
+                style="bold white on blue",
+            )
+        )
 
     elif isinstance(step, dict):
         for node, updates in step.items():
             if "messages" in updates:
                 message_repr = updates["messages"][-1].pretty_repr()
                 title_line = message_repr.split("\n")[0]
-                
+
                 # Check if this is an AI Message to apply special styling
                 if "Ai Message" in title_line or "AI Message" in title_line:
                     title = f"[bold white on blue] {title_line} [/bold white on blue]"
