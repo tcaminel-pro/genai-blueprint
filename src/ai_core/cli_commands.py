@@ -237,24 +237,34 @@ def register_commands(cli_app: typer.Typer) -> None:
         # Format LLM items in 2 columns
         llm_content = Columns([f"• {item}" for item in llm_items], equal=True, expand=True)
 
+        # Format embeddings and vector store items side by side in 2 columns each
+        embeddings_content = Columns([f"• {item}" for item in embeddings_items], equal=True, expand=True)
+        vector_content = Columns([f"• {item}" for item in vector_items], equal=True, expand=True)
+
         llm_panel = Panel(llm_content, title="[bold blue]LLMs[/bold blue]", border_style="blue")
 
         embeddings_panel = Panel(
-            "\n".join(f"• {item}" for item in embeddings_items),
+            embeddings_content,
             title="[bold green]Embeddings[/bold green]",
             border_style="green",
         )
 
         vector_panel = Panel(
-            "\n".join(f"• {item}" for item in vector_items),
+            vector_content,
             title="[bold magenta]Vector Stores[/bold magenta]",
             border_style="magenta",
         )
 
-        # Display in 3 columns
+        # Display LLMs in first row, embeddings and vector stores side by side in second row
         console.print("\n[bold]Available Models & Components[/bold]\n")
-        columns = Columns([llm_panel, embeddings_panel, vector_panel], equal=True, expand=True)
-        console.print(columns)
+        
+        # LLMs panel takes full width
+        console.print(llm_panel)
+        console.print()
+        
+        # Embeddings and vector stores side by side
+        bottom_row = Columns([embeddings_panel, vector_panel], equal=True, expand=True)
+        console.print(bottom_row)
 
     @cli_app.command()
     def llm_info_dump(file_name: Annotated[Path, typer.Argument(help="Output YAML file path")]) -> None:
