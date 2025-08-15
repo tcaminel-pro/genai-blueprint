@@ -81,9 +81,9 @@ def print_step(step: Any, details: bool = True) -> None:
         console.print(
             Panel(
                 content,
-                title="[bold white on blue] AI Message [/bold white on blue]",
-                border_style="bright_blue",
-                style="bold white on blue",
+                title="[bold white on royal_blue1] AI Message [/bold white on royal_blue1]",
+                border_style="royal_blue1",
+                style="bold white on royal_blue1",
             )
         )
 
@@ -94,8 +94,8 @@ def print_step(step: Any, details: bool = True) -> None:
                 title_line = message_repr.split("\n")[0]
                 body = "\n".join(message_repr.split("\n")[1:]) if "\n" in message_repr else ""
                 # Check if this is an AI Message to apply special styling
-                panel_style = "white on blue" if "Ai Message" in title_line else ""
-                title_style = "white on blue" if "Ai Message" in title_line else ""
+                panel_style = "white on royal_blue1" if "Ai Message" in title_line else ""
+                title_style = "white on royal_blue1" if "Ai Message" in title_line else ""
                 title = f"[{title_style}] {title_line} [/{title_style}]"
                 console.print(Panel(body, title=title, border_style="bright_blue", style=f"{panel_style}"))
             else:
