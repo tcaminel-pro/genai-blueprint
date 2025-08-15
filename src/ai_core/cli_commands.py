@@ -217,10 +217,9 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         List the known LLMs, embeddings models, and vector stores.
         """
-        from rich.console import Console
         from rich.columns import Columns
+        from rich.console import Console
         from rich.panel import Panel
-        from rich.text import Text
 
         from src.ai_core.embeddings_factory import EmbeddingsFactory
         from src.ai_core.llm_factory import LlmFactory
@@ -234,7 +233,6 @@ def register_commands(cli_app: typer.Typer) -> None:
         vector_items = VectorStoreFactory.known_items()
 
         # Create panels for each category
-        from rich.columns import Columns
 
         # Format LLM items in 2 columns
         llm_content = Columns([f"• {item}" for item in llm_items], equal=True, expand=True)
