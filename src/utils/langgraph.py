@@ -88,9 +88,16 @@ def print_step(step: Any, details: bool = True) -> None:
             if "messages" in updates:
                 message_repr = updates["messages"][-1].pretty_repr()
                 title_line = message_repr.split("\n")[0]
-                title = f"[bold blue]{title_line}[/bold blue]"
-                body = "\n".join(message_repr.split("\n")[1:]) if "\n" in message_repr else ""
-                console.print(Panel(body, title=title, border_style="blue"))
+                
+                # Check if this is an AI Message to apply special styling
+                if "Ai Message" in title_line or "AI Message" in title_line:
+                    title = f"[bold white on blue] {title_line} [/bold white on blue]"
+                    body = "\n".join(message_repr.split("\n")[1:]) if "\n" in message_repr else ""
+                    console.print(Panel(body, title=title, border_style="bright_blue", style="bold white on blue"))
+                else:
+                    title = f"[bold blue]{title_line}[/bold blue]"
+                    body = "\n".join(message_repr.split("\n")[1:]) if "\n" in message_repr else ""
+                    console.print(Panel(body, title=title, border_style="blue"))
             else:
                 title = f"[bold blue]Update from: '{node}'[/bold blue]"
                 content = updates if details else str(type(updates))
