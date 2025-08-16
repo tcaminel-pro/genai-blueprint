@@ -121,6 +121,12 @@ class TestBM25FastRetriever:
 
     def test_spacy_preprocessing(self, sample_documents):
         """Test using spacy preprocessing function."""
+        import warnings
+        
+        # Suppress spacy-related deprecation warnings
+        warnings.filterwarnings("ignore", category=DeprecationWarning, module="spacy.*")
+        warnings.filterwarnings("ignore", category=DeprecationWarning, module="weasel.*")
+        
         try:
             from ai_extra.bm25s_retriever import get_spacy_preprocess_fn
 
