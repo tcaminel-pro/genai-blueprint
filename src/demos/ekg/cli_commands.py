@@ -19,16 +19,16 @@ Usage Examples:
     ```bash
     # Extract structured data from Markdown files
     uv run cli rainbow-extract "*.md" --output-dir ./data
-    
+
     # Generate fake project data from existing JSON templates
     uv run cli rainbow-generate-fake "templates/*.json" --output-dir ./fake --count 5
-    
+
     # Start interactive agent for querying the knowledge graph
     uv run cli ekg-agent-shell --llm-id gpt-4o-mini --mcp filesystem
-    
+
     # Process recursively with custom settings
     uv run cli rainbow-extract ./reviews/ --recursive --batch-size 10 --force
-    
+
     # Debug mode for troubleshooting
     uv run cli ekg-agent-shell --debug --verbose --cache sqlite
     ```
