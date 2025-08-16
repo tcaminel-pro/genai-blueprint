@@ -287,7 +287,7 @@ async def call_react_agent(query: str, llm_id: str | None = None, mcp_server_fil
         tools = await client.get_tools()
         agent = create_react_agent(model, tools)
         logger.info("invoke MCP agent...")
-        resp = agent.astream({"messages": query})
+        resp = agent.astream({"messages": [HumanMessage(content=query)]})
         await print_astream(resp)
 
 
