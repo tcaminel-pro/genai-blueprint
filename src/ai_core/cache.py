@@ -32,18 +32,19 @@ class LlmCache:
     """A wrapper above LangChain 'set_llm_cache' to configure and select LLM cache method."""
 
     @classmethod
-    def from_value(cls, value: str) -> Optional["BaseCache"]:
+    def from_value(cls, value: str | None) -> Optional["BaseCache"]:
         """ """
         from langchain_community.cache import InMemoryCache, SQLiteCache
         from loguru import logger
 
-        method = None
+        if value is None:
+            value = "default"
 
         if value == "default":
             from_config = global_config().get_str("llm.cache")
-            if from_config not in LlmCache.values():
+            if from_config and from_config not in LlmCache.values():
                 logger.warning(f"Incorrect llm/cache configuration : {from_config}. Should be in {LlmCache.values()} ")
-            value = from_config
+            value = from_config or "no_cache"
 
         try:
             method = CacheMethod[value.upper()].value
@@ -52,7 +53,7 @@ class LlmCache:
 
         if method == "sqlite":
             path = global_config().get_file_path("llm.cache_path", check_if_exists=False)
-            if not path.parent.exists():
+            if path and path.parent and not path.parent.exists():
                 path.parent.mkdir(parents=True, exist_ok=True)
             return SQLiteCache(database_path=str(path))
         elif method == "memory":
@@ -69,7 +70,7 @@ class LlmCache:
         return [method.name.lower() for method in CacheMethod]
 
     @staticmethod
-    def set_method(cache: str) -> None:
+    def set_method(cache: str | None) -> None:
         """Define caching method. If 'None', take the one defined in configuration. \
         Currently implemented : "memory', 'sqlite'.
 
@@ -79,7 +80,11 @@ class LlmCache:
         Raises:
             logger.warning: If the default cache configuration is incorrect.
         """
-        from langchain.globals import get_llm_cache, set_llm_cache
+        try:
+            from langchain.globals import get_llm_cache, set_llm_cache
+        except ImportError:
+            # Fallback for older versions of langchain
+            from langchain.cache import get_llm_cache, set_llm_cache
         from loguru import logger
 
         old_cache = get_llm_cache()
@@ -87,7 +92,11 @@ class LlmCache:
         new_cache = LlmCache.from_value(cache)
         set_llm_cache(new_cache)
 
-        if new_cache.__class__ != old_cache.__class__:
+        if new_cache is None and old_cache is None:
+            pass  # No change
+        elif new_cache is None or old_cache is None:
+            logger.debug(f"LLM cache : {type(new_cache).__name__}")
+        elif new_cache.__class__ != old_cache.__class__:
             logger.debug(f"""LLM cache : {str(new_cache.__class__).split(".")[-1].rstrip("'>")}""")
 
 

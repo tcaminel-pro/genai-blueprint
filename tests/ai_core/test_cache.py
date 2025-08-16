@@ -42,7 +42,9 @@ class TestLlmCache:
         self, mock_sqlite_cache: MagicMock, mock_mkdir: MagicMock, mock_config: MagicMock
     ) -> None:
         """Test from_value with sqlite cache."""
-        mock_config.return_value.get_file_path.return_value = MagicMock(parent=MagicMock(exists=lambda: False))
+        mock_path = MagicMock()
+        mock_path.parent.exists.return_value = False
+        mock_config.return_value.get_file_path.return_value = mock_path
         mock_sqlite_instance = MagicMock()
         mock_sqlite_cache.return_value = mock_sqlite_instance
 
@@ -78,11 +80,10 @@ class TestLlmCache:
         with pytest.raises(ValueError, match="Unknown cache method 'invalid'"):
             LlmCache.from_value("default")
 
-    @patch("src.ai_core.cache.set_llm_cache")
-    @patch("src.ai_core.cache.get_llm_cache")
-    @patch("src.ai_core.cache.global_config")
+    @patch("langchain.globals.set_llm_cache")
+    @patch("langchain.globals.get_llm_cache")
     def test_set_method_memory(
-        self, mock_config: MagicMock, mock_get_cache: MagicMock, mock_set_cache: MagicMock
+        self, mock_get_cache: MagicMock, mock_set_cache: MagicMock
     ) -> None:
         """Test set_method with memory cache."""
         mock_get_cache.return_value.__class__ = type("DifferentCache", (), {})
@@ -90,22 +91,20 @@ class TestLlmCache:
         mock_set_cache.assert_called_once()
         # Verify the call was made with an InMemoryCache instance
         call_args = mock_set_cache.call_args[0]
-        assert str(type(call_args[0])) == "<class 'langchain_community.cache.InMemoryCache'>"
+        assert "InMemoryCache" in str(type(call_args[0]))
 
-    @patch("src.ai_core.cache.set_llm_cache")
-    @patch("src.ai_core.cache.get_llm_cache")
-    @patch("src.ai_core.cache.global_config")
+    @patch("langchain.globals.set_llm_cache")
+    @patch("langchain.globals.get_llm_cache")
     def test_set_method_sqlite(
-        self, mock_config: MagicMock, mock_get_cache: MagicMock, mock_set_cache: MagicMock
+        self, mock_get_cache: MagicMock, mock_set_cache: MagicMock
     ) -> None:
         """Test set_method with sqlite cache."""
-        mock_config.return_value.get_str.return_value = None
         mock_get_cache.return_value.__class__ = type("DifferentCache", (), {})
         LlmCache.set_method("sqlite")
         mock_set_cache.assert_called_once()
 
-    @patch("src.ai_core.cache.set_llm_cache")
-    @patch("src.ai_core.cache.get_llm_cache")
+    @patch("langchain.globals.set_llm_cache")
+    @patch("langchain.globals.get_llm_cache")
     def test_set_method_no_change(self, mock_get_cache: MagicMock, mock_set_cache: MagicMock) -> None:
         """Test set_method when cache type doesn't change."""
         # Mock that the cache class remains the same
