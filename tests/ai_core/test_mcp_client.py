@@ -270,7 +270,7 @@ class TestMcpClientAsyncFunctions(unittest.IsolatedAsyncioTestCase):
         """Test the call_react_agent convenience function."""
         # Mock client
         mock_client = AsyncMock()
-        mock_client.get_tools = AsyncMock(return_value=["tool1", "tool2"])
+        mock_client.get_tools = AsyncMock(return_value=[MagicMock(name="tool1"), MagicMock(name="tool2")])
         mock_mcp_client.return_value.__aenter__.return_value = mock_client
 
         # Mock agent
