@@ -208,7 +208,7 @@ def test_field_validator_cache() -> None:
     # Valid cache value
     factory = LlmFactory(llm_id=LLM_ID, cache="memory")
     assert factory.cache == "memory"
-    
+
     # Invalid cache value should raise ValueError
     with pytest.raises(ValueError, match="Unknown cache method"):
         LlmFactory(llm_id=LLM_ID, cache="invalid_cache")
