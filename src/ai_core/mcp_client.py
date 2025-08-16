@@ -124,7 +124,7 @@ async def get_mcp_tools_info(filter: list[str] | None = None) -> dict:
                 async with ClientSession(read, write) as session:
                     await session.initialize()
                     tools = await session.list_tools()
-                    tools_info[server_name] = tools.tools
+                    tools_info[server_name] = {tool.name: tool.description for tool in tools.tools}
     return tools_info
 
 
@@ -139,7 +139,7 @@ async def get_mcp_prompts(filter: list[str] | None = None) -> dict:
                 async with ClientSession(read, write) as session:
                     await session.initialize()
                     prompts = await session.list_prompts()
-                    prompts_info[server_name] = prompts.prompts
+                    prompts_info[server_name] = {p.name: p.description for p in prompts.prompts}
     return prompts_info
 
 
@@ -237,7 +237,11 @@ async def mcp_agent_runner(
     if config is None:
         config = {}
     async with AsyncExitStack() as stack:
-        tools_list = [stack.enter_context(MCPAdapt(server, LangChainAdapter())) for server in servers]
+        tools_list = []
+        for server in servers:
+            mcp_adapt = MCPAdapt(server, LangChainAdapter())
+            tools = await stack.enter_async_context(mcp_adapt)
+            tools_list.append(tools)
 
         # Merge and flatten tools from all MCP servers
         tools = list(chain.from_iterable(tools_list))

@@ -187,10 +187,9 @@ class TestMcpClientAsyncFunctions(unittest.IsolatedAsyncioTestCase):
 
         # Mock tools response
         mock_tools_response = MagicMock()
-        mock_tools_response.tools = [
-            MagicMock(name="tool1", description="First tool"),
-            MagicMock(name="tool2", description="Second tool"),
-        ]
+        mock_tool1 = MagicMock(name="tool1", description="First tool")
+        mock_tool2 = MagicMock(name="tool2", description="Second tool")
+        mock_tools_response.tools = [mock_tool1, mock_tool2]
         mock_session.list_tools = AsyncMock(return_value=mock_tools_response)
 
         # Mock stdio_client
@@ -216,10 +215,9 @@ class TestMcpClientAsyncFunctions(unittest.IsolatedAsyncioTestCase):
 
         # Mock prompts response
         mock_prompts_response = MagicMock()
-        mock_prompts_response.prompts = [
-            MagicMock(name="prompt1", description="First prompt"),
-            MagicMock(name="prompt2", description="Second prompt"),
-        ]
+        mock_prompt1 = MagicMock(name="prompt1", description="First prompt")
+        mock_prompt2 = MagicMock(name="prompt2", description="Second prompt")
+        mock_prompts_response.prompts = [mock_prompt1, mock_prompt2]
         mock_session.list_prompts = AsyncMock(return_value=mock_prompts_response)
 
         # Mock stdio_client
@@ -246,10 +244,14 @@ class TestMcpClientAsyncFunctions(unittest.IsolatedAsyncioTestCase):
         # Mock servers
         servers = [MagicMock()]
 
-        # Mock MCPAdapt
-        mock_adapter_instance = MagicMock()
-        mock_adapter_instance.__aenter__.return_value = ["tool1", "tool2"]
-        mock_mcp_adapt.return_value.__aenter__.return_value = mock_adapter_instance
+        # Mock AsyncExitStack
+        mock_stack = AsyncMock()
+        mock_exit_stack.return_value.__aenter__.return_value = mock_stack
+        
+        # Create a mock async context manager that returns tools
+        mock_async_cm = AsyncMock()
+        mock_async_cm.__aenter__.return_value = ["tool1", "tool2"]
+        mock_mcp_adapt.return_value = mock_async_cm
 
         # Mock agent
         mock_agent = AsyncMock()
@@ -279,13 +281,16 @@ class TestMcpClientAsyncFunctions(unittest.IsolatedAsyncioTestCase):
         # Mock print_astream
         mock_print_astream.return_value = None
 
-        # Mock get_llm
-        with patch("src.ai_core.mcp_client.get_llm") as mock_get_llm:
+        # Mock get_llm and get_mcp_servers_dict
+        with patch("src.ai_core.mcp_client.get_llm") as mock_get_llm, \
+             patch("src.ai_core.mcp_client.get_mcp_servers_dict") as mock_get_servers:
             mock_get_llm.return_value = MagicMock(spec=BaseChatModel)
+            mock_get_servers.return_value = {"test_server": {"command": "test", "args": []}}
 
             await call_react_agent("test query", mcp_server_filter=["test_server"])
 
             mock_get_llm.assert_called_once()
+            mock_get_servers.assert_called_once_with(["test_server"])
             mock_client.get_tools.assert_called_once()
             mock_create_agent.assert_called_once()
             mock_print_astream.assert_called_once()
