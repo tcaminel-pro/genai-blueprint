@@ -24,11 +24,51 @@ T = TypeVar("T", bound=BaseModel)
 class PydanticRag(BaseModel):
     """RAG system for analyzing and querying structured documents using Pydantic models and embeddings.
 
+    This system extracts structured information from unstructured documents (like markdown),
+    stores it as Pydantic model instances, and enables semantic search across document fields.
+    It combines LLM-based extraction with vector embeddings for powerful retrieval capabilities.
+
+    Key Features:
+        - Dynamic Pydantic model creation from YAML schema definitions
+        - LLM-powered document analysis and structure extraction
+        - Vector-based semantic search across document fields
+        - Caching of analyzed documents for performance
+        - Configurable embeddings and storage backends
+
+    Usage Example:
+        ```python
+        # Define your schema
+        schema = {
+            "Person": {
+                "description": "A person with basic information",
+                "fields": {
+                    "name": {"type": "str", "description": "Full name"},
+                    "age": {"type": "int", "description": "Age in years"},
+                    "skills": {"type": "list[str]", "description": "Technical skills"}
+                }
+            }
+        }
+        
+        # Initialize RAG system
+        rag = PydanticRag(
+            model_definition={"schema": schema, "key": "name", "top_class": "Person"},
+            vector_store_factory=PydanticRag.get_vector_store_factory(),
+            llm_id="gpt-4o-mini"
+        )
+        
+        # Analyze documents
+        person = rag.analyze_document("doc1", markdown_text)
+        
+        # Search semantically
+        tool = rag.create_vector_search_tool()
+        results = tool.run("Find people with Python experience")
+        ```
+
     Attributes:
-        model_definition: YAML string defining the Pydantic model
-        postgres_url: PostgreSQL connection URL
-        embeddings_id: ID for embeddings model
-        llm_id: ID for LLM used in analysis
+        model_definition: Dictionary containing schema, key field, and top class name
+        vector_store_factory: Factory for creating vector store instances
+        llm_id: Identifier for the language model to use
+        kv_store_id: Optional key-value store ID for caching analyzed documents
     """
 
     model_definition: dict
@@ -83,7 +123,25 @@ class PydanticRag(BaseModel):
         self._vector_store = self.vector_store_factory.get()
 
     def analyze_document(self, document_id: str, markdown: str) -> BaseModel:
-        """Analyze markdown document and return structured data."""
+        """Analyze markdown document and return structured data.
+        
+        Uses the configured LLM to extract structured information from unstructured
+        markdown text based on the Pydantic schema. Results are cached if kv_store_id
+        is provided for improved performance on subsequent analyses.
+        
+        Args:
+            document_id: Unique identifier for this document (used for caching)
+            markdown: Raw markdown text to analyze
+            
+        Returns:
+            BaseModel: An instance of the top-level Pydantic model with extracted data
+            
+        Example:
+            ```python
+            person = rag.analyze_document("resume_123", resume_markdown)
+            print(person.name)  # Access extracted fields
+            ```
+        """
 
         # self._document_id = document_id
         analyzed_doc: BaseModel | None = None
@@ -111,7 +169,31 @@ class PydanticRag(BaseModel):
         return self.model_definition.get("schema", {}).get(self._top_class.__name__, {}).get("description", "")
 
     def get_key(self, obj: BaseModel) -> str:
-        """Extract the actual key value from a model instance using dotted notation from key field definition."""
+        """Extract the actual key value from a model instance using dotted notation from key field definition.
+        
+        Supports nested field access using dot notation (e.g., "person.name" or "id").
+        This key is used as the unique identifier for documents in the vector store.
+        
+        Args:
+            obj: The Pydantic model instance to extract the key from
+            
+        Returns:
+            str: The string representation of the key value
+            
+        Raises:
+            ValueError: If the key field path is invalid or the value is None
+            
+        Example:
+            ```python
+            # For key="name" in a Person model
+            person = Person(name="Alice", age=30)
+            key = rag.get_key(person)  # Returns "Alice"
+            
+            # For nested key="company.id"
+            employee = Employee(company=Company(id="C123", name="TechCorp"))
+            key = rag.get_key(employee)  # Returns "C123"
+            ```
+        """
         key_path = self._key_field.split(".")
         current_value = obj
         # Navigate through the path
@@ -188,11 +270,23 @@ class PydanticRag(BaseModel):
         """Generate LangChain Document objects for each field in a Pydantic model.
 
         Creates Document objects with YAML content as page_content and metadata
-        including field information.
+        including field information. Each field becomes a separate searchable document
+        in the vector store, enabling fine-grained semantic search.
 
         Args:
             model_instance: An instance of a Pydantic model
 
+        Returns:
+            list[Document]: List of LangChain Documents ready for vector storage
+            
+        Example:
+            ```python
+            person = Person(name="Alice", skills=["Python", "Machine Learning"])
+            docs = rag.chunck(person)
+            # Returns documents like:
+            # - Document(page_content='"Alice"', metadata={'field_name': 'name', ...})
+            # - Document(page_content='["Python", "Machine Learning"]', metadata={'field_name': 'skills', ...})
+            ```
         """
         documents = []
         model_data = model_instance.model_dump()
@@ -221,8 +315,23 @@ class PydanticRag(BaseModel):
     def create_vector_search_tool(self) -> BaseTool:
         """Create a LangChain BaseTool for searching the vector store.
 
+        Creates a reusable tool that can be used by LangChain agents or chains to
+        perform semantic searches across analyzed documents. The tool supports
+        filtering by entity keys and specific field sections.
+
         Returns:
-            A BaseTool that can search the vector store for semantic matches.
+            BaseTool: A configured search tool ready for use in LangChain workflows
+            
+        Usage:
+            ```python
+            # Use in a chain
+            tool = rag.create_vector_search_tool()
+            results = tool.run({
+                "query": "Python and machine learning experience",
+                "selected_sections": ["skills", "experience"],
+                "entity_keys": ["Alice", "Bob"]
+            })
+            ```
         """
 
         _entity_id_name: str = self._key_field.split(".")[-1]
