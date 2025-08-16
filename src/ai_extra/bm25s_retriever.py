@@ -160,3 +160,24 @@ class BM25FastRetriever(BaseRetriever):
         return_docs = [results[0, i] for i in range(results.shape[1])]
         logger.debug(f"search : {query=} {return_docs=}")
         return return_docs
+
+
+if __name__ == "__main__":
+    """Quick test for BM25FastRetriever."""
+    import tempfile
+
+    sample_docs = [
+        "The quick brown fox jumps over the lazy dog.",
+        "A fast brown fox leaps over lazy dogs in summer.",
+        "The lazy dog sleeps in the sun.",
+    ]
+    metadatas = [{"id": i} for i in range(len(sample_docs))]
+    retriever = BM25FastRetriever.from_texts(
+        texts=sample_docs,
+        metadatas=metadatas,
+        k=2,
+    )
+    results = retriever.invoke("fast fox")
+    print("Query: fast fox")
+    for doc in results:
+        print(f"- {doc.page_content} (metadata: {doc.metadata})")
