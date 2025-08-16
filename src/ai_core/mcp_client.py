@@ -124,7 +124,7 @@ async def get_mcp_tools_info(filter: list[str] | None = None) -> dict:
                 async with ClientSession(read, write) as session:
                     await session.initialize()
                     tools = await session.list_tools()
-                    tools_info[server_name] = {tool.name: tool.description for tool in tools.tools}
+                    tools_info[server_name] = tools.tools
     return tools_info
 
 
@@ -139,7 +139,7 @@ async def get_mcp_prompts(filter: list[str] | None = None) -> dict:
                 async with ClientSession(read, write) as session:
                     await session.initialize()
                     prompts = await session.list_prompts()
-                    prompts_info[server_name] = {p.name: p.description for p in prompts.prompts}
+                    prompts_info[server_name] = prompts.prompts
     return prompts_info
 
 
