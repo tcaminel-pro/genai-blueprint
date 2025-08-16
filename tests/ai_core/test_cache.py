@@ -44,11 +44,13 @@ class TestLlmCache:
         self, mock_sqlite_cache: MagicMock, mock_mkdir: MagicMock, mock_config: MagicMock
     ) -> None:
         """Test from_value with sqlite cache."""
-
-        from langchain_community.cache import SQLiteCache
+        mock_path = MagicMock()
+        mock_config.return_value.get_file_path.return_value = mock_path
+        mock_sqlite_instance = MagicMock()
+        mock_sqlite_cache.return_value = mock_sqlite_instance
 
         result = LlmCache.from_value("sqlite")
-        assert isinstance(result, SQLiteCache)
+        assert result == mock_sqlite_instance
 
     @patch("src.ai_core.cache.global_config")
     def test_from_value_no_cache(self, mock_config: MagicMock) -> None:
