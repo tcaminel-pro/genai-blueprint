@@ -229,7 +229,7 @@ class PydanticRag(BaseModel):
         _top_class_description: dict = self.get_top_class_fields()
         _entity_key_name: str = self._key_field.split(".")[-1]
 
-        class VectorSearchInput(BaseModel):
+        class _VectorSearchInput(BaseModel):
             """Input schema for the vector search tool."""
 
             query: str = Field(
@@ -261,7 +261,7 @@ class PydanticRag(BaseModel):
                 ),
             )
 
-        class VectorSearchTool(BaseTool):
+        class _VectorSearchTool(BaseTool):
             """Tool for searching the vector store for semantic matches."""
 
             name: str = f"{self.get_top_class().__name__}_retriever"
@@ -275,7 +275,7 @@ class PydanticRag(BaseModel):
                 - entity_keys:  list of '{_entity_id_name}' mentionned in the context / discussion..
                 """
             )
-            args_schema: Optional[ArgsSchema] = VectorSearchInput
+            args_schema: Optional[ArgsSchema] = _VectorSearchInput
 
             def model_post_init(self, __context: Any) -> None:
                 self._vector_store = PydanticRag.get_vector_store_factory().get()
@@ -325,7 +325,7 @@ class PydanticRag(BaseModel):
 
                 return "\n".join(result_parts)
 
-        return VectorSearchTool()
+        return _VectorSearchTool()
 
     def get_top_class_fields(self) -> dict:
         return {
