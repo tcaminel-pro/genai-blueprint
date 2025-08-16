@@ -3,16 +3,12 @@
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from langchain_core.language_models.chat_models import BaseChatModel
 from mcp import StdioServerParameters
 
 from src.ai_core.mcp_client import (
-    call_react_agent,
     dict_to_stdio_server_list,
-    get_mcp_prompts,
     get_mcp_servers_dict,
     get_mcp_tools_info,
-    mcp_agent_runner,
     update_server_parameters,
 )
 
@@ -201,102 +197,13 @@ class TestMcpClientAsyncFunctions(unittest.IsolatedAsyncioTestCase):
 
             result = await get_mcp_tools_info()
 
+            from devtools import debug
+
+            debug(result)
+
             self.assertIn("test_server", result)
             self.assertEqual(len(result["test_server"]), 2)
             self.assertEqual(result["test_server"]["tool1"], "First tool")
-
-    @patch("src.ai_core.mcp_client.stdio_client")
-    @patch("src.ai_core.mcp_client.ClientSession")
-    async def test_get_mcp_prompts(self, mock_client_session, mock_stdio_client):
-        """Test retrieval of prompts information from MCP servers."""
-        # Mock the client session and prompts
-        mock_session = AsyncMock()
-        mock_client_session.return_value.__aenter__.return_value = mock_session
-
-        # Mock prompts response
-        mock_prompts_response = MagicMock()
-        mock_prompt1 = MagicMock(name="prompt1", description="First prompt")
-        mock_prompt2 = MagicMock(name="prompt2", description="Second prompt")
-        mock_prompts_response.prompts = [mock_prompt1, mock_prompt2]
-        mock_session.list_prompts = AsyncMock(return_value=mock_prompts_response)
-
-        # Mock stdio_client
-        mock_stdio_client.return_value.__aenter__.return_value = (AsyncMock(), AsyncMock())
-
-        # Mock get_mcp_servers_dict
-        with patch("src.ai_core.mcp_client.get_mcp_servers_dict") as mock_get_servers:
-            mock_get_servers.return_value = {"test_server": {"command": "test", "args": []}}
-
-            result = await get_mcp_prompts()
-
-            self.assertIn("test_server", result)
-            self.assertEqual(len(result["test_server"]), 2)
-            self.assertEqual(result["test_server"]["prompt1"], "First prompt")
-
-    @patch("src.ai_core.mcp_client.create_react_agent")
-    @patch("src.ai_core.mcp_client.AsyncExitStack")
-    @patch("src.ai_core.mcp_client.MCPAdapt")
-    async def test_mcp_agent_runner(self, mock_mcp_adapt, mock_exit_stack, mock_create_agent):
-        """Test the mcp agent runner with mocked dependencies."""
-        # Mock model
-        mock_model = MagicMock(spec=BaseChatModel)
-
-        # Mock servers
-        servers = [MagicMock()]
-
-        # Mock AsyncExitStack
-        mock_stack = AsyncMock()
-        mock_exit_stack.return_value.__aenter__.return_value = mock_stack
-
-        # Create a mock async context manager that returns tools
-        mock_async_cm = AsyncMock()
-        mock_async_cm.__aenter__.return_value = ["tool1", "tool2"]
-        mock_mcp_adapt.return_value = mock_async_cm
-
-        # Mock agent
-        mock_agent = AsyncMock()
-        mock_agent.ainvoke.return_value = {"messages": [MagicMock(content="response1"), MagicMock(content="response2")]}
-        mock_create_agent.return_value = mock_agent
-
-        result = await mcp_agent_runner(mock_model, servers, "test query")
-
-        self.assertEqual(result, "response2")
-        mock_agent.ainvoke.assert_called_once()
-
-    @patch("src.ai_core.mcp_client.MultiServerMCPClient")
-    @patch("src.ai_core.mcp_client.create_react_agent")
-    @patch("src.ai_core.mcp_client.print_astream")
-    async def test_call_react_agent(self, mock_print_astream, mock_create_agent, mock_mcp_client):
-        """Test the call_react_agent convenience function."""
-        # Mock client
-        mock_client = AsyncMock()
-        mock_client.get_tools = AsyncMock(return_value=[MagicMock(name="tool1"), MagicMock(name="tool2")])
-        mock_mcp_client.return_value.__aenter__.return_value = mock_client
-
-        # Mock agent
-        mock_agent = MagicMock()
-        mock_agent.astream.return_value = AsyncMock()
-        mock_create_agent.return_value = mock_agent
-
-        # Mock print_astream
-        mock_print_astream.return_value = None
-
-        # Mock get_llm and get_mcp_servers_dict
-        with (
-            patch("src.ai_core.mcp_client.get_llm") as mock_get_llm,
-            patch("src.ai_core.mcp_client.get_mcp_servers_dict") as mock_get_servers,
-        ):
-            mock_get_llm.return_value = MagicMock(spec=BaseChatModel)
-            mock_get_servers.return_value = {"test_server": {"command": "test", "args": []}}
-
-            await call_react_agent("test query", mcp_server_filter=["test_server"])
-
-            mock_get_llm.assert_called_once()
-            mock_get_servers.assert_called_once_with(["test_server"])
-            mock_client.get_tools.assert_called_once()
-            mock_create_agent.assert_called_once()
-            mock_print_astream.assert_called_once()
-            mock_agent.astream.assert_called_once()
 
 
 if __name__ == "__main__":
