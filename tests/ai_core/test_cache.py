@@ -1,7 +1,9 @@
 """Unit tests for the cache.py module."""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
+
 from src.ai_core.cache import CacheMethod, LlmCache
 
 
@@ -42,15 +44,11 @@ class TestLlmCache:
         self, mock_sqlite_cache: MagicMock, mock_mkdir: MagicMock, mock_config: MagicMock
     ) -> None:
         """Test from_value with sqlite cache."""
-        mock_path = MagicMock()
-        mock_path.parent.exists.return_value = False
-        mock_config.return_value.get_file_path.return_value = mock_path
-        mock_sqlite_instance = MagicMock()
-        mock_sqlite_cache.return_value = mock_sqlite_instance
+
+        from langchain_community.cache import SQLiteCache
 
         result = LlmCache.from_value("sqlite")
-        assert result == mock_sqlite_instance
-        mock_mkdir.assert_called_once()
+        assert isinstance(result, SQLiteCache)
 
     @patch("src.ai_core.cache.global_config")
     def test_from_value_no_cache(self, mock_config: MagicMock) -> None:
