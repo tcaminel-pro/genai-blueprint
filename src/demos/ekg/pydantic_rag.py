@@ -48,17 +48,17 @@ class PydanticRag(BaseModel):
                 }
             }
         }
-        
+
         # Initialize RAG system
         rag = PydanticRag(
             model_definition={"schema": schema, "key": "name", "top_class": "Person"},
             vector_store_factory=PydanticRag.get_vector_store_factory(),
             llm_id="gpt-4o-mini"
         )
-        
+
         # Analyze documents
         person = rag.analyze_document("doc1", markdown_text)
-        
+
         # Search semantically
         tool = rag.create_vector_search_tool()
         results = tool.run("Find people with Python experience")
@@ -124,18 +124,18 @@ class PydanticRag(BaseModel):
 
     def analyze_document(self, document_id: str, markdown: str) -> BaseModel:
         """Analyze markdown document and return structured data.
-        
+
         Uses the configured LLM to extract structured information from unstructured
         markdown text based on the Pydantic schema. Results are cached if kv_store_id
         is provided for improved performance on subsequent analyses.
-        
+
         Args:
             document_id: Unique identifier for this document (used for caching)
             markdown: Raw markdown text to analyze
-            
+
         Returns:
             BaseModel: An instance of the top-level Pydantic model with extracted data
-            
+
         Example:
             ```python
             person = rag.analyze_document("resume_123", resume_markdown)
@@ -170,25 +170,25 @@ class PydanticRag(BaseModel):
 
     def get_key(self, obj: BaseModel) -> str:
         """Extract the actual key value from a model instance using dotted notation from key field definition.
-        
+
         Supports nested field access using dot notation (e.g., "person.name" or "id").
         This key is used as the unique identifier for documents in the vector store.
-        
+
         Args:
             obj: The Pydantic model instance to extract the key from
-            
+
         Returns:
             str: The string representation of the key value
-            
+
         Raises:
             ValueError: If the key field path is invalid or the value is None
-            
+
         Example:
             ```python
             # For key="name" in a Person model
             person = Person(name="Alice", age=30)
             key = rag.get_key(person)  # Returns "Alice"
-            
+
             # For nested key="company.id"
             employee = Employee(company=Company(id="C123", name="TechCorp"))
             key = rag.get_key(employee)  # Returns "C123"
@@ -278,7 +278,7 @@ class PydanticRag(BaseModel):
 
         Returns:
             list[Document]: List of LangChain Documents ready for vector storage
-            
+
         Example:
             ```python
             person = Person(name="Alice", skills=["Python", "Machine Learning"])
@@ -321,7 +321,7 @@ class PydanticRag(BaseModel):
 
         Returns:
             BaseTool: A configured search tool ready for use in LangChain workflows
-            
+
         Usage:
             ```python
             # Use in a chain
