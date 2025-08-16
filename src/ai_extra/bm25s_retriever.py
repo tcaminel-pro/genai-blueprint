@@ -11,7 +11,7 @@ from langchain_core.callbacks import CallbackManagerForRetrieverRun
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
 from loguru import logger
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 
 def default_preprocessing_func(text: str) -> list[str]:
@@ -61,10 +61,7 @@ class BM25FastRetriever(BaseRetriever):
     preprocess_func: Callable[[str], list[str]] = default_preprocessing_func
     """ Preprocessing function to use on the text before BM25 vectorization."""
 
-    class Config:
-        """Configuration for this pydantic object."""
-
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @classmethod
     def from_texts(
