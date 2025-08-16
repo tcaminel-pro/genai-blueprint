@@ -1,6 +1,5 @@
-"""A replacement of the BM25Retriever, much faster.
+"""A replacement of the BM25Retriever, much faster. It uses the BM25s package.
 
-**  NOT WELL TESTED **
 """
 
 from collections.abc import Iterable
@@ -169,7 +168,7 @@ class BM25FastRetriever(BaseRetriever):
         logger.debug(f"search : {query=} {return_docs=}")
         return return_docs
 
-
+# use SpaCyModelManager and add preprocess_func = get_spacy_preprocess_fn()  AI!
 if __name__ == "__main__":
     """Quick test for BM25FastRetriever."""
 
