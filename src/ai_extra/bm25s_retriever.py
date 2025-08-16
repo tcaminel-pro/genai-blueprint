@@ -151,22 +151,22 @@ class BM25FastRetriever(BaseRetriever):
 
         logger.info("Load BM25 index")
         vectorizer = bm25s.BM25.load(index_file, mmap=False, allow_pickle=True)
-        
+
         # Load documents from cache if available
         docs = []
-        if hasattr(vectorizer, 'corpus') and vectorizer.corpus is not None:
+        if hasattr(vectorizer, "corpus") and vectorizer.corpus is not None:
             docs = [Document(page_content=text, metadata={}) for text in vectorizer.corpus]
-        
+
         return cls(vectorizer=vectorizer, preprocess_func=preprocess_func, docs=docs, **kwargs)
 
     def _get_relevant_documents(self, query: str, *, run_manager: CallbackManagerForRetrieverRun) -> list[Document]:
         processed_query = self.preprocess_func(query)
-        
+
         if not self.docs:
             # If docs is empty, return empty list
             logger.warning("No documents available for retrieval")
             return []
-            
+
         results = self.vectorizer.retrieve([processed_query], corpus=self.docs, k=self.k, return_as="documents")
         return_docs = [results[0, i] for i in range(results.shape[1])]
         logger.debug(f"search : {query=} {return_docs=}")
