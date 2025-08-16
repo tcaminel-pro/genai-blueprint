@@ -146,8 +146,8 @@ class BM25FastRetriever(BaseRetriever):
     ) -> "BM25FastRetriever":
         try:
             import bm25s  # type: ignore
-        except ImportError:
-            raise ImportError("Could not import bm25s, please install with `pip install bm25s")
+        except ImportError as ex:
+            raise ImportError("Could not import bm25s, please install with `uv add bm25s") from ex
 
         logger.info("Load BM25 cache")
         vectorizer = bm25s.BM25.load(cache_dir, mmap=False, allow_pickle=True)
@@ -164,7 +164,6 @@ class BM25FastRetriever(BaseRetriever):
 
 if __name__ == "__main__":
     """Quick test for BM25FastRetriever."""
-    import tempfile
 
     sample_docs = [
         "The quick brown fox jumps over the lazy dog.",
