@@ -1,6 +1,4 @@
-"""A replacement of the BM25Retriever, much faster. It uses the BM25s package.
-
-"""
+"""A replacement of the BM25Retriever, much faster. It uses the BM25s package."""
 
 from collections.abc import Iterable
 from pathlib import Path
@@ -168,17 +166,18 @@ class BM25FastRetriever(BaseRetriever):
         logger.debug(f"search : {query=} {return_docs=}")
         return return_docs
 
+
 if __name__ == "__main__":
     """Quick test for BM25FastRetriever using SpaCyModelManager and spacy preprocessing."""
     try:
         from ai_extra.spacy_model_manager import SpaCyModelManager
-        
+
         # Use SpaCyModelManager to handle spacy model
         manager = SpaCyModelManager()
-        
+
         # Get spacy preprocessing function
         preprocess_func = get_spacy_preprocess_fn(manager.model_name)
-        
+
         sample_docs = [
             "The quick brown fox jumps over the lazy dog.",
             "A fast brown fox leaps over lazy dogs in summer.",
@@ -187,7 +186,7 @@ if __name__ == "__main__":
             "Artificial intelligence models require substantial training data.",
         ]
         metadatas = [{"id": i, "source": "test"} for i in range(len(sample_docs))]
-        
+
         # Create retriever with spacy preprocessing
         retriever = BM25FastRetriever.from_texts(
             texts=sample_docs,
@@ -195,19 +194,19 @@ if __name__ == "__main__":
             preprocess_func=preprocess_func,
             k=3,
         )
-        
+
         # Test retrieval
         queries = ["fox", "machine learning", "artificial intelligence"]
-        
+
         for query in queries:
             print(f"\nQuery: {query}")
             results = retriever.invoke(query)
             for i, doc in enumerate(results, 1):
                 print(f"{i}. {doc.page_content} (metadata: {doc.metadata})")
-                
+
     except ImportError:
         print("SpaCyModelManager not available, using default preprocessing...")
-        
+
         sample_docs = [
             "The quick brown fox jumps over the lazy dog.",
             "A fast brown fox leaps over lazy dogs in summer.",
