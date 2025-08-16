@@ -28,11 +28,7 @@ class TestBM25FastRetriever:
         texts = ["hello world", "foo bar", "python programming"]
         metadatas = [{"source": i} for i in range(len(texts))]
 
-        retriever = BM25FastRetriever.from_texts(
-            texts=texts,
-            metadatas=metadatas,
-            k=2
-        )
+        retriever = BM25FastRetriever.from_texts(texts=texts, metadatas=metadatas, k=2)
 
         assert retriever.k == 2
         assert len(retriever.docs) == 3
@@ -41,10 +37,7 @@ class TestBM25FastRetriever:
 
     def test_from_documents(self, sample_documents):
         """Test creating retriever from documents."""
-        retriever = BM25FastRetriever.from_documents(
-            documents=sample_documents,
-            k=3
-        )
+        retriever = BM25FastRetriever.from_documents(documents=sample_documents, k=3)
 
         assert retriever.k == 3
         assert len(retriever.docs) == 5
@@ -52,10 +45,7 @@ class TestBM25FastRetriever:
 
     def test_retrieval_basic(self, sample_documents):
         """Test basic retrieval functionality."""
-        retriever = BM25FastRetriever.from_documents(
-            documents=sample_documents,
-            k=2
-        )
+        retriever = BM25FastRetriever.from_documents(documents=sample_documents, k=2)
 
         results = retriever.invoke("fox")
 
@@ -66,20 +56,14 @@ class TestBM25FastRetriever:
 
     def test_retrieval_empty_query(self, sample_documents):
         """Test retrieval with empty query."""
-        retriever = BM25FastRetriever.from_documents(
-            documents=sample_documents,
-            k=2
-        )
+        retriever = BM25FastRetriever.from_documents(documents=sample_documents, k=2)
 
         results = retriever.invoke("")
         assert len(results) == 2  # Should return top documents even for empty query
 
     def test_retrieval_no_matches(self, sample_documents):
         """Test retrieval with no matching terms."""
-        retriever = BM25FastRetriever.from_documents(
-            documents=sample_documents,
-            k=2
-        )
+        retriever = BM25FastRetriever.from_documents(documents=sample_documents, k=2)
 
         results = retriever.invoke("zebra elephant")
         assert len(results) == 2  # Should return some documents even without matches
@@ -90,17 +74,10 @@ class TestBM25FastRetriever:
             cache_path = Path(temp_dir) / "bm25_cache"
 
             # Create retriever and save to cache
-            retriever = BM25FastRetriever.from_documents(
-                documents=sample_documents,
-                cache_dir=cache_path,
-                k=3
-            )
+            retriever = BM25FastRetriever.from_documents(documents=sample_documents, cache_dir=cache_path, k=3)
 
             # Load from cache
-            cached_retriever = BM25FastRetriever.from_index_file(
-                index_file=cache_path,
-                k=3
-            )
+            cached_retriever = BM25FastRetriever.from_index_file(index_file=cache_path, k=3)
 
             # Both should return similar results
             original_results = retriever.invoke("fox")
@@ -111,15 +88,12 @@ class TestBM25FastRetriever:
 
     def test_preprocessing_function(self):
         """Test custom preprocessing function."""
+
         def custom_preprocess(text: str) -> list[str]:
             return text.upper().split()
 
         texts = ["hello world", "foo bar"]
-        retriever = BM25FastRetriever.from_texts(
-            texts=texts,
-            preprocess_func=custom_preprocess,
-            k=2
-        )
+        retriever = BM25FastRetriever.from_texts(texts=texts, preprocess_func=custom_preprocess, k=2)
 
         # Should work with custom preprocessing
         results = retriever.invoke("HELLO")
@@ -127,10 +101,7 @@ class TestBM25FastRetriever:
 
     def test_k_parameter(self, sample_documents):
         """Test different k values."""
-        retriever = BM25FastRetriever.from_documents(
-            documents=sample_documents,
-            k=1
-        )
+        retriever = BM25FastRetriever.from_documents(documents=sample_documents, k=1)
 
         results = retriever.invoke("dog")
         assert len(results) == 1
@@ -142,9 +113,7 @@ class TestBM25FastRetriever:
     def test_bm25_parameters(self, sample_documents):
         """Test passing BM25 parameters."""
         retriever = BM25FastRetriever.from_documents(
-            documents=sample_documents,
-            bm25_params={"k1": 1.5, "b": 0.75},
-            k=2
+            documents=sample_documents, bm25_params={"k1": 1.5, "b": 0.75}, k=2
         )
 
         results = retriever.invoke("fox")
@@ -154,19 +123,17 @@ class TestBM25FastRetriever:
         """Test using spacy preprocessing function."""
         try:
             from ai_extra.bm25s_retriever import get_spacy_preprocess_fn
-            
+
             # Use a simple spacy model or skip if not available
             preprocess_func = get_spacy_preprocess_fn("en_core_web_sm")
-            
+
             retriever = BM25FastRetriever.from_documents(
-                documents=sample_documents,
-                preprocess_func=preprocess_func,
-                k=2
+                documents=sample_documents, preprocess_func=preprocess_func, k=2
             )
-            
+
             results = retriever.invoke("fox")
             assert len(results) <= 2  # Should work with spacy preprocessing
-            
+
         except (ImportError, OSError):
             # Skip test if spacy or model is not available
             pytest.skip("spacy or en_core_web_sm model not available")
