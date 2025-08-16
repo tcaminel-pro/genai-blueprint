@@ -210,13 +210,13 @@ def register_commands(cli_app: typer.Typer) -> None:
             ```bash
             # Basic interactive shell
             uv run cli ekg-agent-shell
-            
+
             # With custom LLM and cache
             uv run cli ekg-agent-shell --llm-id gpt-4o-mini --cache sqlite
-            
+
             # With MCP servers for extended capabilities
             uv run cli ekg-agent-shell --mcp filesystem --mcp playwright
-            
+
             # Debug mode for troubleshooting
             uv run cli ekg-agent-shell --debug --verbose
             ```
@@ -280,8 +280,8 @@ async def process_markdown_batch(md_files: list[UPath], output_dir: UPath, batch
         ```python
         # Process 15 files in batches of 5
         await process_markdown_batch(
-            [Path("review1.md"), Path("review2.md"), ...], 
-            Path("./output"), 
+            [Path("review1.md"), Path("review2.md"), ...],
+            Path("./output"),
             batch_size=5
         )
         ```
