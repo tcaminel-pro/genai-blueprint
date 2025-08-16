@@ -38,11 +38,11 @@ class TestLlmCache:
     @patch("src.ai_core.cache.global_config")
     @patch("pathlib.Path.mkdir")
     @patch("langchain_community.cache.SQLiteCache")
-    def test_from_value_sqlite(self, mock_sqlite_cache: MagicMock, mock_mkdir: MagicMock, mock_config: MagicMock) -> None:
+    def test_from_value_sqlite(
+        self, mock_sqlite_cache: MagicMock, mock_mkdir: MagicMock, mock_config: MagicMock
+    ) -> None:
         """Test from_value with sqlite cache."""
-        mock_config.return_value.get_file_path.return_value = MagicMock(
-            parent=MagicMock(exists=lambda: False)
-        )
+        mock_config.return_value.get_file_path.return_value = MagicMock(parent=MagicMock(exists=lambda: False))
         mock_sqlite_instance = MagicMock()
         mock_sqlite_cache.return_value = mock_sqlite_instance
 
@@ -74,14 +74,16 @@ class TestLlmCache:
         """Test from_value with invalid default config."""
         mock_config.return_value.get_str.return_value = "invalid"
         mock_config.return_value.get_str.side_effect = None
-        
+
         with pytest.raises(ValueError, match="Unknown cache method 'invalid'"):
             LlmCache.from_value("default")
 
     @patch("src.ai_core.cache.set_llm_cache")
     @patch("src.ai_core.cache.get_llm_cache")
     @patch("src.ai_core.cache.global_config")
-    def test_set_method_memory(self, mock_config: MagicMock, mock_get_cache: MagicMock, mock_set_cache: MagicMock) -> None:
+    def test_set_method_memory(
+        self, mock_config: MagicMock, mock_get_cache: MagicMock, mock_set_cache: MagicMock
+    ) -> None:
         """Test set_method with memory cache."""
         mock_get_cache.return_value.__class__ = type("DifferentCache", (), {})
         LlmCache.set_method("memory")
@@ -93,7 +95,9 @@ class TestLlmCache:
     @patch("src.ai_core.cache.set_llm_cache")
     @patch("src.ai_core.cache.get_llm_cache")
     @patch("src.ai_core.cache.global_config")
-    def test_set_method_sqlite(self, mock_config: MagicMock, mock_get_cache: MagicMock, mock_set_cache: MagicMock) -> None:
+    def test_set_method_sqlite(
+        self, mock_config: MagicMock, mock_get_cache: MagicMock, mock_set_cache: MagicMock
+    ) -> None:
         """Test set_method with sqlite cache."""
         mock_config.return_value.get_str.return_value = None
         mock_get_cache.return_value.__class__ = type("DifferentCache", (), {})
