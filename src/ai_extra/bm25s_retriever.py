@@ -156,7 +156,7 @@ class BM25FastRetriever(BaseRetriever):
     def _get_relevant_documents(self, query: str, *, run_manager: CallbackManagerForRetrieverRun) -> list[Document]:
         processed_query = self.preprocess_func(query)
         # return_docs = self.vectorizer.get_top_n(processed_query, self.docs, n=self.k)
-        results = self.vectorizer.retrieve(processed_query, corpus=self.docs, k=self.k, return_as="documents")
+        results = self.vectorizer.retrieve([processed_query], corpus=self.docs, k=self.k, return_as="documents")
         return_docs = [results[0, i] for i in range(results.shape[1])]
         logger.debug(f"search : {query=} {return_docs=}")
         return return_docs
