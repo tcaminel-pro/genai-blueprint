@@ -77,7 +77,7 @@ def test_llm_factory_short_name() -> None:
     """Test short_name method returns correct format."""
     factory = LlmFactory(llm_id=LLM_ID)
     short = factory.short_name()
-    assert short == "parrot_local"
+    assert short == "parrot"
 
 
 def test_llm_factory_get_litellm_model_name() -> None:

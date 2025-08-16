@@ -179,9 +179,10 @@ class LlmFactory(BaseModel):
         return llm_id
 
     @field_validator("cache")
-    def check_known_cache(cls, cache: str | None) -> None:
+    def check_known_cache(cls, cache: str | None) -> str | None:
         if cache and cache not in LlmCache.values():
             raise ValueError(f"Unknown cache method: '{cache} '; Should be in {LlmCache.values()}")
+        return cache
 
     @lru_cache(maxsize=1)
     @staticmethod
@@ -229,7 +230,7 @@ class LlmFactory(BaseModel):
 
     def short_name(self) -> str:
         """Return the model ID without the provider (everything before the last underscore)."""
-        return self.info.id.rsplit("_", maxsplit=2)[0]
+        return self.info.id.rsplit("_", maxsplit=1)[0]
 
     def get_litellm_model_name(self, separator: str = "/") -> str:
         """Return the LiteLLM id string from our llm_id  (best effort).
