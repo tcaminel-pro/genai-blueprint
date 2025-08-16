@@ -149,3 +149,24 @@ class TestBM25FastRetriever:
 
         results = retriever.invoke("fox")
         assert len(results) == 2  # Should work with custom BM25 parameters
+
+    def test_spacy_preprocessing(self, sample_documents):
+        """Test using spacy preprocessing function."""
+        try:
+            from ai_extra.bm25s_retriever import get_spacy_preprocess_fn
+            
+            # Use a simple spacy model or skip if not available
+            preprocess_func = get_spacy_preprocess_fn("en_core_web_sm")
+            
+            retriever = BM25FastRetriever.from_documents(
+                documents=sample_documents,
+                preprocess_func=preprocess_func,
+                k=2
+            )
+            
+            results = retriever.invoke("fox")
+            assert len(results) <= 2  # Should work with spacy preprocessing
+            
+        except (ImportError, OSError):
+            # Skip test if spacy or model is not available
+            pytest.skip("spacy or en_core_web_sm model not available")
