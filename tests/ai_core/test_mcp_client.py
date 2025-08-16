@@ -247,7 +247,7 @@ class TestMcpClientAsyncFunctions(unittest.IsolatedAsyncioTestCase):
         # Mock AsyncExitStack
         mock_stack = AsyncMock()
         mock_exit_stack.return_value.__aenter__.return_value = mock_stack
-        
+
         # Create a mock async context manager that returns tools
         mock_async_cm = AsyncMock()
         mock_async_cm.__aenter__.return_value = ["tool1", "tool2"]
@@ -282,8 +282,10 @@ class TestMcpClientAsyncFunctions(unittest.IsolatedAsyncioTestCase):
         mock_print_astream.return_value = None
 
         # Mock get_llm and get_mcp_servers_dict
-        with patch("src.ai_core.mcp_client.get_llm") as mock_get_llm, \
-             patch("src.ai_core.mcp_client.get_mcp_servers_dict") as mock_get_servers:
+        with (
+            patch("src.ai_core.mcp_client.get_llm") as mock_get_llm,
+            patch("src.ai_core.mcp_client.get_mcp_servers_dict") as mock_get_servers,
+        ):
             mock_get_llm.return_value = MagicMock(spec=BaseChatModel)
             mock_get_servers.return_value = {"test_server": {"command": "test", "args": []}}
 
