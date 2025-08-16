@@ -181,10 +181,14 @@ class TestMcpClientAsyncFunctions(unittest.IsolatedAsyncioTestCase):
         mock_session = AsyncMock()
         mock_client_session.return_value.__aenter__.return_value = mock_session
 
-        # Mock tools response
+        # Mock tools response - need to properly configure the mock objects
         mock_tools_response = MagicMock()
-        mock_tool1 = MagicMock(name="tool1", description="First tool")
-        mock_tool2 = MagicMock(name="tool2", description="Second tool")
+        mock_tool1 = MagicMock()
+        mock_tool1.name = "tool1"
+        mock_tool1.description = "First tool"
+        mock_tool2 = MagicMock()
+        mock_tool2.name = "tool2"
+        mock_tool2.description = "Second tool"
         mock_tools_response.tools = [mock_tool1, mock_tool2]
         mock_session.list_tools = AsyncMock(return_value=mock_tools_response)
 
@@ -197,13 +201,10 @@ class TestMcpClientAsyncFunctions(unittest.IsolatedAsyncioTestCase):
 
             result = await get_mcp_tools_info()
 
-            from devtools import debug
-
-            debug(result)
-
             self.assertIn("test_server", result)
             self.assertEqual(len(result["test_server"]), 2)
             self.assertEqual(result["test_server"]["tool1"], "First tool")
+            self.assertEqual(result["test_server"]["tool2"], "Second tool")
 
 
 if __name__ == "__main__":
