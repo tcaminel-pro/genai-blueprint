@@ -196,9 +196,37 @@ def register_commands(cli_app: typer.Typer) -> None:
             Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
         ] = None,
     ) -> None:
-        """
-        Run a ReaAct agent to query the EKG
+        """Run a ReAct agent to query the Enterprise Knowledge Graph (EKG).
 
+        Starts an interactive shell with a ReAct agent that can query processed project
+        data using semantic search across the vector store. The agent has access to
+        project information extracted from Markdown files and can answer complex queries
+        about projects, teams, timelines, and relationships.
+
+        The agent integrates with MCP (Model Context Protocol) servers for extended
+        capabilities like file system access, web browsing, or other external tools.
+
+        Examples:
+            ```bash
+            # Basic interactive shell
+            uv run cli ekg-agent-shell
+            
+            # With custom LLM and cache
+            uv run cli ekg-agent-shell --llm-id gpt-4o-mini --cache sqlite
+            
+            # With MCP servers for extended capabilities
+            uv run cli ekg-agent-shell --mcp filesystem --mcp playwright
+            
+            # Debug mode for troubleshooting
+            uv run cli ekg-agent-shell --debug --verbose
+            ```
+
+        Interactive Usage:
+            Once started, you can ask questions like:
+            - "Find all projects using Python"
+            - "Which projects had budgets over $1M?"
+            - "List team members who worked on healthcare projects"
+            - "Compare project delivery times across different technologies"
         """
 
         from src.demos.ekg.pydantic_rag import PydanticRag
@@ -224,7 +252,40 @@ def register_commands(cli_app: typer.Typer) -> None:
 
 
 async def process_markdown_batch(md_files: list[UPath], output_dir: UPath, batch_size: int = 5) -> None:
-    """Process a batch of markdown files using LangChain batching."""
+    """Process a batch of markdown files using LangChain batching.
+
+    Efficiently processes multiple Markdown files in parallel using LangChain's batch
+    processing capabilities. Extracts structured project data and saves results as
+    JSON files with error handling and fallback to individual processing.
+
+    Args:
+        md_files: List of Markdown file paths to process
+        output_dir: Directory where JSON output files will be saved
+        batch_size: Number of files to process in each parallel batch
+
+    Processing Pipeline:
+        1. Reads all Markdown files from input paths
+        2. Processes files in parallel batches using configured LLM
+        3. Extracts structured data into RainbowProjectAnalysis format
+        4. Saves results as JSON with "_extracted.json" suffix
+        5. Handles batch failures by retrying individual files
+
+    Error Handling:
+        - Skips unreadable files with error logging
+        - Continues processing on batch failures (retries individually)
+        - Provides detailed logging for troubleshooting
+        - Preserves partial results even if some files fail
+
+    Example:
+        ```python
+        # Process 15 files in batches of 5
+        await process_markdown_batch(
+            [Path("review1.md"), Path("review2.md"), ...], 
+            Path("./output"), 
+            batch_size=5
+        )
+        ```
+    """
 
     from src.ai_core.llm_factory import get_llm
     from src.ai_core.prompts import def_prompt
