@@ -253,7 +253,7 @@ class TestMcpClientAsyncFunctions(unittest.IsolatedAsyncioTestCase):
         # Mock AsyncExitStack
         mock_stack = AsyncMock()
         mock_exit_stack.return_value.__aenter__.return_value = mock_stack
-        
+
         # Create a mock async context manager that returns tools
         mock_async_cm = AsyncMock()
         mock_async_cm.__aenter__.return_value = ["tool1", "tool2"]
