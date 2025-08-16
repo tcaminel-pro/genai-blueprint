@@ -6,11 +6,11 @@ Automatically handles model installation and configuration.
 Example:
     ```python
     from src.utils.spacy import SpaCyModelManager
-    
+
     # Check if model is installed
     if not SpaCyModelManager.is_model_installed("en_core_web_sm"):
         SpaCyModelManager.download_model("en_core_web_sm")
-    
+
     # Or simply set up the model (downloads if needed)
     SpaCyModelManager.setup_spacy_model("en_core_web_sm")
     ```
