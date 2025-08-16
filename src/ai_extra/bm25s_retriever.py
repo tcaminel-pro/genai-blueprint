@@ -174,9 +174,10 @@ if __name__ == "__main__":
 
         # Use SpaCyModelManager to handle spacy model
         manager = SpaCyModelManager()
+        model_name = "en_core_web_sm"  # Default model name
 
         # Get spacy preprocessing function
-        preprocess_func = get_spacy_preprocess_fn(manager.model_name)
+        preprocess_func = get_spacy_preprocess_fn(model_name)
 
         sample_docs = [
             "The quick brown fox jumps over the lazy dog.",
