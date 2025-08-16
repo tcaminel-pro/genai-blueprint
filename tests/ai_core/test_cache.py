@@ -82,9 +82,7 @@ class TestLlmCache:
 
     @patch("langchain.globals.set_llm_cache")
     @patch("langchain.globals.get_llm_cache")
-    def test_set_method_memory(
-        self, mock_get_cache: MagicMock, mock_set_cache: MagicMock
-    ) -> None:
+    def test_set_method_memory(self, mock_get_cache: MagicMock, mock_set_cache: MagicMock) -> None:
         """Test set_method with memory cache."""
         mock_get_cache.return_value.__class__ = type("DifferentCache", (), {})
         LlmCache.set_method("memory")
@@ -95,9 +93,7 @@ class TestLlmCache:
 
     @patch("langchain.globals.set_llm_cache")
     @patch("langchain.globals.get_llm_cache")
-    def test_set_method_sqlite(
-        self, mock_get_cache: MagicMock, mock_set_cache: MagicMock
-    ) -> None:
+    def test_set_method_sqlite(self, mock_get_cache: MagicMock, mock_set_cache: MagicMock) -> None:
         """Test set_method with sqlite cache."""
         mock_get_cache.return_value.__class__ = type("DifferentCache", (), {})
         LlmCache.set_method("sqlite")
