@@ -629,7 +629,7 @@ wheels = [
 
 [[package]]
 name = "chromadb"
-version = "1.0.16"
+version = "1.0.17"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bcrypt" },
@@ -660,13 +660,13 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "uvicorn", extra = ["standard"] },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/15/2a/5b7e793d2a27c425e9f1813e9cb965b70e9bda08b69ee15a10e07dc3e59a/chromadb-1.0.16.tar.gz", hash = "sha256:3c864b5beb5e131bdc1f83c0b63a01ec481c6ee52028f088563ffba8478478e1", size = 1241545 }
+sdist = { url = "https://files.pythonhosted.org/packages/04/bf/4e4a7f3a60baff1e05dad079806e010dd79b06ad23f5033a47a83af60638/chromadb-1.0.17.tar.gz", hash = "sha256:725277484b982a43683f98340ce1e6ce1f518d2c41825b5e32866426d067c92f", size = 1239210 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a3/9d/bffcc814272c9b7982551803b2d45b77f39eeea1b9e965c00c05ee81c649/chromadb-1.0.16-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:144163ce7ca4f4448684d5d0c13ebb37c4d68490ecb60967a95d05cea30e0d2d", size = 18942157 },
-    { url = "https://files.pythonhosted.org/packages/58/4e/de0086f3cbcfd667d75d112bb546386803ab5335599bf7099272a675e98b/chromadb-1.0.16-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:4ebcc5894e6fbb6b576452bbf4659746bfe58d9daf99a18363364e9497434bd2", size = 18147831 },
-    { url = "https://files.pythonhosted.org/packages/0e/7f/a8aff4ce96281bcb9731d10b2554f41963dd0b47acb4f90a78b2b7c4f199/chromadb-1.0.16-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:937051fc3aae94f7c171503d8f1f7662820aacc75acf45f28d3656c75c5ff1f8", size = 18682195 },
-    { url = "https://files.pythonhosted.org/packages/a3/9c/2a97d0257176aae472dff6f1ef1b7050449f384e420120e0f31d2d8f532f/chromadb-1.0.16-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c0f5c5ad0c59154a9cab1506b857bab8487b588352e668cf1222c54bb9d52daa", size = 19635695 },
-    { url = "https://files.pythonhosted.org/packages/96/8a/f7e810f3cbdc9186ba4e649dc32711b7ab2c23aba37cf61175f731d22293/chromadb-1.0.16-cp39-abi3-win_amd64.whl", hash = "sha256:2528c01bd8b3facca9d0e1ffac866767c386b94604df484fc792ee891c86e09a", size = 19641144 },
+    { url = "https://files.pythonhosted.org/packages/e0/d2/5fb78e75ec3a60a134e5be0209da7a146dc6f74b8e2ee0075e1431b5b08f/chromadb-1.0.17-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:bafe0798df1ad675e48d02780bda3118374d93f0b26423e2eb48112e68492e1d", size = 19057932 },
+    { url = "https://files.pythonhosted.org/packages/dd/7f/b88be1e868b520be61b949291e1420fe6c3aaa7f91b276ea3317a66850f3/chromadb-1.0.17-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:76a8449184301d909deae28be4a5e9c3744b5f8136c916c3b812864038169bd4", size = 18235364 },
+    { url = "https://files.pythonhosted.org/packages/d8/80/c615c349de262011e65af65024b66d14f8c7626a4608c8c3577a54a74d48/chromadb-1.0.17-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:044128f62787fd25596fdbe83bf87ce202585f145b65c03c2436b30d32c2bec1", size = 18778821 },
+    { url = "https://files.pythonhosted.org/packages/a3/a8/efe778d8f8bd0526348c5a582f83c73ecf03296a680be907f4ddcfe30070/chromadb-1.0.17-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f6c05809a3df50609fab3dbc7f589be66d60d9ced5856c38de03e52886d81213", size = 19730006 },
+    { url = "https://files.pythonhosted.org/packages/ec/92/158c4248b235261bdc2f506944f8f5efdb6aa5bff57dfbf1a07c223d166c/chromadb-1.0.17-cp39-abi3-win_amd64.whl", hash = "sha256:56f84e500b89f8218ee20815feb316e5f56be34a89b8871c33e38e3c0a5b7d0c", size = 19762596 },
 ]
 
 [[package]]
@@ -2746,7 +2746,7 @@ wheels = [
 
 [[package]]
 name = "litellm"
-version = "1.75.5.post1"
+version = "1.75.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -2761,9 +2761,9 @@ dependencies = [
     { name = "tiktoken" },
     { name = "tokenizers" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/10/97/6091a020895102a20f1da204ebe68c1293123555476b38e749f95ba5981c/litellm-1.75.5.post1.tar.gz", hash = "sha256:e40a0e4b25032755dc5df7f02742abe9e3b8836236363f605f3bdd363cb5a0d0", size = 10127846 }
+sdist = { url = "https://files.pythonhosted.org/packages/89/f6/31e260218300dea963ed54a4072307f4144d2efa3e2711ca2dfc133cc227/litellm-1.75.7.tar.gz", hash = "sha256:147c2027b0c57c93252d5e479294b480ddf3389cf886e0b94658a58b2b36e767", size = 10142692 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8f/76/780f68a3b26227136a5147c76860aacedcae9bf1b7afc1c991ec9cad11bc/litellm-1.75.5.post1-py3-none-any.whl", hash = "sha256:1c72809a9c8f6e132ad06eb7e628f674c775b0ce6bfb58cbd37e8b585d929cb7", size = 8895997 },
+    { url = "https://files.pythonhosted.org/packages/eb/0c/623f7e3b6dd658fa261161e8a54a0d545fa11310a63a405e84c8b76e4192/litellm-1.75.7-py3-none-any.whl", hash = "sha256:ac42ac0986d43923ce712005e307079d99eebb3901c15399644eba7c79978727", size = 8917642 },
 ]
 
 [[package]]
@@ -3192,11 +3192,11 @@ wheels = [
 
 [[package]]
 name = "narwhals"
-version = "2.1.1"
+version = "2.1.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/88/2b/d1206ec57d44efd07a08c75ecbeeef05e6b0457dc6777b6bd2d1e79713cd/narwhals-2.1.1.tar.gz", hash = "sha256:308ec9d0e40616b66b61cd76ede4083a4232ae04942a3acef7e514d49641cb77", size = 529925 }
+sdist = { url = "https://files.pythonhosted.org/packages/37/f0/b0550d9b84759f4d045fd43da2f811e8b23dc2001e38c3254456da7f3adb/narwhals-2.1.2.tar.gz", hash = "sha256:afb9597e76d5b38c2c4b7c37d27a2418b8cc8049a66b8a5aca9581c92ae8f8bf", size = 533772 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5b/9d/4e9b4b3de8e5b809a41eaa22e1516ea65636ca78eb342607434155ffe0ed/narwhals-2.1.1-py3-none-any.whl", hash = "sha256:dee7d7582d456ef325cb831a65b80783041ef841bbf183180ec445d132a154c6", size = 389471 },
+    { url = "https://files.pythonhosted.org/packages/a8/01/824fff6789ce92a53242d24b6f5f3a982df2f610c51020f934bf878d2a99/narwhals-2.1.2-py3-none-any.whl", hash = "sha256:136b2f533a4eb3245c54254f137c5d14cef5c4668cff67dc6e911a602acd3547", size = 392064 },
 ]
 
 [[package]]
@@ -3726,11 +3726,11 @@ wheels = [
 
 [[package]]
 name = "phonenumbers"
-version = "9.0.11"
+version = "9.0.12"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/7b/54/367d3b262bb1505af1c2b164e6e31c87522e17c68095faa56e01f4dbbd57/phonenumbers-9.0.11.tar.gz", hash = "sha256:6573858dcf0a7a2753a071375e154d9fc11791546c699b575af95d2ba7d84a1d", size = 2297786 }
+sdist = { url = "https://files.pythonhosted.org/packages/9f/07/f76fb718ad78d0cd0926ef750b58928e5b13f0f94cc6c516d310f11228fb/phonenumbers-9.0.12.tar.gz", hash = "sha256:ccadff6b949494bd606836d8c9678bee5b55cb1cbad1e98bf7adae108e6fd0be", size = 2297813 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/90/1a/cc7f1a81045cb4c1f5801082adf29c34b67c7193f0d29ae56ce68546137c/phonenumbers-9.0.11-py2.py3-none-any.whl", hash = "sha256:a8ebb2136f1f14dfdbadb98be01cb71b96f880dea011eb5e0921967fe3a23abf", size = 2583590 },
+    { url = "https://files.pythonhosted.org/packages/7c/f1/e94b3504078d67d69d024ffb1798c31df9ddfb09ec2ec1680f3e7776414a/phonenumbers-9.0.12-py2.py3-none-any.whl", hash = "sha256:900633afc3e12191458d710262df5efc117838bd1e2e613b64fa254a86bb20a1", size = 2583620 },
 ]
 
 [[package]]

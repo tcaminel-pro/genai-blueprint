@@ -8,16 +8,14 @@ This file contains scripts used to give instruction to a coding LLM.  Aider-chat
 ####
 smolagents_streamlit.py is a port of gradio_ui.py  (from the smolgents package) to StreamLit.
 Howerver, smolgents packages version has changed, and gradio_ui.py has changed accordingly. 
-I ask you to to report the change in that files smolagents_streamlit.py.
+I ask you to to report the changes in that files smolagents_streamlit.py.
 
 What already been done for the port:
-Modify class name, but don't add new class method.
-Use the 'to_raw' method to use AgentImage in st.image().
-Replace relative import by absolute import from smolagents.
-Add st.expander when displaying code.
-Insert that prompt in the module comments.
-Add type annotation whenever possible (hint: agent is of type smolagents.MultiStepAgent, images  is of type PIL.Image.Image). 
-Keep the licence text.
+    Use the 'to_raw' method to use AgentImage in st.image().
+    Replace relative import by absolute import from smolagents.
+    Add st.expander when displaying code.
+    Add type annotation whenever possible (hint: agent is of type smolagents.MultiStepAgent, images  is of type PIL.Image.Image). 
+    Keep the licence text.
 
 
 ## Create a Pydantic Scheme from documents

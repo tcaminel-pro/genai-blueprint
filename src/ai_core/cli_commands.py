@@ -232,37 +232,24 @@ def register_commands(cli_app: typer.Typer) -> None:
         embeddings_items = EmbeddingsFactory.known_items()
         vector_items = VectorStoreFactory.known_items()
 
-        # Create panels for each category
-
-        # Format LLM items in 2 columns
+        # Format LLM items in several columns
         llm_content = Columns([f"• {item}" for item in llm_items], equal=True, expand=True)
-
-        # Format embeddings and vector store items side by side in 2 columns each
         embeddings_content = Columns([f"• {item}" for item in embeddings_items], equal=True, expand=True)
         vector_content = Columns([f"• {item}" for item in vector_items], equal=True, expand=True)
-
         llm_panel = Panel(llm_content, title="[bold blue]LLMs[/bold blue]", border_style="blue")
-
         embeddings_panel = Panel(
             embeddings_content,
             title="[bold green]Embeddings[/bold green]",
             border_style="green",
         )
-
         vector_panel = Panel(
             vector_content,
             title="[bold magenta]Vector Stores[/bold magenta]",
             border_style="magenta",
         )
-
-        # Display LLMs in first row, embeddings and vector stores side by side in second row
-        console.print("\n[bold]Available Models & Components[/bold]\n")
-
-        # LLMs panel takes full width
+        console.print(Panel("Available Models & Components", border_style="bright_blue"))
         console.print(llm_panel)
         console.print()
-
-        # Embeddings and vector stores side by side
         bottom_row = Columns([embeddings_panel, vector_panel], equal=True, expand=True)
         console.print(bottom_row)
 

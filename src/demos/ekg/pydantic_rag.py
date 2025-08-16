@@ -13,23 +13,33 @@ Key Components:
     - Caching system for improved performance
     - Semantic search tools for querying structured data
 
-Example:
-    ```python
-    # Define schema and initialize
-    rag = PydanticRag(
-        model_definition={"schema": {...}, "key": "id", "top_class": "MyModel"},
-        vector_store_factory=PydanticRag.get_vector_store_factory(),
-        llm_id="gpt-4o-mini"
-    )
+    Usage Example:
+        ```python
+        # Define your schema
+        schema = {
+            "Person": {
+                "description": "A person with basic information",
+                "fields": {
+                    "name": {"type": "str", "description": "Full name"},
+                    "age": {"type": "int", "description": "Age in years"},
+                    "skills": {"type": "list[str]", "description": "Technical skills"}
+                }
+            }
+        }
 
-    # Process documents
-    doc = rag.analyze_document("doc1", markdown_content)
-    rag.store_chunks(rag.chunck(doc))
+        # Initialize RAG system
+        rag = PydanticRag(
+            model_definition={"schema": schema, "key": "name", "top_class": "Person"},
+            vector_store_factory=PydanticRag.get_vector_store_factory(),
+            llm_id="gpt-4o-mini"
+        )
 
-    # Search
-    tool = rag.create_vector_search_tool()
-    results = tool.run("find relevant data")
-    ```
+        # Analyze documents
+        person = rag.analyze_document("doc1", markdown_text)
+
+        # Search semantically
+        tool = rag.create_vector_search_tool()
+        ```
 """
 
 from typing import Any, List, Optional, Type, TypeVar
@@ -69,34 +79,7 @@ class PydanticRag(BaseModel):
         - Caching of analyzed documents for performance
         - Configurable embeddings and storage backends
 
-    Usage Example:
-        ```python
-        # Define your schema
-        schema = {
-            "Person": {
-                "description": "A person with basic information",
-                "fields": {
-                    "name": {"type": "str", "description": "Full name"},
-                    "age": {"type": "int", "description": "Age in years"},
-                    "skills": {"type": "list[str]", "description": "Technical skills"}
-                }
-            }
-        }
 
-        # Initialize RAG system
-        rag = PydanticRag(
-            model_definition={"schema": schema, "key": "name", "top_class": "Person"},
-            vector_store_factory=PydanticRag.get_vector_store_factory(),
-            llm_id="gpt-4o-mini"
-        )
-
-        # Analyze documents
-        person = rag.analyze_document("doc1", markdown_text)
-
-        # Search semantically
-        tool = rag.create_vector_search_tool()
-        results = tool.run("Find people with Python experience")
-        ```
 
     Attributes:
         model_definition: Dictionary containing schema, key field, and top class name
