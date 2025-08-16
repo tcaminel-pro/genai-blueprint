@@ -7,7 +7,6 @@ from loguru import logger
 from typer import Option
 from upath import UPath
 
-from src.demos.ekg.pydantic_rag import PydanticRag
 from src.utils.config_mngr import global_config
 
 
@@ -202,6 +201,7 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         """
 
+        from src.demos.ekg.pydantic_rag import PydanticRag
         from src.utils.cli.langchain_setup import setup_langchain
         from src.utils.cli.langgraph_agent_shell import run_langgraph_agent_shell
 
