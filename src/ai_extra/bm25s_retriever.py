@@ -138,9 +138,9 @@ class BM25FastRetriever(BaseRetriever):
         )
 
     @classmethod
-    def from_cache(
+    def from_index_file(
         cls,
-        cache_dir: Path,
+        index_file: Path,
         preprocess_func: Callable[[str], list[str]] = default_preprocessing_func,
         **kwargs: Any,
     ) -> "BM25FastRetriever":
@@ -149,8 +149,8 @@ class BM25FastRetriever(BaseRetriever):
         except ImportError as ex:
             raise ImportError("Could not import bm25s, please install with `uv add bm25s") from ex
 
-        logger.info("Load BM25 cache")
-        vectorizer = bm25s.BM25.load(cache_dir, mmap=False, allow_pickle=True)
+        logger.info("Load BM25 index")
+        vectorizer = bm25s.BM25.load(index_file, mmap=False, allow_pickle=True)
         return cls(vectorizer=vectorizer, preprocess_func=preprocess_func, docs=[], **kwargs)
 
     def _get_relevant_documents(self, query: str, *, run_manager: CallbackManagerForRetrieverRun) -> list[Document]:
