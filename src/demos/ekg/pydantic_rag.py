@@ -1,3 +1,37 @@
+"""RAG system implementation for extracting, storing, and querying structured data from documents.
+
+This module provides a complete Retrieval-Augmented Generation system that:
+1. Extracts structured data from unstructured documents using LLMs
+2. Stores data as Pydantic model instances
+3. Creates searchable vector embeddings for semantic queries
+4. Provides tools for advanced retrieval and analysis
+
+Key Components:
+    - PydanticRag: Main class orchestrating the RAG pipeline
+    - Vector storage with PostgreSQL backend
+    - LLM integration for document analysis
+    - Caching system for improved performance
+    - Semantic search tools for querying structured data
+
+Example:
+    ```python
+    # Define schema and initialize
+    rag = PydanticRag(
+        model_definition={"schema": {...}, "key": "id", "top_class": "MyModel"},
+        vector_store_factory=PydanticRag.get_vector_store_factory(),
+        llm_id="gpt-4o-mini"
+    )
+    
+    # Process documents
+    doc = rag.analyze_document("doc1", markdown_content)
+    rag.store_chunks(rag.chunck(doc))
+    
+    # Search
+    tool = rag.create_vector_search_tool()
+    results = tool.run("find relevant data")
+    ```
+"""
+
 from typing import Any, List, Optional, Type, TypeVar
 
 from devtools import debug  # noqa: F401
