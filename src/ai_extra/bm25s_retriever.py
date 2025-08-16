@@ -170,7 +170,7 @@ class BM25FastRetriever(BaseRetriever):
 if __name__ == "__main__":
     """Quick test for BM25FastRetriever using SpaCyModelManager and spacy preprocessing."""
     try:
-        from ai_extra.spacy_model_manager import SpaCyModelManager
+        from utils.spacy import SpaCyModelManager
 
         # Use SpaCyModelManager to handle spacy model
         manager = SpaCyModelManager()
