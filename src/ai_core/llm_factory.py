@@ -229,7 +229,7 @@ class LlmFactory(BaseModel):
 
     def short_name(self) -> str:
         """Return the model ID without the provider (everything before the last underscore)."""
-        return self.info.id.rsplit("_", maxsplit=1)[0]
+        return self.info.id.rsplit("_", maxsplit=2)[0]
 
     def get_litellm_model_name(self, separator: str = "/") -> str:
         """Return the LiteLLM id string from our llm_id  (best effort).
@@ -465,7 +465,7 @@ class LlmFactory(BaseModel):
         )
         if with_fallback:
             # Not well tested !!!
-            selected_llm = selected_llm.with_fallbacks([LlmFactory(llm_id="llama3_70_groq").get()])
+            selected_llm = selected_llm.with_fallbacks([LlmFactory(llm_id="llama33_70_groq").get()])
         return selected_llm  # type: ignore
 
 
