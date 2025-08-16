@@ -21,11 +21,11 @@ Example:
         vector_store_factory=PydanticRag.get_vector_store_factory(),
         llm_id="gpt-4o-mini"
     )
-    
+
     # Process documents
     doc = rag.analyze_document("doc1", markdown_content)
     rag.store_chunks(rag.chunck(doc))
-    
+
     # Search
     tool = rag.create_vector_search_tool()
     results = tool.run("find relevant data")
