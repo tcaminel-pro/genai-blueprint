@@ -301,17 +301,17 @@ class LlmFactory(BaseModel):
         from src.ai_core.cache import LlmCache
 
         if self.cache:
-            cache = LlmCache.from_value(self.cache)
+            lc_cache = LlmCache.from_value(self.cache)
         else:
-            cache = get_llm_cache()
-
+            lc_cache = get_llm_cache()
         common_params = {
             "temperature": 0.0,
-            "cache": cache,
+            "cache": lc_cache,
             "seed": SEED,
             "max_retries": DEFAULT_MAX_RETRIES,
             "streaming": self.streaming,
         }
+        debug(common_params)
 
         api_key = get_provider_api_key(self.info.provider)
         llm_params = common_params | self.llm_params
@@ -466,7 +466,8 @@ class LlmFactory(BaseModel):
         )
         if with_fallback:
             # Not well tested !!!
-            selected_llm = selected_llm.with_fallbacks([LlmFactory(llm_id="llama33_70_groq").get()])
+            logger.warning("LLM falback - Not well tested")
+            selected_llm = selected_llm.with_fallbacks([LlmFactory(llm_id="gpt_41mini_openrouter").get()])
         return selected_llm  # type: ignore
 
 
