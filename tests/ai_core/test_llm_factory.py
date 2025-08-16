@@ -191,7 +191,7 @@ def test_llm_factory_model_validation() -> None:
     # Test valid ID
     factory = LlmFactory(llm_id=LLM_ID)
     assert factory.llm_id == LLM_ID
-    
+
     # Test invalid ID
     with pytest.raises(ValueError, match="Unknown LLM"):
         LlmFactory(llm_id="invalid_model_id")
@@ -202,7 +202,7 @@ def test_field_validator_cache() -> None:
     # Valid cache value
     factory = LlmFactory(llm_id=LLM_ID, cache="memory")
     assert factory.cache == "memory"
-    
+
     # Invalid cache value should raise ValueError
     with pytest.raises(ValueError, match="Unknown cache method"):
         LlmFactory(llm_id=LLM_ID, cache="invalid_cache")
