@@ -1,3 +1,44 @@
+"""CLI commands for EKG (Enterprise Knowledge Graph) document processing and analysis.
+
+This module provides command-line interface commands for:
+- Extracting structured data from Markdown documents using LLMs
+- Generating synthetic/fake project data based on existing templates
+- Running interactive agents for querying the knowledge graph
+
+The commands integrate with the PydanticRAG system to provide document analysis,
+vector storage, and semantic search capabilities.
+
+Key Features:
+    - Batch processing of Markdown files with parallel LLM extraction
+    - Generation of realistic synthetic project data for testing
+    - Interactive ReAct agents for querying processed project information
+    - Integration with MCP (Model Context Protocol) servers for extended capabilities
+    - Configurable caching strategies and LLM selection
+
+Usage Examples:
+    ```bash
+    # Extract structured data from Markdown files
+    uv run cli rainbow-extract "*.md" --output-dir ./data
+    
+    # Generate fake project data from existing JSON templates
+    uv run cli rainbow-generate-fake "templates/*.json" --output-dir ./fake --count 5
+    
+    # Start interactive agent for querying the knowledge graph
+    uv run cli ekg-agent-shell --llm-id gpt-4o-mini --mcp filesystem
+    
+    # Process recursively with custom settings
+    uv run cli rainbow-extract ./reviews/ --recursive --batch-size 10 --force
+    
+    # Debug mode for troubleshooting
+    uv run cli ekg-agent-shell --debug --verbose --cache sqlite
+    ```
+
+Data Flow:
+    1. Markdown files → rainbow_extract → JSON structured data
+    2. JSON templates → rainbow_generate_fake → Synthetic JSON data
+    3. Processed data → ekg_agent_shell → Interactive querying via ReAct agent
+"""
+
 import asyncio
 from pathlib import Path
 from typing import Annotated, Optional
