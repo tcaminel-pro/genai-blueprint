@@ -47,33 +47,40 @@ class SpaCyModelManager:
         if SpaCyModelManager.is_model_installed(model_name):
             return model_path
 
-        logger.info(f"Downloading SpaCy model '{model_name}'")
-        subprocess.run(["python", "-m", "spacy", "download", model_name], check=True)
+        logger.info(f"Downloading SpaCy model '{model_name}' to {model_path}")
+        model_path.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run(
+            ["python", "-m", "spacy", "download", model_name, "--target", str(model_path.parent)],
+            check=True,
+        )
 
         return model_path
 
     @staticmethod
     def setup_spacy_model(model_name: str) -> None:
         """Set up the SpaCy model by downloading it if needed."""
-        import subprocess
-
         try:
             import spacy
+            from spacy import util
 
-            # Check if the model can be loaded
-            spacy.load(model_name)
-            logger.info(f"SpaCy model '{model_name}' is already available")
-        except OSError:
-            logger.info(f"Downloading SpaCy model '{model_name}'")
+            # Try to load the model from our custom directory first
+            model_path = SpaCyModelManager.get_model_path(model_name)
+            if model_path.exists():
+                spacy.load(model_path)
+                logger.info(f"SpaCy model '{model_name}' loaded from {model_path}")
+                return
+
+            # If not found in custom directory, check if installed globally
             try:
-                # Download and install the model
-                subprocess.run(["python", "-m", "spacy", "download", model_name], check=True)
-                # Verify the model is now available
                 spacy.load(model_name)
-                logger.info(f"SpaCy model '{model_name}' has been successfully installed")
-            except subprocess.CalledProcessError as e:
-                logger.error(f"Failed to download SpaCy model '{model_name}': {e}")
-                raise
-            except OSError as e:
-                logger.error(f"Failed to load SpaCy model '{model_name}' after download: {e}")
-                raise
+                logger.info(f"SpaCy model '{model_name}' is available globally")
+                return
+            except OSError:
+                # Download to our custom directory
+                model_path = SpaCyModelManager.download_model(model_name)
+                spacy.load(model_path)
+                logger.info(f"SpaCy model '{model_name}' downloaded and loaded from {model_path}")
+
+        except Exception as e:
+            logger.error(f"Failed to setup SpaCy model '{model_name}': {e}")
+            raise

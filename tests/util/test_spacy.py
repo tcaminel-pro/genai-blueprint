@@ -53,7 +53,7 @@ class TestSpaCyModelManager:
 
                 assert result == UPath(model_path)
                 mock_subprocess.assert_called_once_with(
-                    ["python", "-m", "spacy", "download", model_name],
+                    ["python", "-m", "spacy", "download", model_name, "--target", str(tmp_path / "spacy_models")],
                     check=True,
                 )
 
@@ -71,27 +71,30 @@ class TestSpaCyModelManager:
                 mock_subprocess.assert_not_called()
 
     @patch("src.utils.spacy.SpaCyModelManager.download_model")
-    @patch("src.utils.spacy.SpaCyModelManager.is_model_installed")
-    def test_setup_spacy_model_not_installed(self, mock_is_installed: MagicMock, mock_download: MagicMock) -> None:
+    def test_setup_spacy_model_not_installed(self, mock_download: MagicMock, tmp_path: Path) -> None:
         """Test setup_spacy_model when model is not installed."""
         model_name = "en_core_web_sm"
+        model_path = tmp_path / "spacy_models" / model_name
 
-        mock_is_installed.return_value = False
-
-        SpaCyModelManager.setup_spacy_model(model_name)
-
-        mock_is_installed.assert_called_once_with(model_name)
-        mock_download.assert_called_once_with(model_name)
+        with patch("src.utils.spacy.SpaCyModelManager.get_model_path", return_value=UPath(model_path)):
+            with patch.dict("sys.modules", {"spacy": MagicMock()}):
+                mock_spacy = MagicMock()
+                mock_spacy.load.side_effect = [OSError, None]  # First call fails, second succeeds
+                with patch("src.utils.spacy.importlib.import_module", return_value=mock_spacy):
+                    SpaCyModelManager.setup_spacy_model(model_name)
+                    mock_download.assert_called_once()
 
     @patch("src.utils.spacy.SpaCyModelManager.download_model")
-    @patch("src.utils.spacy.SpaCyModelManager.is_model_installed")
-    def test_setup_spacy_model_already_installed(self, mock_is_installed: MagicMock, mock_download: MagicMock) -> None:
+    def test_setup_spacy_model_already_installed(self, mock_download: MagicMock, tmp_path: Path) -> None:
         """Test setup_spacy_model when model is already installed."""
         model_name = "en_core_web_sm"
+        model_path = tmp_path / "spacy_models" / model_name
+        model_path.mkdir(parents=True, exist_ok=True)
 
-        mock_is_installed.return_value = True
-
-        SpaCyModelManager.setup_spacy_model(model_name)
-
-        mock_is_installed.assert_called_once_with(model_name)
-        mock_download.assert_not_called()
+        with patch("src.utils.spacy.SpaCyModelManager.get_model_path", return_value=UPath(model_path)):
+            with patch.dict("sys.modules", {"spacy": MagicMock()}):
+                mock_spacy = MagicMock()
+                mock_spacy.load.return_value = None  # Model loads successfully
+                with patch("src.utils.spacy.importlib.import_module", return_value=mock_spacy):
+                    SpaCyModelManager.setup_spacy_model(model_name)
+                    mock_download.assert_not_called()
