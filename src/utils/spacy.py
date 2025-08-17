@@ -75,7 +75,6 @@ class SpaCyModelManager:
         """Set up the SpaCy model by downloading it if needed."""
         try:
             import spacy
-            from spacy import util
 
             # Try to load the model from our custom directory first
             model_path = SpaCyModelManager.get_model_path(model_name)
@@ -98,3 +97,18 @@ class SpaCyModelManager:
         except Exception as e:
             logger.error(f"Failed to setup SpaCy model '{model_name}': {e}")
             raise
+
+
+if __name__ == "__main__":
+    import sys
+
+    model_name = sys.argv[1] if len(sys.argv) > 1 else "en_core_web_sm"
+
+    try:
+        print(f"Testing SpaCy model setup with: {model_name}")
+        SpaCyModelManager.setup_spacy_model(model_name)
+        print("✅ Setup successful!")
+        print(f"Model installed: {SpaCyModelManager.is_model_installed(model_name)}")
+    except Exception as e:
+        print(f"❌ Setup failed: {e}")
+        sys.exit(1)
