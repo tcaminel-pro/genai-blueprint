@@ -55,13 +55,24 @@ class SpaCyModelManager:
     @staticmethod
     def setup_spacy_model(model_name: str) -> None:
         """Set up the SpaCy model by downloading it if needed."""
-
+        import subprocess
+        
         try:
             import spacy
-
-            # Try to load the model to check if it's available
+            # Check if the model can be loaded
             spacy.load(model_name)
             logger.info(f"SpaCy model '{model_name}' is already available")
         except OSError:
             logger.info(f"Downloading SpaCy model '{model_name}'")
-            SpaCyModelManager.download_model(model_name)
+            try:
+                # Download and install the model
+                subprocess.run(["python", "-m", "spacy", "download", model_name], check=True)
+                # Verify the model is now available
+                spacy.load(model_name)
+                logger.info(f"SpaCy model '{model_name}' has been successfully installed")
+            except subprocess.CalledProcessError as e:
+                logger.error(f"Failed to download SpaCy model '{model_name}': {e}")
+                raise
+            except OSError as e:
+                logger.error(f"Failed to load SpaCy model '{model_name}' after download: {e}")
+                raise
