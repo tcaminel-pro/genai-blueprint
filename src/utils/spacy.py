@@ -16,9 +16,9 @@ Example:
     ```
 if __name__ == "__main__":
     import sys
-    
+
     model_name = sys.argv[1] if len(sys.argv) > 1 else "en_core_web_sm"
-    
+
     try:
         print(f"Testing SpaCy model setup with: {model_name}")
         SpaCyModelManager.setup_spacy_model(model_name)
