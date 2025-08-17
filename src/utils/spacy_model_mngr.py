@@ -63,10 +63,29 @@ class SpaCyModelManager:
 
         logger.info(f"Downloading SpaCy model '{model_name}' to {model_path}")
         model_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Use spacy download command without --target first to ensure proper model installation
         subprocess.run(
-            ["python", "-m", "spacy", "download", model_name, "--target", str(model_path.parent)],
+            ["python", "-m", "spacy", "download", model_name],
             check=True,
         )
+        
+        # After downloading, create a symlink in our models directory for consistency
+        import spacy
+        global_model_path = None
+        try:
+            # Get the path to the globally installed model
+            global_model_path = spacy.util.get_package_path(model_name)
+            if global_model_path.exists():
+                # Create a symlink to our custom directory
+                if not model_path.exists():
+                    model_path.symlink_to(global_model_path)
+        except Exception as e:
+            logger.warning(f"Could not create symlink for model {model_name}: {e}")
+            # Fallback to copying the model directory
+            if global_model_path and global_model_path.exists():
+                import shutil
+                shutil.copytree(global_model_path, model_path, dirs_exist_ok=True)
 
         return model_path
 
@@ -76,23 +95,36 @@ class SpaCyModelManager:
         try:
             import spacy
 
-            # Try to load the model from our custom directory first
-            model_path = SpaCyModelManager.get_model_path(model_name)
-            if model_path.exists():
-                spacy.load(model_path)
-                logger.info(f"SpaCy model '{model_name}' loaded from {model_path}")
-                return
-
-            # If not found in custom directory, check if installed globally
+            # Check if model is available globally first
             try:
                 spacy.load(model_name)
                 logger.info(f"SpaCy model '{model_name}' is available globally")
                 return
             except OSError:
-                # Download to our custom directory
-                model_path = SpaCyModelManager.download_model(model_name)
-                spacy.load(model_path)
-                logger.info(f"SpaCy model '{model_name}' downloaded and loaded from {model_path}")
+                # Model not available globally, need to download
+                pass
+
+            # Try to load from our custom directory
+            model_path = SpaCyModelManager.get_model_path(model_name)
+            if model_path.exists():
+                try:
+                    spacy.load(model_path)
+                    logger.info(f"SpaCy model '{model_name}' loaded from {model_path}")
+                    return
+                except Exception:
+                    # If loading from custom path fails, remove and re-download
+                    import shutil
+                    if model_path.is_symlink():
+                        model_path.unlink()
+                    elif model_path.is_dir():
+                        shutil.rmtree(model_path)
+            
+            # Download the model
+            SpaCyModelManager.download_model(model_name)
+            
+            # Try loading again
+            spacy.load(model_name)
+            logger.info(f"SpaCy model '{model_name}' downloaded and loaded successfully")
 
         except Exception as e:
             logger.error(f"Failed to setup SpaCy model '{model_name}': {e}")
