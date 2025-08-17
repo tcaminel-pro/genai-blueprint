@@ -1,9 +1,8 @@
 """Tests for the SpaCy model manager utility."""
 
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-import pytest
 from upath import UPath
 
 from src.utils.spacy import SpaCyModelManager

@@ -1,6 +1,6 @@
-"""SpaCy model management utilities for Presidio.
+"""SpaCy model management utilities .
 
-Provides utilities to manage SpaCy models for Presidio anonymization.
+Provides utilities to manage SpaCy models.
 Automatically handles model installation and configuration.
 
 Example:
@@ -60,6 +60,7 @@ class SpaCyModelManager:
         """Set up the SpaCy model by downloading it if needed ."""
 
         if not SpaCyModelManager.is_model_installed(model_name):
+            logger.info("download  spacy model {model_name}")
             SpaCyModelManager.download_model(model_name)
 
         # model_path = SpaCyModelManager.get_model_path(model_name)
