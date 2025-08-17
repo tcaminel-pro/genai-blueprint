@@ -56,9 +56,10 @@ class SpaCyModelManager:
     def setup_spacy_model(model_name: str) -> None:
         """Set up the SpaCy model by downloading it if needed."""
         import subprocess
-        
+
         try:
             import spacy
+
             # Check if the model can be loaded
             spacy.load(model_name)
             logger.info(f"SpaCy model '{model_name}' is already available")
