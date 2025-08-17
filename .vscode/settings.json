@@ -121,4 +121,7 @@
     "vertexai"
   ],
   "cSpell.language": "en,fr",
+  "python.analysis.extraPaths": [
+    "./src"
+  ],
 }

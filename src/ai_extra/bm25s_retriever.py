@@ -169,57 +169,37 @@ class BM25FastRetriever(BaseRetriever):
 
 if __name__ == "__main__":
     """Quick test for BM25FastRetriever using SpaCyModelManager and spacy preprocessing."""
-    try:
-        from src.utils.spacy import SpaCyModelManager
+    from utils.spacy_model_mngr import SpaCyModelManager
 
-        # Use SpaCyModelManager to handle spacy model
-        model_name = "en_core_web_sm"  # Default model name
-        SpaCyModelManager().setup_spacy_model(model_name)
+    # Use SpaCyModelManager to handle spacy model
+    model_name = "en_core_web_sm"  # Default model name
+    SpaCyModelManager().setup_spacy_model(model_name)
 
-        # Get spacy preprocessing function
-        preprocess_func = get_spacy_preprocess_fn(model_name)
+    # Get spacy preprocessing function
+    preprocess_func = get_spacy_preprocess_fn(model_name)
 
-        sample_docs = [
-            "The quick brown fox jumps over the lazy dog.",
-            "A fast brown fox leaps over lazy dogs in summer.",
-            "The lazy dog sleeps in the sun.",
-            "Machine learning algorithms process information efficiently.",
-            "Artificial intelligence models require substantial training data.",
-        ]
-        metadatas = [{"id": i, "source": "test"} for i in range(len(sample_docs))]
+    sample_docs = [
+        "The quick brown fox jumps over the lazy dog.",
+        "A fast brown fox leaps over lazy dogs in summer.",
+        "The lazy dog sleeps in the sun.",
+        "Machine learning algorithms process information efficiently.",
+        "Artificial intelligence models require substantial training data.",
+    ]
+    metadatas = [{"id": i, "source": "test"} for i in range(len(sample_docs))]
 
-        # Create retriever with spacy preprocessing
-        retriever = BM25FastRetriever.from_texts(
-            texts=sample_docs,
-            metadatas=metadatas,
-            preprocess_func=preprocess_func,
-            k=3,
-        )
+    # Create retriever with spacy preprocessing
+    retriever = BM25FastRetriever.from_texts(
+        texts=sample_docs,
+        metadatas=metadatas,
+        preprocess_func=preprocess_func,
+        k=3,
+    )
 
-        # Test retrieval
-        queries = ["fox", "machine learning", "artificial intelligence"]
+    # Test retrieval
+    queries = ["fox", "machine learning", "artificial intelligence"]
 
-        for query in queries:
-            print(f"\nQuery: {query}")
-            results = retriever.invoke(query)
-            for i, doc in enumerate(results, 1):
-                print(f"{i}. {doc.page_content} (metadata: {doc.metadata})")
-
-    except ImportError:
-        print("SpaCyModelManager not available, using default preprocessing...")
-
-        sample_docs = [
-            "The quick brown fox jumps over the lazy dog.",
-            "A fast brown fox leaps over lazy dogs in summer.",
-            "The lazy dog sleeps in the sun.",
-        ]
-        metadatas = [{"id": i} for i in range(len(sample_docs))]
-        retriever = BM25FastRetriever.from_texts(
-            texts=sample_docs,
-            metadatas=metadatas,
-            k=2,
-        )
-        results = retriever.invoke("fast fox")
-        print("Query: fast fox")
-        for doc in results:
-            print(f"- {doc.page_content} (metadata: {doc.metadata})")
+    for query in queries:
+        print(f"\nQuery: {query}")
+        results = retriever.invoke(query)
+        for i, doc in enumerate(results, 1):
+            print(f"{i}. {doc.page_content} (metadata: {doc.metadata})")

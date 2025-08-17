@@ -104,11 +104,7 @@ if __name__ == "__main__":
 
     model_name = sys.argv[1] if len(sys.argv) > 1 else "en_core_web_sm"
 
-    try:
-        print(f"Testing SpaCy model setup with: {model_name}")
-        SpaCyModelManager.setup_spacy_model(model_name)
-        print("✅ Setup successful!")
-        print(f"Model installed: {SpaCyModelManager.is_model_installed(model_name)}")
-    except Exception as e:
-        print(f"❌ Setup failed: {e}")
-        sys.exit(1)
+    print(f"Testing SpaCy model setup with: {model_name}")
+    SpaCyModelManager.setup_spacy_model(model_name)
+    print("✅ Setup successful!")
+    print(f"Model installed: {SpaCyModelManager.is_model_installed(model_name)}")
