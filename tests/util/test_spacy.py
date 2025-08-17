@@ -53,7 +53,7 @@ class TestSpaCyModelManager:
 
                 assert result == UPath(model_path)
                 mock_subprocess.assert_called_once_with(
-                    ["python", "-m", "spacy", "download", model_name, "--target", str(tmp_path / "spacy_models")],
+                    ["python", "-m", "spacy", "download", model_name],
                     check=True,
                 )
 

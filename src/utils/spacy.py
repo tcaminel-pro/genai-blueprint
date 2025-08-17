@@ -47,23 +47,22 @@ class SpaCyModelManager:
         if SpaCyModelManager.is_model_installed(model_name):
             return model_path
 
-        logger.info(f"Downloading SpaCy model '{model_name}' to {model_path.parent}")
-        model_path.parent.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Downloading SpaCy model '{model_name}'")
         subprocess.run(
-            ["python", "-m", "spacy", "download", model_name, "--target", str(model_path.parent)], check=True
+            ["python", "-m", "spacy", "download", model_name], check=True
         )
 
         return model_path
 
     @staticmethod
     def setup_spacy_model(model_name: str) -> None:
-        """Set up the SpaCy model by downloading it if needed ."""
+        """Set up the SpaCy model by downloading it if needed."""
 
-        if not SpaCyModelManager.is_model_installed(model_name):
-            logger.info("download  spacy model {model_name}")
+        try:
+            import spacy
+            # Try to load the model to check if it's available
+            spacy.load(model_name)
+            logger.info(f"SpaCy model '{model_name}' is already available")
+        except OSError:
+            logger.info(f"Downloading SpaCy model '{model_name}'")
             SpaCyModelManager.download_model(model_name)
-
-        # model_path = SpaCyModelManager.get_model_path(model_name)
-
-        # # Set the model path in environment variable for Presidio to use
-        # os.environ["PRESIDIO_SPACY_MODEL"] = str(model_path)
