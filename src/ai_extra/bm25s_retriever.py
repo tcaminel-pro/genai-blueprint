@@ -141,7 +141,7 @@ class BM25FastRetriever(BaseRetriever):
         try:
             import bm25s  # type: ignore
         except ImportError as ex:
-            raise ImportError("Could not import bm25s, please install with `uv add bm25s") from ex
+            raise ImportError("Could not import bm25s, please install with `uv add bm25s`") from ex
 
         logger.info("Load BM25 index")
         vectorizer = bm25s.BM25.load(index_file, mmap=False, allow_pickle=True)
