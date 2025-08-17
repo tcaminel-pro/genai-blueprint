@@ -48,9 +48,7 @@ class SpaCyModelManager:
             return model_path
 
         logger.info(f"Downloading SpaCy model '{model_name}'")
-        subprocess.run(
-            ["python", "-m", "spacy", "download", model_name], check=True
-        )
+        subprocess.run(["python", "-m", "spacy", "download", model_name], check=True)
 
         return model_path
 
@@ -60,6 +58,7 @@ class SpaCyModelManager:
 
         try:
             import spacy
+
             # Try to load the model to check if it's available
             spacy.load(model_name)
             logger.info(f"SpaCy model '{model_name}' is already available")
