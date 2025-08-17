@@ -134,7 +134,7 @@ class TestBM25FastRetriever:
             # Setup spacy model using SpaCyModelManager
             model_name = "en_core_web_sm"
             SpaCyModelManager.setup_spacy_model(model_name)
-            
+
             # Get preprocessing function with additional stop words
             additional_stop_words = ["the", "a", "an"]
             preprocess_func = get_spacy_preprocess_fn(model_name, additional_stop_words)
@@ -147,7 +147,7 @@ class TestBM25FastRetriever:
             processed = preprocess_func("The fox jumps over a lazy dog")
             assert "the" not in processed
             assert "a" not in processed
-            
+
             # Test retrieval works
             results = retriever.invoke("fox")
             assert len(results) <= 2  # Should work with spacy preprocessing
