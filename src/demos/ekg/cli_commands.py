@@ -50,6 +50,9 @@ from upath import UPath
 
 from src.utils.config_mngr import global_config
 
+LLM_ID = (None,)
+KV_STORE_ID = "file"
+
 
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
@@ -285,8 +288,8 @@ def register_commands(cli_app: typer.Typer) -> None:
         rag = PydanticRag(
             model_definition=rainbow_schema,
             vector_store_factory=vector_store_factory,
-            llm_id=None,
-            kv_store_id="file",
+            llm_id=LLM_ID,
+            kv_store_id=KV_STORE_ID,
         )
         rainbow_tool = rag.create_vector_search_tool()
         asyncio.run(run_langgraph_agent_shell(llm_id, tools=[rainbow_tool], mcp_server_names=mcp))
@@ -328,28 +331,7 @@ async def process_markdown_batch(md_files: list[UPath], output_dir: UPath, batch
         ```
     """
 
-    from src.ai_core.llm_factory import get_llm
-    from src.ai_core.prompts import def_prompt
-
-    # Setup LLM with structured output
-    llm = get_llm(temperature=0.0).with_structured_output(RainbowProjectAnalysis)
-
-    system = """
-    Extract structured information from a project review file. Analyse the files to extracts a comprehensive 360° snapshot of a project: who is involved (team, customer, partners),
-    what is being delivered (scope, objectives, technologies), when (start/end dates), where (locations, business lines), how        
-    (bidding strategy, pricing, risk mitigation), why (success metrics, differentiators), and how much (TCV, revenue, margin). 
-
-    Details to be extracted is in JSON schema. Answer with a JSON document. Always fill all required fields, possibly with empty list, dict or str.
-    """
-
-    user = """
-    project review file: 
-    ---
-    {file}
-    ---
-    """
-
-    chain = def_prompt(system=system, user=user) | llm
+    from demos.ekg.retriever_tool_factory import PydanticRag
 
     # Prepare document IDs and contents
     document_ids = []
@@ -371,10 +353,20 @@ async def process_markdown_batch(md_files: list[UPath], output_dir: UPath, batch
 
     # Process all documents using batch analysis
     logger.info(f"Processing {len(valid_files)} files in batches of {batch_size}")
+
+    KV_STORE = "file"
+
+    vector_store_factory = PydanticRag.get_vector_store_factory()
+    rag = PydanticRag(
+        model_definition=test_schema,
+        vector_store_factory=vector_store_factory,
+        llm_id=None,
+        kv_store_id=KV_STORE,
+    )
     analyzed_docs = await rag.abatch_analyze_documents(document_ids, markdown_contents)
 
     # Save results
-    for doc, file_path in zip(analyzed_docs, valid_files):
+    for doc, file_path in zip(analyzed_docs, valid_files, strict=False):
         if doc:
             output_file = output_dir / f"{file_path.stem}_extracted.json"
             output_file.write_text(doc.model_dump_json(indent=2))

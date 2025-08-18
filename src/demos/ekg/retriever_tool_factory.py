@@ -11,12 +11,13 @@ Key Components:
     - Result processing and formatting
 """
 
-from typing import Any, List, Optional, Type, TypeVar
+from typing import Any, List, Optional, TypeVar
 
+from langchain_core.documents import Document
 from langchain_core.tools import BaseTool
 from langchain_core.tools.base import ArgsSchema
 from loguru import logger
-from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
+from pydantic import BaseModel, Field
 
 from src.ai_core.prompts import dedent_ws
 from src.demos.ekg.extract_and_store import PydanticRagBase

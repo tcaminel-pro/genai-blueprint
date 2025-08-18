@@ -79,7 +79,7 @@ class LlmInfo(BaseModel):
     id: str
     provider: str
     model: str  # Name of the model for the constructor
-    config: dict[str, Any] = {}
+    llm_args: dict[str, Any] = {}
 
     @computed_field
     def key(self) -> str:
@@ -119,7 +119,7 @@ def _read_llm_list_file() -> list[LlmInfo]:
                             "id": f"{model_id}_{provider}",
                             "provider": provider,
                             "model": model_name,
-                            "config": config,
+                            "llm_args": config,
                         }
                     else:
                         # Simple string configuration
@@ -127,7 +127,7 @@ def _read_llm_list_file() -> list[LlmInfo]:
                             "id": f"{model_id}_{provider}",
                             "provider": provider,
                             "model": str(config),
-                            "config": {},
+                            "llm_args": {},
                         }
                     llms.append(LlmInfo(**llm_info))
             else:
@@ -363,8 +363,6 @@ class LlmFactory(BaseModel):
             "max_retries": DEFAULT_MAX_RETRIES,
             "streaming": self.streaming,
         }
-        debug(common_params)
-
         api_key = get_provider_api_key(self.info.provider)
         llm_params = common_params | self.llm_params
         if self.json_mode:
@@ -471,6 +469,9 @@ class LlmFactory(BaseModel):
                 api_key=api_key,
                 **llm_params,
             )
+        elif self.info.provider == "vllm":
+            debug(name=self.info.model)
+            raise NotImplementedError("Chrys, it's here ! ")
 
         elif self.info.provider == "fake":
             from langchain_core.language_models.fake_chat_models import ParrotFakeChatModel

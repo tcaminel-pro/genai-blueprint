@@ -140,6 +140,12 @@ llm:
   id: liquid_lfm40
   providers:
     - openrouter: liquid/lfm-40b
+    - vllm:  # NOT TESTED !
+        model: "bla bla vla"
+        trust_remote_code: True
+        max_new_tokens: 512
+        vllm_kwargs:
+          quantization: awq
   capabilities: ['structured_outputs']
 
 

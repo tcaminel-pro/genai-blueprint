@@ -1362,7 +1362,6 @@ name = "genai-blueprint"
 version = "0.1.2"
 source = { editable = "." }
 dependencies = [
-    { name = "bm25s" },
     { name = "devtools" },
     { name = "fastapi", extra = ["standard"] },
     { name = "loguru" },
@@ -1372,8 +1371,6 @@ dependencies = [
     { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "rich", extra = ["jupyter"] },
-    { name = "st-annotated-text" },
-    { name = "tokenizers" },
     { name = "typer" },
     { name = "universal-pathlib" },
 ]
@@ -1403,6 +1400,7 @@ ai = [
     { name = "smolagents", extra = ["docker", "litellm", "mcp", "openai", "toolkit"] },
 ]
 ai-extra = [
+    { name = "bm25s" },
     { name = "duckduckgo-search" },
     { name = "fuzzysearch" },
     { name = "gpt-researcher" },
@@ -1465,6 +1463,7 @@ transformers = [
 ]
 ui = [
     { name = "sse-starlette" },
+    { name = "st-annotated-text" },
     { name = "streamlit" },
     { name = "streamlit-monaco" },
     { name = "uvicorn" },
@@ -1472,7 +1471,6 @@ ui = [
 
 [package.metadata]
 requires-dist = [
-    { name = "bm25s", specifier = ">=0.2.13" },
     { name = "devtools", specifier = ">=0.12.2" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.6" },
     { name = "loguru", specifier = ">=0.7.3" },
@@ -1482,8 +1480,6 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.7.0,<3" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
     { name = "rich", extras = ["jupyter"], specifier = ">=13.9.4" },
-    { name = "st-annotated-text", specifier = ">=4.0.2" },
-    { name = "tokenizers", specifier = ">=0.21.4" },
     { name = "typer", specifier = ">=0.13.0" },
     { name = "universal-pathlib", specifier = ">=0.2.6" },
 ]
@@ -1513,6 +1509,7 @@ ai = [
     { name = "smolagents", extras = ["toolkit", "mcp", "openai", "litellm", "docker"], specifier = "==1.17" },
 ]
 ai-extra = [
+    { name = "bm25s", specifier = ">=0.2.13" },
     { name = "duckduckgo-search", specifier = ">=6.1.6" },
     { name = "fuzzysearch", specifier = ">=0.8.0" },
     { name = "gpt-researcher", specifier = ">=0.13" },
@@ -1575,6 +1572,7 @@ transformers = [
 ]
 ui = [
     { name = "sse-starlette", specifier = ">=2.1.0" },
+    { name = "st-annotated-text", specifier = ">=4.0.2" },
     { name = "streamlit", specifier = ">=1.40" },
     { name = "streamlit-monaco", specifier = ">=0.1.3" },
     { name = "uvicorn", specifier = ">=0.34.0" },

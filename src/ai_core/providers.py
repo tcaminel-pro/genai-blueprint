@@ -27,6 +27,7 @@ PROVIDER_INFO = {
     "bedrock": ("langchain_aws", "AWS_ACCESS_KEY_ID"),
     "anthropic": ("langchain_anthropic", "ANTHROPIC_API_KEY"),
     "google": ("langchain_google_vertexai", "GOOGLE_API_KEY"),
+    "vllm": ("langchain_community.llms", ""),
 }
 
 
