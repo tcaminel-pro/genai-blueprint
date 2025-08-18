@@ -305,9 +305,19 @@ class PydanticRag(BaseModel):
             # - Document(page_content='["Python", "Machine Learning"]', metadata={'field_name': 'skills', ...})
             ```
         """
+        from langchain.text_splitter import RecursiveCharacterTextSplitter
+        
         documents = []
         model_data = model_instance.model_dump()
         document_id = getattr(model_instance, "document_id", None)
+
+        # Initialize text splitter with 200 byte chunks
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=200,
+            chunk_overlap=20,
+            length_function=len,
+            is_separator_regex=False,
+        )
 
         for field_name, field_value in model_data.items():
             if field_value is None:
@@ -315,19 +325,26 @@ class PydanticRag(BaseModel):
             field_info = type(model_instance).model_fields.get(field_name)
             if field_info is None:
                 continue
-            page_content = f"{dumps(field_value)}"  # serialize as Markdown
-
-            field_doc = Document(
-                page_content=page_content,
-                metadata={
-                    "field_name": field_name,
-                    "model_class": model_instance.__class__.__name__,
-                    "description": getattr(field_info, "description", "") or "",
-                    "document_id": document_id,
-                    "entity_id": self.get_key(model_instance),
-                },
-            )
-            documents.append(field_doc)
+            
+            # Serialize field value to markdown
+            serialized_content = f"{dumps(field_value)}"
+            
+            # Split the content into chunks
+            chunks = text_splitter.split_text(serialized_content)
+            
+            # Create a document for each chunk with the same metadata
+            for chunk in chunks:
+                field_doc = Document(
+                    page_content=chunk,
+                    metadata={
+                        "field_name": field_name,
+                        "model_class": model_instance.__class__.__name__,
+                        "description": getattr(field_info, "description", "") or "",
+                        "document_id": document_id,
+                        "entity_id": self.get_key(model_instance),
+                    },
+                )
+                documents.append(field_doc)
         return documents
 
     def create_vector_search_tool(self) -> BaseTool:
