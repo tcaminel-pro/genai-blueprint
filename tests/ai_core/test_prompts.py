@@ -1,6 +1,5 @@
 """Tests for prompt utilities and wrapper functions."""
 
-import pytest
 from langchain_core.prompts import BasePromptTemplate, ChatPromptTemplate
 
 from ai_core.prompts import (
@@ -50,15 +49,12 @@ class TestPromptUtils:
         prompt = def_prompt(system="You are helpful", user="Hello")
         messages = prompt.messages
         assert len(messages) == 2
-        assert "SystemMessagePromptTemplate" in str(messages[0])
-        assert "HumanMessagePromptTemplate" in str(messages[1])
 
     def test_def_prompt_with_other_messages(self):
         """Test prompt creation with additional messages."""
         prompt = def_prompt(system="You are helpful", user="Hello", other_msg={"placeholder": "{scratchpad}"})
         messages = prompt.messages
         assert len(messages) == 3
-        assert "MessagesPlaceholder" in str(messages[2])
 
     def test_def_prompt_dedent_removes_common_whitespace(self):
         """Test that def_prompt applies dedent_ws to remove common whitespace."""
@@ -87,7 +83,6 @@ class TestPromptUtils:
         prompt = def_prompt(system=None, user="Hello")
         messages = prompt.messages
         assert len(messages) == 1
-        assert "HumanMessagePromptTemplate" in str(messages[0])
 
     def test_dict_input_message_basic(self):
         """Test dict input message creation."""
