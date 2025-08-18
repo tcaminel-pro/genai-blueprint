@@ -306,7 +306,7 @@ class PydanticRag(BaseModel):
             ```
         """
         from langchain.text_splitter import RecursiveCharacterTextSplitter
-        
+
         documents = []
         model_data = model_instance.model_dump()
         document_id = getattr(model_instance, "document_id", None)
@@ -325,13 +325,13 @@ class PydanticRag(BaseModel):
             field_info = type(model_instance).model_fields.get(field_name)
             if field_info is None:
                 continue
-            
+
             # Serialize field value to markdown
             serialized_content = f"{dumps(field_value)}"
-            
+
             # Split the content into chunks
             chunks = text_splitter.split_text(serialized_content)
-            
+
             # Create a document for each chunk with the same metadata
             for chunk in chunks:
                 field_doc = Document(
