@@ -28,10 +28,7 @@ def get_colors(n: int) -> list[str]:
 
 def return_tokens(ids: list[int], encoding) -> dict[int, str]:
     """Return tokens from token IDs."""
-    return {
-        i: encoding.decode_single_token_bytes(i).decode("utf-8", errors="replace")
-        for i in ids
-    }
+    return {i: encoding.decode_single_token_bytes(i).decode("utf-8", errors="replace") for i in ids}
 
 
 def format_whitespace(t: str, include_ws: bool) -> str:
@@ -46,26 +43,26 @@ def visualize_tokens(text: str, model: str, include_ws: bool) -> tuple[list, lis
     """Visualize tokens for the given text and model."""
     encoding = tk.encoding_for_model(model)
     ids = encoding.encode(text)
-    
+
     if not ids:
         return [], [], 0
-    
+
     tokens = return_tokens(ids, encoding)
     colors = get_colors(len(ids))
     colors_map = dict(zip(ids, colors))
-    
+
     annotated_tokens = []
     annotated_indices = []
-    
+
     for token_id, token_text in tokens.items():
         color = colors_map[token_id]
         rgb = hex_to_rgb(color)
         text_color = return_light_or_dark(rgb)
-        
+
         formatted_text = format_whitespace(token_text, include_ws)
         annotated_tokens.append((formatted_text, str(token_id), color, text_color))
         annotated_indices.append((str(token_id), "", color, text_color))
-    
+
     return annotated_tokens, annotated_indices, len(ids)
 
 
@@ -109,32 +106,28 @@ if user_text != st.session_state.input_text:
 
 # Visualize tokens when we have text
 if st.session_state.input_text:
-    tokens, indices, total_tokens = visualize_tokens(
-        st.session_state.input_text, 
-        selected_model, 
-        include_whitespace
-    )
-    
+    tokens, indices, total_tokens = visualize_tokens(st.session_state.input_text, selected_model, include_whitespace)
+
     st.header("Results")
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         st.subheader("Tokenized Text")
         annotated_text(*tokens)
-    
+
     with col2:
         st.subheader("Token Indices")
         annotated_text(*indices)
-    
+
     st.metric("Total Tokens", total_tokens)
-    
+
     # Display raw tokens for debugging
     with st.expander("Raw Token Details"):
         encoding = tk.encoding_for_model(selected_model)
         ids = encoding.encode(st.session_state.input_text)
         tokens = return_tokens(ids, encoding)
-        
+
         for token_id, token_text in tokens.items():
             formatted = format_whitespace(token_text, include_whitespace)
             st.text(f"{token_id}: '{formatted}'")
