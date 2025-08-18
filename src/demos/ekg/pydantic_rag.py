@@ -64,6 +64,41 @@ from src.utils.singleton import once
 
 T = TypeVar("T", bound=BaseModel)
 
+# rewrite next assignement in 3 lines only AI!
+
+MARKDOWN_SEPARATOR = [
+    # Markdown structure
+    "\n\n",
+    "\n#",
+    "\n##",
+    "\n###",
+    "\n####",
+    "\n#####",
+    "\n######",
+    "\n---",
+    "\n***",
+    # Table structure
+    "\n|",
+    # List structure
+    "\n- ",
+    "\n* ",
+    "\n1. ",
+    "\n2. ",
+    "\n3. ",
+    "\n4. ",
+    "\n5. ",
+    "\n6. ",
+    "\n7. ",
+    "\n8. ",
+    "\n9. ",
+    # Code blocks
+    "\n```",
+    # Inline separators
+    "\n",
+    " ",
+    "",
+]
+
 
 class PydanticRag(BaseModel):
     """RAG system for analyzing and querying structured documents using Pydantic models and embeddings.
@@ -316,38 +351,7 @@ class PydanticRag(BaseModel):
             chunk_size=200,
             chunk_overlap=0,
             length_function=len,
-            separators=[
-                # Markdown structure
-                "\n\n",
-                "\n#",
-                "\n##",
-                "\n###",
-                "\n####",
-                "\n#####",
-                "\n######",
-                "\n---",
-                "\n***",
-                # Table structure
-                "\n|",
-                # List structure
-                "\n- ",
-                "\n* ",
-                "\n1. ",
-                "\n2. ",
-                "\n3. ",
-                "\n4. ",
-                "\n5. ",
-                "\n6. ",
-                "\n7. ",
-                "\n8. ",
-                "\n9. ",
-                # Code blocks
-                "\n```",
-                # Inline separators
-                "\n",
-                " ",
-                "",
-            ],
+            separators=MARKDOWN_SEPARATOR,
             is_separator_regex=False,
         )
 
