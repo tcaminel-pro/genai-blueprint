@@ -190,10 +190,10 @@ def test_complex_provider_config_parsing() -> None:
     """Test that complex provider configurations (like vllm) are parsed correctly."""
     # Test the liquid_lfm40 model which has complex vllm configuration
     llm_id = "liquid_lfm40_vllm"
-    
+
     # Check if it's in known items (it should be if config is parsed correctly)
     known_items = LlmFactory.known_items()
-    
+
     # Only test if the model is actually available (API keys present)
     if llm_id in known_items:
         info = get_llm_info(llm_id)
@@ -206,14 +206,14 @@ def test_complex_provider_config_parsing() -> None:
     else:
         # Test the parsing logic by checking the raw data structure
         from src.ai_core.llm_factory import _read_llm_list_file
-        
+
         llms = _read_llm_list_file()
         liquid_lfm40_vllm = None
         for llm in llms:
             if llm.id == "liquid_lfm40_vllm":
                 liquid_lfm40_vllm = llm
                 break
-        
+
         assert liquid_lfm40_vllm is not None
         assert liquid_lfm40_vllm.provider == "vllm"
         assert liquid_lfm40_vllm.model == "bla bla vla"
