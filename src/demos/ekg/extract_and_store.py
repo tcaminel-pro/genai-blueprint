@@ -1,16 +1,16 @@
 """Data extraction and storage components for the RAG system."""
 
-from typing import Any, List, Optional
+from typing import Any, Type
 
 from langchain.vectorstores.base import VectorStore
 from langchain_core.documents import Document
-from loguru import logger
+from loguru import logger  # noqa: F401
 from markpickle import dumps
 from pydantic import BaseModel, ConfigDict, PrivateAttr
 
 from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.ai_core.llm_factory import get_llm
-from src.ai_core.prompts import dedent_ws, def_prompt
+from src.ai_core.prompts import def_prompt
 from src.ai_core.vector_store_factory import VectorStoreFactory
 from src.utils.config_mngr import global_config
 from src.utils.pydantic.dyn_model_factory import PydanticModelFactory
