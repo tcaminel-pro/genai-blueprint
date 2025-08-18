@@ -45,7 +45,7 @@ def visualize_tokens(text: str, model: str, include_ws: bool) -> tuple[list, lis
     model_to_tokenizer = {
         "gpt-2": "gpt2",
         "gpt-3.5-turbo": "microsoft/DialoGPT-medium",  # GPT-3.5-turbo compatible tokenizer
-        "gpt-4p": "microsoft/DialoGPT-medium"  # GPT-4 compatible tokenizer
+        "gpt-4p": "microsoft/DialoGPT-medium",  # GPT-4 compatible tokenizer
     }
 
     tokenizer_name = model_to_tokenizer.get(model, "microsoft/DialoGPT-medium")
@@ -137,7 +137,7 @@ if st.session_state.input_text:
         model_to_tokenizer = {
             "gpt-2": "gpt2",
             "gpt-3.5-turbo": "microsoft/DialoGPT-medium",
-            "gpt-4p": "microsoft/DialoGPT-medium"
+            "gpt-4p": "microsoft/DialoGPT-medium",
         }
         tokenizer_name = model_to_tokenizer.get(selected_model, "microsoft/DialoGPT-medium")
         tokenizer = Tokenizer.from_pretrained(tokenizer_name)
