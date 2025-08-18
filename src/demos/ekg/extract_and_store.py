@@ -1,5 +1,6 @@
 """Data extraction and storage components for the RAG system."""
 
+import asyncio
 from typing import Any, Type
 
 from langchain.vectorstores.base import VectorStore
@@ -87,7 +88,7 @@ class PydanticRagBase(BaseModel):
         remaining_contents: list[str] = []
 
         if self.kv_store_id:
-            for doc_id, content in zip(document_ids, markdown_contents):
+            for doc_id, content in zip(document_ids, markdown_contents, strict=True):
                 cached_doc = load_object_from_kvstore(self.get_top_class(), key=doc_id, kv_store_id=self.kv_store_id)
                 if cached_doc:
                     analyzed_docs.append(cached_doc)
@@ -115,7 +116,7 @@ class PydanticRagBase(BaseModel):
             )
 
             # Store results and save to cache
-            for doc_id, result in zip(remaining_ids, batch_results):
+            for doc_id, result in zip(remaining_ids, batch_results, strict=False):
                 result.__setattr__("document_id", doc_id)
                 analyzed_docs.append(result)
                 if self.kv_store_id:
@@ -124,7 +125,7 @@ class PydanticRagBase(BaseModel):
         except Exception as batch_error:
             logger.error(f"Batch analysis failed: {batch_error}, falling back to individual processing")
             # Fallback to individual processing
-            for doc_id, content in zip(remaining_ids, remaining_contents):
+            for doc_id, content in zip(remaining_ids, remaining_contents, strict=False):
                 try:
                     result = await chain.ainvoke({"input": content})
                     result.__setattr__("document_id", doc_id)
@@ -139,7 +140,7 @@ class PydanticRagBase(BaseModel):
     def analyze_document(self, document_id: str, markdown: str) -> BaseModel:
         """Analyze markdown document and return structured data (synchronous wrapper)."""
         results = asyncio.run(self.abatch_analyze_documents([document_id], [markdown]))
-        return results[0] if results else None
+        return results[0]
 
     def get_top_class(self) -> type[BaseModel]:
         return self._top_class
