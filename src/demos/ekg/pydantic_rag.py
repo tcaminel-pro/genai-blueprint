@@ -64,39 +64,10 @@ from src.utils.singleton import once
 
 T = TypeVar("T", bound=BaseModel)
 
-# rewrite next assignement in 3 lines only AI!
-
+# Markdown separators for text splitting
 MARKDOWN_SEPARATOR = [
-    # Markdown structure
-    "\n\n",
-    "\n#",
-    "\n##",
-    "\n###",
-    "\n####",
-    "\n#####",
-    "\n######",
-    "\n---",
-    "\n***",
-    # Table structure
-    "\n|",
-    # List structure
-    "\n- ",
-    "\n* ",
-    "\n1. ",
-    "\n2. ",
-    "\n3. ",
-    "\n4. ",
-    "\n5. ",
-    "\n6. ",
-    "\n7. ",
-    "\n8. ",
-    "\n9. ",
-    # Code blocks
-    "\n```",
-    # Inline separators
-    "\n",
-    " ",
-    "",
+    "\n\n", "\n#", "\n##", "\n###", "\n####", "\n#####", "\n######",
+    "\n---", "\n***", "\n|", "\n- ", "\n* ", "\n1. ", "\n```", "\n", " ", ""
 ]
 
 
