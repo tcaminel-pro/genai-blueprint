@@ -550,7 +550,7 @@ def get_configurable_llm(
     Example :
     .. code-block:: python
         from src.ai_core.prompts import def_prompt
-        from src.ai_core.llm import get_configurable_llm, llm_config
+        from src.ai_core.llm_factory import get_configurable_llm, llm_config
 
         chain = def_prompt("tell me a joke") | get_configurable_llm()
         r = chain.with_config(llm_config("claude_haiku35_openrouter")).invoke({})
@@ -620,7 +620,7 @@ def get_print_chain(string: str = "") -> RunnableLambda:
 
     Example:
     ```
-        from src.ai_core.llm import configurable, get_print_chain
+        from src.ai_core.llm_factory import configurable, get_print_chain
 
         add_1 = get_print_chain("before") | RunnableLambda(lambda x: x + 1) | get_print_chain("after")
         chain = add_1.with_config(configurable({"my_conf": "my_conf_value"}))

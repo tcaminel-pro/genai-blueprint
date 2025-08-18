@@ -49,7 +49,7 @@ def visualize_tokens(text: str, model: str, include_ws: bool) -> tuple[list, lis
 
     tokens = return_tokens(ids, encoding)
     colors = get_colors(len(ids))
-    colors_map = dict(zip(ids, colors))
+    colors_map = dict(zip(ids, colors, strict=False))
 
     annotated_tokens = []
     annotated_indices = []
@@ -79,7 +79,7 @@ if "input_text" not in st.session_state:
     st.session_state.input_text = "Hello, world! This is a tokenization demo."
 
 # Get available models
-models = ["gpt-2", "gpt-3.5-turbo", "gpt-4"]
+models = ["gpt-2", "gpt-3.5-turbo", "gpt-4p"]
 
 # Main UI
 st.title("🔍 Tokenization Demo")

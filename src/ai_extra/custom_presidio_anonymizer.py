@@ -5,7 +5,6 @@ Taken from:
 - https://python.langchain.com/api_reference/experimental/data_anonymizer/langchain_experimental.data_anonymizer.deanonymizer_matching_strategies.combined_exact_fuzzy_matching_strategy.html
 """
 
-import re
 from typing import Any, Dict, List
 
 from faker import Faker

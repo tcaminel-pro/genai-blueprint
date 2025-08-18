@@ -143,9 +143,16 @@ class TestPromptUtils:
 
     def test_dedent_ws_nested_indentation(self):
         """Test dedent_ws with nested indentation."""
-        text = "    if True:\n        print('hello')\n    return"
+        text = """  
+        Optional list of section names to limit the search to specific section in the documents.  
+        Allowed section name SHOULD BE in that list: \n 
+        - level A
+            - level Z"""
         result = dedent_ws(text)
-        assert result == "if True:\n    print('hello')\nreturn"
+        assert (
+            result
+            == "\nOptional list of section names to limit the search to specific section in the documents.  \nAllowed section name SHOULD BE in that list: \n\n- level A\n    - level Z"
+        )
 
     def test_dedent_ws_mixed_tabs_spaces_consistency(self):
         """Test dedent_ws with mixed tabs and spaces at same logical level."""

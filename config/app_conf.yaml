@@ -44,6 +44,7 @@ ui:
     training:
         - 1_runnable_playground.py
         - 4_CLI_runner.py
+        - 20_tokenization.py
 
     demos:
       - 2_maintenance_agent.py

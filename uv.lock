@@ -1372,6 +1372,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "rich", extra = ["jupyter"] },
+    { name = "st-annotated-text" },
     { name = "typer" },
     { name = "universal-pathlib" },
 ]
@@ -1480,6 +1481,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.7.0,<3" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
     { name = "rich", extras = ["jupyter"], specifier = ">=13.9.4" },
+    { name = "st-annotated-text", specifier = ">=4.0.2" },
     { name = "typer", specifier = ">=0.13.0" },
     { name = "universal-pathlib", specifier = ">=0.2.6" },
 ]
@@ -1870,6 +1872,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/2c/48/71de9ed269fdae9c8
 wheels = [
     { url = "https://files.pythonhosted.org/packages/07/c6/80c95b1b2b94682a72cbdbfb85b81ae2daffa4291fbfa1b1464502ede10d/hpack-4.1.0-py3-none-any.whl", hash = "sha256:157ac792668d995c657d93111f46b4535ed114f0c9c8d672271bbec7eae1b496", size = 34357 },
 ]
+
+[[package]]
+name = "htbuilder"
+version = "0.9.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/be/88/0f48d1125168e9eea33879ea820000702533d103f1123d27ca69839a0db4/htbuilder-0.9.0.tar.gz", hash = "sha256:58c0bc5502c1a46b42ae9e074c43ec0f6fdc24ed334936cb17e1ed5a8938aee2", size = 10591 }
 
 [[package]]
 name = "html5lib"
@@ -7103,6 +7111,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/42/6f/22ed6e33f8a9e76ca0a412405f31abb844b779d52c5f96660766edcd737c/sse_starlette-3.0.2.tar.gz", hash = "sha256:ccd60b5765ebb3584d0de2d7a6e4f745672581de4f5005ab31c3a25d10b52b3a", size = 20985 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ef/10/c78f463b4ef22eef8491f218f692be838282cd65480f6e423d7730dfd1fb/sse_starlette-3.0.2-py3-none-any.whl", hash = "sha256:16b7cbfddbcd4eaca11f7b586f3b8a080f1afe952c15813455b162edea619e5a", size = 11297 },
+]
+
+[[package]]
+name = "st-annotated-text"
+version = "4.0.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "htbuilder" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4d/76/c0f64a56b779bfb5c87437687a9970d12dad37b5aea2541823d0c5010818/st_annotated_text-4.0.2.tar.gz", hash = "sha256:b0134dcf734697cc3dbdb11862c4174071e7fb6f365af55a37c710d357fd88a5", size = 7915 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d9/70/f29d4359ddfd1a0afa00065e4dac32bd4931f589185f5f0f499db9aee4fe/st_annotated_text-4.0.2-py3-none-any.whl", hash = "sha256:712c45821f020eccafad3a58c10b9d2d51d449f4db999a06308ecf39a753a4df", size = 9084 },
 ]
 
 [[package]]
