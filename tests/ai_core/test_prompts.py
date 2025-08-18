@@ -55,11 +55,7 @@ class TestPromptUtils:
 
     def test_def_prompt_with_other_messages(self):
         """Test prompt creation with additional messages."""
-        prompt = def_prompt(
-            system="You are helpful",
-            user="Hello",
-            other_msg={"placeholder": "{scratchpad}"}
-        )
+        prompt = def_prompt(system="You are helpful", user="Hello", other_msg={"placeholder": "{scratchpad}"})
         messages = prompt.messages
         assert len(messages) == 3
         assert messages[2][0] == "placeholder"
@@ -74,14 +70,14 @@ class TestPromptUtils:
             Hello, can you help me?
             I have a question.
         """
-        
+
         prompt = def_prompt(system=system_msg, user=user_msg)
-        
+
         # Check that common leading whitespace is removed
         system_content = str(prompt.messages[0][1])
         assert not system_content.startswith("    ")
         assert "You are a helpful assistant." in system_content
-        
+
         user_content = str(prompt.messages[1][1])
         assert not user_content.startswith("    ")
         assert "Hello, can you help me?" in user_content
