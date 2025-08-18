@@ -1,10 +1,10 @@
-"""Tokenization demo page inspired by tiktokenviewer."""
+"""Tokenization demo page inspired by tiktokenviewer (https://tiktokenviewer.streamlit.app/)."""
 
 import random
 from typing import Tuple
 
 import streamlit as st
-from tokenizers import Tokenizer
+import tiktoken as tk
 from annotated_text import annotated_text
 
 
@@ -26,9 +26,9 @@ def get_colors(n: int) -> list[str]:
     return [f"#{random.randint(0, 0xFFFFFF):06x}" for _ in range(n)]
 
 
-def return_tokens(ids: list[int], tokenizer) -> dict[int, str]:
+def return_tokens(ids: list[int], encoding) -> dict[int, str]:
     """Return tokens from token IDs."""
-    return {i: tokenizer.decode([i], skip_special_tokens=False) for i in ids}
+    return {i: encoding.decode_single_token_bytes(i).decode("utf-8", errors="replace") for i in ids}
 
 
 def format_whitespace(t: str, include_ws: bool) -> str:
@@ -41,23 +41,13 @@ def format_whitespace(t: str, include_ws: bool) -> str:
 
 def visualize_tokens(text: str, model: str, include_ws: bool) -> tuple[list, list, int]:
     """Visualize tokens for the given text and model."""
-    # Map model names to tokenizer files
-    model_to_tokenizer = {
-        "gpt-2": "gpt2",
-        "gpt-3.5-turbo": "microsoft/DialoGPT-medium",  # GPT-3.5-turbo compatible tokenizer
-        "gpt-4p": "microsoft/DialoGPT-medium",  # GPT-4 compatible tokenizer
-    }
-
-    tokenizer_name = model_to_tokenizer.get(model, "microsoft/DialoGPT-medium")
-    tokenizer = Tokenizer.from_pretrained(tokenizer_name)
-
-    encoding = tokenizer.encode(text)
-    ids = encoding.ids
+    encoding = tk.encoding_for_model(model)
+    ids = encoding.encode(text)
 
     if not ids:
         return [], [], 0
 
-    tokens = return_tokens(ids, tokenizer)
+    tokens = return_tokens(ids, encoding)
     colors = get_colors(len(ids))
     colors_map = dict(zip(ids, colors, strict=False))
 
@@ -134,17 +124,9 @@ if st.session_state.input_text:
 
     # Display raw tokens for debugging
     with st.expander("Raw Token Details"):
-        model_to_tokenizer = {
-            "gpt-2": "gpt2",
-            "gpt-3.5-turbo": "microsoft/DialoGPT-medium",
-            "gpt-4p": "microsoft/DialoGPT-medium",
-        }
-        tokenizer_name = model_to_tokenizer.get(selected_model, "microsoft/DialoGPT-medium")
-        tokenizer = Tokenizer.from_pretrained(tokenizer_name)
-
-        encoding = tokenizer.encode(st.session_state.input_text)
-        ids = encoding.ids
-        tokens = return_tokens(ids, tokenizer)
+        encoding = tk.encoding_for_model(selected_model)
+        ids = encoding.encode(st.session_state.input_text)
+        tokens = return_tokens(ids, encoding)
 
         for token_id, token_text in tokens.items():
             formatted = format_whitespace(token_text, include_whitespace)

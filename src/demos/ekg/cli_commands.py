@@ -270,7 +270,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             - "Compare project delivery times across different technologies"
         """
 
-        from src.demos.ekg.pydantic_rag import PydanticRag
+        from demos.ekg.retriever_tool_factory import PydanticRag
         from src.utils.cli.langchain_setup import setup_langchain
         from src.utils.cli.langgraph_agent_shell import run_langgraph_agent_shell
 
@@ -330,7 +330,6 @@ async def process_markdown_batch(md_files: list[UPath], output_dir: UPath, batch
 
     from src.ai_core.llm_factory import get_llm
     from src.ai_core.prompts import def_prompt
-    from src.demos.ekg.rainbow_model import RainbowProjectAnalysis
 
     # Setup LLM with structured output
     llm = get_llm(temperature=0.0).with_structured_output(RainbowProjectAnalysis)

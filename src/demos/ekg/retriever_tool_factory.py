@@ -65,25 +65,12 @@ from src.utils.singleton import once
 T = TypeVar("T", bound=BaseModel)
 
 # Markdown separators for text splitting
-MARKDOWN_SEPARATOR = [
-    "\n\n",
-    "\n#",
-    "\n##",
-    "\n###",
-    "\n####",
-    "\n#####",
-    "\n######",
-    "\n---",
-    "\n***",
-    "\n|",
-    "\n- ",
-    "\n* ",
-    "\n1. ",
-    "\n```",
-    "\n",
-    " ",
-    "",
-]
+# fmt:off
+MARKDOWN_SEPARATOR = [                                                                                              
+    "\n\n", "\n#", "\n##", "\n###", "\n####", "\n#####", "\n######",                                                
+    "\n---", "\n***", "\n|", "\n- ", "\n* ", "\n1. ""\n2. ","\n3. ", "\n```", "\n", " ", ""                                        
+]  
+# fmt:on
 
 
 class PydanticRag(BaseModel):
