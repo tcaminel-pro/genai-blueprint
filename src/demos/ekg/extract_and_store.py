@@ -1,10 +1,10 @@
 """Data extraction and storage components for the RAG system."""
 
-import asyncio
 from typing import Any, Type
 
 from langchain.vectorstores.base import VectorStore
 from langchain_core.documents import Document
+from langchain_core.runnables.config import run_in_executor
 from loguru import logger  # noqa: F401
 from markpickle import dumps
 from pydantic import BaseModel, ConfigDict, PrivateAttr
@@ -139,23 +139,8 @@ class PydanticRagBase(BaseModel):
 
     def analyze_document(self, document_id: str, markdown: str) -> BaseModel:
         """Analyze markdown document and return structured data (synchronous wrapper)."""
-        import nest_asyncio
-        import asyncio
 
-        try:
-            # Handle case where we're already in a running event loop (e.g. Jupyter)
-            if asyncio.get_event_loop().is_running():
-                nest_asyncio.apply()
-                loop = asyncio.get_event_loop()
-                results = loop.run_until_complete(self.abatch_analyze_documents([document_id], [markdown]))
-            else:
-                results = asyncio.run(self.abatch_analyze_documents([document_id], [markdown]))
-        except RuntimeError as e:
-            # Fallback for closed event loops
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            results = loop.run_until_complete(self.abatch_analyze_documents([document_id], [markdown]))
-
+        results = run_in_executor(None, self.abatch_analyze_documents, [document_id], [markdown])
         return results[0] if results else None
 
     def get_top_class(self) -> type[BaseModel]:
