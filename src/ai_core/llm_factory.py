@@ -119,7 +119,7 @@ def _read_llm_list_file() -> list[LlmInfo]:
                             "id": f"{model_id}_{provider}",
                             "provider": provider,
                             "model": model_name,
-                            "config": config
+                            "config": config,
                         }
                     else:
                         # Simple string configuration
@@ -127,7 +127,7 @@ def _read_llm_list_file() -> list[LlmInfo]:
                             "id": f"{model_id}_{provider}",
                             "provider": provider,
                             "model": str(config),
-                            "config": {}
+                            "config": {},
                         }
                     llms.append(LlmInfo(**llm_info))
             else:
@@ -137,7 +137,7 @@ def _read_llm_list_file() -> list[LlmInfo]:
                         "id": f"{model_id}_{provider}",
                         "provider": provider,
                         "model": str(model_name),
-                        "config": {}
+                        "config": {},
                     }
                     llms.append(LlmInfo(**llm_info))
     return llms
@@ -164,14 +164,14 @@ def _read_embeddings_list_file() -> list[LlmInfo]:
                                 "id": f"{model_id}_{provider}",
                                 "provider": provider,
                                 "model": model_name,
-                                "config": config
+                                "config": config,
                             }
                         else:
                             embedding_info = {
                                 "id": f"{model_id}_{provider}",
                                 "provider": provider,
                                 "model": str(config),
-                                "config": {}
+                                "config": {},
                             }
                         embeddings.append(LlmInfo(**embedding_info))
                 else:
@@ -181,7 +181,7 @@ def _read_embeddings_list_file() -> list[LlmInfo]:
                             "id": f"{model_id}_{provider}",
                             "provider": provider,
                             "model": str(model_name),
-                            "config": {}
+                            "config": {},
                         }
                         embeddings.append(LlmInfo(**embedding_info))
     return embeddings
