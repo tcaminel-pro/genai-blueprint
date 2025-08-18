@@ -41,11 +41,10 @@ def dedent_ws(text: str) -> str:
     It address 'dedent' choice to not consider tabs and space as equivalent, by replacing tabs by 4 whitespace,
     so "   hello" and "\\thello" are considered to have common leading whitespace.
 
-    It also remove any remaining leading whitespace on every line
+    It preserves relative indentation after removing the common leading whitespace.
     """
     text = text.replace("\t", "    ")
     text = dedent(text)
-    text = re.sub(r"^[ \t]+", "", text, flags=re.MULTILINE)
     return text
 
 
