@@ -201,9 +201,7 @@ if __name__ == "__main__":
 
     # Initialize anonymizer with sample data
     anonymizer = CustomizedPresidioAnonymizer(
-        company_names=["Acme Corp", "Tech Solutions"],
-        product_names=["WidgetPro", "CloudMaster"],
-        faker_seed=42
+        company_names=["Acme Corp", "Tech Solutions"], product_names=["WidgetPro", "CloudMaster"], faker_seed=42
     )
 
     # Test text with PII
