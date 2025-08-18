@@ -351,47 +351,31 @@ async def process_markdown_batch(md_files: list[UPath], output_dir: UPath, batch
 
     chain = def_prompt(system=system, user=user) | llm
 
-    # Prepare inputs for batch processing
-    file_contents = []
+    # Prepare document IDs and contents
+    document_ids = []
+    markdown_contents = []
     valid_files = []
 
     for file_path in md_files:
         try:
             content = file_path.read_text(encoding="utf-8")
-            file_contents.append({"file": content})
+            document_ids.append(file_path.stem)
+            markdown_contents.append(content)
             valid_files.append(file_path)
         except Exception as e:
             logger.error(f"Error reading {file_path}: {e}")
 
-    if not file_contents:
+    if not document_ids:
         logger.warning("No valid files to process")
         return
 
-    # Process in batches
+    # Process all documents using batch analysis
     logger.info(f"Processing {len(valid_files)} files in batches of {batch_size}")
+    analyzed_docs = await rag.abatch_analyze_documents(document_ids, markdown_contents)
 
-    for i in range(0, len(file_contents), batch_size):
-        batch_files = valid_files[i : i + batch_size]
-        batch_inputs = file_contents[i : i + batch_size]
-
-        try:
-            # Process batch
-            results = await chain.abatch(batch_inputs)
-
-            # Save results
-            for file_path, result in zip(batch_files, results, strict=False):
-                output_file = output_dir / f"{file_path.stem}_extracted.json"
-                output_file.write_text(result.model_dump_json(indent=2))
-                logger.info(f"Saved: {output_file}")
-
-        except Exception as e:
-            logger.error(f"Error processing batch {i // batch_size + 1}: {e}")
-            # Process files individually on batch failure
-            for file_path, input_data in zip(batch_files, batch_inputs, strict=False):
-                try:
-                    result = await chain.ainvoke(input_data)
-                    output_file = output_dir / f"{file_path.stem}_extracted.json"
-                    output_file.write_text(result.model_dump_json(indent=2))
-                    logger.info(f"Saved (individual): {output_file}")
-                except Exception as e2:
-                    logger.error(f"Error processing {file_path}: {e2}")
+    # Save results
+    for doc, file_path in zip(analyzed_docs, valid_files):
+        if doc:
+            output_file = output_dir / f"{file_path.stem}_extracted.json"
+            output_file.write_text(doc.model_dump_json(indent=2))
+            logger.info(f"Saved: {output_file}")

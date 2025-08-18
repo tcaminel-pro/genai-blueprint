@@ -77,23 +77,70 @@ class PydanticRagBase(BaseModel):
         self._llm = get_llm(llm_id=self.llm_id, streaming=False, temperature=0.0)
         self._vector_store = self.vector_store_factory.get()
 
-    def analyze_document(self, document_id: str, markdown: str) -> BaseModel:
-        """Analyze markdown document and return structured data."""
-        analyzed_doc: BaseModel | None = None
+    async def abatch_analyze_documents(self, document_ids: list[str], markdown_contents: list[str]) -> list[BaseModel]:
+        """Analyze multiple markdown documents asynchronously in batch."""
+        from langchain_core.runnables import RunnableConfig
+
+        # Check cache first
+        analyzed_docs: list[BaseModel] = []
+        remaining_ids: list[str] = []
+        remaining_contents: list[str] = []
+        
         if self.kv_store_id:
-            analyzed_doc = load_object_from_kvstore(self.get_top_class(), key=document_id, kv_store_id=self.kv_store_id)
-        if not analyzed_doc:
-            system = f"""
-                Extract structured information from the document below into {self._top_class.__name__} schema. 
-                Answer with a JSON document. Avoid explanations or extra text."""
-            user = "Document to analyze:\n---\n{input}\n---"
-            chain = def_prompt(system=system, user=user) | self._llm.with_structured_output(self._top_class)
-            analyzed_doc = chain.invoke({"input": markdown})
-            assert analyzed_doc
-            analyzed_doc.__setattr__("document_id", document_id)
-            if self.kv_store_id:
-                save_object_to_kvstore(document_id, analyzed_doc, kv_store_id="file")
-        return analyzed_doc
+            for doc_id, content in zip(document_ids, markdown_contents):
+                cached_doc = load_object_from_kvstore(self.get_top_class(), key=doc_id, kv_store_id=self.kv_store_id)
+                if cached_doc:
+                    analyzed_docs.append(cached_doc)
+                else:
+                    remaining_ids.append(doc_id)
+                    remaining_contents.append(content)
+        else:
+            remaining_ids = document_ids
+            remaining_contents = markdown_contents
+
+        if not remaining_ids:
+            return analyzed_docs
+
+        # Prepare batch processing
+        system = f"""
+            Extract structured information from the document below into {self._top_class.__name__} schema. 
+            Answer with a JSON document. Avoid explanations or extra text."""
+        user = "Document to analyze:\n---\n{input}\n---"
+        chain = def_prompt(system=system, user=user) | self._llm.with_structured_output(self._top_class)
+        
+        try:
+            # Process batch asynchronously
+            batch_results = await chain.abatch(
+                [{"input": content} for content in remaining_contents],
+                config=RunnableConfig(max_concurrency=5)
+            )
+            
+            # Store results and save to cache
+            for doc_id, result in zip(remaining_ids, batch_results):
+                result.__setattr__("document_id", doc_id)
+                analyzed_docs.append(result)
+                if self.kv_store_id:
+                    save_object_to_kvstore(doc_id, result, kv_store_id="file")
+                    
+        except Exception as batch_error:
+            logger.error(f"Batch analysis failed: {batch_error}, falling back to individual processing")
+            # Fallback to individual processing
+            for doc_id, content in zip(remaining_ids, remaining_contents):
+                try:
+                    result = await chain.ainvoke({"input": content})
+                    result.__setattr__("document_id", doc_id)
+                    analyzed_docs.append(result)
+                    if self.kv_store_id:
+                        save_object_to_kvstore(doc_id, result, kv_store_id="file")
+                except Exception as e:
+                    logger.error(f"Failed to process document {doc_id}: {e}")
+
+        return analyzed_docs
+
+    def analyze_document(self, document_id: str, markdown: str) -> BaseModel:
+        """Analyze markdown document and return structured data (synchronous wrapper)."""
+        results = asyncio.run(self.abatch_analyze_documents([document_id], [markdown]))
+        return results[0] if results else None
 
     def get_top_class(self) -> type[BaseModel]:
         return self._top_class
