@@ -72,12 +72,14 @@ class LlmInfo(BaseModel):
         provider: name of the provider
         model: Model identifier used by the provider
         key: API key environment variable name (computed from cls)
+        config: Additional configuration for the provider (for complex providers like vllm)
     """
 
     # an ID for the LLM; should follow Python variables constraints
     id: str
     provider: str
     model: str  # Name of the model for the constructor
+    config: dict[str, Any] = {}
 
     @computed_field
     def key(self) -> str:
@@ -107,10 +109,37 @@ def _read_llm_list_file() -> list[LlmInfo]:
     for model_entry in data["llm"]:
         model_id = model_entry["id"]
         for provider_info in model_entry["providers"]:
-            for provider, model_name in provider_info.items():
-                # Ensure model_id is in the correct format: model_id_provider
-                llm_info = {"id": f"{model_id}_{provider}", "provider": provider, "model": model_name}
-                llms.append(LlmInfo(**llm_info))
+            if isinstance(provider_info, dict):
+                # Handle new format: provider can be a dict with configuration
+                for provider, config in provider_info.items():
+                    if isinstance(config, dict):
+                        # Complex configuration (like vllm)
+                        model_name = config.pop("model", "")
+                        llm_info = {
+                            "id": f"{model_id}_{provider}",
+                            "provider": provider,
+                            "model": model_name,
+                            "config": config
+                        }
+                    else:
+                        # Simple string configuration
+                        llm_info = {
+                            "id": f"{model_id}_{provider}",
+                            "provider": provider,
+                            "model": str(config),
+                            "config": {}
+                        }
+                    llms.append(LlmInfo(**llm_info))
+            else:
+                # Handle legacy format (shouldn't happen with new YAML)
+                for provider, model_name in provider_info.items():
+                    llm_info = {
+                        "id": f"{model_id}_{provider}",
+                        "provider": provider,
+                        "model": str(model_name),
+                        "config": {}
+                    }
+                    llms.append(LlmInfo(**llm_info))
     return llms
 
 
@@ -126,10 +155,35 @@ def _read_embeddings_list_file() -> list[LlmInfo]:
         for model_entry in data["embeddings"]:
             model_id = model_entry["id"]
             for provider_info in model_entry["providers"]:
-                for provider, model_name in provider_info.items():
-                    # Ensure embedding_id is in the correct format: model_id_provider
-                    embedding_info = {"id": f"{model_id}_{provider}", "provider": provider, "model": model_name}
-                    embeddings.append(LlmInfo(**embedding_info))
+                if isinstance(provider_info, dict):
+                    # Handle new format
+                    for provider, config in provider_info.items():
+                        if isinstance(config, dict):
+                            model_name = config.pop("model", "")
+                            embedding_info = {
+                                "id": f"{model_id}_{provider}",
+                                "provider": provider,
+                                "model": model_name,
+                                "config": config
+                            }
+                        else:
+                            embedding_info = {
+                                "id": f"{model_id}_{provider}",
+                                "provider": provider,
+                                "model": str(config),
+                                "config": {}
+                            }
+                        embeddings.append(LlmInfo(**embedding_info))
+                else:
+                    # Handle legacy format
+                    for provider, model_name in provider_info.items():
+                        embedding_info = {
+                            "id": f"{model_id}_{provider}",
+                            "provider": provider,
+                            "model": str(model_name),
+                            "config": {}
+                        }
+                        embeddings.append(LlmInfo(**embedding_info))
     return embeddings
 
 
