@@ -141,25 +141,21 @@ class PydanticRagBase(BaseModel):
         """Analyze markdown document and return structured data (synchronous wrapper)."""
         import nest_asyncio
         import asyncio
-        
+
         try:
             # Handle case where we're already in a running event loop (e.g. Jupyter)
             if asyncio.get_event_loop().is_running():
                 nest_asyncio.apply()
                 loop = asyncio.get_event_loop()
-                results = loop.run_until_complete(
-                    self.abatch_analyze_documents([document_id], [markdown])
-                )
+                results = loop.run_until_complete(self.abatch_analyze_documents([document_id], [markdown]))
             else:
                 results = asyncio.run(self.abatch_analyze_documents([document_id], [markdown]))
         except RuntimeError as e:
             # Fallback for closed event loops
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            results = loop.run_until_complete(
-                self.abatch_analyze_documents([document_id], [markdown])
-            )
-            
+            results = loop.run_until_complete(self.abatch_analyze_documents([document_id], [markdown]))
+
         return results[0] if results else None
 
     def get_top_class(self) -> type[BaseModel]:
