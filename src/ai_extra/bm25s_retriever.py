@@ -1,4 +1,6 @@
-"""A replacement of the BM25Retriever, much faster. It uses the BM25s package."""
+"""A replacement of the BM25Retriever, much faster.
+
+It uses the BM25s package, and SpaCy for the preprocessing."""
 
 from collections.abc import Iterable
 from pathlib import Path
@@ -15,7 +17,7 @@ def default_preprocessing_func(text: str) -> list[str]:
     return text.split()
 
 
-def get_spacy_preprocess_fn(model: str, more_stop_words: list[str] = None) -> Callable[[str], list[str]]:
+def get_spacy_preprocess_fn(model: str, more_stop_words: list[str] | None = None) -> Callable[[str], list[str]]:
     """Return a function that preprocess a string for search :  lemmanisation, lower_case, and strop word removal.
 
     Args:
@@ -38,7 +40,7 @@ def get_spacy_preprocess_fn(model: str, more_stop_words: list[str] = None) -> Ca
     stop_words = nlp.Defaults.stop_words
     stop_words.update(more_stop_words or [])
 
-    def preprocess_text(text) -> list[str]:
+    def preprocess_text(text:str) -> list[str]:
         lemmas = [token.lemma_.lower() for token in nlp(text)]
         filtered = [token for token in lemmas if token not in stop_words]
         return filtered

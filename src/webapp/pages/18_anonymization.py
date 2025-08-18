@@ -11,7 +11,7 @@ from loguru import logger
 from pydantic import BaseModel, ConfigDict
 from streamlit import session_state as sss
 
-from src.ai_extra.presidio_anonymizer import CustomizedPresidioAnonymizer
+from ai_extra.custom_presidio_anonymizer import CustomizedPresidioAnonymizer
 from src.utils.config_mngr import global_config
 from src.webapp.ui_components.config_editor import edit_config_dialog
 
