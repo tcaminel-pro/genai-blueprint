@@ -147,7 +147,7 @@ class PydanticRag(BaseModel):
         is provided for improved performance on subsequent analyses.
 
         Args:
-            document_id: Unique identifier for this document (used for caching)
+            document_id: Unique identifier for this document
             markdown: Raw markdown text to analyze
 
         Returns:
@@ -316,6 +316,7 @@ class PydanticRag(BaseModel):
             if field_info is None:
                 continue
             page_content = f"{dumps(field_value)}"  # serialize as Markdown
+
             field_doc = Document(
                 page_content=page_content,
                 metadata={
