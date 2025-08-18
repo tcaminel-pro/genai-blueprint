@@ -311,11 +311,43 @@ class PydanticRag(BaseModel):
         model_data = model_instance.model_dump()
         document_id = getattr(model_instance, "document_id", None)
 
-        # Initialize text splitter with 200 byte chunks
+        # Initialize text splitter with 200 byte chunks and markdown-aware separators
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=200,
             chunk_overlap=0,
             length_function=len,
+            separators=[
+                # Markdown structure
+                "\n\n",
+                "\n#",
+                "\n##",
+                "\n###",
+                "\n####",
+                "\n#####",
+                "\n######",
+                "\n---",
+                "\n***",
+                # Table structure
+                "\n|",
+                # List structure
+                "\n- ",
+                "\n* ",
+                "\n1. ",
+                "\n2. ",
+                "\n3. ",
+                "\n4. ",
+                "\n5. ",
+                "\n6. ",
+                "\n7. ",
+                "\n8. ",
+                "\n9. ",
+                # Code blocks
+                "\n```",
+                # Inline separators
+                "\n",
+                " ",
+                "",
+            ],
             is_separator_regex=False,
         )
 
