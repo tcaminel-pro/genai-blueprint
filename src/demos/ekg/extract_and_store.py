@@ -85,7 +85,7 @@ class PydanticRagBase(BaseModel):
         analyzed_docs: list[BaseModel] = []
         remaining_ids: list[str] = []
         remaining_contents: list[str] = []
-        
+
         if self.kv_store_id:
             for doc_id, content in zip(document_ids, markdown_contents):
                 cached_doc = load_object_from_kvstore(self.get_top_class(), key=doc_id, kv_store_id=self.kv_store_id)
@@ -107,21 +107,20 @@ class PydanticRagBase(BaseModel):
             Answer with a JSON document. Avoid explanations or extra text."""
         user = "Document to analyze:\n---\n{input}\n---"
         chain = def_prompt(system=system, user=user) | self._llm.with_structured_output(self._top_class)
-        
+
         try:
             # Process batch asynchronously
             batch_results = await chain.abatch(
-                [{"input": content} for content in remaining_contents],
-                config=RunnableConfig(max_concurrency=5)
+                [{"input": content} for content in remaining_contents], config=RunnableConfig(max_concurrency=5)
             )
-            
+
             # Store results and save to cache
             for doc_id, result in zip(remaining_ids, batch_results):
                 result.__setattr__("document_id", doc_id)
                 analyzed_docs.append(result)
                 if self.kv_store_id:
                     save_object_to_kvstore(doc_id, result, kv_store_id="file")
-                    
+
         except Exception as batch_error:
             logger.error(f"Batch analysis failed: {batch_error}, falling back to individual processing")
             # Fallback to individual processing
