@@ -25,9 +25,10 @@ MARKDOWN_SEPARATOR = [
 ]  
 # fmt:on
 
+
 class PydanticRagBase(BaseModel):
     """Base class for RAG system handling document extraction and storage."""
-    
+
     model_definition: dict
     vector_store_factory: VectorStoreFactory
     llm_id: str | None

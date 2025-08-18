@@ -23,6 +23,7 @@ from src.demos.ekg.extract_and_store import PydanticRagBase
 
 T = TypeVar("T", bound=BaseModel)
 
+
 class PydanticRag(PydanticRagBase):
     """RAG system extension for creating semantic search tools and processing queries.
 
@@ -84,6 +85,7 @@ class PydanticRag(PydanticRagBase):
 
         class _VectorSearchInput(BaseModel):
             """Input schema for the vector search tool."""
+
             query: str = Field(
                 ...,
                 description=dedent_ws(
@@ -115,6 +117,7 @@ class PydanticRag(PydanticRagBase):
 
         class _VectorSearchTool(BaseTool):
             """Tool for searching the vector store for semantic matches."""
+
             name: str = f"{self.get_top_class().__name__}_retriever"
             description: str = dedent_ws(
                 f"""
@@ -143,10 +146,10 @@ class PydanticRag(PydanticRagBase):
 
                 filter_dict = {"$and": [section_filter, entity_filter]} if entity_filter else section_filter
                 docs = self._vector_store.similarity_search(query, k=20, filter=filter_dict)
-                
+
                 if not docs:
                     return "No information found"
-                
+
                 entity_id = docs[0].metadata.get("entity_id", "unknown")
                 fields_dict = {}
                 for doc in docs:
@@ -156,8 +159,7 @@ class PydanticRag(PydanticRagBase):
                 result_parts = [f"# {_entity_key_name}: {entity_id}"]
                 field_order = list(_top_class_description.keys())
                 sorted_fields = sorted(
-                    fields_dict.keys(), 
-                    key=lambda x: field_order.index(x) if x in field_order else len(field_order)
+                    fields_dict.keys(), key=lambda x: field_order.index(x) if x in field_order else len(field_order)
                 )
 
                 for field_name in sorted_fields:
