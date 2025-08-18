@@ -140,11 +140,11 @@ class PydanticRagBase(BaseModel):
     def analyze_document(self, document_id: str, markdown: str) -> BaseModel:
         """Analyze markdown document and return structured data (synchronous wrapper)."""
         from langchain_core.runnables.config import run_in_executor
-        
+
         # Create a sync wrapper that runs the async method
         def sync_wrapper():
             return asyncio.run(self.abatch_analyze_documents([document_id], [markdown]))
-            
+
         # Run in executor and get results
         results = run_in_executor(None, sync_wrapper)
         return results[0] if results else None
