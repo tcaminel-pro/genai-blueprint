@@ -50,15 +50,15 @@ class TestPromptUtils:
         prompt = def_prompt(system="You are helpful", user="Hello")
         messages = prompt.messages
         assert len(messages) == 2
-        assert messages[0][0] == "system"
-        assert messages[1][0] == "user"
+        assert str(messages[0]).startswith("SystemMessagePromptTemplate")
+        assert str(messages[1]).startswith("HumanMessagePromptTemplate")
 
     def test_def_prompt_with_other_messages(self):
         """Test prompt creation with additional messages."""
         prompt = def_prompt(system="You are helpful", user="Hello", other_msg={"placeholder": "{scratchpad}"})
         messages = prompt.messages
         assert len(messages) == 3
-        assert messages[2][0] == "placeholder"
+        assert str(messages[2]).startswith("MessagesPlaceholder")
 
     def test_def_prompt_dedent_removes_common_whitespace(self):
         """Test that def_prompt applies dedent_ws to remove common whitespace."""
@@ -74,20 +74,20 @@ class TestPromptUtils:
         prompt = def_prompt(system=system_msg, user=user_msg)
 
         # Check that common leading whitespace is removed
-        system_content = str(prompt.messages[0][1])
-        assert not system_content.startswith("    ")
-        assert "You are a helpful assistant." in system_content
+        system_str = str(prompt.messages[0])
+        assert "You are a helpful assistant." in system_str
+        assert "Always be polite." in system_str
 
-        user_content = str(prompt.messages[1][1])
-        assert not user_content.startswith("    ")
-        assert "Hello, can you help me?" in user_content
+        user_str = str(prompt.messages[1])
+        assert "Hello, can you help me?" in user_str
+        assert "I have a question." in user_str
 
     def test_def_prompt_none_system(self):
         """Test prompt creation with None system message."""
         prompt = def_prompt(system=None, user="Hello")
         messages = prompt.messages
         assert len(messages) == 1
-        assert messages[0][0] == "user"
+        assert str(messages[0]).startswith("HumanMessagePromptTemplate")
 
     def test_dict_input_message_basic(self):
         """Test dict input message creation."""
