@@ -129,6 +129,34 @@ class TestPromptUtils:
         text = "Hello\nWorld"
         assert dedent_ws(text) == "Hello\nWorld"
 
+    def test_dedent_ws_preserves_newlines(self):
+        """Test dedent_ws preserves newlines and formatting."""
+        text = "    Line 1\n\n    Line 2\n    Line 3"
+        result = dedent_ws(text)
+        assert result == "Line 1\n\nLine 2\nLine 3"
+
+    def test_dedent_ws_only_whitespace_lines(self):
+        """Test dedent_ws with lines containing only whitespace."""
+        text = "    \n    Hello\n    \n    World\n    "
+        result = dedent_ws(text)
+        assert result == "\nHello\n\nWorld\n"
+
+    def test_dedent_ws_nested_indentation(self):
+        """Test dedent_ws with nested indentation."""
+        text = "    if True:\n        print('hello')\n    return"
+        result = dedent_ws(text)
+        assert result == "if True:\n    print('hello')\nreturn"
+
+    def test_dedent_ws_mixed_tabs_spaces_consistency(self):
+        """Test dedent_ws with mixed tabs and spaces at same logical level."""
+        text = "\tLine with tab\n    Line with spaces\n\tAnother tab"
+        result = dedent_ws(text)
+        # Should normalize tabs to 4 spaces and then dedent
+        assert "Line with tab" in result
+        assert "Line with spaces" in result
+        assert not result.startswith("\t")
+        assert not result.startswith("    ")
+
     def test_def_prompt_default_system(self):
         """Test the default system prompt constant."""
         assert DEFAULT_SYSTEM_PROMPT == ""
