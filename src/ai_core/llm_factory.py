@@ -53,6 +53,7 @@ from loguru import logger
 from pydantic import BaseModel, Field, computed_field, field_validator
 
 from src.ai_core.cache import LlmCache
+from src.ai_core.providers import PROVIDER_INFO, get_provider_api_key
 from src.utils.config_mngr import global_config
 
 SEED = 42  # Arbitrary value....
@@ -61,9 +62,6 @@ DEFAULT_MAX_RETRIES = 2
 OPENROUTER_BASE = "https://openrouter.ai"
 OPENROUTER_API_BASE = f"{OPENROUTER_BASE}/api/v1"
 DEEPSEEK_API_BASE = "https://api.deepseek.com"
-# cSpell: disable
-
-from src.ai_core.providers import PROVIDER_INFO, get_provider_api_key
 
 
 class LlmInfo(BaseModel):
