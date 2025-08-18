@@ -5,6 +5,7 @@ Taken from:
 - https://python.langchain.com/api_reference/experimental/data_anonymizer/langchain_experimental.data_anonymizer.deanonymizer_matching_strategies.combined_exact_fuzzy_matching_strategy.html
 """
 
+import re
 from typing import Any, Dict, List
 
 from faker import Faker
@@ -192,3 +193,43 @@ class CustomizedPresidioAnonymizer(BaseModel):
                 )
             }
         )
+
+
+if __name__ == "__main__":
+    """Quick test of the anonymizer functionality."""
+    print("Testing CustomizedPresidioAnonymizer...")
+
+    # Initialize anonymizer with sample data
+    anonymizer = CustomizedPresidioAnonymizer(
+        company_names=["Acme Corp", "Tech Solutions"],
+        product_names=["WidgetPro", "CloudMaster"],
+        faker_seed=42
+    )
+
+    # Test text with PII
+    test_text = """
+    John Smith works at Acme Corp and uses WidgetPro for development.
+    His email is john.smith@email.com and phone is (555) 123-4567.
+    He previously worked at Tech Solutions where he used CloudMaster.
+    """
+
+    print("\nOriginal text:")
+    print(test_text)
+
+    # Anonymize
+    anonymized = anonymizer.anonymize(test_text)
+    print("\nAnonymized text:")
+    print(anonymized)
+
+    # Deanonymize
+    deanonymized = anonymizer.deanonymize(anonymized)
+    print("\nDeanonymized text:")
+    print(deanonymized)
+
+    # Show mapping
+    mapping = anonymizer.get_mapping()
+    print("\nAnonymization mapping:")
+    for fake, real in mapping.items():
+        print(f"  {fake} -> {real}")
+
+    print("\nTest completed!")
