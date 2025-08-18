@@ -314,7 +314,7 @@ class PydanticRag(BaseModel):
         # Initialize text splitter with 200 byte chunks
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=200,
-            chunk_overlap=20,
+            chunk_overlap=0,
             length_function=len,
             is_separator_regex=False,
         )
@@ -326,11 +326,9 @@ class PydanticRag(BaseModel):
             if field_info is None:
                 continue
 
-            # Serialize field value to markdown
+            # Serialize field value to markdown, and split it if longer then given length
             serialized_content = f"{dumps(field_value)}"
-
-            # Split the content into chunks
-            chunks = text_splitter.split_text(serialized_content)
+            chunks = text_splitter.split_text(serialized_content)  # TODO : TEST IT !
 
             # Create a document for each chunk with the same metadata
             for chunk in chunks:
