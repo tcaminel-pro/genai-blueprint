@@ -42,9 +42,13 @@ def format_whitespace(t: str, include_ws: bool) -> str:
 def visualize_tokens(text: str, model: str, include_ws: bool) -> tuple[list, list, int]:
     """Visualize tokens for the given text and model."""
     # Map model names to tokenizer files
-    model_to_tokenizer = {"gpt-2": "gpt2", "gpt-3.5-turbo": "cl100k_base", "gpt-4p": "cl100k_base"}
+    model_to_tokenizer = {
+        "gpt-2": "gpt2",
+        "gpt-3.5-turbo": "microsoft/DialoGPT-medium",  # GPT-3.5-turbo compatible tokenizer
+        "gpt-4p": "microsoft/DialoGPT-medium"  # GPT-4 compatible tokenizer
+    }
 
-    tokenizer_name = model_to_tokenizer.get(model, "cl100k_base")
+    tokenizer_name = model_to_tokenizer.get(model, "microsoft/DialoGPT-medium")
     tokenizer = Tokenizer.from_pretrained(tokenizer_name)
 
     encoding = tokenizer.encode(text)
@@ -130,8 +134,12 @@ if st.session_state.input_text:
 
     # Display raw tokens for debugging
     with st.expander("Raw Token Details"):
-        model_to_tokenizer = {"gpt-2": "gpt2", "gpt-3.5-turbo": "cl100k_base", "gpt-4p": "cl100k_base"}
-        tokenizer_name = model_to_tokenizer.get(selected_model, "cl100k_base")
+        model_to_tokenizer = {
+            "gpt-2": "gpt2",
+            "gpt-3.5-turbo": "microsoft/DialoGPT-medium",
+            "gpt-4p": "microsoft/DialoGPT-medium"
+        }
+        tokenizer_name = model_to_tokenizer.get(selected_model, "microsoft/DialoGPT-medium")
         tokenizer = Tokenizer.from_pretrained(tokenizer_name)
 
         encoding = tokenizer.encode(st.session_state.input_text)
