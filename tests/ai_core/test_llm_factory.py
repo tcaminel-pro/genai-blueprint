@@ -186,6 +186,42 @@ def test_known_items_dict() -> None:
     assert LLM_ID_FAKE in items_dict
 
 
+def test_complex_provider_config_parsing() -> None:
+    """Test that complex provider configurations (like vllm) are parsed correctly."""
+    # Test the liquid_lfm40 model which has complex vllm configuration
+    llm_id = "liquid_lfm40_vllm"
+    
+    # Check if it's in known items (it should be if config is parsed correctly)
+    known_items = LlmFactory.known_items()
+    
+    # Only test if the model is actually available (API keys present)
+    if llm_id in known_items:
+        info = get_llm_info(llm_id)
+        assert info.provider == "vllm"
+        assert info.model == "bla bla vla"
+        assert info.llm_args.get("trust_remote_code") is True
+        assert info.llm_args.get("max_new_tokens") == 512
+        assert isinstance(info.llm_args.get("vllm_kwargs"), dict)
+        assert info.llm_args["vllm_kwargs"].get("quantization") == "awq"
+    else:
+        # Test the parsing logic by checking the raw data structure
+        from src.ai_core.llm_factory import _read_llm_list_file
+        
+        llms = _read_llm_list_file()
+        liquid_lfm40_vllm = None
+        for llm in llms:
+            if llm.id == "liquid_lfm40_vllm":
+                liquid_lfm40_vllm = llm
+                break
+        
+        assert liquid_lfm40_vllm is not None
+        assert liquid_lfm40_vllm.provider == "vllm"
+        assert liquid_lfm40_vllm.model == "bla bla vla"
+        assert liquid_lfm40_vllm.llm_args.get("trust_remote_code") is True
+        assert liquid_lfm40_vllm.llm_args.get("max_new_tokens") == 512
+        assert liquid_lfm40_vllm.llm_args.get("vllm_kwargs", {}).get("quantization") == "awq"
+
+
 def test_factory_find_llm_id_from_type() -> None:
     """Test find_llm_id_from_type method."""
     # This might fail if no config is set up, so we'll test the error case
