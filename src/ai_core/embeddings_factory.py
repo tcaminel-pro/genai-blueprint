@@ -128,12 +128,13 @@ class EmbeddingsFactory(BaseModel):
         embeddings_id: Unique identifier for the embeddings model
         encoding_str: Optional encoding configuration string
         retrieving_str: Optional retrieving configuration string
+        cache_query_embedding: cache embeddings in a KV store
     """
 
     embeddings_id: Annotated[str | None, Field(validate_default=True)] = None
     encoding_str: str | None = None
     retrieving_str: str | None = None
-    cache_query_embedding: bool = False
+    cache_embeddings: bool = False
 
     @computed_field
     @cached_property
@@ -191,18 +192,11 @@ class EmbeddingsFactory(BaseModel):
         return sorted(EmbeddingsFactory.known_items_dict().keys())
 
     def get(self) -> Embeddings:
-        """Create an embeddings model instance.
-
-        Args:
-            cached: Whether to use cached embeddings
-
-        Returns:
-            Configured embeddings model
-        """
+        """Create an embeddings model instance."""
         if self.info.key and self.info.key not in os.environ:
             raise EnvironmentError(f"No known API key for : {self.info.id}")
         embeddings = self.model_factory()
-        if self.cache_query_embedding:
+        if self.cache_embeddings:
             embeddings = self.get_cached_embedder(embeddings)
         return embeddings
 

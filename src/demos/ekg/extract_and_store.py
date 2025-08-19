@@ -53,8 +53,7 @@ class PydanticRagBase(BaseModel):
         postgres_url = global_config().get_dsn("vector_store.postgres_url", driver="asyncpg")
         vector_store_factory = VectorStoreFactory(
             id="PgVector",
-            embeddings_factory=EmbeddingsFactory(embeddings_id=EMBEDDINGS_ID),
-            cache_embeddings=True,
+            embeddings_factory=EmbeddingsFactory(embeddings_id=EMBEDDINGS_ID, cache_embeddings=True),
             config={
                 "postgres_url": postgres_url,
                 "hybrid_search": True,
@@ -147,6 +146,9 @@ class PydanticRagBase(BaseModel):
             results = loop.run_until_complete(self.abatch_analyze_documents([document_id], [markdown]))
 
         return results[0]
+    
+    def kv_to_vector_store(self):
+        
 
     def get_top_class(self) -> type[BaseModel]:
         return self._top_class

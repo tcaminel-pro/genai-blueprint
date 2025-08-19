@@ -354,7 +354,7 @@ if __name__ == "__main__":
 
     # Create embeddings factory
     embeddings_factory = EmbeddingsFactory(embeddings_id="embeddings_768_fake")
-    embeddings_factory_cached = EmbeddingsFactory(embeddings_id="embeddings_768_fake", cache_query_embedding=True)
+    embeddings_factory_cached = EmbeddingsFactory(embeddings_id="embeddings_768_fake", cache_embeddings=True)
 
     # Create vector store with hybrid search enabled
     factory = VectorStoreFactory(

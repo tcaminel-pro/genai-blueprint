@@ -46,3 +46,13 @@ class KvStoreFactory(BaseModel):
 
         else:
             raise ValueError(f"Unknown vector store id: '{self.id}'")
+
+
+class PydanticStoreFactory:
+    id: str
+    model_class: type[T]
+    __kv_store: KvStoreFactory = ...
+
+    def save_obj(key: str | dict, obj: BaseModel, metadata: dict | None = None): ...
+
+    def load_object(key: str | dict, kv_store_id: str = "file") -> T | None: ...
