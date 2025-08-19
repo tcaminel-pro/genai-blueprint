@@ -27,6 +27,8 @@ class StoredObject(BaseModel):
     content: dict  # Store as dict to allow proper deserialization
     metadata: dict = {}
 
+    model_config = {"arbitrary_types_allowed": True}
+
 
 def _encode_to_alphanumeric(input_string: str) -> str:
     """Encode a string to alphanumeric by first transliterating  it to ASCII, then replace  non alphanumeric char (plus . and -) by _."""
