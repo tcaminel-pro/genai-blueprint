@@ -119,7 +119,7 @@ def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id:
             # Convert back to the original model and attach metadata
             model_instance = stored_obj.to_model(model_class)
             # Attach metadata as an attribute
-            setattr(model_instance, '_kv_metadata', stored_obj.metadata)
+            setattr(model_instance, "_kv_metadata", stored_obj.metadata)
             return model_instance
         except ValidationError as ex:
             logger.warning(f"failed to load JSON value for {class_name}/{encoded_key}. Error is : {ex}")
