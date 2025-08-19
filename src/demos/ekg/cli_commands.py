@@ -155,7 +155,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         if not md_files:
             logger.info("All files have already been processed. Use --force to reprocess.")
             return
-        asyncio.run(process_markdown_batch(md_files, rag, batch_size))
+        asyncio.run(rag.process_files(md_files, batch_size))
 
         logger.success(f"Project extraction complete. {len(md_files)} files processed. Results saved to KV Store")
 
@@ -305,5 +305,3 @@ def register_commands(cli_app: typer.Typer) -> None:
         )
         rainbow_tool = rag.create_vector_search_tool()
         asyncio.run(run_langgraph_agent_shell(llm_id, tools=[rainbow_tool], mcp_server_names=mcp))
-
-

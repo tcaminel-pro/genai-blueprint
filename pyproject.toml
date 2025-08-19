@@ -44,8 +44,9 @@ ai = [
     "langchain-chroma>=0.2",
     "langchain-tavily>=0.2.10",
     "deepagents>=0.0.3",
-    # "litellm>=1",
-    "litellm>=1.67.2",
+    #"litellm==1.74.15",
+    "openai==1.99.9",                                          # issue with v100.1 and litelmm 
+    "litellm>=1.74",
     "chromadb>=1.0",
     "mistralai>=1.7.0",
     "smolagents[toolkit, mcp, openai, litellm, docker]==1.17", # code display issue un streamlit with 1.19  TODO
@@ -80,8 +81,10 @@ postgres = [
     "psycopg2-binary>=2.9.10",
 ]
 
-spacy = [
+nlp = [
     "spacy>=3.7.4",
+    # "abbreviations>=0.2.5",
+    # "enchant>=0.0.1",
     "en-core-web-sm @https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl",
     "en-core-web-lg @https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.8.0/en_core_web_lg-3.8.0-py3-none-any.whl",
 ]
@@ -96,8 +99,6 @@ demos = [
     "rank-bm25>=0.2.2",
     "matplotlib>=3.9.0,<4",
     "sqlalchemy>=2.0.29",
-    "abbreviations>=0.2.5",
-    "enchant>=0.0.1",
     "pypdf>=5.1.0,<6",
     #    "giskard>=2.15.5",
     #   "ollama-ocr>=0.1.3,<0.2",
@@ -149,7 +150,7 @@ default-groups = [
     #  "transformers",
     "dev",
     "postgres",
-    "spacy",
+    "nlp",
 ]
 
 [tool.hatch.build.targets.sdist]

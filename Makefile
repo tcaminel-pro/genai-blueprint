@@ -43,7 +43,7 @@ endif
 
 .pythonpath:
 	@if [ -z "$(PYTHONPATH)" ]; then \
-		@echo "Warning: PYTHONPATH is not set. Consider to put somewhere: export PYTHONPATH=\".\" "; \
+		echo "Warning: PYTHONPATH is not set. Consider to put somewhere: export PYTHONPATH=\".\" "; \
 	fi
 
 

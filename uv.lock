@@ -2,18 +2,6 @@ version = 1
 requires-python = "==3.12.*"
 
 [[package]]
-name = "abbreviations"
-version = "0.2.5"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "regex" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/90/0c/1471694bb53a1babc4d126dbb04dacdfd71870f9407d4f01fbafec787051/abbreviations-0.2.5.tar.gz", hash = "sha256:009107ed550a36ddcd41bfc8455e04261d6bc060012b76d4efee461af0db441f", size = 4827 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/12/b3/cdcfca9e06b98c6be9c89797b5b70dc4d18cefbb423647e8bd5b9add2e9c/abbreviations-0.2.5-py3-none-any.whl", hash = "sha256:aad597886618f96ff00f92749c3cd4392a34d611fd27bd1c6bf366375429012d", size = 5668 },
-]
-
-[[package]]
 name = "accelerate"
 version = "1.10.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1091,15 +1079,6 @@ wheels = [
 ]
 
 [[package]]
-name = "enchant"
-version = "0.0.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/b5/63/b3708cb7a173831fd92ff14992489d7e4c1bddda90b20a8fe457a1fbdd9c/enchant-0.0.1.tar.gz", hash = "sha256:d690fb6b709f6bfbf5ffa533226ced29050f99e4d3890eef957595753bc1e24d", size = 1780 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/bb/ea/b7449b0d69361836ed68d0863374c27e395243fd1dbdd5587e62c479535c/enchant-0.0.1-py3-none-any.whl", hash = "sha256:ce4af8ff70495a12aac4b130f9ea3328ca5d9489c328ce948aef5e583905fa4d", size = 2423 },
-]
-
-[[package]]
 name = "et-xmlfile"
 version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1413,6 +1392,7 @@ ai = [
     { name = "litellm" },
     { name = "mcp", extra = ["cli"] },
     { name = "mistralai" },
+    { name = "openai" },
     { name = "smolagents", extra = ["docker", "litellm", "mcp", "openai", "toolkit"] },
 ]
 ai-extra = [
@@ -1438,9 +1418,7 @@ browser-control = [
     { name = "playwright" },
 ]
 demos = [
-    { name = "abbreviations" },
     { name = "bs4" },
-    { name = "enchant" },
     { name = "faker" },
     { name = "kuzu" },
     { name = "langchain-kuzu" },
@@ -1466,15 +1444,15 @@ dev = [
     { name = "pytest" },
     { name = "ruff" },
 ]
+nlp = [
+    { name = "en-core-web-lg" },
+    { name = "en-core-web-sm" },
+    { name = "spacy" },
+]
 postgres = [
     { name = "langchain-postgres" },
     { name = "psycopg", extra = ["binary"] },
     { name = "psycopg2-binary" },
-]
-spacy = [
-    { name = "en-core-web-lg" },
-    { name = "en-core-web-sm" },
-    { name = "spacy" },
 ]
 transformers = [
     { name = "accelerate" },
@@ -1523,9 +1501,10 @@ ai = [
     { name = "langchainhub", specifier = ">=0.1" },
     { name = "langgraph", specifier = ">=0.5" },
     { name = "langserve", specifier = ">=0.3" },
-    { name = "litellm", specifier = ">=1.67.2" },
+    { name = "litellm", specifier = ">=1.74" },
     { name = "mcp", extras = ["cli"], specifier = ">=1.4.1" },
     { name = "mistralai", specifier = ">=1.7.0" },
+    { name = "openai", specifier = "==1.99.9" },
     { name = "smolagents", extras = ["toolkit", "mcp", "openai", "litellm", "docker"], specifier = "==1.17" },
 ]
 ai-extra = [
@@ -1551,9 +1530,7 @@ browser-control = [
     { name = "playwright", specifier = ">=1.51.0" },
 ]
 demos = [
-    { name = "abbreviations", specifier = ">=0.2.5" },
     { name = "bs4", specifier = ">=0.0.2" },
-    { name = "enchant", specifier = ">=0.0.1" },
     { name = "faker", specifier = ">=25.0.0" },
     { name = "kuzu", specifier = ">=0.7.1" },
     { name = "langchain-kuzu", specifier = ">=0.3.0" },
@@ -1579,15 +1556,15 @@ dev = [
     { name = "pytest", specifier = ">=8.1.1" },
     { name = "ruff", specifier = ">=0.9.1" },
 ]
+nlp = [
+    { name = "en-core-web-lg", url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.8.0/en_core_web_lg-3.8.0-py3-none-any.whl" },
+    { name = "en-core-web-sm", url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" },
+    { name = "spacy", specifier = ">=3.7.4" },
+]
 postgres = [
     { name = "langchain-postgres", specifier = ">=0.0.15" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2.9" },
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
-]
-spacy = [
-    { name = "en-core-web-lg", url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.8.0/en_core_web_lg-3.8.0-py3-none-any.whl" },
-    { name = "en-core-web-sm", url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" },
-    { name = "spacy", specifier = ">=3.7.4" },
 ]
 transformers = [
     { name = "accelerate", specifier = ">=1.4.0" },
@@ -3508,7 +3485,7 @@ wheels = [
 
 [[package]]
 name = "openai"
-version = "1.100.1"
+version = "1.99.9"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -3520,9 +3497,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/71/71/efa1ddeedcba1a385034b66e6f34c7b0ace4bf99ffbfc2859c025daa147a/openai-1.100.1.tar.gz", hash = "sha256:3e9ae652903e5120514e544af2426334141404657cdcdb6dc6845fc243d66e66", size = 508419 }
+sdist = { url = "https://files.pythonhosted.org/packages/8a/d2/ef89c6f3f36b13b06e271d3cc984ddd2f62508a0972c1cbcc8485a6644ff/openai-1.99.9.tar.gz", hash = "sha256:f2082d155b1ad22e83247c3de3958eb4255b20ccf4a1de2e6681b6957b554e92", size = 506992 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/aa/b4/686944f0903c65202e86311ec0f42171e697e4f7324caeee0c318046b738/openai-1.100.1-py3-none-any.whl", hash = "sha256:2e8224caaf3136c58e30e6b3984fd7a8e6da0931d2c36fbbb7d668e5c11db914", size = 788286 },
+    { url = "https://files.pythonhosted.org/packages/e8/fb/df274ca10698ee77b07bff952f302ea627cc12dac6b85289485dd77db6de/openai-1.99.9-py3-none-any.whl", hash = "sha256:9dbcdb425553bae1ac5d947147bebbd630d91bbfc7788394d4c4f3a35682ab3a", size = 786816 },
 ]
 
 [[package]]

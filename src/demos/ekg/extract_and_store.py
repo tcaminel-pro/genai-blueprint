@@ -54,6 +54,7 @@ class PydanticRagBase(BaseModel):
         vector_store_factory = VectorStoreFactory(
             id="PgVector",
             embeddings_factory=EmbeddingsFactory(embeddings_id=EMBEDDINGS_ID),
+            cache_embeddings=True,
             config={
                 "postgres_url": postgres_url,
                 "hybrid_search": True,
@@ -83,7 +84,6 @@ class PydanticRagBase(BaseModel):
 
     async def abatch_analyze_documents(self, document_ids: list[str], markdown_contents: list[str]) -> list[BaseModel]:
         """Analyze multiple markdown documents asynchronously in batch."""
-
 
         # Check cache first
         analyzed_docs: list[BaseModel] = []

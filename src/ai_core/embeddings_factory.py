@@ -36,10 +36,10 @@ from devtools import debug  # noqa: F401
 from dotenv import load_dotenv
 from langchain.embeddings import CacheBackedEmbeddings
 from langchain.embeddings.base import Embeddings
-from langchain.storage import LocalFileStore
 from loguru import logger
 from pydantic import BaseModel, Field, computed_field, field_validator
 
+from src.ai_extra.kv_store_factory import KvStoreFactory
 from src.utils.config_mngr import global_config
 from src.ai_core.providers import get_provider_api_key
 
@@ -276,9 +276,8 @@ class EmbeddingsFactory(BaseModel):
         Returns:
             Cached embeddings model with persistent storage
         """
-        file_store_path = global_config().get_dir_path("kv_store.path")
-        file_store = LocalFileStore(file_store_path / "embeddings_cache")
-        cached_embedder = CacheBackedEmbeddings.from_bytes_store(self.get(), file_store, namespace=self.embeddings_id)  # type: ignore
+        kv_store = KvStoreFactory(id="file", root=f"embeddings_cache{self.short_name()}")  # TODO : make it configurable
+        cached_embedder = CacheBackedEmbeddings.from_bytes_store(self.get(), kv_store, namespace=self.embeddings_id)  # type: ignore
         return cached_embedder
 
     def short_name(self) -> str:
