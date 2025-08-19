@@ -37,7 +37,7 @@ class StoredObject(BaseModel):
         """Parse stored data using a specific model class."""
         content_data = data.get("content", {})
         return cls(content=content_data, metadata=data.get("metadata", {}))
-    
+
     def to_model(self, model_class: type[T]) -> T:
         """Convert stored content back to a Pydantic model."""
         return model_class.model_validate(self.content)
