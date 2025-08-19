@@ -199,10 +199,10 @@ class PydanticRagBase(BaseModel):
             # chunks = text_splitter.split_text(serialized_content) @TODO: Improve
             chunks = [serialized_content]
 
-            if len(serialized_content) > 300:
-                if is_bearable(field_value, list[dict]):
-                    # split field_value as lists of max 3 elements AI!
-                    
+            if len(serialized_content) > 300 and is_bearable(field_value, list[dict]):
+                # Split long list[dict] into chunks of max 3 elements
+                chunks = [field_value[i : i + 3] for i in range(0, len(field_value), 3)]
+                serialized_content = json.dumps(chunks, ensure_ascii=False)
 
             for chunk in chunks:
                 field_doc = Document(
