@@ -49,7 +49,9 @@ def _encode_key(key: str | dict) -> str:
     return encoded_key + ".json"  # add json so the file can be easily viewed
 
 
-def save_object_to_kvstore(key: str | dict, obj: BaseModel, metadata: dict | None = None, kv_store_id: str = "file") -> None:
+def save_object_to_kvstore(
+    key: str | dict, obj: BaseModel, metadata: dict | None = None, kv_store_id: str = "file"
+) -> None:
     """Save a Pydantic model to a local file-based key-value store.
 
     The model is saved to a directory based on the model's class name. The key is
