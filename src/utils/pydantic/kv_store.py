@@ -107,6 +107,7 @@ def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id:
         try:
             logger.debug(f"read '{class_name}/{encoded_key}' from KV store")
             stored_data = json.loads(stored_bytes.decode("utf-8"))
+            logger.debug(f"stored_data: {stored_data}")
             stored_obj = StoredObject.parse_model(stored_data, model_class)
             return stored_obj
         except ValidationError as ex:
