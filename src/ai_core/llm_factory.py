@@ -110,7 +110,7 @@ def _read_llm_list_file() -> list[LlmInfo]:
         model_id = model_entry["id"]
         for provider_info in model_entry["providers"]:
             if isinstance(provider_info, dict):
-                # Handle new format: provider can be a dict with configuration
+                # provider can be a dict with configuration
                 for provider, config in provider_info.items():
                     if isinstance(config, dict):
                         # Complex configuration (like vllm)
@@ -470,8 +470,11 @@ class LlmFactory(BaseModel):
                 **llm_params,
             )
         elif self.info.provider == "vllm":
-            debug(name=self.info.model)
+            from langchain_community.llms import VLLM
+
+            debug(name=self.info)
             raise NotImplementedError("Chrys, it's here ! ")
+            llm = VLLM(...)
 
         elif self.info.provider == "fake":
             from langchain_core.language_models.fake_chat_models import ParrotFakeChatModel

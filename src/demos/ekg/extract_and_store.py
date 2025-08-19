@@ -3,11 +3,14 @@
 import asyncio
 from typing import Any, Type
 
+import nest_asyncio
 from langchain.vectorstores.base import VectorStore
 from langchain_core.documents import Document
+from langchain_core.runnables import RunnableConfig
 from loguru import logger  # noqa: F401
 from markpickle import dumps
 from pydantic import BaseModel, ConfigDict, PrivateAttr
+from upath import UPath
 
 from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.ai_core.llm_factory import get_llm
@@ -80,7 +83,7 @@ class PydanticRagBase(BaseModel):
 
     async def abatch_analyze_documents(self, document_ids: list[str], markdown_contents: list[str]) -> list[BaseModel]:
         """Analyze multiple markdown documents asynchronously in batch."""
-        from langchain_core.runnables import RunnableConfig
+
 
         # Check cache first
         analyzed_docs: list[BaseModel] = []
@@ -123,23 +126,11 @@ class PydanticRagBase(BaseModel):
                     save_object_to_kvstore(doc_id, result, kv_store_id="file")
 
         except Exception as batch_error:
-            logger.error(f"Batch analysis failed: {batch_error}, falling back to individual processing")
-            # Fallback to individual processing
-            for doc_id, content in zip(remaining_ids, remaining_contents, strict=False):
-                try:
-                    result = await chain.ainvoke({"input": content})
-                    result.__setattr__("document_id", doc_id)
-                    analyzed_docs.append(result)
-                    if self.kv_store_id:
-                        save_object_to_kvstore(doc_id, result, kv_store_id="file")
-                except Exception as e:
-                    logger.error(f"Failed to process document {doc_id}: {e}")
-
+            logger.error(f"Batch analysis failed: {batch_error}")
         return analyzed_docs
 
     def analyze_document(self, document_id: str, markdown: str) -> BaseModel:
         """Analyze markdown document and return structured data (synchronous wrapper)."""
-        import nest_asyncio
 
         try:
             # Handle case where we're already in a running event loop (e.g. Jupyter)
@@ -223,3 +214,30 @@ class PydanticRagBase(BaseModel):
         if current_value is None:
             raise ValueError(f"incorrect key {self._key_field}")
         return str(current_value)
+
+    async def process_files(self, md_files: list[UPath], batch_size: int = 5) -> None:
+        """Process a batch of markdown files using LangChain batching."""
+
+        # Prepare document IDs and contents
+        document_ids = []
+        markdown_contents = []
+        valid_files = []
+
+        for file_path in md_files:
+            try:
+                content = file_path.read_text(encoding="utf-8")
+                document_ids.append(file_path.stem)
+                markdown_contents.append(content)
+                valid_files.append(file_path)
+            except Exception as e:
+                logger.error(f"Error reading {file_path}: {e}")
+
+        if not document_ids:
+            logger.warning("No valid files to process")
+            return
+
+        logger.info(
+            f"Processing {len(valid_files)} files in batches of {batch_size}. Output in '{self.kv_store_id}' KV Store"
+        )
+
+        _ = await self.abatch_analyze_documents(document_ids, markdown_contents)

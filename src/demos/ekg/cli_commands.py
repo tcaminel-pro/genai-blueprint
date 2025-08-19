@@ -50,13 +50,13 @@ from upath import UPath
 
 from src.utils.config_mngr import global_config
 
-LLM_ID = (None,)
+LLM_ID = None
 KV_STORE_ID = "file"
 
 
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
-    def rainbow_extract(
+    def structured_extract(
         file_or_dir: Annotated[
             Path,
             typer.Argument(
@@ -66,23 +66,15 @@ def register_commands(cli_app: typer.Typer) -> None:
                 dir_okay=True,
             ),
         ],
-        output_dir: Annotated[
-            Path,
-            typer.Argument(
-                help="Output directory",
-                exists=True,
-                file_okay=False,
-                dir_okay=True,
-            ),
-        ],
+        schema: str = typer.Argument(help="name of he schcme dict to use to extract information"),
         llm_id: Annotated[
             Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
         ] = None,
         recursive: bool = typer.Option(False, help="Search for files recursively"),
         batch_size: int = typer.Option(5, help="Number of files to process in each batch"),
-        force: bool = typer.Option(False, "--force", help="Overwrite existing JSON files"),
+        force: bool = typer.Option(False, "--force", help="Overwrite existing KV entries"),
     ) -> None:
-        """Extract structured project data from Markdown files and save as JSON.
+        """Extract structured project data from Markdown files and save as JSON in a key-value store.
 
         Example:
            uv run cli extract-rainbow "*.md" "projects/*.md" --output-dir=./json_output --llm-id gpt-4o
@@ -90,15 +82,29 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
 
         from loguru import logger
-        from upath import UPath
 
+        from demos.ekg.retriever_tool_factory import PydanticRag
         from src.ai_core.llm_factory import LlmFactory
+        from utils.pydantic.kv_store import load_object_from_kvstore
 
         if llm_id is not None and llm_id not in LlmFactory.known_items():
             logger.error(f"Unknown llm_id: {llm_id}. Valid options: {LlmFactory.known_items()}")
             return
 
-        logger.info(f"Starting project extraction with: {file_or_dir}")
+        list_demos = (
+            global_config().merge_with("config/demos/document_extractor.yaml").get_list("Document_extractor_demo")
+        )
+        schema_dict = next((item for item in list_demos if item.get("schema_name") == schema), None)
+
+        if schema_dict is None:
+            logger.error(f"Invalid schema_name: {schema}")
+            return
+        top_class: str = schema_dict.get("top_class")
+        if top_class is None:
+            logger.error(f"Incorrect schema: {schema}")
+            return
+
+        logger.info(f"Starting project extraction with: {file_or_dir} and schema {schema} (class: {top_class})")
 
         # Collect all Markdown files
         all_files = []
@@ -125,13 +131,22 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         logger.info(f"Found {len(md_files)} Markdown files to process")
 
-        # Filter out files that already have JSON output unless forced
-        output_path = UPath(output_dir)
+        vector_store_factory = PydanticRag.get_vector_store_factory()
+        rag = PydanticRag(
+            model_definition=schema_dict,
+            vector_store_factory=vector_store_factory,
+            llm_id=None,
+            kv_store_id=KV_STORE_ID,
+        )
+
+        # Filter out files that already have JSON in KV unless forced
+
         if not force:
             unprocessed_files = []
             for md_file in md_files:
-                json_output_file = output_path / f"{md_file.stem}_extracted.json"
-                if not json_output_file.exists():
+                key = md_file.stem
+                cached_doc = load_object_from_kvstore(rag.get_top_class(), key=key, kv_store_id=KV_STORE_ID)
+                if not cached_doc:
                     unprocessed_files.append(md_file)
                 else:
                     logger.info(f"Skipping {md_file.name} - JSON already exists (use --force to overwrite)")
@@ -140,12 +155,9 @@ def register_commands(cli_app: typer.Typer) -> None:
         if not md_files:
             logger.info("All files have already been processed. Use --force to reprocess.")
             return
+        asyncio.run(process_markdown_batch(md_files, rag, batch_size))
 
-        output_path.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Created output directory: {output_path}")
-        asyncio.run(process_markdown_batch(md_files, output_path, batch_size))
-
-        logger.success(f"Project extraction complete. {len(md_files)} files processed. Results saved to {output_dir}")
+        logger.success(f"Project extraction complete. {len(md_files)} files processed. Results saved to KV Store")
 
     @cli_app.command()
     def rainbow_generate_fake(
@@ -295,79 +307,3 @@ def register_commands(cli_app: typer.Typer) -> None:
         asyncio.run(run_langgraph_agent_shell(llm_id, tools=[rainbow_tool], mcp_server_names=mcp))
 
 
-async def process_markdown_batch(md_files: list[UPath], output_dir: UPath, batch_size: int = 5) -> None:
-    """Process a batch of markdown files using LangChain batching.
-
-    Efficiently processes multiple Markdown files in parallel using LangChain's batch
-    processing capabilities. Extracts structured project data and saves results as
-    JSON files with error handling and fallback to individual processing.
-
-    Args:
-        md_files: List of Markdown file paths to process
-        output_dir: Directory where JSON output files will be saved
-        batch_size: Number of files to process in each parallel batch
-
-    Processing Pipeline:
-        1. Reads all Markdown files from input paths
-        2. Processes files in parallel batches using configured LLM
-        3. Extracts structured data into RainbowProjectAnalysis format
-        4. Saves results as JSON with "_extracted.json" suffix
-        5. Handles batch failures by retrying individual files
-
-    Error Handling:
-        - Skips unreadable files with error logging
-        - Continues processing on batch failures (retries individually)
-        - Provides detailed logging for troubleshooting
-        - Preserves partial results even if some files fail
-
-    Example:
-        ```python
-        # Process 15 files in batches of 5
-        await process_markdown_batch(
-            [Path("review1.md"), Path("review2.md"), ...],
-            Path("./output"),
-            batch_size=5
-        )
-        ```
-    """
-
-    from demos.ekg.retriever_tool_factory import PydanticRag
-
-    # Prepare document IDs and contents
-    document_ids = []
-    markdown_contents = []
-    valid_files = []
-
-    for file_path in md_files:
-        try:
-            content = file_path.read_text(encoding="utf-8")
-            document_ids.append(file_path.stem)
-            markdown_contents.append(content)
-            valid_files.append(file_path)
-        except Exception as e:
-            logger.error(f"Error reading {file_path}: {e}")
-
-    if not document_ids:
-        logger.warning("No valid files to process")
-        return
-
-    # Process all documents using batch analysis
-    logger.info(f"Processing {len(valid_files)} files in batches of {batch_size}")
-
-    KV_STORE = "file"
-
-    vector_store_factory = PydanticRag.get_vector_store_factory()
-    rag = PydanticRag(
-        model_definition=test_schema,
-        vector_store_factory=vector_store_factory,
-        llm_id=None,
-        kv_store_id=KV_STORE,
-    )
-    analyzed_docs = await rag.abatch_analyze_documents(document_ids, markdown_contents)
-
-    # Save results
-    for doc, file_path in zip(analyzed_docs, valid_files, strict=False):
-        if doc:
-            output_file = output_dir / f"{file_path.stem}_extracted.json"
-            output_file.write_text(doc.model_dump_json(indent=2))
-            logger.info(f"Saved: {output_file}")

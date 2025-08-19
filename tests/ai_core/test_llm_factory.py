@@ -201,8 +201,8 @@ def test_complex_provider_config_parsing() -> None:
         assert info.model == "bla bla vla"
         assert info.llm_args.get("trust_remote_code") is True
         assert info.llm_args.get("max_new_tokens") == 512
-        assert isinstance(info.llm_args.get("vllm_kwargs"), dict)
-        assert info.llm_args["vllm_kwargs"].get("quantization") == "awq"
+        assert isinstance(info.llm_args.get("llm_kwargs"), dict)
+        assert info.llm_args["llm_kwargs"].get("quantization") == "awq"
     else:
         # Test the parsing logic by checking the raw data structure
         from src.ai_core.llm_factory import _read_llm_list_file
@@ -219,7 +219,7 @@ def test_complex_provider_config_parsing() -> None:
         assert liquid_lfm40_vllm.model == "bla bla vla"
         assert liquid_lfm40_vllm.llm_args.get("trust_remote_code") is True
         assert liquid_lfm40_vllm.llm_args.get("max_new_tokens") == 512
-        assert liquid_lfm40_vllm.llm_args.get("vllm_kwargs", {}).get("quantization") == "awq"
+        assert liquid_lfm40_vllm.llm_args.get("llm_kwargs", {}).get("quantization") == "awq"
 
 
 def test_factory_find_llm_id_from_type() -> None:

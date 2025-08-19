@@ -122,3 +122,4 @@ data/generated
 *.tmp
 *.temp
 .build/
+package_load_time.txt

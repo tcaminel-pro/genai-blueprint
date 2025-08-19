@@ -144,7 +144,7 @@ llm:
         model: "bla bla vla"
         trust_remote_code: True
         max_new_tokens: 512
-        vllm_kwargs:
+        llm_kwargs:
           quantization: awq
   capabilities: ['structured_outputs']
 
