@@ -58,6 +58,8 @@ class PydanticModelFactory:
             >>> factory.yaml_type_to_python_type("list[int]")
             typing.List[int]
         """
+        from typing import List, Dict
+
         type_mapping = {
             "str": str,
             "string": str,
