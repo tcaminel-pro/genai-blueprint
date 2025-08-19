@@ -18,6 +18,7 @@ Example:
 from enum import Enum
 from typing import Optional
 
+from langchain_core.caches import BaseCache
 from src.utils.config_mngr import global_config
 
 
@@ -32,7 +33,7 @@ class LlmCache:
     """A wrapper above LangChain 'set_llm_cache' to configure and select LLM cache method."""
 
     @classmethod
-    def from_value(cls, value: str | None) -> Optional["BaseCache"]:
+    def from_value(cls, value: str | None) -> Optional[BaseCache]:
         """ """
         from langchain_community.cache import InMemoryCache, SQLiteCache
         from loguru import logger
