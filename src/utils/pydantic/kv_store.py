@@ -49,7 +49,7 @@ def _encode_key(key: str | dict) -> str:
     return encoded_key + ".json"  # add json so the file can be easily viewed
 
 
-def save_object_to_kvstore(key: str | dict, obj: BaseModel, kv_store_id: str = "file") -> None:
+def save_object_to_kvstore(key: str | dict, obj: BaseModel, metadata: dict | None = None, kv_store_id: str = "file") -> None:
     """Save a Pydantic model to a local file-based key-value store.
 
     The model is saved to a directory based on the model's class name. The key is
@@ -58,30 +58,32 @@ def save_object_to_kvstore(key: str | dict, obj: BaseModel, kv_store_id: str = "
     Args:
         key: Unique identifier for the object (str or dict). If dict, its hash is used.
         obj: Pydantic model instance to save.
-        file_store_path: Root directory for file storage.
+        metadata: Optional dictionary of metadata to store with the object
+        kv_store_id: Identifier for the key-value store backend
     """
     # Use the lowercase class name of the Pydantic model if no config_key is provided
     class_name = obj.__class__.__name__
 
     kv_store = KvStoreFactory(id=kv_store_id, root=class_name).get()
 
-    obj_bytes = obj.model_dump_json().encode("utf-8")
+    stored_obj = StoredObject(content=obj, metadata=metadata or {})
+    obj_bytes = stored_obj.model_dump_json().encode("utf-8")
     # Encode key to ensure it's filesystem-friendly
     encoded_key = _encode_key(key)
     kv_store.mset([(encoded_key, obj_bytes)])
     logger.debug(f"add key '{class_name}/{encoded_key}' to kv_store {kv_store}'")
 
 
-def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id: str = "file") -> T | None:
-    """Read a Pydantic object from a key-value store.
+def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id: str = "file") -> StoredObject | None:
+    """Read a Pydantic object and its metadata from a key-value store.
 
     Args:
         model_class: Pydantic model class to reconstruct.
         key: Unique identifier for the stored object (str or dict). If dict, its hash is used.
-        file_store_path: Root directory for file storage. If None, use key "kv_store", "path" in global config.
+        kv_store_id: Identifier for the key-value store backend
 
     Returns:
-        Instance of the specified Pydantic model, or None if not found.
+        StoredObject containing both the content (of type T) and metadata dict, or None if not found.
     """
     # Use the lowercase class name of the Pydantic model
 
@@ -96,7 +98,9 @@ def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id:
     else:
         try:
             logger.debug(f"read '{class_name}/{encoded_key}' from KV store")
-            return model_class.model_validate_json(stored_bytes.decode("utf-8"))
+            stored_obj = StoredObject.model_validate_json(stored_bytes.decode("utf-8"))
+            stored_obj.content = model_class.model_validate(stored_obj.content)
+            return stored_obj
         except ValidationError as ex:
             logger.warning(f"failed to load JSON value for {class_name}/{encoded_key}. Error is : {ex}")
             return None
