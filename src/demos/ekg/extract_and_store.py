@@ -154,7 +154,7 @@ class PydanticRagBase(BaseModel):
         psf = PydanticStoreFactory(id=KV_STORE_ID, model_class=self.get_top_class())
         for keys in psf.get_kv_store().yield_keys():
             # Remove '.json' extension from keys
-            clean_key = keys[:-5] if keys.endswith('.json') else keys
+            clean_key = keys[:-5] if keys.endswith(".json") else keys
             debug(psf.load_object(clean_key))
 
     def get_top_class(self) -> type[BaseModel]:
