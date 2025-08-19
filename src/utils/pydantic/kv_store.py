@@ -23,7 +23,7 @@ T = TypeVar("T", bound=BaseModel)
 
 class StoredObject(BaseModel):
     """Wrapper for storing Pydantic objects with metadata."""
-    
+
     content: dict  # Store as raw dict for serialization
     metadata: dict = {}
 
