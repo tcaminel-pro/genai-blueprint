@@ -374,6 +374,26 @@ if __name__ == "__main__":
             },
         },
     )
+    
+    # Quick test with cache_embeddings=True
+    print("🧪 Testing with cache_embeddings=True...")
+    cache_factory = VectorStoreFactory(
+        id="PgVector",
+        embeddings_factory=embeddings_factory,
+        cache_embeddings=True,
+        config={
+            "postgres_url": postgres_url,
+            "metadata_columns": [{"name": "test_matadata", "data_type": "TEXT"}],
+        },
+    )
+    
+    print("📄 Adding test documents with cached embeddings...")
+    cache_test_docs = [
+        Document(page_content="Cached embedding test document 1"),
+        Document(page_content="Cached embedding test document 2"),
+    ]
+    cache_factory.add_documents(cache_test_docs)
+    print("✅ Successfully added documents with cached embeddings")
 
     try:
         # Add test documents
