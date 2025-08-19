@@ -23,7 +23,7 @@ T = TypeVar("T", bound=BaseModel)
 
 class StoredObject(BaseModel):
     """Wrapper for storing Pydantic objects with metadata."""
-    
+
     content: BaseModel
     metadata: dict = {}
 
@@ -32,10 +32,7 @@ class StoredObject(BaseModel):
     @classmethod
     def parse_model(cls, data: dict, model_class: type[T]) -> "StoredObject":
         """Parse stored data using a specific model class."""
-        return cls(
-            content=model_class.model_validate(data["content"]),
-            metadata=data.get("metadata", {})
-        )
+        return cls(content=model_class.model_validate(data["content"]), metadata=data.get("metadata", {}))
 
 
 def _encode_to_alphanumeric(input_string: str) -> str:
