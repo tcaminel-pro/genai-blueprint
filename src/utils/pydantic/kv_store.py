@@ -23,11 +23,9 @@ T = TypeVar("T", bound=BaseModel)
 
 class StoredObject(BaseModel):
     """Wrapper for storing Pydantic objects with metadata."""
-
-    content: BaseModel
+    
+    content: dict  # Store as raw dict for serialization
     metadata: dict = {}
-
-    model_config = {"arbitrary_types_allowed": True}
 
 
 def _encode_to_alphanumeric(input_string: str) -> str:
@@ -68,7 +66,7 @@ def save_object_to_kvstore(
 
     kv_store = KvStoreFactory(id=kv_store_id, root=class_name).get()
 
-    stored_obj = StoredObject(content=obj, metadata=metadata or {})
+    stored_obj = StoredObject(content=obj.model_dump(), metadata=metadata or {})
     obj_bytes = stored_obj.model_dump_json().encode("utf-8")
     # Encode key to ensure it's filesystem-friendly
     encoded_key = _encode_key(key)
@@ -101,7 +99,8 @@ def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id:
         try:
             logger.debug(f"read '{class_name}/{encoded_key}' from KV store")
             stored_obj = StoredObject.model_validate_json(stored_bytes.decode("utf-8"))
-            stored_obj.content = model_class.model_validate(stored_obj.content.model_dump())
+            # Convert the raw dict back to the specific model class
+            stored_obj.content = model_class.model_validate(stored_obj.content)
             return stored_obj
         except ValidationError as ex:
             logger.warning(f"failed to load JSON value for {class_name}/{encoded_key}. Error is : {ex}")
