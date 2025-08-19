@@ -104,7 +104,7 @@ def _encode_key(key: str | dict) -> str:
 
 class PydanticStoreFactory(BaseModel):
     """Factory for storing and retrieving Pydantic objects from key-value stores."""
-    
+
     id: str
     model_class: type[T]
 
@@ -115,7 +115,7 @@ class PydanticStoreFactory(BaseModel):
 
     def save_obj(self, key: str | dict, obj: BaseModel, metadata: dict | None = None) -> None:
         """Save a Pydantic model to the key-value store.
-        
+
         Args:
             key: Unique identifier for the object (str or dict). If dict, its hash is used.
             obj: Pydantic model instance to save.
@@ -130,7 +130,7 @@ class PydanticStoreFactory(BaseModel):
 
     def load_object(self, key: str | dict) -> T | None:
         """Read a Pydantic object from the key-value store.
-        
+
         Args:
             key: Unique identifier for the stored object (str or dict). If dict, its hash is used.
 
@@ -139,11 +139,11 @@ class PydanticStoreFactory(BaseModel):
         """
         kv_store = self._get_kv_store()
         encoded_key = _encode_key(key)
-        
+
         stored_bytes = kv_store.mget([encoded_key])[0]
         if not stored_bytes:
             return None
-            
+
         try:
             logger.debug(f"read '{self.model_class.__name__}/{encoded_key}' from KV store")
             stored_data = json.loads(stored_bytes.decode("utf-8"))
@@ -169,5 +169,7 @@ class PydanticStoreFactory(BaseModel):
             logger.warning(f"failed to load JSON value for {self.model_class.__name__}/{encoded_key}. Error is : {ex}")
             return None
         except Exception as ex:
-            logger.warning(f"failed to load JSON value for {self.model_class.__name__}/{encoded_key}. Exception is : {ex}")
+            logger.warning(
+                f"failed to load JSON value for {self.model_class.__name__}/{encoded_key}. Exception is : {ex}"
+            )
             return None
