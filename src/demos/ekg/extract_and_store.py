@@ -199,8 +199,11 @@ class PydanticRagBase(BaseModel):
             chunks = [serialized_content]
 
             if len(serialized_content) > 300 and is_bearable(field_value, list[dict]):
-                # Split serialized_content (a list of dict) into a list of list of dicts, the later having max 5 elements AI! 
-                
+                # Split list[dict] into sub-lists of max 5 elements
+                chunks = [json.dumps(field_value[i:i + 5], ensure_ascii=False)
+                          for i in range(0, len(field_value), 5)]
+            else:
+                chunks = [serialized_content]
 
             for chunk in chunks:
                 field_doc = Document(
