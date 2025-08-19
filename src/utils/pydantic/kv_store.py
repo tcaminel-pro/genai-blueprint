@@ -21,6 +21,12 @@ T = TypeVar("T", bound=BaseModel)
 # TODO : Consider using EncoderBackedStore
 
 
+class StoredObject(BaseModel):
+    """Wrapper for storing Pydantic objects with metadata."""
+    content: BaseModel
+    metadata: dict = {}
+
+
 def _encode_to_alphanumeric(input_string: str) -> str:
     """Encode a string to alphanumeric by first transliterating  it to ASCII, then replace  non alphanumeric char (plus . and -) by _."""
     ascii_string = unidecode(input_string)
@@ -40,7 +46,7 @@ def _encode_key(key: str | dict) -> str:
     return encoded_key + ".json"  # add json so the file can be easily viewed
 
 
-def save_object_to_kvstore(key: str | dict, obj: BaseModel, kv_store_id: str = "file") -> None:
+def save_object_to_kvstore(key: str | dict, obj: BaseModel, kv_store_id: str = "file", metadata: dict | None = None) -> None:
     """Save a Pydantic model to a local file-based key-value store.
 
     The model is saved to a directory based on the model's class name. The key is
@@ -49,33 +55,35 @@ def save_object_to_kvstore(key: str | dict, obj: BaseModel, kv_store_id: str = "
     Args:
         key: Unique identifier for the object (str or dict). If dict, its hash is used.
         obj: Pydantic model instance to save.
-        file_store_path: Root directory for file storage.
+        kv_store_id: Identifier for the storage backend.
+        metadata: Optional dictionary of metadata to store with the object.
     """
     # Use the lowercase class name of the Pydantic model if no config_key is provided
     class_name = obj.__class__.__name__
-
     kv_store = KvStoreFactory(id=kv_store_id, root=class_name).get()
 
-    obj_bytes = obj.model_dump_json().encode("utf-8")
+    # Create a wrapper that contains both content and metadata
+    stored_object = StoredObject(content=obj, metadata=metadata or {})
+    
+    obj_bytes = stored_object.model_dump_json().encode("utf-8")
     # Encode key to ensure it's filesystem-friendly
     encoded_key = _encode_key(key)
     kv_store.mset([(encoded_key, obj_bytes)])
     logger.debug(f"add key '{class_name}/{encoded_key}' to kv_store {kv_store}'")
 
 
-def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id: str = "file") -> T | None:
+def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id: str = "file") -> StoredObject | None:
     """Read a Pydantic object from a key-value store.
 
     Args:
         model_class: Pydantic model class to reconstruct.
         key: Unique identifier for the stored object (str or dict). If dict, its hash is used.
-        file_store_path: Root directory for file storage. If None, use key "kv_store", "path" in global config.
+        kv_store_id: Identifier for the storage backend.
 
     Returns:
-        Instance of the specified Pydantic model, or None if not found.
+        StoredObject containing the content and metadata, or None if not found.
     """
     # Use the lowercase class name of the Pydantic model
-
     class_name = model_class.__name__
     kv_store = KvStoreFactory(id=kv_store_id, root=class_name).get()
     # Encode key to ensure it's filesystem-friendly
@@ -87,7 +95,20 @@ def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id:
     else:
         try:
             logger.debug(f"read '{class_name}/{encoded_key}' from KV store")
-            return model_class.model_validate_json(stored_bytes.decode("utf-8"))
+            # Parse the stored object
+            stored_object = StoredObject.model_validate_json(stored_bytes.decode("utf-8"))
+            
+            # Validate that the content matches the expected model class
+            if not isinstance(stored_object.content, model_class):
+                # If content is a dict, try to parse it as the model class
+                if isinstance(stored_object.content, dict):
+                    content = model_class.model_validate(stored_object.content)
+                    stored_object.content = content
+                else:
+                    logger.warning(f"Stored content type {type(stored_object.content)} does not match expected {model_class}")
+                    return None
+            
+            return stored_object
         except ValidationError as ex:
             logger.warning(f"failed to load JSON value for {class_name}/{encoded_key}. Error is : {ex}")
             return None
@@ -107,15 +128,25 @@ if __name__ == "__main__":
     # Test file-based storage
     with TemporaryDirectory(delete=False) as temp_dir:
         test_model = TestModel(name="test_object", value=42)
-        save_object_to_kvstore("unique_key", test_model, "file")
+        save_object_to_kvstore("unique_key", test_model, "file", metadata={"created_by": "test", "version": "1.0"})
         retrieved_model = load_object_from_kvstore(TestModel, "unique_key", "file")
-        print("File storage test:", retrieved_model)
+        print("File storage test:")
+        if retrieved_model:
+            print(f"  Content: {retrieved_model.content}")
+            print(f"  Metadata: {retrieved_model.metadata}")
+        else:
+            print("  Not found")
 
     # Test Postgres SQL-based storage
     try:
         test_model_sql = TestModel(name="sql_test_object", value=123)
-        save_object_to_kvstore("sql_unique_key", test_model_sql, "sql")
+        save_object_to_kvstore("sql_unique_key", test_model_sql, "sql", metadata={"source": "database", "priority": "high"})
         retrieved_model_sql = load_object_from_kvstore(TestModel, "sql_unique_key", "sql")
-        print("SQL storage test:", retrieved_model_sql)
+        print("SQL storage test:")
+        if retrieved_model_sql:
+            print(f"  Content: {retrieved_model_sql.content}")
+            print(f"  Metadata: {retrieved_model_sql.metadata}")
+        else:
+            print("  Not found")
     except Exception as e:
         print(f"SQL storage test failed (expected if SQL not configured): {e}")
