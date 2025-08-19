@@ -4,7 +4,8 @@ import asyncio
 from typing import Any, Type
 
 import nest_asyncio
-from langchain.vectorstores.base import VectorStore
+from beartype.door import is_bearable
+from devtools import debug  # ignore
 from langchain_core.documents import Document
 from langchain_core.runnables import RunnableConfig
 from loguru import logger  # noqa: F401
@@ -16,12 +17,10 @@ from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import def_prompt
 from src.ai_core.vector_store_factory import VectorStoreFactory
-from src.ai_extra.kv_store_factory import PydanticStoreFactory
 from src.demos.ekg.cli_commands import KV_STORE_ID
 from src.utils.config_mngr import global_config
 from src.utils.pydantic.dyn_model_factory import PydanticModelFactory
-from src.utils.pydantic.kv_store import load_object_from_kvstore, save_object_to_kvstore
-from src.utils.singleton import once
+from src.utils.pydantic.kv_store import PydanticStore, load_object_from_kvstore, save_object_to_kvstore
 
 # Markdown separators for text splitting
 # fmt:off
@@ -43,12 +42,11 @@ class PydanticRagBase(BaseModel):
     _top_class: Type[BaseModel] = PrivateAttr()
     _key_field: str = PrivateAttr()
     _llm: Any = PrivateAttr()
-    _vector_store: VectorStore = PrivateAttr()
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @staticmethod
-    @once
+    # @once
     def get_vector_store_factory() -> VectorStoreFactory:
         """Initialize the vector store with embeddings model."""
         EMBEDDINGS_ID = "qwen3_06b_deepinfra"
@@ -81,7 +79,6 @@ class PydanticRagBase(BaseModel):
         )
         self._key_field = self.model_definition["key"]
         self._llm = get_llm(llm_id=self.llm_id, streaming=False, temperature=0.0)
-        self._vector_store = self.vector_store_factory.get()
 
     async def abatch_analyze_documents(self, document_ids: list[str], markdown_contents: list[str]) -> list[BaseModel]:
         """Analyze multiple markdown documents asynchronously in batch."""
@@ -150,8 +147,9 @@ class PydanticRagBase(BaseModel):
         return results[0]
 
     def kv_to_vector_store(self):
+        self.vector_store_factory.get()
         self.vector_store_factory.delete_collection()
-        psf = PydanticStoreFactory(id=KV_STORE_ID, model_class=self.get_top_class())
+        psf = PydanticStore(kvstore_id=KV_STORE_ID, model_class=self.get_top_class())
         for keys in psf.get_kv_store().yield_keys():
             # Remove '.json' extension from keys
             clean_key = keys.removesuffix(".json")
@@ -171,7 +169,8 @@ class PydanticRagBase(BaseModel):
 
     def store_chunks(self, chunks: list[Document]) -> None:
         """Store a document's field embeddings in vector store."""
-        self._vector_store.add_documents(chunks)
+        vector_store = self.vector_store_factory.get()
+        vector_store.add_documents(chunks)
 
     def chunck(self, model_instance: BaseModel) -> list[Document]:
         """Generate LangChain Document objects for each field in a Pydantic model."""
@@ -197,7 +196,13 @@ class PydanticRagBase(BaseModel):
                 continue
 
             serialized_content = f"{dumps(field_value)}"
-            chunks = text_splitter.split_text(serialized_content)
+            # chunks = text_splitter.split_text(serialized_content) @TODO: Improve
+            chunks = [serialized_content]
+
+            if len(serialized_content) > 300:
+                if is_bearable(field_value, list[dict]):
+                    # split field_value as lists of max 3 elements AI!
+                    
 
             for chunk in chunks:
                 field_doc = Document(
