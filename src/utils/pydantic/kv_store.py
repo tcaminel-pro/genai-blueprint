@@ -103,7 +103,7 @@ def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id:
 
             # Parse the content dict into the expected model class
             content = model_class.model_validate(stored_object.content)
-            
+
             # Return a new StoredObject with the properly typed content
             return StoredObject(content=content, metadata=stored_object.metadata)
         except ValidationError as ex:
