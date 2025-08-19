@@ -41,7 +41,7 @@ class PydanticModelFactory:
     def __init__(self) -> None:
         self.created_classes: Dict[str, Type[BaseModel] | None] = {}
 
-    def yaml_type_to_python_type(self, yaml_type: str) -> type:
+    def yaml_type_to_python_type(self, yaml_type: str) -> Any:
         """Convert YAML type string to Python type.
 
         Supports basic types (str, int, bool, etc.) and generic types (List[T], Dict[K,V]).
