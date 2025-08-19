@@ -118,12 +118,23 @@ def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id:
             logger.debug(f"read '{class_name}/{encoded_key}' from KV store")
             stored_data = json.loads(stored_bytes.decode("utf-8"))
             logger.debug(f"stored_data: {stored_data}")
-            stored_obj = StoredObject.parse_model(stored_data, model_class)
-            # Convert back to the original model and attach metadata
-            model_instance = stored_obj.to_model(model_class)
-            # Attach metadata as an attribute
-            setattr(model_instance, "_metadata", stored_obj.metadata)  # noqa: B010
-            return model_instance
+                
+            # Try loading as StoredObject format
+            try:
+                stored_obj = StoredObject.parse_model(stored_data, model_class)
+                # Convert back to the original model and attach metadata
+                model_instance = stored_obj.to_model(model_class)
+                # Attach metadata as an attribute
+                setattr(model_instance, "_metadata", stored_obj.metadata)  # noqa: B010
+                return model_instance
+            except (ValidationError, KeyError):
+                logger.debug("Failed to load as StoredObject, trying legacy format...")
+                # Try loading as legacy direct object
+                model_instance = model_class.model_validate(stored_data)
+                # Attach empty metadata for legacy objects
+                setattr(model_instance, "_metadata", {"legacy": True})  # noqa: B010
+                return model_instance
+                    
         except ValidationError as ex:
             logger.warning(f"failed to load JSON value for {class_name}/{encoded_key}. Error is : {ex}")
             return None
