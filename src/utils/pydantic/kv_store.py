@@ -66,7 +66,7 @@ def save_object_to_kvstore(
     kv_store = KvStoreFactory(id=kv_store_id, root=class_name).get()
 
     # Create a wrapper that contains both content and metadata
-    stored_object = StoredObject(content=obj, metadata=metadata or {})
+    stored_object = StoredObject(content=obj.model_dump(), metadata=metadata or {})
 
     obj_bytes = stored_object.model_dump_json().encode("utf-8")
     # Encode key to ensure it's filesystem-friendly
@@ -101,19 +101,11 @@ def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id:
             # Parse the stored object
             stored_object = StoredObject.model_validate_json(stored_bytes.decode("utf-8"))
 
-            # Validate that the content matches the expected model class
-            if not isinstance(stored_object.content, model_class):
-                # If content is a dict, try to parse it as the model class
-                if isinstance(stored_object.content, dict):
-                    content = model_class.model_validate(stored_object.content)
-                    stored_object.content = content
-                else:
-                    logger.warning(
-                        f"Stored content type {type(stored_object.content)} does not match expected {model_class}"
-                    )
-                    return None
-
-            return stored_object
+            # Parse the content dict into the expected model class
+            content = model_class.model_validate(stored_object.content)
+            
+            # Return a new StoredObject with the properly typed content
+            return StoredObject(content=content, metadata=stored_object.metadata)
         except ValidationError as ex:
             logger.warning(f"failed to load JSON value for {class_name}/{encoded_key}. Error is : {ex}")
             return None
