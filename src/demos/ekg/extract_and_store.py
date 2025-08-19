@@ -5,7 +5,6 @@ from typing import Any, Type
 
 import nest_asyncio
 from beartype.door import is_bearable
-from devtools import debug  # ignore
 from langchain_core.documents import Document
 from langchain_core.runnables import RunnableConfig
 from loguru import logger  # noqa: F401
@@ -200,9 +199,8 @@ class PydanticRagBase(BaseModel):
             chunks = [serialized_content]
 
             if len(serialized_content) > 300 and is_bearable(field_value, list[dict]):
-                # Split long list[dict] into chunks of max 3 elements
-                chunks = [field_value[i : i + 3] for i in range(0, len(field_value), 3)]
-                serialized_content = json.dumps(chunks, ensure_ascii=False)
+                # Split serialized_content (a list of dict) into a list of list of dicts, the later having max 5 elements AI! 
+                
 
             for chunk in chunks:
                 field_doc = Document(
