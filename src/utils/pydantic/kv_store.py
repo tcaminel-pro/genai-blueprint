@@ -75,7 +75,8 @@ def save_object_to_kvstore(
     kv_store = KvStoreFactory(id=kv_store_id, root=class_name).get()
 
     stored_obj = StoredObject(content=obj, metadata=metadata or {})
-    obj_bytes = stored_obj.model_dump_json().encode("utf-8")
+    obj_dict = stored_obj.model_dump()
+    obj_bytes = json.dumps(obj_dict).encode("utf-8")
     # Encode key to ensure it's filesystem-friendly
     encoded_key = _encode_key(key)
     kv_store.mset([(encoded_key, obj_bytes)])
