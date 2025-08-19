@@ -4,6 +4,7 @@ import asyncio
 from typing import Any, Type
 
 import nest_asyncio
+from devtools import debug  # ignore
 from langchain.vectorstores.base import VectorStore
 from langchain_core.documents import Document
 from langchain_core.runnables import RunnableConfig
@@ -16,6 +17,8 @@ from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import def_prompt
 from src.ai_core.vector_store_factory import VectorStoreFactory
+from src.ai_extra.kv_store_factory import PydanticStoreFactory
+from src.demos.ekg.cli_commands import KV_STORE_ID
 from src.utils.config_mngr import global_config
 from src.utils.pydantic.dyn_model_factory import PydanticModelFactory
 from src.utils.pydantic.kv_store import load_object_from_kvstore, save_object_to_kvstore
@@ -146,9 +149,12 @@ class PydanticRagBase(BaseModel):
             results = loop.run_until_complete(self.abatch_analyze_documents([document_id], [markdown]))
 
         return results[0]
-    
+
     def kv_to_vector_store(self):
-        
+        psf = PydanticStoreFactory(id=KV_STORE_ID, model_class=self.get_top_class())
+        for keys in psf.get_kv_store().yield_keys():
+            # remove '.json' from keys AI!
+            debug(psf.load_object(keys))
 
     def get_top_class(self) -> type[BaseModel]:
         return self._top_class
