@@ -30,7 +30,10 @@ class StoredObject(BaseModel):
     @classmethod
     def from_model(cls, model: BaseModel, metadata: dict | None = None) -> "StoredObject":
         """Create StoredObject from a Pydantic model."""
-        return cls(content=model.model_dump(), metadata=metadata or {})
+        content = model.model_dump()
+        fingerprint = hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()[:16]
+        merged_metadata = {"fingerprint": fingerprint, **(metadata or {})}
+        return cls(content=content, metadata=merged_metadata)
 
     @classmethod
     def parse_model(cls, data: dict, model_class: type[T]) -> "StoredObject":
