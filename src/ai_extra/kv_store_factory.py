@@ -106,9 +106,9 @@ class PydanticStoreFactory(BaseModel):
     """Factory for storing and retrieving Pydantic objects from key-value stores."""
 
     id: str
-    model_class: type[T]
+    model_class: type[BaseModel]
 
-    def _get_kv_store(self) -> ByteStore:
+    def get_kv_store(self) -> ByteStore:
         """Get the underlying ByteStore instance."""
         class_name = self.model_class.__name__
         return KvStoreFactory(id=self.id, root=class_name).get()
@@ -121,14 +121,14 @@ class PydanticStoreFactory(BaseModel):
             obj: Pydantic model instance to save.
             metadata: Optional dictionary of metadata to store with the object
         """
-        kv_store = self._get_kv_store()
+        kv_store = self.get_kv_store()
         stored_obj = StoredObject.from_model(obj, metadata)
         obj_bytes = stored_obj.model_dump_json().encode("utf-8")
         encoded_key = _encode_key(key)
         kv_store.mset([(encoded_key, obj_bytes)])
         logger.debug(f"add key '{self.model_class.__name__}/{encoded_key}' to kv_store {kv_store}'")
 
-    def load_object(self, key: str | dict) -> T | None:
+    def load_object(self, key: str | dict) -> BaseModel | None:
         """Read a Pydantic object from the key-value store.
 
         Args:
@@ -137,7 +137,7 @@ class PydanticStoreFactory(BaseModel):
         Returns:
             Instance of model_class with metadata attached as '_metadata' attribute, or None if not found.
         """
-        kv_store = self._get_kv_store()
+        kv_store = self.get_kv_store()
         encoded_key = _encode_key(key)
 
         stored_bytes = kv_store.mget([encoded_key])[0]

@@ -4,7 +4,6 @@ import asyncio
 from typing import Any, Type
 
 import nest_asyncio
-from devtools import debug  # ignore
 from langchain.vectorstores.base import VectorStore
 from langchain_core.documents import Document
 from langchain_core.runnables import RunnableConfig
@@ -151,11 +150,16 @@ class PydanticRagBase(BaseModel):
         return results[0]
 
     def kv_to_vector_store(self):
+        self.vector_store_factory.delete_collection()
         psf = PydanticStoreFactory(id=KV_STORE_ID, model_class=self.get_top_class())
         for keys in psf.get_kv_store().yield_keys():
             # Remove '.json' extension from keys
-            clean_key = keys[:-5] if keys.endswith(".json") else keys
-            debug(psf.load_object(clean_key))
+            clean_key = keys.removesuffix(".json")
+            obj = psf.load_object(clean_key)
+            if obj:
+                self.store(obj)
+            else:
+                logger.warning(f"cannot load object from kv: {clean_key}")
 
     def get_top_class(self) -> type[BaseModel]:
         return self._top_class

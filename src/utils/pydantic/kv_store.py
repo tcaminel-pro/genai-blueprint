@@ -5,6 +5,8 @@ Keys are automatically encoded for filesystem compatibility.
 Supports both string and dictionary keys.
 """
 
+from typing import TypeVar
+
 from pydantic import BaseModel
 
 from src.ai_extra.kv_store_factory import PydanticStoreFactory
