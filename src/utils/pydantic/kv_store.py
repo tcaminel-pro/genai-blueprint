@@ -118,7 +118,7 @@ def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id:
             logger.debug(f"read '{class_name}/{encoded_key}' from KV store")
             stored_data = json.loads(stored_bytes.decode("utf-8"))
             logger.debug(f"stored_data: {stored_data}")
-                
+
             # Try loading as StoredObject format
             try:
                 stored_obj = StoredObject.parse_model(stored_data, model_class)
@@ -134,7 +134,7 @@ def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id:
                 # Attach empty metadata for legacy objects
                 setattr(model_instance, "_metadata", {"legacy": True})  # noqa: B010
                 return model_instance
-                    
+
         except ValidationError as ex:
             logger.warning(f"failed to load JSON value for {class_name}/{encoded_key}. Error is : {ex}")
             return None
