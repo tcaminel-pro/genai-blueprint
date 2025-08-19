@@ -24,16 +24,23 @@ T = TypeVar("T", bound=BaseModel)
 class StoredObject(BaseModel):
     """Wrapper for storing Pydantic objects with metadata."""
 
-    content: BaseModel
+    content: dict
     metadata: dict = {}
 
-    model_config = {"arbitrary_types_allowed": True}
+    @classmethod
+    def from_model(cls, model: BaseModel, metadata: dict | None = None) -> "StoredObject":
+        """Create StoredObject from a Pydantic model."""
+        return cls(content=model.model_dump(), metadata=metadata or {})
 
     @classmethod
     def parse_model(cls, data: dict, model_class: type[T]) -> "StoredObject":
         """Parse stored data using a specific model class."""
         content_data = data.get("content", {})
-        return cls(content=model_class.model_validate(content_data), metadata=data.get("metadata", {}))
+        return cls(content=content_data, metadata=data.get("metadata", {}))
+    
+    def to_model(self, model_class: type[T]) -> T:
+        """Convert stored content back to a Pydantic model."""
+        return model_class.model_validate(self.content)
 
 
 def _encode_to_alphanumeric(input_string: str) -> str:
@@ -74,9 +81,8 @@ def save_object_to_kvstore(
 
     kv_store = KvStoreFactory(id=kv_store_id, root=class_name).get()
 
-    stored_obj = StoredObject(content=obj, metadata=metadata or {})
-    obj_dict = stored_obj.model_dump()
-    obj_bytes = json.dumps(obj_dict).encode("utf-8")
+    stored_obj = StoredObject.from_model(obj, metadata)
+    obj_bytes = stored_obj.model_dump_json().encode("utf-8")
     # Encode key to ensure it's filesystem-friendly
     encoded_key = _encode_key(key)
     kv_store.mset([(encoded_key, obj_bytes)])
@@ -110,7 +116,9 @@ def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id:
             stored_data = json.loads(stored_bytes.decode("utf-8"))
             logger.debug(f"stored_data: {stored_data}")
             stored_obj = StoredObject.parse_model(stored_data, model_class)
-            return stored_obj
+            # Convert back to the original model and wrap in StoredObject
+            model_instance = stored_obj.to_model(model_class)
+            return StoredObject.from_model(model_instance, stored_obj.metadata)
         except ValidationError as ex:
             logger.warning(f"failed to load JSON value for {class_name}/{encoded_key}. Error is : {ex}")
             return None
