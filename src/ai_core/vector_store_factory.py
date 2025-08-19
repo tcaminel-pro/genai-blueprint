@@ -374,7 +374,7 @@ if __name__ == "__main__":
             },
         },
     )
-    
+
     # Quick test with cache_embeddings=True
     print("🧪 Testing with cache_embeddings=True...")
     cache_factory = VectorStoreFactory(
@@ -386,7 +386,7 @@ if __name__ == "__main__":
             "metadata_columns": [{"name": "test_matadata", "data_type": "TEXT"}],
         },
     )
-    
+
     print("📄 Adding test documents with cached embeddings...")
     cache_test_docs = [
         Document(page_content="Cached embedding test document 1"),
