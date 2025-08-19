@@ -93,6 +93,7 @@ async def run_langgraph_agent_shell(
             with console.status("[bold green]Agent is thinking...\n[/bold green]"):
                 if global_config().get_bool("monitoring.langsmith", False):
                     from langsmith.run_helpers import tracing_v2_enabled
+
                     with tracing_v2_enabled() as cb:
                         resp = agent.astream({"messages": user_input}, config)
                         await print_astream(resp)
