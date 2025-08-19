@@ -145,7 +145,7 @@ if __name__ == "__main__":
         save_object_to_kvstore("unique_key", test_model, kv_store_id="file", metadata={"some_metadata": 55})
         retrieved_model = load_object_from_kvstore(TestModel, "unique_key", kv_store_id="file")
         debug("File storage test:", retrieved_model)
-        if retrieved_model and hasattr(retrieved_model, '_kv_metadata'):
+        if retrieved_model and hasattr(retrieved_model, "_kv_metadata"):
             debug("File storage metadata:", retrieved_model._kv_metadata)
 
     # Test Postgres SQL-based storage
@@ -154,7 +154,7 @@ if __name__ == "__main__":
         save_object_to_kvstore("sql_unique_key", test_model_sql, kv_store_id="sql")
         retrieved_model_sql = load_object_from_kvstore(TestModel, "sql_unique_key", kv_store_id="sql")
         debug("SQL storage test:", retrieved_model_sql)
-        if retrieved_model_sql and hasattr(retrieved_model_sql, '_kv_metadata'):
+        if retrieved_model_sql and hasattr(retrieved_model_sql, "_kv_metadata"):
             debug("SQL storage metadata:", retrieved_model_sql._kv_metadata)
     except Exception as e:
         print(f"SQL storage test failed (expected if SQL not configured): {e}")
