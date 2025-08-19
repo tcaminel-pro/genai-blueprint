@@ -89,7 +89,7 @@ def save_object_to_kvstore(
     logger.debug(f"add key '{class_name}/{encoded_key}' to kv_store {kv_store}'")
 
 
-def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id: str = "file") -> StoredObject | None:
+def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id: str = "file") -> T | None:
     """Read a Pydantic object and its metadata from a key-value store.
 
     Args:
@@ -98,7 +98,7 @@ def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id:
         kv_store_id: Identifier for the key-value store backend
 
     Returns:
-        StoredObject containing both the content (of type T) and metadata dict, or None if not found.
+        Instance of model_class with metadata attached as '_kv_metadata' attribute, or None if not found.
     """
     # Use the lowercase class name of the Pydantic model
 
@@ -116,9 +116,11 @@ def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id:
             stored_data = json.loads(stored_bytes.decode("utf-8"))
             logger.debug(f"stored_data: {stored_data}")
             stored_obj = StoredObject.parse_model(stored_data, model_class)
-            # Convert back to the original model and wrap in StoredObject
+            # Convert back to the original model and attach metadata
             model_instance = stored_obj.to_model(model_class)
-            return StoredObject.from_model(model_instance, stored_obj.metadata)
+            # Attach metadata as an attribute
+            setattr(model_instance, '_kv_metadata', stored_obj.metadata)
+            return model_instance
         except ValidationError as ex:
             logger.warning(f"failed to load JSON value for {class_name}/{encoded_key}. Error is : {ex}")
             return None
