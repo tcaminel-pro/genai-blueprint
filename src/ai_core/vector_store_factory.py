@@ -106,7 +106,6 @@ class VectorStoreFactory(BaseModel):
         config: Dictionary of vector store specific configuration that overrides YAML values
         index_document: Flag to enable document deduplication and indexing
         collection_metadata: Optional metadata for the collection
-        cache_embeddings: Flag to enable embedding caching
         hybrid_search: Flag to enable hybrid search (PostgreSQL only)
         hybrid_search_config: Configuration for hybrid search parameters
 
@@ -136,7 +135,6 @@ class VectorStoreFactory(BaseModel):
     config: dict[str, Any] = {}
     index_document: bool = False
     collection_metadata: dict[str, str] | None = None
-    cache_embeddings: bool = False
     _record_manager: SQLRecordManager | None = None
     _conf: dict = {}
 
@@ -166,7 +164,7 @@ class VectorStoreFactory(BaseModel):
             r += " => 'on disk'"
         if self.index_document and self._record_manager:
             r += f" indexer: {self._record_manager}"
-        r += f" cache_embeddings: {self.cache_embeddings}"
+        #        r += f" cache_embeddings: {self.cache_embeddings}"
         return r
 
     @staticmethod
@@ -206,7 +204,7 @@ class VectorStoreFactory(BaseModel):
         Raises:
             ValueError: If an unsupported vector store backend is specified
         """
-        embeddings = self.embeddings_factory.get(cached=self.cache_embeddings)
+        embeddings = self.embeddings_factory.get()
         vector_store = None
         if self.id in ["Chroma", "Chroma_in_memory"]:
             vector_store = self._create_chroma_vector_store(embeddings)
@@ -356,10 +354,12 @@ if __name__ == "__main__":
 
     # Create embeddings factory
     embeddings_factory = EmbeddingsFactory(embeddings_id="embeddings_768_fake")
+    embeddings_factory_cached = EmbeddingsFactory(embeddings_id="embeddings_768_fake", cache_query_embedding=True)
 
     # Create vector store with hybrid search enabled
     factory = VectorStoreFactory(
         id="PgVector",
+        table_name_prefix="test_embeddings_1",
         embeddings_factory=embeddings_factory,
         config={
             "postgres_url": postgres_url,
@@ -376,14 +376,13 @@ if __name__ == "__main__":
     )
 
     # Quick test with cache_embeddings=True
-    print("🧪 Testing with cache_embeddings=True...")
+    print("🧪 Testing with cache_embedding...")
     cache_factory = VectorStoreFactory(
         id="PgVector",
-        embeddings_factory=embeddings_factory,
-        cache_embeddings=True,
+        embeddings_factory=embeddings_factory_cached,
+        table_name_prefix="test_embeddings_2",
         config={
             "postgres_url": postgres_url,
-            "metadata_columns": [{"name": "test_matadata", "data_type": "TEXT"}],
         },
     )
 

@@ -133,6 +133,7 @@ class EmbeddingsFactory(BaseModel):
     embeddings_id: Annotated[str | None, Field(validate_default=True)] = None
     encoding_str: str | None = None
     retrieving_str: str | None = None
+    cache_query_embedding: bool = False
 
     @computed_field
     @cached_property
@@ -189,7 +190,7 @@ class EmbeddingsFactory(BaseModel):
         """
         return sorted(EmbeddingsFactory.known_items_dict().keys())
 
-    def get(self, cached: bool = False) -> Embeddings:
+    def get(self) -> Embeddings:
         """Create an embeddings model instance.
 
         Args:
@@ -197,15 +198,12 @@ class EmbeddingsFactory(BaseModel):
 
         Returns:
             Configured embeddings model
-
-        Raises:
-            ValueError: If API key is required but not found
         """
         if self.info.key and self.info.key not in os.environ:
             raise EnvironmentError(f"No known API key for : {self.info.id}")
         embeddings = self.model_factory()
-        if cached:
-            embeddings = self.get_cached_embedder()
+        if self.cache_query_embedding:
+            embeddings = self.get_cached_embedder(embeddings)
         return embeddings
 
     def model_factory(self) -> Embeddings:
@@ -270,14 +268,20 @@ class EmbeddingsFactory(BaseModel):
             raise ValueError(f"unsupported Embeddings class {self.info.provider}")
         return emb
 
-    def get_cached_embedder(self) -> CacheBackedEmbeddings:
+    def get_cached_embedder(self, underlying_embeddings: Embeddings) -> CacheBackedEmbeddings:
         """Create a cached embeddings model.
 
         Returns:
             Cached embeddings model with persistent storage
         """
-        kv_store = KvStoreFactory(id="file", root=f"embeddings_cache{self.short_name()}")  # TODO : make it configurable
-        cached_embedder = CacheBackedEmbeddings.from_bytes_store(self.get(), kv_store, namespace=self.embeddings_id)  # type: ignore
+        kv_store = KvStoreFactory(id="file", root="cache_embeddings")  # TODO : support SQL  (need async KvStore)
+        base = f"{self.short_name()}-"
+        cached_embedder = CacheBackedEmbeddings.from_bytes_store(
+            underlying_embeddings=underlying_embeddings,
+            document_embedding_cache=kv_store.get(),
+            namespace=base,
+            key_encoder="sha256",
+        )
         return cached_embedder
 
     def short_name(self) -> str:
