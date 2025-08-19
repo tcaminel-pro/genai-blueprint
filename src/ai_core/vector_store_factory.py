@@ -350,7 +350,7 @@ if __name__ == "__main__":
     os.environ["POSTGRES_PASSWORD"] = "tcl"
     global_config_reload()
 
-    postgres_url = global_config().get_str("vector_store.postgres_url")
+    postgres_url = global_config().get_dsn("vector_store.postgres_url", driver="asyncpg")
 
     print("🧪 Testing hybrid search with PostgreSQL...")
 
