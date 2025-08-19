@@ -6,6 +6,8 @@ from typing import Any, AsyncIterator, Iterator
 
 from langchain_core.messages import AIMessage
 
+from src.utils.markdown import looks_like_markdown
+
 
 def stream_node_response_content(stream: Iterator, node: str = "agent") -> Iterator:
     """Stream response content from a specific node in the graph.
@@ -70,12 +72,6 @@ async def print_astream(stream: AsyncIterator, content: bool = True) -> None:
         print_step(step, content)
 
 
-def _is_likely_markdown(text: str) -> bool:
-    """Heuristic: if text contains common markdown tokens, treat as markdown."""
-    md_tokens = {"#", "##", "###", "*", "**", "_", "`", "```", "[", "](", "|", "---", ">", "- "}
-    return any(token in text for token in md_tokens)
-
-
 def print_step(step: Any, details: bool = True) -> None:
     from rich.console import Console
     from rich.markdown import Markdown
@@ -108,14 +104,14 @@ def print_step(step: Any, details: bool = True) -> None:
                     title = f"[bold blue]{title_line}[/bold blue]"
                     style = ""
 
-                if _is_likely_markdown(body):
+                if looks_like_markdown(body):
                     console.print(Panel(Markdown(body), title=title, border_style="bright_blue", style=style))
                 else:
                     console.print(Panel(body, title=title, border_style="bright_blue", style=style))
             else:
                 title = f"[bold blue]Update from: '{node}'[/bold blue]"
                 content = updates if details else str(type(updates))
-                if _is_likely_markdown(str(content)):
+                if looks_like_markdown(str(content)):
                     console.print(Panel(Markdown(str(content)), title=title, border_style="blue"))
                 else:
                     console.print(Panel(content, title=title, border_style="blue"))

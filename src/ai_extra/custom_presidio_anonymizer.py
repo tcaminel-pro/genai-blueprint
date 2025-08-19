@@ -16,7 +16,7 @@ from presidio_analyzer import Pattern, PatternRecognizer
 from presidio_anonymizer.entities import OperatorConfig
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
-from utils.spacy_model_mngr import SpaCyModelManager
+from src.utils.spacy_model_mngr import SpaCyModelManager
 
 
 class CustomizedPresidioAnonymizer(BaseModel):

@@ -19,7 +19,7 @@ from src.ai_core.vector_store_factory import VectorStoreFactory
 from src.demos.ekg.cli_commands import KV_STORE_ID
 from src.utils.config_mngr import global_config
 from src.utils.pydantic.dyn_model_factory import PydanticModelFactory
-from src.utils.pydantic.kv_store import PydanticStore, load_object_from_kvstore, save_object_to_kvstore
+from src.utils.pydantic.kv_store import PydanticStore, save_object_to_kvstore
 
 # Markdown separators for text splitting
 # fmt:off
@@ -89,7 +89,8 @@ class PydanticRagBase(BaseModel):
 
         if self.kv_store_id:
             for doc_id, content in zip(document_ids, markdown_contents, strict=True):
-                cached_doc = load_object_from_kvstore(self.get_top_class(), key=doc_id, kv_store_id=self.kv_store_id)
+                cached_doc = PydanticStore(kvstore_id=self.kv_store_id, model=self.get_top_class()).load_object(doc_id)
+
                 if cached_doc:
                     analyzed_docs.append(cached_doc)
                 else:
@@ -173,20 +174,10 @@ class PydanticRagBase(BaseModel):
 
     def chunck(self, model_instance: BaseModel) -> list[Document]:
         """Generate LangChain Document objects for each field in a Pydantic model."""
-        from langchain.text_splitter import RecursiveCharacterTextSplitter
 
         documents = []
         model_data = model_instance.model_dump()
         document_id = getattr(model_instance, "document_id", None)
-
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=200,
-            chunk_overlap=0,
-            length_function=len,
-            separators=MARKDOWN_SEPARATOR,
-            is_separator_regex=False,
-        )
-
         for field_name, field_value in model_data.items():
             if field_value is None:
                 continue
@@ -195,12 +186,9 @@ class PydanticRagBase(BaseModel):
                 continue
 
             serialized_content = f"{dumps(field_value)}"
-            # chunks = text_splitter.split_text(serialized_content) @TODO: Improve
-            chunks = [serialized_content]
-
-            if len(serialized_content) > 300 and is_bearable(field_value, list[dict]):
+            if is_bearable(field_value, list[dict]):
                 # Split list[dict] into sub-lists of max 5 elements
-                chunks = [json.dumps(field_value[i : i + 5], ensure_ascii=False) for i in range(0, len(field_value), 5)]
+                chunks = [f"{dumps(field_value[i : i + 5])}" for i in range(0, len(field_value), 5)]
             else:
                 chunks = [serialized_content]
 

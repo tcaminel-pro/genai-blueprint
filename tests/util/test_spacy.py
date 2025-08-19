@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 from upath import UPath
 
-from utils.spacy_model_mngr import SpaCyModelManager
+from src.utils.spacy_model_mngr import SpaCyModelManager
 
 
 class TestSpaCyModelManager:

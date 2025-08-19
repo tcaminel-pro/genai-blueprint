@@ -49,6 +49,7 @@ from typer import Option
 from upath import UPath
 
 from src.utils.config_mngr import global_config
+from src.utils.pydantic.kv_store import PydanticStore
 
 LLM_ID = None
 KV_STORE_ID = "file"
@@ -83,9 +84,8 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         from loguru import logger
 
-        from demos.ekg.retriever_tool_factory import PydanticRag
         from src.ai_core.llm_factory import LlmFactory
-        from utils.pydantic.kv_store import load_object_from_kvstore
+        from src.demos.ekg.retriever_tool_factory import PydanticRag
 
         if llm_id is not None and llm_id not in LlmFactory.known_items():
             logger.error(f"Unknown llm_id: {llm_id}. Valid options: {LlmFactory.known_items()}")
@@ -145,7 +145,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             unprocessed_files = []
             for md_file in md_files:
                 key = md_file.stem
-                cached_doc = load_object_from_kvstore(rag.get_top_class(), key=key, kv_store_id=KV_STORE_ID)
+                cached_doc = PydanticStore(kvstore_id=KV_STORE_ID, model=rag.get_top_class()).load_object(key)
                 if not cached_doc:
                     unprocessed_files.append(md_file)
                 else:
@@ -285,7 +285,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             - "Compare project delivery times across different technologies"
         """
 
-        from demos.ekg.retriever_tool_factory import PydanticRag
+        from src.demos.ekg.retriever_tool_factory import PydanticRag
         from src.utils.cli.langchain_setup import setup_langchain
         from src.utils.cli.langgraph_agent_shell import run_langgraph_agent_shell
 

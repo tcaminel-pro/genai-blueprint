@@ -182,4 +182,5 @@ class PydanticRag(PydanticRagBase):
 
     def query_vectorstore(self, query: str, k: int = 4, filter: dict = {}) -> List[Document]:
         """Search the vector store for similar field data."""
-        return self._vector_store.similarity_search(query, k=k, filter=filter)
+        vector_store = self.vector_store_factory.get()
+        return vector_store.similarity_search(query, k=k, filter=filter)

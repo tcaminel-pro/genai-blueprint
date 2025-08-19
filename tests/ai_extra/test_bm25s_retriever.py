@@ -128,7 +128,7 @@ class TestBM25FastRetriever:
         warnings.filterwarnings("ignore", category=DeprecationWarning, module="weasel.*")
 
         from ai_extra.bm25s_retriever import get_spacy_preprocess_fn
-        from utils.spacy_model_mngr import SpaCyModelManager
+        from src.utils.spacy_model_mngr import SpaCyModelManager
 
         # Setup spacy model using SpaCyModelManager
         model_name = "en_core_web_sm"

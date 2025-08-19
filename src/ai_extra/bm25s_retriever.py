@@ -171,7 +171,7 @@ class BM25FastRetriever(BaseRetriever):
 
 if __name__ == "__main__":
     """Quick test for BM25FastRetriever using SpaCyModelManager and spacy preprocessing."""
-    from utils.spacy_model_mngr import SpaCyModelManager
+    from src.utils.spacy_model_mngr import SpaCyModelManager
 
     # Use SpaCyModelManager to handle spacy model
     model_name = "en_core_web_sm"  # Default model name

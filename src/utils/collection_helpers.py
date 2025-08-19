@@ -1,85 +1,81 @@
-"""Collection helper utilities for more readable collection operations."""
+from typing import Any, get_args, get_origin
 
-from typing import Any, Callable, Iterable, TypeVar
-
-T = TypeVar("T")
-
-
-def find_first(items: Iterable[T], predicate: Callable[[T], bool]) -> T | None:
-    """Find the first item in a collection that matches a predicate.
-
-    Args:
-        items: The collection to search
-        predicate: A function that returns True for the desired item
-
-    Returns:
-        The first matching item, or None if no match is found
-
-    Example:
-        ```python
-        from dataclasses import dataclass
-
-        @dataclass
-        class User:
-            name: str
-            age: int
-
-        users = [User("Alice", 30), User("Bob", 25), User("Charlie", 35)]
-
-        # Find first user named Bob
-        bob = find_first(users, lambda u: u.name == "Bob")
-        print(bob)  # User(name='Bob', age=25)
-
-        # Find first user over 30
-        over_30 = find_first(users, lambda u: u.age > 30)
-        print(over_30)  # User(name='Charlie', age=35)
-
-        # No match returns None
-        missing = find_first(users, lambda u: u.name == "David")
-        print(missing)  # None
-        ```
+def describe_container_type(obj: Any) -> str:
     """
-    return next((item for item in items if predicate(item)), None)
+    Return a readable description of a container's type and its element types.
 
-
-def find_by_key(items: Iterable[T], key: str, value: Any) -> T | None:
-    """Find the first item in a collection where a specific key matches a value.
-
-    Args:
-        items: The collection to search
-        key: The attribute name to check
-        value: The value to match
-
-    Returns:
-        The first matching item, or None if no match is found
-
-    Example:
-        ```python
-        from dataclasses import dataclass
-
-        @dataclass
-        class Product:
-            id: int
-            name: str
-            category: str
-
-        products = [
-            Product(1, "Laptop", "Electronics"),
-            Product(2, "Chair", "Furniture"),
-            Product(3, "Phone", "Electronics")
-        ]
-
-        # Find product by name
-        laptop = find_by_key(products, 'name', 'Laptop')
-        print(laptop)  # Product(id=1, name='Laptop', category='Electronics')
-
-        # Find product by category
-        furniture = find_by_key(products, 'category', 'Furniture')
-        print(furniture)  # Product(id=2, name='Chair', category='Furniture')
-
-        # No match returns None
-        missing = find_by_key(products, 'name', 'Tablet')
-        print(missing)  # None
-        ```
+    Examples:
+        >>> describe_container_type([{"a": 1}, {"b": 2}])
+        "list[dict]"
+        >>> describe_container_type(["hello", "world"])
+        "list[str]"
+        >>> describe_container_type({1, 2, 3})
+        "set[int]"
+        >>> describe_container_type({"x": [1, 2, 3]})
+        "dict[str, list[int]]"
+        >>> describe_container_type(42)
+        "int"
     """
-    return next((item for item in items if getattr(item, key, None) == value), None)
+    if obj is None:
+        return "None"
+    
+    # Handle basic scalar types
+    if not isinstance(obj, (list, tuple, set, dict)):
+        return type(obj).__name__
+    
+    container_type = type(obj).__name__
+
+    # Empty containers
+    if not obj:
+        # Try to get generic type args if available
+        if hasattr(obj, '__orig_class__'):
+            type_args = get_args(obj.__orig_class__)
+            if type_args:
+                arg_str = ', '.join(arg.__name__ for arg in type_args)
+                return f"{container_type}[{arg_str}]"
+        return f"{container_type}[Any]"
+    
+    # Non-empty containers
+    if isinstance(obj, dict):
+        key_types = {type(k).__name__ for k in obj.keys()}
+        value_types = {type(v).__name__ for v in obj.values()}
+        
+        key_type = next(iter(key_types)) if len(key_types) == 1 else "Union[" + ",".join(sorted(key_types)) + "]"
+        value_type = next(iter(value_types)) if len(value_types)) == 1 else "Union[" + ",".join(sorted(value_types)) + "]"
+        
+        return f"{container_type}[{key_type}, {value_type}]"
+    
+    elif isinstance(obj, (list, tuple, set)):
+        element_types = {type(item).__name__ for item in obj}
+        element_type = next(iter(element_types)) if len(element_types) == 1 else "Union[" + ",".join(sorted(element_types)) + "]"
+        
+        return f"{container_type}[{element_type}]"
+    
+    return str(type(obj))
+
+
+def test_container_types():
+    """Test the describe_container_type function with various examples."""
+    test_cases = [
+        [1, 2, 3],
+        ["a", "b", "c"],
+        [{"x": 1}, {"y": 2}],
+        [{"x": 1}, "mixed"],
+        [],
+        {},
+        {"a": 1, "b": 2},
+        {"nested": {"deep": "value"}},
+        {"list": [1, 2, 3]},
+        {1, 2, 3},
+        (1, 2, 3),
+        42,
+        "string",
+        None,
+    ]
+
+    for case in test_cases:
+        print(f"{repr(case)} -> {describe_container_type(case)}")
+
+
+if __name__ == "__main__":
+    test_container_types()

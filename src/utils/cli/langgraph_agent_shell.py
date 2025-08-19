@@ -1,3 +1,4 @@
+import webbrowser
 from pathlib import Path
 
 from langchain_core.tools import BaseTool
@@ -9,17 +10,13 @@ from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.styles import Style
-import webbrowser
-from uuid import uuid4
-
-from langsmith import Client
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
 from src.ai_core.llm_factory import get_llm
-from src.utils.config_mngr import global_config
 from src.ai_core.mcp_client import get_mcp_servers_dict
+from src.utils.config_mngr import global_config
 from src.utils.langgraph import print_astream
 
 
@@ -92,12 +89,12 @@ async def run_langgraph_agent_shell(
             # Process the response
             with console.status("[bold green]Agent is thinking...\n[/bold green]"):
                 if global_config().get_bool("monitoring.langsmith", False):
-                    from langsmith.run_helpers import tracing_v2_enabled
+                    from langchain.callbacks import tracing_v2_enabled
 
                     with tracing_v2_enabled() as cb:
                         resp = agent.astream({"messages": user_input}, config)
                         await print_astream(resp)
-                    last_trace_url = cb.get_run_url()
+                        last_trace_url = cb.get_run_url()
                 else:
                     resp = agent.astream({"messages": user_input}, config)
                     await print_astream(resp)
