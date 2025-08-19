@@ -23,6 +23,7 @@ T = TypeVar("T", bound=BaseModel)
 
 class StoredObject(BaseModel):
     """Wrapper for storing Pydantic objects with metadata."""
+
     content: BaseModel
     metadata: dict = {}
 
@@ -46,7 +47,9 @@ def _encode_key(key: str | dict) -> str:
     return encoded_key + ".json"  # add json so the file can be easily viewed
 
 
-def save_object_to_kvstore(key: str | dict, obj: BaseModel, kv_store_id: str = "file", metadata: dict | None = None) -> None:
+def save_object_to_kvstore(
+    key: str | dict, obj: BaseModel, kv_store_id: str = "file", metadata: dict | None = None
+) -> None:
     """Save a Pydantic model to a local file-based key-value store.
 
     The model is saved to a directory based on the model's class name. The key is
@@ -64,7 +67,7 @@ def save_object_to_kvstore(key: str | dict, obj: BaseModel, kv_store_id: str = "
 
     # Create a wrapper that contains both content and metadata
     stored_object = StoredObject(content=obj, metadata=metadata or {})
-    
+
     obj_bytes = stored_object.model_dump_json().encode("utf-8")
     # Encode key to ensure it's filesystem-friendly
     encoded_key = _encode_key(key)
@@ -97,7 +100,7 @@ def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id:
             logger.debug(f"read '{class_name}/{encoded_key}' from KV store")
             # Parse the stored object
             stored_object = StoredObject.model_validate_json(stored_bytes.decode("utf-8"))
-            
+
             # Validate that the content matches the expected model class
             if not isinstance(stored_object.content, model_class):
                 # If content is a dict, try to parse it as the model class
@@ -105,9 +108,11 @@ def load_object_from_kvstore(model_class: type[T], key: str | dict, kv_store_id:
                     content = model_class.model_validate(stored_object.content)
                     stored_object.content = content
                 else:
-                    logger.warning(f"Stored content type {type(stored_object.content)} does not match expected {model_class}")
+                    logger.warning(
+                        f"Stored content type {type(stored_object.content)} does not match expected {model_class}"
+                    )
                     return None
-            
+
             return stored_object
         except ValidationError as ex:
             logger.warning(f"failed to load JSON value for {class_name}/{encoded_key}. Error is : {ex}")
@@ -140,7 +145,9 @@ if __name__ == "__main__":
     # Test Postgres SQL-based storage
     try:
         test_model_sql = TestModel(name="sql_test_object", value=123)
-        save_object_to_kvstore("sql_unique_key", test_model_sql, "sql", metadata={"source": "database", "priority": "high"})
+        save_object_to_kvstore(
+            "sql_unique_key", test_model_sql, "sql", metadata={"source": "database", "priority": "high"}
+        )
         retrieved_model_sql = load_object_from_kvstore(TestModel, "sql_unique_key", "sql")
         print("SQL storage test:")
         if retrieved_model_sql:
