@@ -13,8 +13,9 @@ import streamlit as st
 from langchain.globals import set_debug, set_verbose
 
 from src.ai_core.cache import LlmCache
-from src.ai_core.llm_factory import PROVIDER_INFO, LlmFactory
+from src.ai_core.llm_factory import PROVIDER_INFO
 from src.utils.config_mngr import global_config
+from src.webapp.ui_components.llm_selector import llm_selector_widget
 
 
 def display_config_info() -> None:
@@ -79,26 +80,7 @@ def llm_configuration_section() -> None:
     """LLM configuration controls."""
     st.subheader("LLM Configuration")
 
-    # LLM Model Selection
-    current_llm = global_config().get_str("llm.default_model")
-    available_models = LlmFactory().known_items()
-
-    try:
-        index = available_models.index(current_llm)
-    except ValueError:
-        index = 0
-
-    selected_llm = st.selectbox(
-        "Default LLM Model",
-        available_models,
-        index=index,
-        key="select_llm",
-        help="Select the default LLM model to use across the application",
-    )
-
-    if selected_llm != current_llm:
-        global_config().set("llm.default_model", str(selected_llm))
-        st.success(f"Default LLM changed to: {selected_llm}")
+    llm_selector_widget(st)
 
     # Cache Configuration
     cache_method = st.selectbox(

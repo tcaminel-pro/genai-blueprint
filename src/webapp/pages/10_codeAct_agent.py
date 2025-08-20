@@ -42,9 +42,10 @@ from src.utils.streamlit.auto_scroll import scroll_to_here
 from src.utils.streamlit.recorder import StreamlitRecorder
 from src.webapp.ui_components.config_editor import edit_config_dialog
 from src.webapp.ui_components.smolagents_streamlit import stream_to_streamlit
+from webapp.ui_components.llm_selector import llm_selector_widget
 
 MODEL_ID = None  # Use the one by configuration
-MODEL_ID = "gpt_41mini_openrouter"
+# MODEL_ID = "gpt_41mini_openrouter"
 # MODEL_ID = "kimi_k2_openrouter"
 # MODEL_ID = "gpt_o3mini_openrouter"
 # MODEL_ID = "qwen_qwq32_openrouter"
@@ -58,6 +59,8 @@ if "agent_output" not in sss:
 
 if "result_display" not in sss:
     sss.result_display = st  # Default display container
+
+llm_selector_widget(st.sidebar)
 
 
 class CodeactDemo(BaseModel):

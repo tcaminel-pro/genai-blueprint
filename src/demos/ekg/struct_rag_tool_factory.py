@@ -52,7 +52,7 @@ class StructuredRagToolFactory(BaseModel):
                     f"""
                     List of '{_entity_id_name}' mentionned in the discussion and whose user is talking about. 
                     (for example the one returned by a search query and whose user wants more details).
-                    Return empty list if no '{_entity_id_name}' has been mentioned, or if the user request is not 
+                    Set empty list if no '{_entity_id_name}' has been mentioned, or if the user request is not 
                     related to previously returned  {_entity_id_name}"""
                 ),
             )
@@ -64,11 +64,11 @@ class StructuredRagToolFactory(BaseModel):
             description: str = dedent_ws(
                 f"""
                 Retrieve information related to documents described as '{self.rag_conf.get_top_class_description()}.
-                Each document is related to a unique id '{_entity_id_name}', with is typically a  {self.rag_conf.get_key_description()}.
-                Argument are:
-                - expanded query.  
-                - selected_sections: a list of section names that best match the query. Select several if you are not sure.
-                - entity_keys:  list of '{_entity_id_name}' mentionned in the context / discussion..
+                Each document is related to a unique id '{_entity_id_name}', with is typically a  {self.rag_conf.get_key_description()}.\n  
+                Args:
+                    quey: expanded query, broad enough to improve the semantic matching 
+                    selected_sections: a list of up to 2 section names that best match the query, taken from: {"; ".join([f"'{k}' ({v})" for k, v in self.rag_conf.get_top_class_fields().items()])}
+                    entity_keys:  list of '{_entity_id_name}' mentionned in the context / discussion if any (empty list if none)
                 """
             )
             args_schema: Optional[ArgsSchema] = _VectorSearchInput
@@ -83,7 +83,11 @@ class StructuredRagToolFactory(BaseModel):
                 section_filter = {"field_name": {"$in": selected_sections}} if selected_sections else {}
                 entity_filter = {"entity_id": {"$in": entity_keys}} if entity_keys else {}
 
-                filter_dict = {"$and": [section_filter, entity_filter]} if entity_filter else section_filter
+                if not section_filter:
+                    logger.warning("empty section filter (incorrect selected_sections)")
+                    filter_dict = entity_filter
+                else:
+                    filter_dict = {"$and": [section_filter, entity_filter]} if entity_filter else section_filter
 
                 vector_store = StructuredRagConfig.get_vector_store_factory().get()
                 docs = vector_store.similarity_search(query, k=20, filter=filter_dict)
