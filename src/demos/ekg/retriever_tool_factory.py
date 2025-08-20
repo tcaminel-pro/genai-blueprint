@@ -78,7 +78,7 @@ class PydanticRag(PydanticRagBase):
 
         return description
 
-    def create_vector_search_tool(self) -> BaseTool:
+    def create_vector_search_lc_tool(self) -> BaseTool:
         """Create a LangChain BaseTool for searching the vector store."""
         _entity_id_name: str = self._key_field.split(".")[-1]
         _top_class_description: dict = self.get_top_class_fields()
