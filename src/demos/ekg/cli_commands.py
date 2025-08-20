@@ -49,7 +49,6 @@ from typer import Option
 from upath import UPath
 
 from src.utils.config_mngr import global_config
-from src.utils.pydantic.kv_store import PydanticStore
 
 LLM_ID = None
 KV_STORE_ID = "file"
@@ -85,7 +84,8 @@ def register_commands(cli_app: typer.Typer) -> None:
         from loguru import logger
 
         from src.ai_core.llm_factory import LlmFactory
-        from src.demos.ekg.retriever_tool_factory import PydanticRag
+        from demos.ekg.struct_rag_tool_factory import StructuredRagToolFactory
+        from src.utils.pydantic.kv_store import PydanticStore
 
         if llm_id is not None and llm_id not in LlmFactory.known_items():
             logger.error(f"Unknown llm_id: {llm_id}. Valid options: {LlmFactory.known_items()}")
@@ -131,12 +131,12 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         logger.info(f"Found {len(md_files)} Markdown files to process")
 
-        vector_store_factory = PydanticRag.get_vector_store_factory()
-        rag = PydanticRag(
+        vector_store_factory = StructuredRagToolFactory.get_vector_store_factory()
+        rag = StructuredRagToolFactory(
             model_definition=schema_dict,
             vector_store_factory=vector_store_factory,
             llm_id=None,
-            kv_store_id=KV_STORE_ID,
+            kvstore_id=KV_STORE_ID,
         )
 
         # Filter out files that already have JSON in KV unless forced
@@ -285,7 +285,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             - "Compare project delivery times across different technologies"
         """
 
-        from src.demos.ekg.retriever_tool_factory import PydanticRag
+        from demos.ekg.struct_rag_tool_factory import create_structured_rag_tool
         from src.utils.cli.langchain_setup import setup_langchain
         from src.utils.cli.langgraph_agent_shell import run_langgraph_agent_shell
 
@@ -295,13 +295,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         list_demos = (
             global_config().merge_with("config/demos/document_extractor.yaml").get_list("Document_extractor_demo")
         )
-        vector_store_factory = PydanticRag.get_vector_store_factory()
         rainbow_schema = next((item for item in list_demos if item.get("schema_name") == "Rainbow File"))
-        rag = PydanticRag(
-            model_definition=rainbow_schema,
-            vector_store_factory=vector_store_factory,
-            llm_id=LLM_ID,
-            kv_store_id=KV_STORE_ID,
-        )
-        rainbow_tool = rag.create_vector_search_tool()
+
+        rainbow_tool = create_structured_rag_tool(rainbow_schema, llm_id=LLM_ID, kvstore_id=KV_STORE_ID)
         asyncio.run(run_langgraph_agent_shell(llm_id, tools=[rainbow_tool], mcp_server_names=mcp))

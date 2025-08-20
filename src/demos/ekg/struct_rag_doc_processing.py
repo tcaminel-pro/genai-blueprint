@@ -30,22 +30,86 @@ MARKDOWN_SEPARATOR = [
 # fmt:on
 
 
-class PydanticRagBase(BaseModel):
-    """Base class for RAG system handling document extraction and storage."""
-
+class StructuredRagConfig(BaseModel):
     model_definition: dict
     vector_store_factory: VectorStoreFactory
     llm_id: str | None
-    kv_store_id: str | None = None
+    kvstore_id: str | None = None
 
     _top_class: Type[BaseModel] = PrivateAttr()
     _key_field: str = PrivateAttr()
     _llm: Any = PrivateAttr()
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    def model_post_init(self, __context: Any) -> None:
+        """Initialize with configuration and create required components."""
+        required_keys = ["schema", "key", "top_class"]
+        for k in required_keys:
+            if self.model_definition.get(k) is None:
+                raise ValueError("Model should have key '{k}'")
+        converter = PydanticModelFactory()
+        self._top_class = converter.create_class_from_dict(
+            self.model_definition["schema"], self.model_definition["top_class"]
+        )
+        self._key_field = self.model_definition["key"]
+        self._llm = get_llm(llm_id=self.llm_id, streaming=False, temperature=0.0)
+
+    def get_top_class(self) -> type[BaseModel]:
+        return self._top_class
+
+    def get_top_class_fields(self) -> dict:
+        return {
+            field_name: getattr(field_info, "description", "")
+            for field_name, field_info in self._top_class.model_fields.items()
+            if field_name != "source"
+        }
+
+    def get_top_class_description(self) -> str:
+        """Return the description field associated with the top class in the schema."""
+        return self.model_definition.get("schema", {}).get(self._top_class.__name__, {}).get("description", "")
+
+    def get_key_description(self) -> str:
+        """Return the description of the key field from the model definition."""
+        key_path = self._key_field.split(".")
+        current_schema = self.model_definition.get("schema", {})
+
+        top_class_name = self.model_definition.get("top_class", "")
+        if not top_class_name or top_class_name not in current_schema:
+            return ""
+
+        description = ""
+        temp_schema = current_schema
+
+        if "fields" in current_schema[top_class_name]:
+            temp_schema = current_schema[top_class_name]["fields"]
+
+        for i, key_part in enumerate(key_path):
+            if key_part in temp_schema:
+                field_def = temp_schema[key_part]
+
+                if i == len(key_path) - 1:
+                    description = field_def.get("description", "")
+                    break
+
+                if "type" in field_def:
+                    field_type = field_def["type"]
+                    if field_type.startswith("list[") and field_type.endswith("]"):
+                        field_type = field_type[5:-1]
+
+                    if field_type in current_schema:
+                        if "fields" in current_schema[field_type]:
+                            temp_schema = current_schema[field_type]["fields"]
+                        else:
+                            break
+                    else:
+                        break
+                else:
+                    break
+            else:
+                break
+
+        return description
 
     @staticmethod
-    # @once
     def get_vector_store_factory() -> VectorStoreFactory:
         """Initialize the vector store with embeddings model."""
         EMBEDDINGS_ID = "qwen3_06b_deepinfra"
@@ -66,18 +130,11 @@ class PydanticRagBase(BaseModel):
         )
         return vector_store_factory
 
-    def model_post_init(self, __context: Any) -> None:
-        """Initialize with configuration and create required components."""
-        required_keys = ["schema", "key", "top_class"]
-        for k in required_keys:
-            if self.model_definition.get(k) is None:
-                raise ValueError("Model should have key '{k}'")
-        converter = PydanticModelFactory()
-        self._top_class = converter.create_class_from_dict(
-            self.model_definition["schema"], self.model_definition["top_class"]
-        )
-        self._key_field = self.model_definition["key"]
-        self._llm = get_llm(llm_id=self.llm_id, streaming=False, temperature=0.0)
+
+class StructuredRagDocProcessor(BaseModel):
+    rag_conf: StructuredRagConfig
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     async def abatch_analyze_documents(self, document_ids: list[str], markdown_contents: list[str]) -> list[BaseModel]:
         """Analyze multiple markdown documents asynchronously in batch."""
@@ -87,9 +144,11 @@ class PydanticRagBase(BaseModel):
         remaining_ids: list[str] = []
         remaining_contents: list[str] = []
 
-        if self.kv_store_id:
+        if self.rag_conf.kvstore_id:
             for doc_id, content in zip(document_ids, markdown_contents, strict=True):
-                cached_doc = PydanticStore(kvstore_id=self.kv_store_id, model=self.get_top_class()).load_object(doc_id)
+                cached_doc = PydanticStore(
+                    kvstore_id=self.rag_conf.kvstore_id, model=self.rag_conf.get_top_class()
+                ).load_object(doc_id)
 
                 if cached_doc:
                     analyzed_docs.append(cached_doc)
@@ -105,10 +164,12 @@ class PydanticRagBase(BaseModel):
 
         # Prepare batch processing
         system = f"""
-            Extract structured information from the document below into {self._top_class.__name__} schema. 
+            Extract structured information from the document below into {self.rag_conf._top_class.__name__} schema. 
             Answer with a JSON document. Avoid explanations or extra text."""
         user = "Document to analyze:\n---\n{input}\n---"
-        chain = def_prompt(system=system, user=user) | self._llm.with_structured_output(self._top_class)
+        chain = def_prompt(system=system, user=user) | self.rag_conf._llm.with_structured_output(
+            self.rag_conf._top_class
+        )
 
         try:
             # Process batch asynchronously
@@ -120,7 +181,7 @@ class PydanticRagBase(BaseModel):
             for doc_id, result in zip(remaining_ids, batch_results, strict=False):
                 result.__setattr__("document_id", doc_id)
                 analyzed_docs.append(result)
-                if self.kv_store_id:
+                if self.rag_conf.kvstore_id:
                     save_object_to_kvstore(doc_id, result, kv_store_id="file")
 
         except Exception as batch_error:
@@ -147,9 +208,9 @@ class PydanticRagBase(BaseModel):
         return results[0]
 
     def kv_to_vector_store(self):
-        self.vector_store_factory.get()
-        self.vector_store_factory.delete_collection()
-        psf = PydanticStore(kvstore_id=KV_STORE_ID, model_class=self.get_top_class())
+        self.rag_conf.vector_store_factory.get()
+        self.rag_conf.vector_store_factory.delete_collection()
+        psf = PydanticStore(kvstore_id=KV_STORE_ID, model=self.rag_conf.get_top_class())
         for keys in psf.get_kv_store().yield_keys():
             # Remove '.json' extension from keys
             clean_key = keys.removesuffix(".json")
@@ -159,9 +220,6 @@ class PydanticRagBase(BaseModel):
             else:
                 logger.warning(f"cannot load object from kv: {clean_key}")
 
-    def get_top_class(self) -> type[BaseModel]:
-        return self._top_class
-
     def store(self, model_instance: BaseModel) -> None:
         """Process and store a model instance's data in the vector store."""
         chunks = self.chunck(model_instance)
@@ -169,7 +227,7 @@ class PydanticRagBase(BaseModel):
 
     def store_chunks(self, chunks: list[Document]) -> None:
         """Store a document's field embeddings in vector store."""
-        vector_store = self.vector_store_factory.get()
+        vector_store = self.rag_conf.vector_store_factory.get()
         vector_store.add_documents(chunks)
 
     def chunck(self, model_instance: BaseModel) -> list[Document]:
@@ -188,7 +246,7 @@ class PydanticRagBase(BaseModel):
             serialized_content = f"{dumps(field_value)}"
             if is_bearable(field_value, list[dict]):
                 # Split list[dict] into sub-lists of max 5 elements
-                chunks = [f"{dumps(field_value[i : i + 5])}" for i in range(0, len(field_value), 5)]
+                chunks = [f"{dumps(field_value[i : i + 5])}" for i in range(0, len(field_value), 5)]  # type: ignore
             else:
                 chunks = [serialized_content]
 
@@ -208,7 +266,7 @@ class PydanticRagBase(BaseModel):
 
     def get_key(self, obj: BaseModel) -> str:
         """Extract the actual key value from a model instance."""
-        key_path = self._key_field.split(".")
+        key_path = self.rag_conf._key_field.split(".")
         current_value = obj
         for key_part in key_path:
             if isinstance(current_value, dict):
@@ -218,7 +276,7 @@ class PydanticRagBase(BaseModel):
             if current_value is None and key_part == key_path[0]:
                 current_value = obj
         if current_value is None:
-            raise ValueError(f"incorrect key {self._key_field}")
+            raise ValueError(f"incorrect key {self.rag_conf._key_field}")
         return str(current_value)
 
     async def process_files(self, md_files: list[UPath], batch_size: int = 5) -> None:
@@ -243,7 +301,7 @@ class PydanticRagBase(BaseModel):
             return
 
         logger.info(
-            f"Processing {len(valid_files)} files in batches of {batch_size}. Output in '{self.kv_store_id}' KV Store"
+            f"Processing {len(valid_files)} files in batches of {batch_size}. Output in '{self.rag_conf.kvstore_id}' KV Store"
         )
 
         _ = await self.abatch_analyze_documents(document_ids, markdown_contents)

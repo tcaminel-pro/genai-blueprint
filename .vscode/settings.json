@@ -75,6 +75,7 @@
     "informatica",
     "Instrumentor",
     "Kuzu",
+    "kvstore",
     "langchain",
     "langgraph",
     "langserve",
