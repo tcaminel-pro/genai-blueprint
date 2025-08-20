@@ -41,9 +41,7 @@ async def run_langgraph_agent_shell(
         welcome_text.append(f"\nConnected to MCP servers: {', '.join(mcp_server_names)}", style="green")
 
     console.print(Panel(welcome_text, title="Welcome", border_style="bright_blue"))
-    console.print(
-        "[dim]Commands: /help, /quit, /trace\nUse up/down arrows to navigate prompt history[/dim]\n"
-    )
+    console.print("[dim]Commands: /help, /quit, /trace\nUse up/down arrows to navigate prompt history[/dim]\n")
 
     model = get_llm(llm_id=llm_id)
     if mcp_server_names:
