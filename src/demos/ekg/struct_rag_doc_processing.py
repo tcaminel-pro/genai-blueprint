@@ -1,4 +1,4 @@
-"""Data extraction and storage components for the RAG system."""
+"""Process documents into structured Pydantic models and store in vector database."""
 
 import asyncio
 from typing import Any, Type
@@ -31,6 +31,7 @@ MARKDOWN_SEPARATOR = [
 
 
 class StructuredRagConfig(BaseModel):
+    """Configuration for structured RAG document processing."""
     model_definition: dict
     vector_store_factory: VectorStoreFactory
     llm_id: str | None
@@ -41,7 +42,7 @@ class StructuredRagConfig(BaseModel):
     _llm: Any = PrivateAttr()
 
     def model_post_init(self, __context: Any) -> None:
-        """Initialize with configuration and create required components."""
+        """Initialize configuration and create required components."""
         required_keys = ["schema", "key", "top_class"]
         for k in required_keys:
             if self.model_definition.get(k) is None:
@@ -54,9 +55,11 @@ class StructuredRagConfig(BaseModel):
         self._llm = get_llm(llm_id=self.llm_id, streaming=False, temperature=0.0)
 
     def get_top_class(self) -> type[BaseModel]:
+        """Get the main Pydantic model class for document extraction."""
         return self._top_class
 
     def get_top_class_fields(self) -> dict:
+        """Get field descriptions for the top-level model."""
         return {
             field_name: getattr(field_info, "description", "")
             for field_name, field_info in self._top_class.model_fields.items()
@@ -64,11 +67,11 @@ class StructuredRagConfig(BaseModel):
         }
 
     def get_top_class_description(self) -> str:
-        """Return the description field associated with the top class in the schema."""
+        """Get description of the top-level model."""
         return self.model_definition.get("schema", {}).get(self._top_class.__name__, {}).get("description", "")
 
     def get_key_description(self) -> str:
-        """Return the description of the key field from the model definition."""
+        """Get description of the key field from the model definition."""
         key_path = self._key_field.split(".")
         current_schema = self.model_definition.get("schema", {})
 
@@ -137,13 +140,12 @@ class StructuredRagDocProcessor(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     async def abatch_analyze_documents(self, document_ids: list[str], markdown_contents: list[str]) -> list[BaseModel]:
-        """Analyze multiple markdown documents asynchronously in batch."""
-
-        # Check cache first
+        """Process multiple documents asynchronously with caching."""
         analyzed_docs: list[BaseModel] = []
         remaining_ids: list[str] = []
         remaining_contents: list[str] = []
 
+        # Check cache first
         if self.rag_conf.kvstore_id:
             for doc_id, content in zip(document_ids, markdown_contents, strict=True):
                 cached_doc = PydanticStore(
@@ -162,7 +164,7 @@ class StructuredRagDocProcessor(BaseModel):
         if not remaining_ids:
             return analyzed_docs
 
-        # Prepare batch processing
+        # Process uncached documents
         system = f"""
             Extract structured information from the document below into {self.rag_conf._top_class.__name__} schema. 
             Answer with a JSON document. Avoid explanations or extra text."""
@@ -172,12 +174,10 @@ class StructuredRagDocProcessor(BaseModel):
         )
 
         try:
-            # Process batch asynchronously
             batch_results = await chain.abatch(
                 [{"input": content} for content in remaining_contents], config=RunnableConfig(max_concurrency=5)
             )
 
-            # Store results and save to cache
             for doc_id, result in zip(remaining_ids, batch_results, strict=False):
                 result.__setattr__("document_id", doc_id)
                 analyzed_docs.append(result)
@@ -189,10 +189,8 @@ class StructuredRagDocProcessor(BaseModel):
         return analyzed_docs
 
     def analyze_document(self, document_id: str, markdown: str) -> BaseModel:
-        """Analyze markdown document and return structured data (synchronous wrapper)."""
-
+        """Analyze a single document synchronously."""
         try:
-            # Handle case where we're already in a running event loop (e.g. Jupyter)
             if asyncio.get_event_loop().is_running():
                 nest_asyncio.apply()
                 loop = asyncio.get_event_loop()
@@ -200,7 +198,6 @@ class StructuredRagDocProcessor(BaseModel):
             else:
                 results = asyncio.run(self.abatch_analyze_documents([document_id], [markdown]))
         except RuntimeError:
-            # Fallback for closed event loops
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             results = loop.run_until_complete(self.abatch_analyze_documents([document_id], [markdown]))
@@ -208,11 +205,11 @@ class StructuredRagDocProcessor(BaseModel):
         return results[0]
 
     def kv_to_vector_store(self):
+        """Load all documents from KV store into vector database."""
         self.rag_conf.vector_store_factory.get()
         self.rag_conf.vector_store_factory.delete_collection()
         psf = PydanticStore(kvstore_id=KV_STORE_ID, model=self.rag_conf.get_top_class())
         for keys in psf.get_kv_store().yield_keys():
-            # Remove '.json' extension from keys
             clean_key = keys.removesuffix(".json")
             obj = psf.load_object(clean_key)
             if obj:
@@ -221,21 +218,21 @@ class StructuredRagDocProcessor(BaseModel):
                 logger.warning(f"cannot load object from kv: {clean_key}")
 
     def store(self, model_instance: BaseModel) -> None:
-        """Process and store a model instance's data in the vector store."""
+        """Store a model instance in the vector database."""
         chunks = self.chunck(model_instance)
         self.store_chunks(chunks)
 
     def store_chunks(self, chunks: list[Document]) -> None:
-        """Store a document's field embeddings in vector store."""
+        """Store document chunks in the vector database."""
         vector_store = self.rag_conf.vector_store_factory.get()
         vector_store.add_documents(chunks)
 
     def chunck(self, model_instance: BaseModel) -> list[Document]:
-        """Generate LangChain Document objects for each field in a Pydantic model."""
-
+        """Convert model fields into searchable document chunks."""
         documents = []
         model_data = model_instance.model_dump()
         document_id = getattr(model_instance, "document_id", None)
+        
         for field_name, field_value in model_data.items():
             if field_value is None:
                 continue
@@ -245,8 +242,7 @@ class StructuredRagDocProcessor(BaseModel):
 
             serialized_content = f"{dumps(field_value)}"
             if is_bearable(field_value, list[dict]):
-                # Split list[dict] into sub-lists of max 5 elements
-                chunks = [f"{dumps(field_value[i : i + 5])}" for i in range(0, len(field_value), 5)]  # type: ignore
+                chunks = [f"{dumps(field_value[i : i + 5])}" for i in range(0, len(field_value), 5)]
             else:
                 chunks = [serialized_content]
 
@@ -265,7 +261,7 @@ class StructuredRagDocProcessor(BaseModel):
         return documents
 
     def get_key(self, obj: BaseModel) -> str:
-        """Extract the actual key value from a model instance."""
+        """Extract the primary key from a model instance."""
         key_path = self.rag_conf._key_field.split(".")
         current_value = obj
         for key_part in key_path:
@@ -280,9 +276,7 @@ class StructuredRagDocProcessor(BaseModel):
         return str(current_value)
 
     async def process_files(self, md_files: list[UPath], batch_size: int = 5) -> None:
-        """Process a batch of markdown files using LangChain batching."""
-
-        # Prepare document IDs and contents
+        """Process markdown files in batches."""
         document_ids = []
         markdown_contents = []
         valid_files = []

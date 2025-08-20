@@ -1,6 +1,4 @@
-""" """
-
-from typing import List, Optional, TypeVar
+"""Factory for creating LangChain tools to query structured RAG documents."""
 
 from langchain_core.documents import Document
 from langchain_core.tools import BaseTool
@@ -15,17 +13,17 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class StructuredRagToolFactory(BaseModel):
+    """Factory for creating LangChain tools to query structured documents."""
     rag_conf: StructuredRagConfig
 
     def create_vector_search_lc_tool(self) -> BaseTool:
-        """Create a LangChain BaseTool for searching the vector store."""
+        """Create a vector search tool for semantic queries."""
         _entity_id_name: str = self.rag_conf._key_field.split(".")[-1]
         _top_class_description: dict = self.rag_conf.get_top_class_fields()
         _entity_key_name: str = self.rag_conf._key_field.split(".")[-1]
 
         class _VectorSearchInput(BaseModel):
-            """Input schema for the vector search tool."""
-
+            """Input schema for vector search."""
             query: str = Field(
                 ...,
                 description=dedent_ws(
@@ -56,8 +54,7 @@ class StructuredRagToolFactory(BaseModel):
             )
 
         class _VectorSearchTool(BaseTool):
-            """Tool for searching the vector store for semantic matches."""
-
+            """Semantic search tool for structured documents."""
             name: str = f"{self.rag_conf.get_top_class().__name__}_retriever"
             description: str = dedent_ws(
                 f"""
@@ -72,7 +69,7 @@ class StructuredRagToolFactory(BaseModel):
             args_schema: Optional[ArgsSchema] = _VectorSearchInput
 
             def _run(self, query: str, selected_sections: List[str], entity_keys: list[str] = []) -> str:
-                """Execute search against the vector store."""
+                """Execute vector search and return formatted results."""
                 allowed = set(_top_class_description.keys())
                 invalid = [f for f in selected_sections if f not in allowed]
                 if invalid:
@@ -112,12 +109,13 @@ class StructuredRagToolFactory(BaseModel):
         return _VectorSearchTool()
 
     def query_vectorstore(self, query: str, k: int = 4, filter: dict = {}) -> List[Document]:
-        """Search the vector store for similar field data."""
+        """Direct vector store query for testing."""
         vector_store = self.rag_conf.vector_store_factory.get()
         return vector_store.similarity_search(query, k=k, filter=filter)
 
 
 def create_structured_rag_tool(schema: dict, llm_id: str | None, kvstore_id: str) -> BaseTool:
+    """Create a vector search tool from schema configuration."""
     vector_store_factory = StructuredRagConfig.get_vector_store_factory()
     rag_conf = StructuredRagConfig(
         model_definition=schema,
@@ -126,5 +124,4 @@ def create_structured_rag_tool(schema: dict, llm_id: str | None, kvstore_id: str
         kvstore_id=kvstore_id,
     )
     rag = StructuredRagToolFactory(rag_conf=rag_conf)
-
     return rag.create_vector_search_lc_tool()
