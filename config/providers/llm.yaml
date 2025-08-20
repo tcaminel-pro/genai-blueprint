@@ -125,16 +125,16 @@ llm:
   capabilities: ['structured_outputs']
 
 - model:
-  id: gpt_o1mini
-  providers:
-    - openrouter: openai/o1-mini-2024-09-12
-  capabilities: ['structured_outputs', 'reasonning']
-
-- model:
   id: gpt_o3mini
   providers:
     - openrouter: openai/o3-mini
   capabilities: ['structured_outputs', 'reasoning']
+
+- model:
+  id: gpt_oss120
+  providers:
+    - openrouter: openai/gpt-oss-120b
+  capabilities: ['structured_outputs']
 
 - model:
   id: liquid_lfm40
@@ -179,10 +179,10 @@ llm:
   capabilities: ['structured_outputs']
 
 - model:
-  id: mistral_medium3
+  id: mistral_medium31
   providers:
     - mistral: mistral-medium-latest
-    - openrouter: mistralai/mistral-medium-3
+    - openrouter: mistralai/mistral-medium-3.1
   capabilities: ['structured_outputs', 'vision']
 
 - model:

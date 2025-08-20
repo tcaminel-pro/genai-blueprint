@@ -74,6 +74,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
         ] = None,
         imports: list[str] | None = None,
+        shell: bool = False,
     ) -> None:
         """
         Run a Smolagent agent possibly having tools.
@@ -85,6 +86,7 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         from src.ai_core.llm_factory import LlmFactory
         from src.utils.cli.langchain_setup import setup_langchain
+        from src.utils.cli.smolagents_shell import run_smolagent_shell
 
         if not setup_langchain(llm_id):
             return
@@ -101,9 +103,13 @@ def register_commands(cli_app: typer.Typer) -> None:
                     raise ValueError(f"Tool {tool_name} is not recognized either as a default tool or a Space.")
 
         print(f"Running agent with these tools: {tools}")
-        agent = CodeAgent(tools=available_tools, model=model, additional_authorized_imports=imports)
 
-        agent.run(prompt)
+        if shell:
+            raise NotImplementedError("On going work")
+            asyncio.run(run_smolagent_shell(llm_id, mcp_servers=[]))
+        else:
+            agent = CodeAgent(tools=available_tools, model=model, additional_authorized_imports=imports)
+            agent.run(prompt)
 
     @cli_app.command()
     def ocr_pdf(

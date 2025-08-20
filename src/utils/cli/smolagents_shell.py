@@ -1,6 +1,7 @@
 import webbrowser
 from pathlib import Path
 
+from langchain_core.tools import BaseTool
 from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.history import FileHistory
@@ -9,19 +10,14 @@ from prompt_toolkit.styles import Style
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
-from typing import Any
-from langchain_core.tools import BaseTool
-from smolagents import CodeAgent, LiteLLMModel, MCPClient, Tool, tool
+from smolagents import CodeAgent, LiteLLMModel, MCPClient
 
 from src.ai_core.llm_factory import get_llm
 from src.ai_core.mcp_client import get_mcp_servers_dict
 from src.utils.config_mngr import global_config
-from src.utils.langgraph import print_astream
 
 
-async def run_smollagent_shell(
-    llm_id: str | None, tools: list[BaseTool] = [], mcp_server_names: list[str] = []
-) -> None:
+async def run_smolagent_shell(llm_id: str | None, tools: list[BaseTool] = [], mcp_servers: list[str] = []) -> None:
     """Run an interactive shell for sending prompts to SmolAgents agents.
 
     The MCP servers are started once before entering the shell loop.
@@ -31,21 +27,23 @@ async def run_smollagent_shell(
         llm_id: Optional ID of the language model to use
         server_filter: Optional list of server names to include in the agent
     """
+
+    raise NotImplementedError("On going work")
     console = Console()
     last_trace_url: str | None = None
 
     # Display welcome banner
     welcome_text = Text("🤖 SmolAgents Shell", style="bold cyan")
-    if mcp_server_names:
-        welcome_text.append(f"\nConnected to MCP servers: {', '.join(mcp_server_names)}", style="green")
+    if mcp_servers:
+        welcome_text.append(f"\nConnected to MCP servers: {', '.join(mcp_servers)}", style="green")
 
     console.print(Panel(welcome_text, title="Welcome", border_style="bright_blue"))
     console.print("[dim]Commands: /help, /quit, /trace\nUse up/down arrows to navigate prompt history[/dim]\n")
 
     model = LiteLLMModel(model_id=get_llm(llm_id)._llm_id)  # type: ignore
-    if mcp_server_names:
+    if mcp_servers:
         with console.status("[bold green]Connecting to MCP servers..."):
-            client = MCPClient(get_mcp_servers_dict(mcp_server_names))  # type: ignore
+            client = MCPClient(get_mcp_servers_dict(mcp_servers))  # type: ignore
             tools = tools + client.get_tools()
             console.print("[green]✓ MCP servers connected[/green]\n")
 

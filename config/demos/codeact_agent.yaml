@@ -17,7 +17,7 @@ codeact_agent_demos:
       - class: src.ai_extra.smolagents_tools:DataFrameTool
         name: "titanic_data_reader"
         description: "Data related to the Titanic passengers"
-        source_path: "use_case_data/other/titanic.csv"
+        source_path: ${paths.project}/use_case_data/other/titanic.csv
         
       - class: smolagents:WebSearchTool
       - class: smolagents:VisitWebpageTool
@@ -43,14 +43,14 @@ codeact_agent_demos:
       - "What is the current price of Meta stock?"
       - "Show me the historical prices of Apple vs Microsoft stock over the past 6 months"
 
-  - name: "Geo"
-    tools:
-      - class: smolagents:WebSearchTool
-      - class: smolagents:VisitWebpageTool
-    authorized_imports: ["pandas", "matplotlib.*", "streamlit_folium"]
-    examples:
-      - "Display the map of Toulouse"
-      - "Display a map of France with a population density (gathered from Internet) layer by region or department"
+  # - name: "Geo"
+  #   tools:
+  #     - class: smolagents:WebSearchTool
+  #     - class: smolagents:VisitWebpageTool
+  #   authorized_imports: ["pandas", "matplotlib.*", "streamlit_folium"]
+  #   examples:
+  #     - "Display the map of Toulouse"
+  #     - "Display a map of France with a population density (gathered from Internet) layer by region or department"
 
   - name: "MCP"
     mcp_servers: ["filesystem", "weather", "playwright"]
@@ -60,8 +60,22 @@ codeact_agent_demos:
       - "List current directory"
       - "connect to atos.net site and get recent news"
 
-  - name: "Vizro"
-    mcp_servers: ["vizro-mcp"]
+  # - name: "Vizro"
+  #   mcp_servers: ["vizro-mcp"]
+  #   examples:
+  #     - "Create a Vizro dashboard with one page, a scatter chart, and a filter."
+  #     - "Load sample data from tool and Create a Vizro dashboard with one page, a scatter chart, and a filter based on it "
+
+
+  - name: "Rainbow"
+    tools:
+      - class: src.ai_extra.smolagents_tools:DataFrameTool
+        name: "opportunity_2024"
+        description: "Data related to business opportunities"
+        source_path: ${paths.ekg_data}/misc/report1750429630460.xlsx
+        
+      - class: smolagents:WebSearchTool
+      - class: smolagents:VisitWebpageTool
+    authorized_imports: ["pandas", "matplotlib.*", "sklearn.*"]
     examples:
-      - "Create a Vizro dashboard with one page, a scatter chart, and a filter."
-      - "Load sample data from tool and Create a Vizro dashboard with one page, a scatter chart, and a filter based on it "
+      - "List of won opportunity in Manufacturing whose TCV is greater than 3M€"

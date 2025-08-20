@@ -6,6 +6,7 @@ Supports both Path compatible pathnames and Streamlit UploadedFile objects.
 
 import os
 from io import BytesIO
+from pathlib import Path
 
 import pandas as pd
 from upath import UPath
@@ -36,7 +37,7 @@ def load_tabular_data_once(file_or_filename: str | UPath | BytesIO, **kwargs) ->
     """
     if isinstance(file_or_filename, str):
         file_or_filename = UPath(file_or_filename)
-    if isinstance(file_or_filename, UPath):
+    if isinstance(file_or_filename, Path):
         assert file_or_filename.exists()
         loaded_file = BytesIO(file_or_filename.read_bytes())
         loaded_file.name = file_or_filename.name

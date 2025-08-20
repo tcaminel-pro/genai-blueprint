@@ -78,11 +78,13 @@ class DataFrameTool(Tool):
         super().__init__()
         self.name = name
         self.description = f"This tool returns a Pandas DataFrame with content described as: '{description}'"
-        self.source_path = source_path
+        self.source_path = Path(source_path)
         try:
             import pandas as pd  # noqa: F401
         except ImportError as e:
             raise ImportError("You must install package `pandas` to run this tool`.") from e
+        if not self.source_path.exists():
+            raise ValueError(f"Incorrect source file: {self.source_path}")
 
     def forward(self) -> pd.DataFrame:  # type: ignore
         """Load and return a DataFrame from the configured source path."""
