@@ -20,7 +20,6 @@ import pandas as pd
 import streamlit as st
 from groq import BaseModel
 from loguru import logger
-from omegaconf import DictConfig
 from pydantic import ConfigDict
 from smolagents import (
     CodeAgent,
@@ -129,11 +128,11 @@ PRE_PROMPT = dedent_ws(
     Instructions:
     - You can use ONLY the following packages:  {{authorized_imports}}.
     - DO NOT USE other packages (such as os, shutils, etc).
+    - Use provided functions to gather information. Don't generate fake one if not explicly asked.
     - Don't generate "if __name__ == "__main__"
     - Don't use st.sidebar 
     - Call the function '{PRINT_INFORMATION}' with same content that 'final_answer', before calling it.
 
-    - {FOLIUM_INSTRUCTION}
     - {IMAGE_INSTRUCTION}
 
     \nRequest :
@@ -154,61 +153,61 @@ def load_demos_from_config() -> List[CodeactDemo]:
         List of configured CodeactDemo objects
     """
     """Load demos configuration from YAML file"""
-    try:
-        demos_config = global_config().merge_with(CONF_YAML_FILE).get_list("codeact_agent_demos")
-        result = []
-        # Create Demo objects from the configuration
-        for demo_config in demos_config:
-            name = demo_config.get("name", "")
-            examples = demo_config.get("examples", [])
-            mcp_servers = demo_config.get("mcp_servers", [])
-            authorized_imports = demo_config.get("authorized_imports", [])
 
-            # Process tools
-            tools = []
-            for tool_config in demo_config.get("tools", []):
-                if isinstance(tool_config, DictConfig):
-                    if "function" in tool_config:
-                        func_ref = tool_config.get("function")
-                        if isinstance(func_ref, str) and ":" in func_ref:
-                            tool_func = import_from_qualified(func_ref)
-                            tools.append(tool_func)
-                        elif func_ref in globals():
-                            tools.append(globals()[func_ref])
-                        else:
-                            logger.warning(f"Unknown function: {func_ref}")
-                    elif "class" in tool_config:
-                        class_ref = tool_config.get("class")
-                        params = {k: v for k, v in tool_config.items() if k not in ["class"]}
+    demos_config = global_config().merge_with(CONF_YAML_FILE).get_list("codeact_agent_demos")
+    result = []
+    # Create Demo objects from the configuration
+    for demo_config in demos_config:
+        name = demo_config.get("name", "")
+        examples = demo_config.get("examples", [])
+        mcp_servers = demo_config.get("mcp_servers", [])
+        authorized_imports = demo_config.get("authorized_imports", [])
 
-                        if isinstance(class_ref, str) and ":" in class_ref:
-                            tool_class = import_from_qualified(class_ref)
-                        elif class_ref in globals():
-                            tool_class = globals()[class_ref]
-                        else:
-                            logger.warning(f"Unknown tool class: {class_ref}")
-                            continue
+        # Process tools
+        tools = []
+        for tool_config in demo_config.get("tools", []):
+            if isinstance(tool_config, dict):
+                if "function" in tool_config:
+                    func_ref = tool_config.get("function")
+                    if isinstance(func_ref, str) and ":" in func_ref:
+                        tool_func = import_from_qualified(func_ref)
+                        tools.append(tool_func)
+                    elif func_ref in globals():
+                        tools.append(globals()[func_ref])
+                    else:
+                        logger.warning(f"Unknown function: {func_ref}")
+                elif "class" in tool_config:
+                    class_ref = tool_config.get("class")
+                    params = {k: v for k, v in tool_config.items() if k not in ["class"]}
 
-                        if class_ref.endswith("DataFrameTool"):
-                            params["source_path"] = DATA_PATH / str(params["source_path"]).split("/")[-1]
-                        tools.append(tool_class(**params))  # type: ignore
+                    if isinstance(class_ref, str) and ":" in class_ref:
+                        tool_class = import_from_qualified(class_ref)
+                    elif class_ref in globals():
+                        tool_class = globals()[class_ref]
+                    else:
+                        logger.warning(f"Unknown tool class: {class_ref}")
+                        continue
 
-            demo = CodeactDemo(
-                name=name,
-                tools=tools,
-                mcp_servers=mcp_servers,
-                examples=examples,
-                authorized_imports=authorized_imports,
-            )
-            result.append(demo)
-        return result
-    except Exception as e:
-        logger.exception(f"Error loading demos from config: {e}")
-        return []
+                    tools.append(tool_class(**params))  # type: ignore
+
+        demo = CodeactDemo(
+            name=name,
+            tools=tools,
+            mcp_servers=mcp_servers,
+            examples=examples,
+            authorized_imports=authorized_imports,
+        )
+        result.append(demo)
+    return result
 
 
 # Load demos from config
-SAMPLES_DEMOS = load_demos_from_config()
+# Improve error display and handling AI!
+try:
+    sample_demos = load_demos_from_config()
+except Exception:
+    st.error("Cannot load demo : {ex}")
+    st.stop()
 
 ##########################
 #  UI
@@ -302,17 +301,18 @@ llm = LiteLLMModel(model_id=model_name)
 ##########################
 
 
-def display_header_and_demo_selector() -> str:
+def display_header_and_demo_selector(sample_demos: list[CodeactDemo]) -> str | None:
     """Displays the header and demo selector, returning the selected pill."""
     c01, c02 = st.columns([6, 4], border=False, gap="medium", vertical_alignment="top")
     c02.title(" CodeAct Agent :material/Mindfulness:")
+    selected_pill = None
     with c01.container(border=True):
         selector_col, edit_col = st.columns([8, 1], vertical_alignment="bottom")
         with selector_col:
             selected_pill = st.pills(
                 ":material/open_with: **Demos:**",
-                options=[demo.name for demo in SAMPLES_DEMOS] + [FILE_SElECT_CHOICE],
-                default=SAMPLES_DEMOS[0].name,
+                options=[demo.name for demo in sample_demos] + [FILE_SElECT_CHOICE],
+                default=sample_demos[0].name,
                 on_change=clear_display,
             )
         with edit_col:
@@ -338,7 +338,7 @@ def handle_selection(selected_pill: str, select_block: Any) -> tuple[CodeactDemo
         )
         demo = CodeactDemo(name="custom", examples=[])
     else:
-        demo = next((d for d in SAMPLES_DEMOS if d.name == selected_pill), None)
+        demo = next((d for d in sample_demos if d.name == selected_pill), None)
         if demo is None:
             st.stop()
         col_display_left, col_display_right = select_block.columns([6, 3], vertical_alignment="bottom")
@@ -427,16 +427,17 @@ def handle_submission(placeholder: Any, demo: CodeactDemo, prompt: str, max_step
 
 def main() -> None:
     """Main function to set up and run the Streamlit application."""
-    selected_pill = display_header_and_demo_selector()
+
+    selected_pill = display_header_and_demo_selector(sample_demos) if sample_demos else None
 
     placeholder = st.empty()
     select_block = placeholder.container()
+    if selected_pill:
+        demo, sample_search, _, _ = handle_selection(selected_pill, select_block)
+        prompt, max_steps, submitted = display_input_form(select_block, sample_search)
 
-    demo, sample_search, _, _ = handle_selection(selected_pill, select_block)
-    prompt, max_steps, submitted = display_input_form(select_block, sample_search)
-
-    if submitted:
-        handle_submission(placeholder, demo, prompt, max_steps)
+        if submitted:
+            handle_submission(placeholder, demo, prompt, max_steps)
 
 
 main()
