@@ -248,13 +248,13 @@ class PydanticRag(PydanticRagBase):
                 """Execute search against the vector store."""
                 if entity_keys is None:
                     entity_keys = []
-                    
+
                 allowed = set(_top_class_description.keys())
                 invalid = [f for f in selected_sections if f not in allowed]
                 if invalid:
                     logger.warning(f"Removing invalid section: {invalid}")
                     selected_sections = [f for f in selected_sections if f in allowed]
-                
+
                 section_filter = {"field_name": {"$in": selected_sections}} if selected_sections else {}
                 entity_filter = {"entity_id": {"$in": entity_keys}} if entity_keys else {}
 
