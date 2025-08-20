@@ -32,6 +32,7 @@ MARKDOWN_SEPARATOR = [
 
 class StructuredRagConfig(BaseModel):
     """Configuration for structured RAG document processing."""
+
     model_definition: dict
     vector_store_factory: VectorStoreFactory
     llm_id: str | None
@@ -232,7 +233,7 @@ class StructuredRagDocProcessor(BaseModel):
         documents = []
         model_data = model_instance.model_dump()
         document_id = getattr(model_instance, "document_id", None)
-        
+
         for field_name, field_value in model_data.items():
             if field_value is None:
                 continue

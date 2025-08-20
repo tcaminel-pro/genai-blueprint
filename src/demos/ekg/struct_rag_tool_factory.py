@@ -14,6 +14,7 @@ T = TypeVar("T", bound=BaseModel)
 
 class StructuredRagToolFactory(BaseModel):
     """Factory for creating LangChain tools to query structured documents."""
+
     rag_conf: StructuredRagConfig
 
     def create_vector_search_lc_tool(self) -> BaseTool:
@@ -24,6 +25,7 @@ class StructuredRagToolFactory(BaseModel):
 
         class _VectorSearchInput(BaseModel):
             """Input schema for vector search."""
+
             query: str = Field(
                 ...,
                 description=dedent_ws(
@@ -55,6 +57,7 @@ class StructuredRagToolFactory(BaseModel):
 
         class _VectorSearchTool(BaseTool):
             """Semantic search tool for structured documents."""
+
             name: str = f"{self.rag_conf.get_top_class().__name__}_retriever"
             description: str = dedent_ws(
                 f"""
