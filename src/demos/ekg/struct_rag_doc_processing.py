@@ -44,9 +44,7 @@ def get_schema(schema_name: str) -> dict | None:
     ``None`` is returned.
     """
     list_demos = (
-        global_config()
-        .merge_with("config/schemas/document_extractor.yaml")
-        .get_list("Document_extractor_demo")
+        global_config().merge_with("config/schemas/document_extractor.yaml").get_list("Document_extractor_demo")
     )
     schema_dict = next((item for item in list_demos if item.get("schema_name") == schema_name), None)
     return schema_dict
