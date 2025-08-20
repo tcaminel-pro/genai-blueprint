@@ -202,11 +202,10 @@ def load_demos_from_config() -> List[CodeactDemo]:
 
 
 # Load demos from config
-# Improve error display and handling AI!
 try:
     sample_demos = load_demos_from_config()
-except Exception:
-    st.error("Cannot load demo : {ex}")
+except Exception as ex:
+    st.error(f"Cannot load demo: {ex}")
     st.stop()
 
 ##########################
