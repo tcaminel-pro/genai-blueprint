@@ -192,7 +192,7 @@ def load_demos_from_config() -> List[CodeactDemo]:
                 elif "factory" in tool_config:
                     factory_ref = tool_config.get("factory")
                     params = {k: v for k, v in tool_config.items() if k not in ["factory"]}
-                    
+
                     if isinstance(factory_ref, str) and ":" in factory_ref:
                         factory_func = import_from_qualified(factory_ref)
                     elif factory_ref in globals():
@@ -200,7 +200,7 @@ def load_demos_from_config() -> List[CodeactDemo]:
                     else:
                         logger.warning(f"Unknown factory function: {factory_ref}")
                         continue
-                    
+
                     try:
                         tool_result = factory_func(**params)
                         if isinstance(tool_result, list):
