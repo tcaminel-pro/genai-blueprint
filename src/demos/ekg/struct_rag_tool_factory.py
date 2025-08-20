@@ -1,15 +1,4 @@
-"""RAG system implementation for semantic search and querying of structured data.
-
-This module provides the tool creation and query interface components for:
-- Creating LangChain tools for semantic search
-- Defining query schemas and filters
-- Processing search results into structured outputs
-
-Key Components:
-    - PydanticRag: Main class handling tool creation and query processing
-    - Vector search tool with configurable filters
-    - Result processing and formatting
-"""
+""" """
 
 from typing import List, Optional, TypeVar
 
