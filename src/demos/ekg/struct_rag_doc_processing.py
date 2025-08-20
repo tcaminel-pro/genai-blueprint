@@ -28,6 +28,15 @@ MARKDOWN_SEPARATOR = [
     "\n---", "\n***", "\n|", "\n- ", "\n* ", "\n1. ""\n2. ","\n3. ", "\n```", "\n", " ", ""                                        
 ]  
 # fmt:on
+#
+
+
+def get_schema(schema_name: str) -> dict | None:
+    list_demos = (
+        global_config().merge_with("config/schemas/document_extractor.yaml").get_list("Document_extractor_demo")
+    )
+    schema_dict = next((item for item in list_demos if item.get("schema_name") == schema_name), None)
+    return schema_dict
 
 
 class StructuredRagConfig(BaseModel):
@@ -243,7 +252,7 @@ class StructuredRagDocProcessor(BaseModel):
 
             serialized_content = f"{dumps(field_value)}"
             if is_bearable(field_value, list[dict]):
-                chunks = [f"{dumps(field_value[i : i + 5])}" for i in range(0, len(field_value), 5)]
+                chunks = [f"{dumps(field_value[i : i + 5])}" for i in range(0, len(field_value), 5)]  # type: ignore
             else:
                 chunks = [serialized_content]
 

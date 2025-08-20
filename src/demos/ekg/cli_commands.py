@@ -48,8 +48,6 @@ from loguru import logger
 from typer import Option
 from upath import UPath
 
-from src.utils.config_mngr import global_config
-
 LLM_ID = None
 KV_STORE_ID = "file"
 
@@ -84,22 +82,19 @@ def register_commands(cli_app: typer.Typer) -> None:
         from loguru import logger
 
         from src.ai_core.llm_factory import LlmFactory
-        from demos.ekg.struct_rag_tool_factory import StructuredRagToolFactory
+        from src.demos.ekg.struct_rag_doc_processing import StructuredRagConfig, StructuredRagDocProcessor, get_schema
         from src.utils.pydantic.kv_store import PydanticStore
+
+        schema_dict = get_schema(schema)
 
         if llm_id is not None and llm_id not in LlmFactory.known_items():
             logger.error(f"Unknown llm_id: {llm_id}. Valid options: {LlmFactory.known_items()}")
             return
 
-        list_demos = (
-            global_config().merge_with("config/demos/document_extractor.yaml").get_list("Document_extractor_demo")
-        )
-        schema_dict = next((item for item in list_demos if item.get("schema_name") == schema), None)
-
         if schema_dict is None:
             logger.error(f"Invalid schema_name: {schema}")
             return
-        top_class: str = schema_dict.get("top_class")
+        top_class: str | None = schema_dict.get("top_class")
         if top_class is None:
             logger.error(f"Incorrect schema: {schema}")
             return
@@ -131,21 +126,22 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         logger.info(f"Found {len(md_files)} Markdown files to process")
 
-        vector_store_factory = StructuredRagToolFactory.get_vector_store_factory()
-        rag = StructuredRagToolFactory(
+        vector_store_factory = StructuredRagConfig.get_vector_store_factory()
+        struct_rag_conf = StructuredRagConfig(
             model_definition=schema_dict,
             vector_store_factory=vector_store_factory,
             llm_id=None,
             kvstore_id=KV_STORE_ID,
         )
-
+        rag_processor = StructuredRagDocProcessor(rag_conf=struct_rag_conf)
         # Filter out files that already have JSON in KV unless forced
-
         if not force:
             unprocessed_files = []
             for md_file in md_files:
                 key = md_file.stem
-                cached_doc = PydanticStore(kvstore_id=KV_STORE_ID, model=rag.get_top_class()).load_object(key)
+                cached_doc = PydanticStore(kvstore_id=KV_STORE_ID, model=struct_rag_conf.get_top_class()).load_object(
+                    key
+                )
                 if not cached_doc:
                     unprocessed_files.append(md_file)
                 else:
@@ -155,7 +151,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         if not md_files:
             logger.info("All files have already been processed. Use --force to reprocess.")
             return
-        asyncio.run(rag.process_files(md_files, batch_size))
+        asyncio.run(rag_processor.process_files(md_files, batch_size))
 
         logger.success(f"Project extraction complete. {len(md_files)} files processed. Results saved to KV Store")
 
@@ -285,17 +281,16 @@ def register_commands(cli_app: typer.Typer) -> None:
             - "Compare project delivery times across different technologies"
         """
 
-        from demos.ekg.struct_rag_tool_factory import create_structured_rag_tool
+        from src.demos.ekg.struct_rag_doc_processing import get_schema
+        from src.demos.ekg.struct_rag_tool_factory import create_structured_rag_tool
         from src.utils.cli.langchain_setup import setup_langchain
         from src.utils.cli.langgraph_agent_shell import run_langgraph_agent_shell
 
         if not setup_langchain(llm_id, lc_debug, lc_verbose, cache):
             return
 
-        list_demos = (
-            global_config().merge_with("config/demos/document_extractor.yaml").get_list("Document_extractor_demo")
-        )
-        rainbow_schema = next((item for item in list_demos if item.get("schema_name") == "Rainbow File"))
+        rainbow_schema = get_schema("Rainbow File")
+        assert rainbow_schema, "Cannot find Schema"
 
         rainbow_tool = create_structured_rag_tool(rainbow_schema, llm_id=LLM_ID, kvstore_id=KV_STORE_ID)
         asyncio.run(run_langgraph_agent_shell(llm_id, tools=[rainbow_tool], mcp_server_names=mcp))

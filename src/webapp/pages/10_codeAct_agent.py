@@ -19,6 +19,7 @@ import folium
 import pandas as pd
 import streamlit as st
 from groq import BaseModel
+from langchain_core.tools import BaseTool as LangChainBaseTool
 from loguru import logger
 from pydantic import ConfigDict
 from smolagents import (
@@ -28,6 +29,7 @@ from smolagents import (
     Tool,
     tool,
 )
+from smolagents import Tool as SmolAgentTool
 from streamlit import session_state as sss
 from streamlit_folium import st_folium
 
@@ -212,16 +214,12 @@ def load_demos_from_config() -> List[CodeactDemo]:
                         continue
 
         # Convert LangChain BaseTool instances to SmolAgent Tool
-        from langchain_core.tools import BaseTool as LangChainBaseTool
-        from smolagents import Tool as SmolAgentTool
-
         converted_tools = []
-        for tool in tools:
-            if isinstance(tool, LangChainBaseTool):
-                converted_tools.append(SmolAgentTool.from_langchain(tool))
+        for t in tools:
+            if isinstance(t, LangChainBaseTool):
+                converted_tools.append(SmolAgentTool.from_langchain(t))
             else:
-                converted_tools.append(tool)
-
+                converted_tools.append(t)
         demo = CodeactDemo(
             name=name,
             tools=converted_tools,

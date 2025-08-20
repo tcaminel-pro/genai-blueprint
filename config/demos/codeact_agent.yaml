@@ -76,6 +76,8 @@ codeact_agent_demos:
         
       - class: smolagents:WebSearchTool
       - class: smolagents:VisitWebpageTool
+      - factory: src.demos.ekg.struct_rag_tool_factory:create_structured_rag_tool
+        schema_name : "Rainbow File"
     authorized_imports: ["pandas", "matplotlib.*", "sklearn.*"]
     examples:
       - "List of won opportunity in Manufacturing whose TCV is greater than 3M€"

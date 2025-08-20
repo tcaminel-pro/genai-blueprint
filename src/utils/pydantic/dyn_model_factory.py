@@ -58,7 +58,7 @@ class PydanticModelFactory:
             >>> factory.yaml_type_to_python_type("list[int]")
             typing.List[int]
         """
-        from typing import List, Dict
+        from typing import Dict, List
 
         type_mapping = {
             "str": str,
@@ -305,13 +305,10 @@ def test1() -> None:
 
 
 def test2() -> None:
-    from src.utils.config_mngr import global_config
+    from src.demos.ekg.struct_rag_doc_processing import get_schema
 
-    demo = (
-        global_config()
-        .merge_with("config/demos/document_extractor.yaml")
-        .get_dict("Document_extractor_demo.0", expected_keys=["schema", "key", "top_class"])
-    )
+    demo = get_schema("test")
+    assert demo
 
     converter = PydanticModelFactory()
     PersonClass = converter.create_class_from_dict(demo["schema"], demo["top_class"])
@@ -331,13 +328,10 @@ def test2() -> None:
 
 
 def test3() -> None:
-    from src.utils.config_mngr import global_config
+    from src.demos.ekg.struct_rag_doc_processing import get_schema
 
-    demo = (
-        global_config()
-        .merge_with("config/demos/document_extractor.yaml")
-        .get_dict("Document_extractor_demo.1", expected_keys=["schema", "key", "top_class"])
-    )
+    demo = get_schema("test")
+    assert demo
 
     converter = PydanticModelFactory()
     PersonClass = converter.create_class_from_dict(demo["schema"], demo["top_class"])

@@ -1,5 +1,7 @@
 """Factory for creating LangChain tools to query structured RAG documents."""
 
+from typing import List, Optional, TypeVar
+
 from langchain_core.documents import Document
 from langchain_core.tools import BaseTool
 from langchain_core.tools.base import ArgsSchema
@@ -7,7 +9,7 @@ from loguru import logger
 from pydantic import BaseModel, Field
 
 from src.ai_core.prompts import dedent_ws
-from src.demos.ekg.struct_rag_doc_processing import StructuredRagConfig
+from src.demos.ekg.struct_rag_doc_processing import StructuredRagConfig, get_schema
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -117,9 +119,12 @@ class StructuredRagToolFactory(BaseModel):
         return vector_store.similarity_search(query, k=k, filter=filter)
 
 
-def create_structured_rag_tool(schema: dict, llm_id: str | None, kvstore_id: str) -> BaseTool:
+def create_structured_rag_tool(schema_name: str, llm_id: str | None = None, kvstore_id: str = "file") -> BaseTool:
     """Create a vector search tool from schema configuration."""
     vector_store_factory = StructuredRagConfig.get_vector_store_factory()
+    schema = get_schema(schema_name)
+    if schema is None:
+        raise ValueError(f"Unknow schema for structured rag: {schema_name}")
     rag_conf = StructuredRagConfig(
         model_definition=schema,
         vector_store_factory=vector_store_factory,
