@@ -41,7 +41,9 @@ async def run_langgraph_agent_shell(
         welcome_text.append(f"\nConnected to MCP servers: {', '.join(mcp_server_names)}", style="green")
 
     console.print(Panel(welcome_text, title="Welcome", border_style="bright_blue"))
-    console.print("[dim]Type /quit to exit; Use up/down arrows to navigate prompt history[/dim]\n")
+    console.print(
+        "[dim]Commands: /help, /quit, /trace\nUse up/down arrows to navigate prompt history[/dim]\n"
+    )
 
     model = get_llm(llm_id=llm_id)
     if mcp_server_names:
@@ -73,12 +75,26 @@ async def run_langgraph_agent_shell(
             if user_input.lower() in ["/quit", "/exit", "/q"]:
                 console.print("\n[bold yellow]Goodbye! 👋[/bold yellow]")
                 break
+            if user_input == "/help":
+                console.print(
+                    Panel(
+                        "/help   – show this help\n"
+                        "/quit   – exit the shell\n"
+                        "/trace  – open last LangSmith trace in browser",
+                        title="[bold cyan]Commands[/bold cyan]",
+                        border_style="cyan",
+                    )
+                )
+                continue
             if user_input == "/trace":
                 if last_trace_url:
                     console.print(f"[dim]Opening trace URL: {last_trace_url}[/dim]")
                     webbrowser.open(last_trace_url)
                 else:
                     console.print("[dim]No trace URL available yet.[/dim]")
+                continue
+            if user_input.startswith("/") and user_input not in {"/quit", "/exit", "/q", "/help", "/trace"}:
+                console.print(f"[red]Unknown command: {user_input}[/red]")
                 continue
             if not user_input:
                 continue
