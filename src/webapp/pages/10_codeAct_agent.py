@@ -211,9 +211,20 @@ def load_demos_from_config() -> List[CodeactDemo]:
                         logger.warning(f"Error calling factory function {factory_ref}: {ex}")
                         continue
 
+        # Convert LangChain BaseTool instances to SmolAgent Tool
+        from langchain_core.tools import BaseTool as LangChainBaseTool
+        from smolagents import Tool as SmolAgentTool
+        
+        converted_tools = []
+        for tool in tools:
+            if isinstance(tool, LangChainBaseTool):
+                converted_tools.append(SmolAgentTool.from_langchain(tool))
+            else:
+                converted_tools.append(tool)
+        
         demo = CodeactDemo(
             name=name,
-            tools=tools,
+            tools=converted_tools,
             mcp_servers=mcp_servers,
             examples=examples,
             authorized_imports=authorized_imports,
