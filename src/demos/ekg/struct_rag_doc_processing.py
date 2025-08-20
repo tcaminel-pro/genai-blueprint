@@ -1,4 +1,10 @@
-"""Process documents into structured Pydantic models and store in vector database."""
+"""Utilities for extracting structured information from markdown documents and storing it
+in a vector database.
+
+The module defines a configuration model for the extraction pipeline, a processor that
+handles batch analysis, caching, and conversion of Pydantic models into searchable
+document chunks, and helper functions for loading schema definitions.
+"""
 
 import asyncio
 from typing import Any, Type
@@ -23,24 +29,31 @@ from src.utils.pydantic.kv_store import PydanticStore, save_object_to_kvstore
 
 # Markdown separators for text splitting
 # fmt:off
-MARKDOWN_SEPARATOR = [                                                                                              
-    "\n\n", "\n#", "\n##", "\n###", "\n####", "\n#####", "\n######",                                                
-    "\n---", "\n***", "\n|", "\n- ", "\n* ", "\n1. ""\n2. ","\n3. ", "\n```", "\n", " ", ""                                        
-]  
+MARKDOWN_SEPARATOR = [
+    "\n\n", "\n#", "\n##", "\n###", "\n####", "\n#####", "\n######",
+    "\n---", "\n***", "\n|", "\n- ", "\1. ""\n2. ", "\n3. ", "\n```", "\n", " ", ""
+]
 # fmt:on
-#
 
 
 def get_schema(schema_name: str) -> dict | None:
+    """Retrieve a schema definition from the configuration.
+
+    The function loads the ``document_extractor.yaml`` configuration file and returns the
+    dictionary that matches the provided ``schema_name``. If no matching schema is found,
+    ``None`` is returned.
+    """
     list_demos = (
-        global_config().merge_with("config/schemas/document_extractor.yaml").get_list("Document_extractor_demo")
+        global_config()
+        .merge_with("config/schemas/document_extractor.yaml")
+        .get_list("Document_extractor_demo")
     )
     schema_dict = next((item for item in list_demos if item.get("schema_name") == schema_name), None)
     return schema_dict
 
 
 class StructuredRagConfig(BaseModel):
-    """Configuration for structured RAG document processing."""
+    """Configuration for a structured RAG document processing pipeline."""
 
     model_definition: dict
     vector_store_factory: VectorStoreFactory
@@ -52,7 +65,7 @@ class StructuredRagConfig(BaseModel):
     _llm: Any = PrivateAttr()
 
     def model_post_init(self, __context: Any) -> None:
-        """Initialize configuration and create required components."""
+        """Validate the model definition and create required components."""
         required_keys = ["schema", "key", "top_class"]
         for k in required_keys:
             if self.model_definition.get(k) is None:
@@ -65,11 +78,11 @@ class StructuredRagConfig(BaseModel):
         self._llm = get_llm(llm_id=self.llm_id, streaming=False, temperature=0.0)
 
     def get_top_class(self) -> type[BaseModel]:
-        """Get the main Pydantic model class for document extraction."""
+        """Return the main Pydantic model class for document extraction."""
         return self._top_class
 
     def get_top_class_fields(self) -> dict:
-        """Get field descriptions for the top-level model."""
+        """Return a mapping of field names to their descriptions."""
         return {
             field_name: getattr(field_info, "description", "")
             for field_name, field_info in self._top_class.model_fields.items()
@@ -77,11 +90,11 @@ class StructuredRagConfig(BaseModel):
         }
 
     def get_top_class_description(self) -> str:
-        """Get description of the top-level model."""
+        """Return the description of the top‑level model."""
         return self.model_definition.get("schema", {}).get(self._top_class.__name__, {}).get("description", "")
 
     def get_key_description(self) -> str:
-        """Get description of the key field from the model definition."""
+        """Return the description of the primary key field."""
         key_path = self._key_field.split(".")
         current_schema = self.model_definition.get("schema", {})
 
@@ -124,7 +137,7 @@ class StructuredRagConfig(BaseModel):
 
     @staticmethod
     def get_vector_store_factory() -> VectorStoreFactory:
-        """Initialize the vector store with embeddings model."""
+        """Create a vector store factory configured with the default embeddings model."""
         EMBEDDINGS_ID = "qwen3_06b_deepinfra"
         postgres_url = global_config().get_dsn("vector_store.postgres_url", driver="asyncpg")
         vector_store_factory = VectorStoreFactory(
@@ -145,6 +158,8 @@ class StructuredRagConfig(BaseModel):
 
 
 class StructuredRagDocProcessor(BaseModel):
+    """Processor that extracts structured data from documents and stores it in a vector DB."""
+
     rag_conf: StructuredRagConfig
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -185,7 +200,8 @@ class StructuredRagDocProcessor(BaseModel):
 
         try:
             batch_results = await chain.abatch(
-                [{"input": content} for content in remaining_contents], config=RunnableConfig(max_concurrency=5)
+                [{"input": content} for content in remaining_contents],
+                config=RunnableConfig(max_concurrency=5),
             )
 
             for doc_id, result in zip(remaining_ids, batch_results, strict=False):
@@ -214,8 +230,8 @@ class StructuredRagDocProcessor(BaseModel):
 
         return results[0]
 
-    def kv_to_vector_store(self):
-        """Load all documents from KV store into vector database."""
+    def kv_to_vector_store(self) -> None:
+        """Load all documents from KV store into the vector database."""
         self.rag_conf.vector_store_factory.get()
         self.rag_conf.vector_store_factory.delete_collection()
         psf = PydanticStore(kvstore_id=KV_STORE_ID, model=self.rag_conf.get_top_class())
