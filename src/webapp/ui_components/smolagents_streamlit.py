@@ -98,20 +98,20 @@ def _display_step_content(step_log: MemoryStep, display_details: bool = True) ->
         # First display the thought/reasoning from the LLM
         if getattr(step_log, "model_output", ""):
             model_output = _clean_model_output(step_log.model_output)
-            
+
             # Extract code blocks from model output for separate display
             code_blocks = re.findall(r"<code>(.*?)</code>", model_output, flags=re.DOTALL)
-            
+
             # Remove code blocks from model output for clean text display
             model_output_clean = re.sub(r"<code>.*?</code>", "", model_output, flags=re.DOTALL)
             if model_output_clean.strip():
                 st.markdown(model_output_clean)
-            
+
             # Display extracted code blocks
             if code_blocks and display_details:
                 for i, code_block in enumerate(code_blocks):
                     code_content = _format_code_content(code_block)
-                    with st.expander(f"💻 Code Block {i+1}"):
+                    with st.expander(f"💻 Code Block {i + 1}"):
                         st.code(code_content, language="python")
 
         # For tool calls, display them properly
