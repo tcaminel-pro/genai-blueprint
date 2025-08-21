@@ -98,23 +98,23 @@ def _display_step_content(step_log: MemoryStep, display_details: bool = True) ->
         # First display the thought/reasoning from the LLM
         if getattr(step_log, "model_output", ""):
             model_output = _clean_model_output(step_log.model_output)
-            
+
             # Debug: show raw model output to understand the format
             # st.text(f"DEBUG - Raw model output: {repr(model_output)}")
-            
+
             # Try multiple patterns for code extraction
             code_blocks = []
-            
+
             # Pattern 1: <code>...</code>
             code_blocks.extend(re.findall(r"<code>(.*?)</code>", model_output, flags=re.DOTALL))
-            
+
             # Pattern 2: ```python...``` or ```...```
             code_blocks.extend(re.findall(r"```(?:python)?\s*(.*?)```", model_output, flags=re.DOTALL))
-            
+
             # Remove code blocks from model output for clean text display
             model_output_clean = re.sub(r"<code>.*?</code>", "", model_output, flags=re.DOTALL)
             model_output_clean = re.sub(r"```(?:python)?\s*.*?```", "", model_output_clean, flags=re.DOTALL)
-            
+
             if model_output_clean.strip():
                 st.markdown(model_output_clean)
 
