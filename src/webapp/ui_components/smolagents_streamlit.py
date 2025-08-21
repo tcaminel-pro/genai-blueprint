@@ -81,9 +81,6 @@ def _format_code_content(content: str) -> str:
     content = re.sub(r"```.*?\n", "", content)
     content = re.sub(r"\s*<end_code>\s*", "", content)
     content = content.strip()
-    # Add Python code block formatting if not already present
-    if not content.startswith("```python"):
-        content = f"```python\n{content}\n```"
     return content
 
 
@@ -98,10 +95,13 @@ def _display_step_content(step_log: MemoryStep, display_details: bool = True) ->
         step_number = f"Step {step_log.step_number}" if step_log.step_number is not None else "Step"
         st.markdown(f"**{step_number}**")
 
-        # First display the thought/reasoning from the LLM
+        # First display the thought/reasoning from the LLM (but clean out code blocks)
         if getattr(step_log, "model_output", ""):
             model_output = _clean_model_output(step_log.model_output)
-            st.markdown(model_output)
+            # Remove code blocks from model output as they'll be displayed separately
+            model_output_clean = re.sub(r"<code>.*?</code>", "", model_output, flags=re.DOTALL)
+            if model_output_clean.strip():
+                st.markdown(model_output_clean)
 
         # For tool calls, display them properly
         if getattr(step_log, "tool_calls", []):
@@ -111,7 +111,7 @@ def _display_step_content(step_log: MemoryStep, display_details: bool = True) ->
             # Process arguments based on type
             args = first_tool_call.arguments
             if isinstance(args, dict):
-                content = str(args.get("answer", str(args)))
+                content = str(args.get("code", args.get("answer", str(args))))
             else:
                 content = str(args).strip()
 
@@ -122,9 +122,7 @@ def _display_step_content(step_log: MemoryStep, display_details: bool = True) ->
             if display_details:
                 with st.expander(f"🛠️ Used tool {first_tool_call.name}"):
                     if used_code:
-                        # Remove the markdown code block wrapper for st.code
-                        code_content = content.replace("```python\n", "").replace("\n```", "")
-                        st.code(code_content, language="python")
+                        st.code(content, language="python")
                     else:
                         st.markdown(content)
 
