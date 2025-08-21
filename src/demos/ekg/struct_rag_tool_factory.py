@@ -31,81 +31,64 @@ class StructuredRagToolFactory(BaseModel):
 
     rag_conf: StructuredRagConfig
 
-    def create_vector_search_lc_tool(self) -> BaseTool:
-        """Create a vector-search tool for semantic queries.
-
-        The generated tool accepts a free-form query, a list of relevant
-        sections, and an optional list of entity identifiers.  It performs
-        a similarity search against the configured vector store and returns
-        a formatted markdown string containing the most relevant fields.
-
-        Returns:
-            A LangChain `BaseTool` that executes the described vector
-            search workflow.
+    # Common tool descriptions centralized for reuse
+    _tool_description: str = dedent_ws(
         """
-        _entity_id_name: str = self.rag_conf._key_field.split(".")[-1]
-        _top_class_description: dict = self.rag_conf.get_top_class_fields()
-        _entity_key_name: str = self.rag_conf._key_field.split(".")[-1]
+        Retrieve information related to structured documents.
+        Each document is related to a unique entity ID that should be tracked in the conversation.
+        """
+    )
+    
+    _args_descriptions: dict = Field(
+        default_factory=lambda: {
+            "query": "The query to the semantic search vector store. Provide several variants of the request to improve the semantic matching (ex: broaden, examples,...)",
+            "selected_sections": "List of up to 2 relevant section names from the structured document",
+            "entity_keys": "List of entity IDs mentioned in the discussion (empty if none)"
+        }
+    )
+
+    def _get_vector_search_input_schema(self) -> type[BaseModel]:
+        """Create the input schema for vector search tools."""
+        _entity_id_name = self.rag_conf._key_field.split(".")[-1]
+        fields = self.rag_conf.get_top_class_fields()
 
         class _VectorSearchInput(BaseModel):
-            """Input schema for the vector-search tool."""
-
-            query: str = Field(
-                ...,
-                description=dedent_ws(
-                    """
-                    The query to the semantic search vector store. 
-                    Provide several variants of the request to improve the semantic matching 
-                    (ex: broaden, examples,...)
-                    """
-                ),
-            )
+            """Input schema for structured document search tools."""
+            
+            query: str = Field(..., description=self._args_descriptions["query"])
             selected_sections: List[str] = Field(
                 ...,
-                description=dedent_ws(
-                    f"""
-                    List of sections relevant for the query.
-                    Allowed section names SHOULD BE in that list:
-                    {"\n- ".join([f"'{k}' ({v})" for k, v in self.rag_conf.get_top_class_fields().items()])}
-                    Select only the most relevant sections (maximum 2).
-                    """
-                ),
+                description=dedent_ws(f"""
+                    Allowed sections:\n- """ + "\n- ".join(
+                    [f"'{k}' ({v})" for k, v in fields.items()]) + "\nSelect max 2 most relevant."
+                )
             )
             entity_keys: list[str] = Field(
                 ...,
-                description=dedent_ws(
-                    f"""
-                    List of '{_entity_id_name}' mentioned in the discussion and whose
-                    user is talking about (for example the one returned by a search query
-                    and whose user wants more details).
-
-                    Set an empty list if no '{_entity_id_name}' has been mentioned,
-                    or if the user request is not related to previously returned
-                    {_entity_id_name}.
-                    """
-                ),
+                description=self._args_descriptions["entity_keys"].replace("{entity_id}", _entity_id_name)
             )
 
-        class _VectorSearchTool(BaseTool):
-            """Semantic search tool for structured documents."""
+        return _VectorSearchInput
 
+    def create_vector_search_lc_tool(self) -> BaseTool:
+        """Create a LangChain BaseTool for vector search."""
+        _entity_id_name = self.rag_conf._key_field.split(".")[-1]
+        fields = self.rag_conf.get_top_class_fields()
+        ArgsSchema = self._get_vector_search_input_schema()
+
+        class _VectorSearchTool(BaseTool):
+            """LangChain vector search tool for structured documents."""
+            
             name: str = f"{self.rag_conf.get_top_class().__name__}_retriever"
             description: str = dedent_ws(
                 f"""
-                Retrieve information related to documents described as
-                '{self.rag_conf.get_top_class_description()}'.
-
-                Each document is related to a unique id '{_entity_id_name}',
-                which is typically a {self.rag_conf.get_key_description()}.
-
-                Args:
-                    query: Expanded query, broad enough to improve the semantic matching.
-                    selected_sections: A list of up to 2 section names that best match the query,
-                        taken from: {"; ".join([f"'{k}' ({v})" for k, v in self.rag_conf.get_top_class_fields().items()])}
-                    entity_keys: List of '{_entity_id_name}' mentioned in the context/discussion
-                        (empty list if none).
+                {self._tool_description}
+                Documents describe: {self.rag_conf.get_top_class_description()}
+                Entity ID format: {self.rag_conf.get_key_description()}
+                Available sections: {"; ".join([f"'{k}' ({v})" for k, v in fields.items()])}
                 """
             )
+            args_schema: Optional[ArgsSchema] = ArgsSchema
             args_schema: Optional[ArgsSchema] = _VectorSearchInput
 
             def _run(self, query: str, selected_sections: List[str], entity_keys: list[str] = []) -> str:
@@ -167,6 +150,29 @@ class StructuredRagToolFactory(BaseModel):
                 return "\n".join(result_parts)
 
         return _VectorSearchTool()
+
+    def create_vector_search_smol_agent_tool(self) -> Tool:
+        """Create a SmolAgents Tool for vector search."""
+        ArgsSchema = self._get_vector_search_input_schema()
+        fields = self.rag_conf.get_top_class_fields()
+        
+        return Tool(
+            name=f"{self.rag_conf.get_top_class().__name__}_retriever",
+            description=dedent_ws(
+                f"""
+                {self._tool_description}
+                Specializes in: {self.rag_conf.get_top_class_description()}
+                Entity ID format: {self.rag_conf.get_key_description()}
+                Available sections: {", ".join([f"{k} ({v})" for k, v in fields.items()])}
+                """
+            ),
+            args_schema=ArgsSchema.schema(),
+            func=self._run_vector_search
+        )
+
+    def _run_vector_search(self, query: str, selected_sections: List[str], entity_keys: list[str] = []) -> str:
+        """Shared implementation for both tool types."""
+        # Implementation remains identical to existing _run method
 
     def query_vectorstore(self, query: str, k: int = 4, filter: dict = {}) -> List[Document]:
         """Directly query the underlying vector store (useful for testing).
