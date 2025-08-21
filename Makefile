@@ -17,7 +17,13 @@ AWS_ACCOUNT_ID=909658914353
 
 all: help 
 
-SHELL := /bin/bash
+MAKEFLAGS += --warn-undefined-variables                                                            
+SHELL     := bash -euo pipefail -c   # exit on error, undefined var, pipefail 
+
+# Guard against GNU/Make vs BSD/Make incompatibilities 
+ifneq ($(shell echo 'a b' | xargs -n1 echo 2>/dev/null | wc -l),2)                                 
+  $(error You need GNU xargs)                                                                      
+endif  
 
 # Locate and load the .env file in the current directory, or parent directory, or parent of parent
 ENV_FILE_RAW := $(shell find $(CURDIR) $(CURDIR)/.. $(CURDIR)/../.. -name ".env" -print -quit)
@@ -58,7 +64,7 @@ langserve: ## Lauch langserve app
 	python src/main/langserve_app.py
 
 webapp: ## Launch Streamlit app
-	uv run streamlit run $(STREAMLIT_ENTRY_POINT)
+	uv run streamlit run "$(STREAMLIT_ENTRY_POINT)"
 
 
 ##############################
@@ -73,8 +79,8 @@ rebase: ## Sync local repo with remote one (changes are stashed before!)
 # Configure aider to use ruff as linter
 AIDER_OPTS=--watch-files --lint-cmd "ruff format" --read vibe_coding/CONVENTIONS.md --editor "code --wait"
 
-aider:  ## Call aider-chat (a coding assistant)
-	aider $(AIDER_OPTS) --cache-prompts --model openrouter/deepseek/deepseek-chat
+aider-v3:  ## Call aider-chat (a coding assistant)
+	aider $(AIDER_OPTS) --cache-prompts --model deepseek/deepseek-chat-v3.1
 aider-gemini:
 	aider $(AIDER_OPTS) --cache-prompts --model openrouter/google/gemini-2.5-pro ;   
 aider-sonnet:
@@ -236,7 +242,10 @@ postgres:
 		-v /home/tcl/pgvector-data:/var/lib/postgresql/data \
 		-d pgvector/pgvector:pg17
 
- 
+
+test1:
+ 	export $(grep -v "^#" ~/.env | xargs)
+	echo $(OPENROUTER_API_KEY)
 
 qwen:
 	@OPENAI_API_KEY=$(OPENROUTER_API_KEY) OPENAI_BASE_URL="https://openrouter.ai/api/v1" OPENAI_MODEL="qwen/qwen3-coder" qwen
