@@ -117,5 +117,5 @@
     "python.testing.unittestEnabled": false,
     "python.testing.pytestPath": "uv",
     "python.testing.pytestArgs": ["run", "pytest", "-v"],
-    "ruff.configurationPreference": "filesystem"
+    "ruff.configurationPreference": "filesystem",
 }
