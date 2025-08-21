@@ -81,6 +81,9 @@ def _format_code_content(content: str) -> str:
     content = re.sub(r"```.*?\n", "", content)
     content = re.sub(r"\s*<end_code>\s*", "", content)
     content = content.strip()
+    # Add Python code block formatting if not already present
+    if not content.startswith("```python"):
+        content = f"```python\n{content}\n```"
     return content
 
 
@@ -91,69 +94,26 @@ def _display_step_content(step_log: MemoryStep, display_details: bool = True) ->
         step_log: The memory step to display
         display_details: Whether to show detailed information like code and footnotes
     """
+    # debug(str_log)
     if isinstance(step_log, ActionStep):
         step_number = f"Step {step_log.step_number}" if step_log.step_number is not None else "Step"
         st.markdown(f"**{step_number}**")
 
-        # First display the thought/reasoning from the LLM
         if getattr(step_log, "model_output", ""):
             model_output = _clean_model_output(step_log.model_output)
+            st.markdown(model_output)
 
-            # Debug: show raw model output to understand the format
-            # st.text(f"DEBUG - Raw model output: {repr(model_output)}")
-
-            # Try multiple patterns for code extraction
-            code_blocks = []
-
-            # Pattern 1: <code>...</code>
-            code_blocks.extend(re.findall(r"<code>(.*?)</code>", model_output, flags=re.DOTALL))
-
-            # Pattern 2: ```python...``` or ```...```
-            code_blocks.extend(re.findall(r"```(?:python)?\s*(.*?)```", model_output, flags=re.DOTALL))
-
-            # Remove code blocks from model output for clean text display
-            model_output_clean = re.sub(r"<code>.*?</code>", "", model_output, flags=re.DOTALL)
-            model_output_clean = re.sub(r"```(?:python)?\s*.*?```", "", model_output_clean, flags=re.DOTALL)
-
-            if model_output_clean.strip():
-                st.markdown(model_output_clean)
-
-            # Display extracted code blocks
-            if code_blocks and display_details:
-                for i, code_block in enumerate(code_blocks):
-                    code_content = _format_code_content(code_block)
-                    if code_content.strip():  # Only display non-empty code blocks
-                        with st.expander(f"💻 Code Block {i + 1}"):
-                            st.code(code_content, language="python")
-
-        # For tool calls, display them properly
         if getattr(step_log, "tool_calls", []):
             first_tool_call = step_log.tool_calls[0]
-            used_code = first_tool_call.name == "python_interpreter"
-
-            # Process arguments based on type
             args = first_tool_call.arguments
-            if isinstance(args, dict):
-                # Try different possible keys for code content
-                content = str(args.get("code", args.get("answer", args.get("query", str(args)))))
-            else:
-                content = str(args).strip()
+            content = str(args.get("answer", str(args))) if isinstance(args, dict) else str(args).strip()
 
-            # Debug: show what we extracted
-            # st.text(f"DEBUG - Tool call content: {repr(content)}")
-
-            # Format code content if needed
-            if used_code:
+            if first_tool_call.name == "python_interpreter":
                 content = _format_code_content(content)
+                if display_details:
+                    with st.expander(f"🛠️ Used tool {first_tool_call.name}"):
+                        st.code(content)
 
-            if display_details and content.strip():
-                with st.expander(f"🛠️ Used tool {first_tool_call.name}"):
-                    if used_code:
-                        st.code(content, language="python")
-                    else:
-                        st.markdown(content)
-
-        # Display execution logs if they exist
         if getattr(step_log, "observations", "") and step_log.observations.strip():
             log_content = step_log.observations.strip()
             log_content = re.sub(r"^Execution logs:\s*", "", log_content)
@@ -161,14 +121,12 @@ def _display_step_content(step_log: MemoryStep, display_details: bool = True) ->
                 with st.expander("📝 Execution Logs"):
                     st.code(log_content, language="bash")
 
-        # Display any images in observations
+        if getattr(step_log, "error", None):
+            st.error(str(step_log.error))
+
         if getattr(step_log, "observations_images", []):
             for image in step_log.observations_images:
                 st.image(AgentImage(image).to_raw())
-
-        # Handle errors
-        if getattr(step_log, "error", None):
-            st.error(str(step_log.error))
 
         if display_details:
             st.caption(get_step_footnote_content(step_log, step_number))
