@@ -112,4 +112,10 @@
     ],
     "cSpell.language": "en,fr",
     "python.analysis.extraPaths": ["./src"],
+    "python.defaultInterpreterPath": "./.venv/bin/python",
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestPath": "uv",
+    "python.testing.pytestArgs": ["run", "pytest", "-v"],
+    "ruff.configurationPreference": "filesystem"
 }
