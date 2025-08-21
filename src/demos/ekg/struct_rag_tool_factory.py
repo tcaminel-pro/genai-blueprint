@@ -1,9 +1,9 @@
 """Factory for creating LangChain tools to query structured RAG documents.
 
-This module provides a Pydantic‑based factory that builds a LangChain
+This module provides a Pydantic-based factory that builds a LangChain
 `BaseTool` capable of performing semantic vector searches over structured
 documents.  The tool is generated from a `StructuredRagConfig` which
-encapsulates the schema, vector store, LLM, and key‑value store
+encapsulates the schema, vector store, LLM, and key-value store
 configuration.
 """
 
@@ -26,15 +26,15 @@ class StructuredRagToolFactory(BaseModel):
 
     Attributes:
         rag_conf: Configuration object describing the schema, vector store,
-            LLM, and key‑value store to be used.
+            LLM, and key-value store to be used.
     """
 
     rag_conf: StructuredRagConfig
 
     def create_vector_search_lc_tool(self) -> BaseTool:
-        """Create a vector‑search tool for semantic queries.
+        """Create a vector-search tool for semantic queries.
 
-        The generated tool accepts a free‑form query, a list of relevant
+        The generated tool accepts a free-form query, a list of relevant
         sections, and an optional list of entity identifiers.  It performs
         a similarity search against the configured vector store and returns
         a formatted markdown string containing the most relevant fields.
@@ -48,7 +48,7 @@ class StructuredRagToolFactory(BaseModel):
         _entity_key_name: str = self.rag_conf._key_field.split(".")[-1]
 
         class _VectorSearchInput(BaseModel):
-            """Input schema for the vector‑search tool."""
+            """Input schema for the vector-search tool."""
 
             query: str = Field(
                 ...,
@@ -65,10 +65,8 @@ class StructuredRagToolFactory(BaseModel):
                 description=dedent_ws(
                     f"""
                     List of sections relevant for the query.
-
                     Allowed section names SHOULD BE in that list:
                     {"\n- ".join([f"'{k}' ({v})" for k, v in self.rag_conf.get_top_class_fields().items()])}
-
                     Select only the most relevant sections (maximum 2).
                     """
                 ),
@@ -186,15 +184,15 @@ class StructuredRagToolFactory(BaseModel):
 
 
 def create_structured_rag_tool(schema_name: str, llm_id: str | None = None, kvstore_id: str = "file") -> BaseTool:
-    """Create a vector‑search tool from a schema configuration.
+    """Create a vector-search tool from a schema configuration.
 
     The function loads the schema definition, builds a `StructuredRagConfig`,
-    and returns a ready‑to‑use LangChain tool.
+    and returns a ready-to-use LangChain tool.
 
     Args:
         schema_name: Name of the schema to load.
         llm_id: Optional identifier of the LLM to use.
-        kvstore_id: Identifier of the key‑value store (default: "file").
+        kvstore_id: Identifier of the key-value store (default: "file").
 
     Returns:
         A LangChain tool that can perform semantic searches over the
