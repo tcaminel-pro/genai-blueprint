@@ -244,8 +244,8 @@ postgres:
 
 
 test1:
- 	export $(grep -v "^#" ~/.env | xargs)
-	echo $(OPENROUTER_API_KEY)
+	export $$(grep -v "^#" ~/.env | xargs); \
+	echo $$OPENROUTER_API_KEY
 
 qwen:
 	@OPENAI_API_KEY=$(OPENROUTER_API_KEY) OPENAI_BASE_URL="https://openrouter.ai/api/v1" OPENAI_MODEL="qwen/qwen3-coder" qwen
