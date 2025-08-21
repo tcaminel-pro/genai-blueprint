@@ -18,6 +18,7 @@
   },
   "jupyter.notebookFileRoot": "${workspaceFolder}",
   "python.analysis.autoImportCompletions": true,
+  "python.analysis.importFormat": "absolute",
   "files.exclude": {
     ".venv/": true,
     "**/__pycache__": true,
