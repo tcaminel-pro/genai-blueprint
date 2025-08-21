@@ -63,6 +63,7 @@ def _clean_model_output(model_output: str) -> str:
     model_output = re.sub(r"```\s*<end_code>", "```", model_output)  # handles ```<end_code>
     model_output = re.sub(r"<end_code>\s*```", "```", model_output)  # handles <end_code>```
     model_output = re.sub(r"```\s*\n\s*<end_code>", "```", model_output)  # handles ```\n<end_code>
+    model_output = re.sub(r"<end_code>", "", model_output)  # remove any remaining <end_code> tags
     return model_output.strip()
 
 
@@ -84,6 +85,9 @@ def _format_code_content(content: str) -> str:
     # Add Python code block formatting if not already present
     if not content.startswith("```python"):
         content = f"```python\n{content}\n```"
+    # Ensure proper code block closure
+    if content.count("```") % 2 != 0:
+        content += "\n```"
     return content
 
 
@@ -94,8 +98,10 @@ def _display_step_content(step_log: MemoryStep, display_details: bool = True) ->
         step_log: The memory step to display
         display_details: Whether to show detailed information like code and footnotes
     """
-    # debug(str_log)
     if isinstance(step_log, ActionStep):
+        # Skip model outputs if we're streaming them separately
+        if getattr(step_log, "stream_outputs", False) and step_log.model_output:
+            return
         step_number = f"Step {step_log.step_number}" if step_log.step_number is not None else "Step"
         st.markdown(f"**{step_number}**")
 
@@ -117,9 +123,13 @@ def _display_step_content(step_log: MemoryStep, display_details: bool = True) ->
         if getattr(step_log, "observations", "") and step_log.observations.strip():
             log_content = step_log.observations.strip()
             log_content = re.sub(r"^Execution logs:\s*", "", log_content)
-            if display_details:
-                with st.expander("📝 Execution Logs"):
-                    st.code(log_content, language="bash")
+            if display_details and log_content:
+                with st.expander("📝 Execution Logs", expanded=False):
+                    st.code(
+                        _clean_model_output(log_content),
+                        language="bash",
+                        line_numbers=len(log_content.split("\n")) > 1,
+                    )
 
         if getattr(step_log, "error", None):
             st.error(str(step_log.error))
