@@ -44,10 +44,10 @@ llm:
   capabilities: ['structured_outputs', 'pdf', 'vision']
 
 - model:
-  id: deepseek_chatv3
+  id: deepseek_v31
   providers:
     - deepseek: deepseek-chat
-    - openrouter: deepseek/deepseek-chat
+    - openrouter: deepseek/deepseek-chat-v3.1
     - edenai: deepseek/deepseek-chat
   capabilities: ['structured_outputs']
 

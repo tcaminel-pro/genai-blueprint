@@ -42,7 +42,7 @@ endif
 
 .PHONY: .uv   .pre-commit .pythonpath
 .uv:  ## Check that uv is installed
-	@uv -V || echo 'Please install uv: https://docs.astral.sh/uv/getting-started/installation/'
+	@uv -V || echo 'Please install uv: curl -LsSf https://astral.sh/uv/install.sh | sh 
 
 .pre-commit: .uv  ## Check that pre-commit is installed    see https://pre-commit.com/
 	@uv run pre-commit -V || uv pip install pre-commit
@@ -242,10 +242,6 @@ postgres:
 		-v /home/tcl/pgvector-data:/var/lib/postgresql/data \
 		-d pgvector/pgvector:pg17
 
-
-test1:
-	export $$(grep -v "^#" ~/.env | xargs); \
-	echo $$OPENROUTER_API_KEY
 
 qwen:
 	@OPENAI_API_KEY=$(OPENROUTER_API_KEY) OPENAI_BASE_URL="https://openrouter.ai/api/v1" OPENAI_MODEL="qwen/qwen3-coder" qwen

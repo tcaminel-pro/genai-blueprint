@@ -17,6 +17,7 @@ dependencies = [
     "modal>=1.0.5",
     "python-dotenv>=1.1.1",
     "beartype>=0.21.0",
+    "baml-cli>=0.1.0",
 ]
 
 [project.urls]
@@ -46,11 +47,12 @@ ai = [
     "langchain-tavily>=0.2.10",
     "deepagents>=0.0.3",
     #"litellm==1.74.15",
-    "openai==1.99.9",                                          # issue with v100.1 and litelmm 
+    "openai==1.99.9",   # issue with v100.1 and litelmm 
     "litellm>=1.74",
     "chromadb>=1.0",
     "mistralai>=1.7.0",
-    "smolagents[toolkit, mcp, openai, litellm, docker]==1.17", # code display issue un streamlit with 1.19  TODO
+    # "smolagents[toolkit, mcp, openai, litellm, docker]==1.17", # code display issue un streamlit with 1.19  TODO
+    "smolagents[toolkit, mcp, openai, litellm, docker]>=1.17", # code display issue un streamlit with 1.19  TODO
     "mcp[cli]>=1.4.1",
 
 ]
@@ -106,7 +108,7 @@ demos = [
     "scikit-learn>=1.6.1",
     "streamlit-folium>=0.24.1",
     #    "streamlit-extras>=0.6.0",
-    "kuzu>=0.7.1",
+    "kuzu[json]>=0.7.1",
     "wordcloud>=1.9.4",
     "md2pdf>=1.0.1",
     "vizro>=0.1.40",
@@ -146,11 +148,11 @@ default-groups = [
     "ai_extra",
     "demos",
     "browser_control",
-    #    "autogen",
-    #  "transformers",
-    "dev",
     "postgres",
     "nlp",
+    "dev",
+    #  "autogen",
+    #  "transformers",
 ]
 
 [tool.hatch.build.targets.sdist]
@@ -210,6 +212,10 @@ convention = "google"
 pythonVersion = "3.12"
 pythonPlatform = "Linux"
 reportTypedDictNotRequiredAccess = false # Avoid warnings in LangGraph
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
 
 
 [project.scripts]

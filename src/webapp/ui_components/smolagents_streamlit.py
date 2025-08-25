@@ -28,6 +28,7 @@ import re
 from typing import Dict, List, Optional
 
 import streamlit as st
+from devtools import debug  # ignore
 from PIL import Image
 from smolagents.agent_types import AgentAudio, AgentImage, AgentText
 from smolagents.agents import MultiStepAgent, PlanningStep
@@ -56,6 +57,7 @@ def _clean_model_output(model_output: str) -> str:
     Returns:
         Cleaned model output.
     """
+
     if not model_output:
         return ""
     model_output = model_output.strip()
@@ -64,6 +66,10 @@ def _clean_model_output(model_output: str) -> str:
     model_output = re.sub(r"<end_code>\s*```", "```", model_output)  # handles <end_code>```
     model_output = re.sub(r"```\s*\n\s*<end_code>", "```", model_output)  # handles ```\n<end_code>
     model_output = re.sub(r"<end_code>", "", model_output)  # remove any remaining <end_code> tags
+
+    # Added to adress formatting code issue
+    model_output = re.sub(r"<code>", "```python", model_output)
+    model_output = re.sub(r"</code>", "```", model_output)
     return model_output.strip()
 
 
@@ -106,6 +112,7 @@ def _display_step_content(step_log: MemoryStep, display_details: bool = True) ->
         st.markdown(f"**{step_number}**")
 
         if getattr(step_log, "model_output", ""):
+            debug(step_log.model_output)
             model_output = _clean_model_output(step_log.model_output)
             st.markdown(model_output)
 

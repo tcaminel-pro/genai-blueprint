@@ -123,3 +123,4 @@ data/generated
 *.temp
 .build/
 package_load_time.txt
+**/baml_client/*

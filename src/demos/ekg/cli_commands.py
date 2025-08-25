@@ -281,7 +281,6 @@ def register_commands(cli_app: typer.Typer) -> None:
             - "Compare project delivery times across different technologies"
         """
 
-        from src.demos.ekg.struct_rag_doc_processing import get_schema
         from src.demos.ekg.struct_rag_tool_factory import create_structured_rag_tool
         from src.utils.cli.langchain_setup import setup_langchain
         from src.utils.cli.langgraph_agent_shell import run_langgraph_agent_shell
@@ -289,8 +288,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         if not setup_langchain(llm_id, lc_debug, lc_verbose, cache):
             return
 
-        rainbow_schema = get_schema("Rainbow File")
-        assert rainbow_schema, "Cannot find Schema"
+        rainbow_schema = "Rainbow File"
 
         rainbow_tool = create_structured_rag_tool(rainbow_schema, llm_id=LLM_ID, kvstore_id=KV_STORE_ID)
         asyncio.run(run_langgraph_agent_shell(llm_id, tools=[rainbow_tool], mcp_server_names=mcp))

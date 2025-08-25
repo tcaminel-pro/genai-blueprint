@@ -4,13 +4,15 @@ This file contains scripts used to give instruction to a coding LLM.  Aider-chat
 ## Port of SmolAgentss GUI from Gradio to Streamlit
 
 ####
-/read-only https://raw.githubusercontent.com/huggingface/smolagents/refs/heads/main/src/smolagents/gradio_ui.py 
+/web https://raw.githubusercontent.com/huggingface/smolagents/refs/heads/main/src/smolagents/gradio_ui.py 
 ####
 smolagents_streamlit.py is a port of gradio_ui.py  (from the smolgents package) to StreamLit.
 Howerver, smolgents packages version has changed, and gradio_ui.py has changed accordingly. 
+There are npotablu issues in the display of code.
+
 I ask you to to report the changes in that files smolagents_streamlit.py.
 
-What already been done for the port:
+Note what already been done for the port:
     Use the 'to_raw' method to use AgentImage in st.image().
     Replace relative import by absolute import from smolagents.
     Add st.expander when displaying code.
