@@ -116,8 +116,7 @@ demos = [
 
 browser_control = [
     "playwright>=1.51.0",
-    # "browser-use==0.3.2", # Issue with 0.4  TODO
-    "browser-use>=0.3.2",
+    "browser-use>=0.3.2,<0.7.0",
     "helium>=5.1.0,<6",
 ]
 
@@ -128,9 +127,9 @@ autogen = [
     "autogen-ext[openai]>=0.4.3",
 ]
 transformers = [
-    "accelerate>=1.4.0",
-    "langchain-huggingface>=0.1.2",
-    "sentence-transformers>=3.4.1",
+    "accelerate>=1.4.0,<2.0.0",
+    "langchain-huggingface>=0.1.2,<0.2.0",
+    "sentence-transformers>=3.4.1,<4.0.0",
 ]
 dev = [
     "ruff>=0.9.1",
