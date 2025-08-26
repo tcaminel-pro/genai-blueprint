@@ -116,7 +116,7 @@ demos = [
 
 browser_control = [
     "playwright>=1.51.0",
-    "browser-use>=0.3.2,<0.7.0",
+    "browser-use>=0.3.2,<0.4.0",
     "helium>=5.1.0,<6",
 ]
 
@@ -130,6 +130,11 @@ transformers = [
     "accelerate>=1.4.0,<2.0.0",
     "langchain-huggingface>=0.1.2,<0.2.0",
     "sentence-transformers>=3.4.1,<4.0.0",
+]
+
+cognee = [
+    "cognee>=0.2.3",
+    "pydantic==2.10.5",
 ]
 dev = [
     "ruff>=0.9.1",
