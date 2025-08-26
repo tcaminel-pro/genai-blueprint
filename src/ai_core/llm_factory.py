@@ -53,7 +53,7 @@ from loguru import logger
 from pydantic import BaseModel, Field, computed_field, field_validator
 
 from src.ai_core.cache import LlmCache
-from src.ai_core.providers import PROVIDER_INFO, get_provider_api_key
+from src.ai_core.providers import PROVIDER_INFO, get_provider_api_env_var, get_provider_api_key
 from src.utils.config_mngr import global_config
 
 SEED = 42  # Arbitrary value....
@@ -335,7 +335,7 @@ class LlmFactory(BaseModel):
             joke = llm.invoke("Tell me a joke about AI")
             ```
         """
-        api_key_env_var = get_provider_api_key(self.info.provider)
+        api_key_env_var = get_provider_api_env_var(self.info.provider)
         if api_key_env_var not in os.environ and api_key_env_var != "":
             raise EnvironmentError(f"No known API key for : {self.llm_id}")
         llm = self.model_factory()
