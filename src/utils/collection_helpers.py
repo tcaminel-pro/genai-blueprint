@@ -41,7 +41,7 @@ def describe_container_type(obj: Any) -> str:
         value_types = {type(v).__name__ for v in obj.values()}
         
         key_type = next(iter(key_types)) if len(key_types) == 1 else "Union[" + ",".join(sorted(key_types)) + "]"
-        value_type = next(iter(value_types)) if len(value_types)) == 1 else "Union[" + ",".join(sorted(value_types)) + "]"
+        value_type = next(iter(value_types)) if len(value_types) == 1 else "Union[" + ",".join(sorted(value_types)) + "]"
         
         return f"{container_type}[{key_type}, {value_type}]"
     
