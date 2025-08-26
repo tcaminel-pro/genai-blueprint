@@ -47,14 +47,13 @@ ai = [
     "langchain-tavily>=0.2.10",
     "deepagents>=0.0.3",
     #"litellm==1.74.15",
-    "openai==1.99.9",   # issue with v100.1 and litelmm 
+    "openai>=1.80.0,<2.0.0",   # issue with v100.1 and litelmm 
     "litellm>=1.74",
     "chromadb>=1.0",
     "mistralai>=1.7.0",
     # "smolagents[toolkit, mcp, openai, litellm, docker]==1.17", # code display issue un streamlit with 1.19  TODO
     "smolagents[toolkit, mcp, openai, litellm, docker]>=1.17", # code display issue un streamlit with 1.19  TODO
     "mcp[cli]>=1.4.1",
-
 ]
 ui = [
     "uvicorn>=0.34.0",
@@ -116,7 +115,7 @@ demos = [
 
 browser_control = [
     "playwright>=1.51.0",
-    "browser-use>=0.3.2,<0.4.0",
+    "browser-use>=0.3.2,<0.3.4",
     "helium>=5.1.0,<6",
 ]
 
@@ -133,8 +132,8 @@ transformers = [
 ]
 
 cognee = [
-    "cognee>=0.2.3",
-    "pydantic==2.10.5",
+    "cognee>=0.2.3,<0.3.0",
+    "pydantic>=2.11.0,<3",
 ]
 dev = [
     "ruff>=0.9.1",
