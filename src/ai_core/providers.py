@@ -38,16 +38,12 @@ def get_provider_api_env_var(provider: str) -> str | None:
         provider: Name of the AI provider (e.g. "openai", "google")
 
     Returns:
-        The environment variable name if configured, None otherwise
+        The environment variable name if configured (can be empty string), None otherwise
 
-    Raises:
-        ValueError: If the provider is not found in PROVIDER_INFO
     """
     if provider not in PROVIDER_INFO:
         raise ValueError(f"Unknown provider: {provider}. Valid providers are: {list(PROVIDER_INFO.keys())}")
     env_var = PROVIDER_INFO[provider][1]
-    if env_var is None or env_var not in os.environ:
-        return None
     return env_var
 
 

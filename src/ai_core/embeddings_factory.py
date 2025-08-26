@@ -41,7 +41,7 @@ from pydantic import BaseModel, Field, computed_field, field_validator
 
 from src.ai_extra.kv_store_factory import KvStoreFactory
 from src.utils.config_mngr import global_config
-from src.ai_core.providers import get_provider_api_key
+from src.ai_core.providers import get_provider_api_env_var, get_provider_api_key
 
 _ = load_dotenv(verbose=True)
 
@@ -56,7 +56,7 @@ class EmbeddingsInfo(BaseModel):
         id: Unique identifier for the embeddings model
         provider: Name of the provider
         model: Provider-specific model name
-        key: Optional API key for accessing the model
+        api_key_env_var: Optional API key for accessing the model
         prefix: Optional prefix required by some models in API calls
         dimension: Dimension of the embeddings model
     """
@@ -64,29 +64,11 @@ class EmbeddingsInfo(BaseModel):
     id: str
     provider: str
     model: str
-    key: str | None = None
     prefix: str = ""
     dimension: int | None = None
 
     def __hash__(self) -> int:
         return hash(self.id)
-
-    def get_key(self) -> str:
-        """Retrieve the API key from environment variables.
-
-        Returns:
-            API key string or empty string if no key is required
-
-        Raises:
-            ValueError: If configured key is not found in environment
-        """
-        if self.key:
-            key = os.environ.get(self.key)
-            if key is None:
-                raise ValueError(f"No environment variable for {self.key} ")
-            return key
-        else:
-            return ""
 
 
 def _read_embeddings_list_file() -> list[EmbeddingsInfo]:
@@ -180,7 +162,12 @@ class EmbeddingsFactory(BaseModel):
         Returns:
             Dictionary mapping model IDs to their configurations
         """
-        return {item.id: item for item in EmbeddingsFactory.known_list() if item.key is None or item.key in os.environ}
+        return {
+            item.id: item
+            for item in EmbeddingsFactory.known_list()
+            if get_provider_api_env_var(item.provider) is not None
+            or get_provider_api_env_var(item.provider) in os.environ
+        }
 
     @staticmethod
     def known_items() -> list[str]:
@@ -193,7 +180,9 @@ class EmbeddingsFactory(BaseModel):
 
     def get(self) -> Embeddings:
         """Create an embeddings model instance."""
-        if self.info.key and self.info.key not in os.environ:
+        provider = self.info.provider
+        env_var = get_provider_api_env_var(provider)
+        if env_var is None or env_var not in os.environ:
             raise EnvironmentError(f"No known API key for : {self.info.id}")
         embeddings = self.model_factory()
         if self.cache_embeddings:

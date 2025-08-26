@@ -1,4 +1,4 @@
-from typing import Any, get_args, get_origin
+from typing import Any, get_args
 
 
 def describe_container_type(obj: Any) -> str:
@@ -30,7 +30,7 @@ def describe_container_type(obj: Any) -> str:
     if not obj:
         # Try to get generic type args if available
         if hasattr(obj, "__orig_class__"):
-            type_args = get_args(obj.__orig_class__)
+            type_args = get_args(obj.__orig_class__)  # pyright: ignore[reportAttributeAccessIssue]
             if type_args:
                 arg_str = ", ".join(arg.__name__ for arg in type_args)
                 return f"{container_type}[{arg_str}]"
