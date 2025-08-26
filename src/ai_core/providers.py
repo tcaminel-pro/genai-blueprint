@@ -30,6 +30,23 @@ PROVIDER_INFO = {
     "vllm": ("langchain_community.llms", ""),
 }
 
+# Add docs tring AI!
+def get_provider_api_env_var(provider: str) -> str | None:
+  """Get the environment variable name for a given AI provider's API key.                                  
+                                                                                                             
+    Args:                                                                                                    
+        provider: Name of the AI provider (e.g. "openai", "google")                                          
+                                                                                                             
+    Returns:                                                                                                 
+        The environment variable name if configured, None otherwise"""
+      
+    if provider not in PROVIDER_INFO:
+        raise ValueError(f"Unknown provider: {provider}. Valid providers are: {list(PROVIDER_INFO.keys())}")
+    env_var = PROVIDER_INFO[provider][1]
+    if env_var is None or env_var not in os.environ:
+        return None
+    return env_var
+
 
 def get_provider_api_key(provider: str) -> SecretStr | None:
     """Get the API key for a given AI provider.
@@ -40,23 +57,11 @@ def get_provider_api_key(provider: str) -> SecretStr | None:
     Returns:
         The API key as SecretStr if found, None otherwise
     """
-    if provider not in PROVIDER_INFO:
-        raise ValueError(f"Unknown provider: {provider}. Valid providers are: {list(PROVIDER_INFO.keys())}")
-    env_var = PROVIDER_INFO[provider][1]
-    return clean_api_key(env_var)
 
-
-def clean_api_key(env_var: str | None) -> SecretStr | None:
-    """Get and clean API key from environment variable.
-
-    Args:
-        env_var: Environment variable name to get the API key from
-
-    Returns:
-        Cleaned API key value wrapped in SecretStr or None if not found
-    """
-    if env_var is None or env_var not in os.environ:
-        return None
     # Strip any surrounding quotes and whitespace
-    r = os.environ[env_var].strip("\"' \t\n\r")
-    return SecretStr(r)
+    env_var = get_provider_api_env_var(provider)
+    if env_var:
+        r = os.environ[env_var].strip("\"' \t\n\r")
+        return SecretStr(r)
+    else:
+        return None
