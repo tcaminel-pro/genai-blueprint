@@ -124,3 +124,4 @@ data/generated
 .build/
 package_load_time.txt
 **/baml_client/*
+.cognee_system

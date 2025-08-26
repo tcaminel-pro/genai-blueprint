@@ -71,7 +71,7 @@ class LlmInfo(BaseModel):
         id: Unique identifier in format model_id_provider (e.g. gpt_35_openai)
         provider: name of the provider
         model: Model identifier used by the provider
-        key: API key environment variable name (computed from cls)
+        api_key: API key environment variable name (computed from cls)
         config: Additional configuration for the provider (for complex providers like vllm)
     """
 
@@ -82,7 +82,7 @@ class LlmInfo(BaseModel):
     llm_args: dict[str, Any] = {}
 
     @computed_field
-    def key(self) -> str:
+    def api_key(self) -> str:
         # return API key name
         return PROVIDER_INFO[self.provider][1]
 
@@ -340,7 +340,7 @@ class LlmFactory(BaseModel):
             joke = llm.invoke("Tell me a joke about AI")
             ```
         """
-        if self.info.key not in os.environ and self.info.key != "":
+        if self.info.api_key not in os.environ and self.info.api_key != "":
             raise EnvironmentError(f"No known API key for : {self.llm_id}")
         llm = self.model_factory()
         return llm
