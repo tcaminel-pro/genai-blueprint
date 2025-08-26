@@ -34,7 +34,7 @@ class CustomizedPresidioAnonymizer(BaseModel):
 
     company_names: List[str] = Field(default_factory=list)
     product_names: List[str] = Field(default_factory=list)
-    spacy_model: str = Field(default="en_core_web_sm")
+    spacy_model: str = Field(default="en_core_web_sm")  # use large one in production
 
     faker_seed: int | None = None
     _anonymizer: PresidioReversibleAnonymizer = PrivateAttr()
