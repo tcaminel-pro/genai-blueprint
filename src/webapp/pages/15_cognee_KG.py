@@ -2,11 +2,10 @@
 
 import asyncio
 from pathlib import Path
-from typing import Any, Dict, List, Sequence
+from typing import List, Sequence
 
 import cognee
 import streamlit as st
-import yaml
 from cognee.api.v1.search import SearchType
 from loguru import logger
 from pydantic import BaseModel
@@ -110,14 +109,16 @@ async def main():
         sss.selected_demo = None
 
     # Choose between file upload or demo
+    TEXT1 = "Upload Files"
+    TEXT2 = "Predefined demo"
     if not sss.processing_complete:
         option = st.radio(
             "Choose input method:",
-            ["Upload Files", "Use Demo"],
+            [TEXT1, TEXT2],
             horizontal=True,
             key="input_option",
         )
-        if option == "Upload Files":
+        if option == TEXT1:
             uploaded_files = st.file_uploader(
                 "Choose files:",
                 accept_multiple_files=True,
@@ -141,7 +142,7 @@ async def main():
                         st.rerun()
                     else:
                         st.error("❌ Failed to process files")
-        elif option == "Use Demo":
+        elif option == TEXT2:
             if cognee_demos:
                 demo_names = [demo.name for demo in cognee_demos]
                 selected_demo_name = st.selectbox("Select a demo:", demo_names, key="demo_select")
