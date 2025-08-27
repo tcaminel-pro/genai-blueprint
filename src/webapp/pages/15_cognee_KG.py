@@ -74,7 +74,7 @@ def load_demos_from_config() -> List[CogneeDemo]:
     """Load demo configurations from global config."""
     try:
         demos_config_path = "config/demos/cognee_kg.yaml"
-        config = global_config().merge_with(demos_config_path).get_dict()
+        config = global_config().merge_with(demos_config_path).get_dict("cognee-demo")
         demos = []
         for demo_name, demo_data in config.items():
             texts = demo_data.get("texts", [])
