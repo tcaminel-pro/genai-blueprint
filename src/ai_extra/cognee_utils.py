@@ -2,6 +2,7 @@
 
 # Disable LiteLLM async-logging early to prevent startup
 import os
+
 os.environ["LITELLM_DISABLE_LOGGING"] = "True"
 
 import asyncio
@@ -59,7 +60,6 @@ def set_cognee_config(llm_id: str | None = None, embeddings_id: str | None = "ad
     os.environ["STRUCTURED_OUTPUT_FRAMEWORK"] = "BAML"
 
     cognee.config.set_llm_config(config)
-
 
 
 async def test_config():
