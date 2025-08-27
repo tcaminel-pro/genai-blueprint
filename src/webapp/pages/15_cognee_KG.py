@@ -46,8 +46,10 @@ async def query_knowledge_graph(query: str, search_type: SearchType) -> list:
 async def display_graph_visualization():
     """Display the knowledge graph visualization."""
     try:
-        from cognee.api.v1.visualize.visualize import visualize_graph
         import base64
+
+        import streamlit.components.v1 as components
+        from cognee.api.v1.visualize.visualize import visualize_graph
 
         visu_html = await visualize_graph("/tmp")
 
@@ -59,13 +61,13 @@ async def display_graph_visualization():
         html_data_uri = f"data:text/html;base64,{b64_html}"
 
         # Display in an iframe for proper JavaScript execution
-        st.components.v1.iframe(html_data_uri, height=600, scrolling=True)
+        components.iframe(html_data_uri, height=600, scrolling=True)
 
     except Exception as e:
         st.error(f"Error displaying graph: {e}")
 
 
-def main():
+async def main():
     """Main Streamlit page for Cognee demonstration."""
     st.set_page_config(page_title="Cognee Demo", page_icon="🧠", layout="wide")
 
@@ -157,7 +159,7 @@ def main():
 
         with col2:
             st.header("📊 Knowledge Graph Visualization")
-            display_graph_visualization()
+            await display_graph_visualization()
 
 
 if __name__ == "__main__":
