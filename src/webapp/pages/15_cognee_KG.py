@@ -195,13 +195,6 @@ async def main():
                     "List main topics",
                 ]
 
-            query = st.text_area(
-                "Enter your query:",
-                placeholder="What insights can you find in these documents?",
-                height=100,
-                key="query_input",
-            )
-
             search_type = st.selectbox(
                 "Search Type:",
                 options=[
@@ -212,35 +205,52 @@ async def main():
                 format_func=lambda x: x[0],
                 key="search_type_select",
             )
+            query = st.text_area(
+                "Enter your query:",
+                placeholder="What insights can you find in these documents?",
+                height=100,
+                key="query_input",
+            )
 
             st.write("**Suggested queries:**")
             for q in suggested_queries:
                 if st.button(q, key=f"suggest_{q}"):
                     query = q
 
-            if st.button("Search", type="secondary"):
-                if query:
-                    with st.spinner("Searching knowledge graph..."):
-                        try:
-                            loop = asyncio.get_event_loop()
-                            if loop.is_running():
-                                results = await cognee.search(query_type=search_type[1], query_text=query)
-                            else:
+            col_query, col_button = st.columns([4, 1])
+            with col_query:
+                query = st.text_area(
+                    "Enter your query:",
+                    placeholder="What insights can you find in these documents?",
+                    height=100,
+                    key="query_input",
+                )
+            with col_button:
+                st.write("")  # Spacer
+                st.write("")  # Spacer
+                if st.button("➡️", key="search_button", type="secondary", help="Run search"):
+                    if query:
+                        with st.spinner("Searching knowledge graph..."):
+                            try:
+                                loop = asyncio.get_event_loop()
+                                if loop.is_running():
+                                    results = await cognee.search(query_type=search_type[1], query_text=query)
+                                else:
+                                    results = asyncio.run(cognee.search(query_type=search_type[1], query_text=query))
+                            except RuntimeError:
                                 results = asyncio.run(cognee.search(query_type=search_type[1], query_text=query))
-                        except RuntimeError:
-                            results = asyncio.run(cognee.search(query_type=search_type[1], query_text=query))
-                        if (
-                            isinstance(results, list)
-                            and results
-                            and isinstance(results[0], str)
-                            and "error" in results[0]
-                        ):
-                            st.error(f"Error: {results[0]}")
-                        else:
-                            st.success("Results found!")
-                            st.json(results)
-                else:
-                    st.warning("Please enter a query")
+                            if (
+                                isinstance(results, list)
+                                and results
+                                and isinstance(results[0], str)
+                                and "error" in results[0]
+                            ):
+                                st.error(f"Error: {results[0]}")
+                            else:
+                                st.success("Results found!")
+                                st.json(results)
+                    else:
+                        st.warning("Please enter a query")
 
         with col2:
             st.header("🕸️ Knowledge Graph Visualization")
