@@ -46,22 +46,24 @@ async def query_knowledge_graph(query: str, search_type: SearchType) -> list:
 async def display_graph_visualization():
     """Display the knowledge graph visualization."""
     try:
-        import base64
-
+        import tempfile
         import streamlit.components.v1 as components
         from cognee.api.v1.visualize.visualize import visualize_graph
 
-        visu_html = await visualize_graph("/tmp/cognee_demo.html")
-
+        # Use a safe temporary file path
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False) as tmp_file:
+            tmp_path = tmp_file.name
+            
+        visu_html = await visualize_graph(tmp_path)
+        
         # Read the HTML file
         html_content = Path(visu_html).read_text()
-
-        # Create a data URI for the HTML content
-        b64_html = base64.b64encode(html_content.encode()).decode()
-        html_data_uri = f"data:text/html;base64,{b64_html}"
-
-        # Display in an iframe for proper JavaScript execution
-        components.iframe(html_data_uri, height=600, scrolling=True)
+        
+        # Use components.html instead of iframe to avoid file path issues
+        components.html(html_content, height=600, scrolling=True)
+        
+        # Clean up temp file
+        Path(tmp_path).unlink(missing_ok=True)
 
     except Exception as e:
         st.error(f"Error displaying graph: {e}")
