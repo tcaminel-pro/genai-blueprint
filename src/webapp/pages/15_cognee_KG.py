@@ -205,13 +205,6 @@ async def main():
                 format_func=lambda x: x[0],
                 key="search_type_select",
             )
-            query = st.text_area(
-                "Enter your query:",
-                placeholder="What insights can you find in these documents?",
-                height=100,
-                key="query_input",
-            )
-
             st.write("**Suggested queries:**")
             for q in suggested_queries:
                 if st.button(q, key=f"suggest_{q}"):
