@@ -62,12 +62,15 @@ def set_cognee_config(llm_id: str | None = None, embeddings_id: str | None = "ad
 
 
 async def test_config():
-    # Test with simple data
-    await cognee.add("AI powers Cognee's intelligence.")
-    await cognee.cognify()
+    try:
+        # Test with simple data
+        await cognee.add("AI powers Cognee's intelligence.")
+        await cognee.cognify()
 
-    result = await cognee.search("What powers Cognee?")
-    print(result[0])
+        result = await cognee.search("What powers Cognee?")
+        print(result[0])
+    except Exception as e:
+        logger.exception("test_config failed: {}", e)
 
 
 def print_config():
