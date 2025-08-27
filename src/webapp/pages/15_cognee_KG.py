@@ -148,8 +148,9 @@ async def main():
                 selected_demo = next(d for d in cognee_demos if d.name == selected_demo_name)
 
                 st.write("**Demo texts:**")
-                for idx, text in enumerate(selected_demo.texts, 1):
-                    with st.expander(f"Text {idx}"):
+                tabs = st.tabs([f"Text {idx}" for idx in range(1, len(selected_demo.texts) + 1)])
+                for idx, text in enumerate(selected_demo.texts):
+                    with tabs[idx]:
                         st.text_area("", value=text, height=150, key=f"demo_text_{idx}", disabled=True)
 
                 if st.button("🚀 Cognify Demo !", type="primary"):
