@@ -5,18 +5,18 @@ description = ""
 authors = [{ name = "Thierry Caminel", email = "thierry.caminel@eviden.com" }]
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "pydantic>=2.7.0,<3",
-    "devtools>=0.12.2",
-    "loguru>=0.7.3",
-    "typer>=0.13.0",
-    "omegaconf>=2.3.0",
-    "fastapi[standard]>=0.115.6",
-    "rich[jupyter]>=13.9.4",
-    "universal-pathlib>=0.2.6",
-    "pip>=25.1.1",
-    #    "modal>=1.0.5",
-    "python-dotenv>=1.1.1",
-    "beartype>=0.21.0",
+    "pydantic>=2.7.0,<3",  # Data validation framework
+    "devtools>=0.12.2",  # Development utilities
+    "loguru>=0.7.3",  # Logging library
+    "typer>=0.13.0",  # CLI framework
+    "omegaconf>=2.3.0",  # Configuration management
+    "fastapi[standard]>=0.115.6",  # Web framework
+    "rich[jupyter]>=13.9.4",  # Terminal formatting
+    "universal-pathlib>=0.2.6",  # Cross-platform paths
+    "pip>=25.1.1",  # Package installer
+    #    "modal>=1.0.5",  # Serverless cloud platform
+    "python-dotenv>=1.1.1",  # Environment variables
+    "beartype>=0.21.0",  # Runtime type checking
 ]
 
 [project.urls]
@@ -29,116 +29,116 @@ include = ["python"]
 
 [dependency-groups]
 ai = [
-    "langchain>=0.3",
-    "langchain-core>=0.3",
-    "langchain-community>=0.3",
-    "langchain-experimental>=0.3",
-    "langgraph>=0.5",
-    "langserve>=0.3",
-    "langchainhub>=0.1",
-    "langchain-openai>=0.3",
-    "langchain-ollama>=0.2",
-    "langchain-deepseek>=0.1.2",
-    "langchain-mistralai>=0.2.10",
-    "langchain-mcp-adapters>=0.0.5",
-    "langchain-groq>=0.2",
-    "langchain-chroma>=0.2",
-    "langchain-tavily>=0.2.10",
-    "deepagents>=0.0.3",
-    "openai>=1.80.0",
-    "litellm==1.74",                                           # !!! Change later when issue solved
-    "chromadb>=1.0",
-    "mistralai>=1.7.0",
-    "smolagents[toolkit, mcp, openai, litellm, docker]>=1.17",
-    "mcp[cli]>=1.4.1",
+    "langchain>=0.3",  # LLM framework
+    "langchain-core>=0.3",  # Core LangChain components
+    "langchain-community>=0.3",  # Community integrations
+    "langchain-experimental>=0.3",  # Experimental features
+    "langgraph>=0.5",  # Graph-based LLM workflows
+    "langserve>=0.3",  # LangChain serving
+    "langchainhub>=0.1",  # Prompt hub
+    "langchain-openai>=0.3",  # OpenAI integration
+    "langchain-ollama>=0.2",  # Ollama integration
+    "langchain-deepseek>=0.1.2",  # DeepSeek integration
+    "langchain-mistralai>=0.2.10",  # Mistral AI integration
+    "langchain-mcp-adapters>=0.0.5",  # MCP protocol adapters
+    "langchain-groq>=0.2",  # Groq integration
+    "langchain-chroma>=0.2",  # Chroma vector store
+    "langchain-tavily>=0.2.10",  # Tavily search integration
+    "deepagents>=0.0.3",  # Deep learning agents
+    "openai>=1.80.0",  # OpenAI API client
+    "litellm==1.74",  # LLM API abstraction
+    "chromadb>=1.0",  # Vector database
+    "mistralai>=1.7.0",  # Mistral AI client
+    "smolagents[toolkit, mcp, openai, litellm, docker]>=1.17",  # Lightweight agents
+    "mcp[cli]>=1.4.1",  # Model Context Protocol
 ]
 ui = [
-    "uvicorn>=0.34.0",
-    "sse-starlette>=2.1.0",
-    "streamlit>=1.40",
-    "streamlit-monaco>=0.1.3",
-    "st-annotated-text>=4.0.2",
-    #"gradio>=5.30.0",
+    "uvicorn>=0.34.0",  # ASGI server
+    "sse-starlette>=2.1.0",  # Server-sent events
+    "streamlit>=1.40",  # Web app framework
+    "streamlit-monaco>=0.1.3",  # Code editor component
+    "st-annotated-text>=4.0.2",  # Text annotation component
+    #"gradio>=5.30.0",  # ML web interface
 ]
 ai_extra = [
-    "gpt-researcher>=0.13",
-    "unidecode>=1.3.8",
-    "tavily-python>=0.3.3",
-    "duckduckgo-search>=6.1.6",
-    "openpyxl>=3.1.5",
-    "st-cytoscape>=0.0.5",
-    "ipycytoscape>=1.3.3",
-    "fuzzysearch>=0.8.0",
-    "markpickle>=1.6.1", # 
+    "gpt-researcher>=0.13",  # AI research assistant
+    "unidecode>=1.3.8",  # Unicode text processing
+    "tavily-python>=0.3.3",  # LLM optimized search engine
+    "duckduckgo-search>=6.1.6",  # DuckDuckGo search API
+    "openpyxl>=3.1.5",  # Excel file handling
+    "st-cytoscape>=0.0.5",  # Streamlit graph visualization
+    "ipycytoscape>=1.3.3",  # Jupyter graph visualization
+    "fuzzysearch>=0.8.0",  # Fuzzy string matching
+    "markpickle>=1.6.1",  # Markdown serialization
 ]
-kg = [ # dependencies for Knowled Graphs
-    "baml-cli>=0.1.0",
-    "cognee>=0.2.3",
-    "langchain-kuzu>=0.3.0",
-    "kuzu>=0.7.1",
-    "langchain-cognee>=0.1.1",
+kg = [ # dependencies for Knowledge Graphs
+    "baml-cli>=0.1.0",  # Graph modeling CLI
+    "cognee>=0.2.3",  # Knowledge graph engine
+    "langchain-kuzu>=0.3.0",  # Kuzu graph database integration
+    "kuzu>=0.7.1",  # Graph database
+    "langchain-cognee>=0.1.1",  # Cognee graph integration
 ]
 
 postgres = [
-    "langchain-postgres>=0.0.15",
-    "psycopg[binary]>=3.2.9",
-    "psycopg2-binary>=2.9.10",
+    "langchain-postgres>=0.0.15",  # PostgreSQL integration for LangChain
+    "psycopg[binary]>=3.2.9",  # PostgreSQL adapter v3
+    "psycopg2-binary>=2.9.10",  # PostgreSQL adapter v2
 ]
 
-nlp = [ # dependencies faroud Natural Langage Processing & Search
-    "spacy>=3.7.4",
-    "rank-bm25>=0.2.2",
-    "bm25s>=0.2.13",
-    # "enchant>=0.0.1",
-    "en-core-web-sm @https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl",
-    #"en-core-web-lg @https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.8.0/en_core_web_lg-3.8.0-py3-none-any.whl",
-    "abbreviations>=0.2.5",
+nlp = [ # dependencies for Natural Language Processing & Search
+    "spacy>=3.7.4",  # NLP library
+    "rank-bm25>=0.2.2",  # BM25 ranking algorithm
+    "bm25s>=0.2.13",  # Fast BM25 implementation
+    # "enchant>=0.0.1",  # Spell checking
+    "en-core-web-sm @https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl",  # Small English model
+    #"en-core-web-lg @https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.8.0/en_core_web_lg-3.8.0-py3-none-any.whl",  # Large English model
+    "abbreviations>=0.2.5",  # Text abbreviation handling
 ]
 demos = [
-    "bs4>=0.0.2",
-    "lark>=1.1.9,<2",
-    "plotly>=5.22.0",
-    "presidio-analyzer>=2.2.0",
-    "presidio-anonymizer>=2.2.0",
-    "Faker>=25.0.0",
-    "yfinance>=0.2.38",
-    "matplotlib>=3.9.0,<4",
-    "sqlalchemy>=2.0.29",
-    "pypdf>=5.1.0,<6",
-    #    "giskard>=2.15.5",
-    #   "ollama-ocr>=0.1.3,<0.2",
-    "scikit-learn>=1.6.1",
-    # "streamlit-folium>=0.24.1",
-    #    "streamlit-extras>=0.6.0",
-    "wordcloud>=1.9.4",
-    "md2pdf>=1.0.1",
-    #"vizro>=0.1.40",
+    "bs4>=0.0.2",  # HTML/XML parsing
+    "lark>=1.1.9,<2",  # Parsing toolkit
+    "plotly>=5.22.0",  # Interactive charts
+    "presidio-analyzer>=2.2.0",  # PII detection
+    "presidio-anonymizer>=2.2.0",  # PII anonymization
+    "Faker>=25.0.0",  # Fake data generation
+    "yfinance>=0.2.38",  # Yahoo Finance API
+    "matplotlib>=3.9.0,<4",  # Plotting library
+    "sqlalchemy>=2.0.29",  # SQL toolkit
+    "pypdf>=5.1.0,<6",  # PDF processing
+    #    "giskard>=2.15.5",  # ML testing framework
+    #   "ollama-ocr>=0.1.3,<0.2",  # OCR for Ollama
+    "scikit-learn>=1.6.1",  # ML algorithms
+    # "streamlit-folium>=0.24.1",  # Streamlit maps
+    #    "streamlit-extras>=0.6.0",  # Streamlit utilities
+    "wordcloud>=1.9.4",  # Word cloud generation
+    "md2pdf>=1.0.1",  # Markdown to PDF
+    #"vizro>=0.1.40",  # Dashboard framework
 ]
 
 browser_control = [
-    "playwright>=1.51.0",
-    #   "browser-use>=0.4.4",
-    "helium>=5.1.0,<6",
+    "playwright>=1.51.0",  # Browser automation
+    #   "browser-use>=0.4.4",  # AI browser control
+    "helium>=5.1.0,<6",  # Web automation wrapper
 ]
 
 
 autogen = [
-    "autogen-openaiext-client>=0.0.3",
-    "autogen-agentchat>=0.4.3",
-    "autogen-ext[openai]>=0.4.3",
+    "autogen-openaiext-client>=0.0.3",  # OpenAI extension client
+    "autogen-agentchat>=0.4.3",  # Multi-agent chat framework
+    "autogen-ext[openai]>=0.4.3",  # AutoGen OpenAI extensions
 ]
 transformers = [
-    "accelerate>=1.4.0,<2.0.0",
-    "langchain-huggingface>=0.1.2,<0.2.0",
-    "sentence-transformers>=3.4.1,<4.0.0",
+    "accelerate>=1.4.0,<2.0.0",  # Model acceleration
+    "langchain-huggingface>=0.1.2,<0.2.0",  # Hugging Face integration
+    "sentence-transformers>=3.4.1,<4.0.0",  # Sentence embeddings
 ]
 
 dev = [
-    "ruff>=0.9.1",
-    "pytest>=8.1.1",
-    "ipykernel>=6.29.4",
-    "ipywidgets>=8.1.2",
-    "grandalf>=0.8",
+    "ruff>=0.9.1",  # Python linter
+    "pytest>=8.1.1",  # Testing framework
+    "ipykernel>=6.29.4",  # Jupyter kernel
+    "ipywidgets>=8.1.2",  # Jupyter widgets
+    "grandalf>=0.8",  # Graph layout algorithms
 ]
 
 [tool.uv]
