@@ -4,6 +4,9 @@ import asyncio
 import os
 from pathlib import Path
 
+# Disable LiteLLM async-logging to suppress CancelledError on exit
+os.environ["LITELLM_DISABLE_LOGGING"] = "True"
+
 import cognee
 from devtools import debug  # noqa: F401
 from dotenv import load_dotenv
