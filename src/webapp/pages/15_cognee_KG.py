@@ -2,7 +2,7 @@
 
 import asyncio
 from pathlib import Path
-from typing import List
+from typing import Sequence
 
 import cognee
 import streamlit as st
@@ -17,7 +17,7 @@ setup_logging()
 logger = logger
 
 
-async def process_files(uploaded_files: List[Path]) -> bool:
+async def process_files(uploaded_files: Sequence[Path]) -> bool:
     """Process uploaded files through cognee pipeline."""
     if not uploaded_files:
         return False
@@ -51,7 +51,7 @@ async def display_graph_visualization():
         import streamlit.components.v1 as components
         from cognee.api.v1.visualize.visualize import visualize_graph
 
-        visu_html = await visualize_graph("/tmp")
+        visu_html = await visualize_graph("/tmp/cognee_demo.html")
 
         # Read the HTML file
         html_content = Path(visu_html).read_text()
