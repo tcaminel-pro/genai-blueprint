@@ -51,7 +51,7 @@ async def display_graph_visualization():
 
         # Get the HTML content directly
         html_content = await visualize_graph(None)
-        
+
         # Use components.html to render the HTML with JavaScript
         components.html(html_content, height=600, scrolling=True)
 
