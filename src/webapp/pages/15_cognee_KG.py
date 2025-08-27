@@ -93,46 +93,57 @@ def main():
         sss.processing_complete = False
     if "graph_generated" not in sss:
         sss.graph_generated = False
+    if "show_upload_popup" not in sss:
+        sss.show_upload_popup = False
 
-    # Sidebar for graph visualization
-    # with st.sidebar:
-    #     st.header("Knowledge Graph")
+    # Show upload popup if not processed yet
+    if not sss.processing_complete and not sss.show_upload_popup:
+        if st.button("📁 Select Files to Upload and Process", type="primary", use_container_width=True):
+            sss.show_upload_popup = True
+            st.rerun()
 
-    #     if sss.graph_generated:
-    #         display_graph_visualization()
-    #     else:
-    #         st.info("Upload and process files to see the knowledge graph")
+    # Handle file upload popup
+    if sss.show_upload_popup and not sss.processing_complete:
+        with st.popover("📁 Upload and Process Files", use_container_width=True):
+            st.header("📁 File Upload")
+            
+            uploaded_files = st.file_uploader(
+                "Choose files to process", 
+                accept_multiple_files=True, 
+                type=["txt", "pdf", "docx", "md", "json"],
+                key="file_uploader_popup"
+            )
 
-    # Main content area
-    col1, col2 = st.columns([1, 1])
+            if uploaded_files:
+                st.info(f"Uploaded {len(uploaded_files)} file(s)")
 
-    with col1:
-        st.header("📁 File Upload")
+                if st.button("🚀 Start Cognify Pipeline", type="primary"):
+                    with st.spinner("Processing files through cognee pipeline..."):
+                        success = asyncio.run(process_files(uploaded_files))
 
-        uploaded_files = st.file_uploader(
-            "Choose files to process", accept_multiple_files=True, type=["txt", "pdf", "docx", "md", "json"]
-        )
+                        if success:
+                            sss.processing_complete = True
+                            sss.graph_generated = True
+                            sss.show_upload_popup = False
+                            st.success("✅ Knowledge graph generated successfully!")
+                            st.rerun()
+                        else:
+                            st.error("❌ Failed to process files")
 
-        if uploaded_files:
-            st.info(f"Uploaded {len(uploaded_files)} file(s)")
+    # Show two-column layout after processing
+    if sss.processing_complete:
+        st.success("✅ Knowledge graph generated! You can now query and explore the data.")
+        
+        col1, col2 = st.columns([1, 1])
 
-            if st.button("🚀 Start Cognify Pipeline", type="primary"):
-                with st.spinner("Processing files through cognee pipeline..."):
-                    success = asyncio.run(process_files(uploaded_files))
-
-                    if success:
-                        sss.processing_complete = True
-                        sss.graph_generated = True
-                        st.success("✅ Knowledge graph generated successfully!")
-                    else:
-                        st.error("❌ Failed to process files")
-
-    with col2:
-        st.header("🔍 Query Knowledge Graph")
-
-        if sss.processing_complete:
+        with col1:
+            st.header("🔍 Query Knowledge Graph")
+            
             query = st.text_area(
-                "Enter your query:", placeholder="What insights can you find in these documents?", height=100
+                "Enter your query:", 
+                placeholder="What insights can you find in these documents?", 
+                height=100,
+                key="query_input"
             )
 
             search_type = st.selectbox(
@@ -143,6 +154,7 @@ def main():
                     ("RAG Completion", SearchType.RAG_COMPLETION),
                 ],
                 format_func=lambda x: x[0],
+                key="search_type_select"
             )
 
             if st.button("Search", type="secondary"):
@@ -154,13 +166,13 @@ def main():
                             st.error(f"Error: {results['error']}")
                         else:
                             st.success("Results found!")
-
-                            # Display results
                             st.json(results)
                 else:
                     st.warning("Please enter a query")
-        else:
-            st.info("Process files first to enable querying")
+
+        with col2:
+            st.header("📊 Knowledge Graph Visualization")
+            display_graph_visualization()
 
 
 if __name__ == "__main__":
