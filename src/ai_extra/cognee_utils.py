@@ -4,9 +4,6 @@ import asyncio
 import os
 from pathlib import Path
 
-# Disable LiteLLM async-logging to suppress CancelledError on exit
-os.environ["LITELLM_DISABLE_LOGGING"] = "True"
-
 import cognee
 from devtools import debug  # noqa: F401
 from dotenv import load_dotenv
@@ -60,6 +57,9 @@ def set_cognee_config(llm_id: str | None = None, embeddings_id: str | None = "ad
 
     cognee.config.set_llm_config(config)
 
+    # Disable LiteLLM async-logging to suppress CancelledError on exit
+    os.environ["LITELLM_DISABLE_LOGGING"] = "True"
+
 
 async def test_config():
     # Test with simple data
@@ -85,6 +85,8 @@ def print_config():
     print(get_embedding_config().to_dict())
 
 
+os.environ["LITELLM_DISABLE_LOGGING"] = "True"
+
 if __name__ == "__main__":
     cognee_directory_path = str(Path(".cognee_system").resolve())
     cognee.config.system_root_directory(cognee_directory_path)
@@ -99,6 +101,7 @@ if __name__ == "__main__":
 
     set_cognee_config(llm_id=LLM_ID, embeddings_id=EMBEDDINGS_ID)
 
-    print_config()
-
-    asyncio.run(test_config())
+    try:
+        asyncio.run(test_config())
+    except asyncio.exceptions.CancelledError:
+        logger.warning("CancelledError error")
