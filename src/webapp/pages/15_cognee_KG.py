@@ -51,17 +51,17 @@ async def display_graph_visualization():
         from cognee.api.v1.visualize.visualize import visualize_graph
 
         # Use a safe temporary file path
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".html", delete=False) as tmp_file:
             tmp_path = tmp_file.name
-            
+
         visu_html = await visualize_graph(tmp_path)
-        
+
         # Read the HTML file
         html_content = Path(visu_html).read_text()
-        
+
         # Use components.html instead of iframe to avoid file path issues
         components.html(html_content, height=600, scrolling=True)
-        
+
         # Clean up temp file
         Path(tmp_path).unlink(missing_ok=True)
 
