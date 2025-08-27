@@ -106,12 +106,12 @@ def main():
     if sss.show_upload_popup and not sss.processing_complete:
         with st.popover("📁 Upload and Process Files", use_container_width=True):
             st.header("📁 File Upload")
-            
+
             uploaded_files = st.file_uploader(
-                "Choose files to process", 
-                accept_multiple_files=True, 
+                "Choose files to process",
+                accept_multiple_files=True,
                 type=["txt", "pdf", "docx", "md", "json"],
-                key="file_uploader_popup"
+                key="file_uploader_popup",
             )
 
             if uploaded_files:
@@ -133,17 +133,17 @@ def main():
     # Show two-column layout after processing
     if sss.processing_complete:
         st.success("✅ Knowledge graph generated! You can now query and explore the data.")
-        
+
         col1, col2 = st.columns([1, 1])
 
         with col1:
             st.header("🔍 Query Knowledge Graph")
-            
+
             query = st.text_area(
-                "Enter your query:", 
-                placeholder="What insights can you find in these documents?", 
+                "Enter your query:",
+                placeholder="What insights can you find in these documents?",
                 height=100,
-                key="query_input"
+                key="query_input",
             )
 
             search_type = st.selectbox(
@@ -154,7 +154,7 @@ def main():
                     ("RAG Completion", SearchType.RAG_COMPLETION),
                 ],
                 format_func=lambda x: x[0],
-                key="search_type_select"
+                key="search_type_select",
             )
 
             if st.button("Search", type="secondary"):
