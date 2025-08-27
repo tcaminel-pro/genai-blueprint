@@ -168,7 +168,7 @@ async def main():
                     st.warning("Please enter a query")
 
         with col2:
-            st.header("📈 Knowledge Graph Visualization")
+            st.header("🕸️ Knowledge Graph Visualization")
             await display_graph_visualization()
 
 
