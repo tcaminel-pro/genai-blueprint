@@ -47,6 +47,7 @@ async def display_graph_visualization():
     """Display the knowledge graph visualization."""
     try:
         import tempfile
+
         import streamlit.components.v1 as components
         from cognee.api.v1.visualize.visualize import visualize_graph
 
