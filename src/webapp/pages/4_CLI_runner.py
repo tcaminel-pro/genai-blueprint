@@ -12,7 +12,7 @@ import streamlit as st
 from loguru import logger
 from typer.testing import CliRunner
 
-from src.main.cli import cli_app, define_other_commands
+from src.main.cli import cli_app
 from src.utils.config_mngr import global_config, import_from_qualified
 
 
@@ -34,7 +34,6 @@ def get_cli_runner() -> CliRunner:
         except Exception as ex:
             logger.exception(f"Cannot load module {module}: {ex}")
 
-    define_other_commands(cli_app)
     return runner
 
 

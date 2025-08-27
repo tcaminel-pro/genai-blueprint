@@ -14,6 +14,12 @@ cli_commands:
   
   - name: "Run a joke chain"
     command: run joke --input "bears" 
+  
+  - name: List available models
+    command: list-models 
+
+  - name: print configuration
+    command: config-info  
 
   # - name: List MCP server tools
   #   command: list-mcp-tools --filter filesystem
@@ -27,8 +33,7 @@ cli_commands:
   # - name: CodeAct Agent with internet
   #   command: smolagents "How many seconds would it take for a leopard at full speed to run through Pont des Arts?" -t web_search 
 
-  - name: List available models
-    command: list-models 
+
 
   # - name: Fabric pattern
   #   command: fabric --pattern "create_aphorisms" 

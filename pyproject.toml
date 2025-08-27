@@ -45,8 +45,8 @@ ai = [
     "langchain-chroma>=0.2",
     "langchain-tavily>=0.2.10",
     "deepagents>=0.0.3",
-    "openai>=1.80.0",                                          # issue with v100.1 and litelmm 
-    "litellm>=1.74",
+    "openai>=1.80.0",
+    "litellm==1.74",                                           # !!! Change later when issue solved
     "chromadb>=1.0",
     "mistralai>=1.7.0",
     "smolagents[toolkit, mcp, openai, litellm, docker]>=1.17",
@@ -56,8 +56,8 @@ ui = [
     "uvicorn>=0.34.0",
     "sse-starlette>=2.1.0",
     "streamlit>=1.40",
-    #    "streamlit-monaco>=0.1.3",
-    #   "st-annotated-text>=4.0.2",
+    "streamlit-monaco>=0.1.3",
+    "st-annotated-text>=4.0.2",
     #"gradio>=5.30.0",
 ]
 ai_extra = [
@@ -92,6 +92,7 @@ nlp = [
     # "enchant>=0.0.1",
     "en-core-web-sm @https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl",
     #"en-core-web-lg @https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.8.0/en_core_web_lg-3.8.0-py3-none-any.whl",
+    "abbreviations>=0.2.5",
 ]
 demos = [
     "bs4>=0.0.2",
