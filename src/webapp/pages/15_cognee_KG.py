@@ -47,9 +47,19 @@ async def display_graph_visualization():
     """Display the knowledge graph visualization."""
     try:
         from cognee.api.v1.visualize.visualize import visualize_graph
+        import base64
 
         visu_html = await visualize_graph("/tmp")
-        st.html(Path(visu_html))
+        
+        # Read the HTML file
+        html_content = Path(visu_html).read_text()
+        
+        # Create a data URI for the HTML content
+        b64_html = base64.b64encode(html_content.encode()).decode()
+        html_data_uri = f"data:text/html;base64,{b64_html}"
+        
+        # Display in an iframe for proper JavaScript execution
+        st.components.v1.iframe(html_data_uri, height=600, scrolling=True)
 
     except Exception as e:
         st.error(f"Error displaying graph: {e}")
