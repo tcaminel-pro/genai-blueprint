@@ -3,7 +3,6 @@
 # Disable LiteLLM async-logging early to prevent startup
 import asyncio
 import os
-from pathlib import Path
 
 import cognee
 from devtools import debug  # noqa: F401
@@ -12,18 +11,23 @@ from loguru import logger
 
 from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.ai_core.providers import get_provider_api_key
+from src.utils.config_mngr import global_config
 
 load_dotenv()
 
 
 def set_cognee_config(llm_id: str | None = None, embeddings_id: str | None = "ada_002_openai") -> None:
+    conf = global_config().merge_with("config/components/cognee.yaml")
+    cognee_directory_path = conf.get_dir_path("cognee.default.cognee_system_dir")
+    cognee.config.system_root_directory(str(cognee_directory_path.resolve()))
+
     """Generate Cognee LLM configuration from LLM factory information."""
 
     from src.ai_core.llm_factory import LlmFactory
 
     llm_factory = LlmFactory(llm_id=llm_id)
     llm_info = llm_factory.info
-    lc_llm = llm_factory.get()
+    # lc_llm = llm_factory.get()
 
     config = {}
 
@@ -60,14 +64,6 @@ def set_cognee_config(llm_id: str | None = None, embeddings_id: str | None = "ad
     os.environ["LITELLM_DISABLE_LOGGING"] = "True"  # seels useless to avoid error
 
 
-async def test_config():
-    await cognee.add("AI powers Cognee's intelligence.")
-    await cognee.cognify()
-
-    result = await cognee.search("What powers Cognee?")
-    print(result[0])
-
-
 def print_config():
     from cognee.infrastructure.databases.graph.config import get_graph_config
     from cognee.infrastructure.databases.relational import get_relational_config
@@ -83,9 +79,16 @@ def print_config():
     print(get_embedding_config().to_dict())
 
 
+async def test_config():
+    await cognee.add("AI powers Cognee's intelligence.")
+    await cognee.cognify()
+
+    result = await cognee.search("What powers Cognee?")
+    print(f"answser: {result[0]}")
+
+
 if __name__ == "__main__":
-    cognee_directory_path = str(Path(".cognee_system").resolve())
-    cognee.config.system_root_directory(cognee_directory_path)
+    from cognee.shared.logging_utils import ERROR, get_logger
 
     # Configure LLM
 
@@ -96,8 +99,11 @@ if __name__ == "__main__":
     #    EMBEDDINGS_ID = None
 
     set_cognee_config(llm_id=LLM_ID, embeddings_id=EMBEDDINGS_ID)
+    logger = get_logger(level=ERROR)
 
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     try:
-        asyncio.run(test_config())
-    except asyncio.exceptions.CancelledError:  # does not work
-        logger.warning("CancelledError error")
+        loop.run_until_complete(test_config())
+    finally:
+        loop.run_until_complete(loop.shutdown_asyncgens())

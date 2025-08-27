@@ -1,0 +1,7 @@
+cognee:
+ available_configs: ["default"]
+ 
+ default:
+   cognee_system_dir: ${paths.project}/.cognee_system
+  
+

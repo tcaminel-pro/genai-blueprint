@@ -1,57 +1,25 @@
 """Cognee demonstration page with file upload and knowledge graph processing."""
 
-import os
 import asyncio
+import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import streamlit as st
+from cognee.api.v1.search import SearchType
 from loguru import logger
+from streamlit import session_state as sss
 
-try:
-    import cognee
-    from cognee import cognify
-    from cognee.api.v1.search import SearchType
-    from cognee.api.v1.search.graph_search import graph_search
-    from cognee.api.v1.search.rag_search import rag_search
-    from cognee.modules.graph.visualisation import display_graph
-    from cognee.shared.data_models import GraphDBType
-    from cognee.base_config import get_base_config
-
-    COGNEE_AVAILABLE = True
-except ImportError:
-    COGNEE_AVAILABLE = False
-    cognee = None
-    SearchType = None
-    display_graph = None
-
+from src.ai_extra.cognee_utils import set_cognee_config
 from utils.logger_factory import setup_logging
 
 setup_logging()
 logger = logger
 
 
-def initialize_cognee():
-    """Initialize cognee with appropriate configuration."""
-    if not COGNEE_AVAILABLE:
-        return False
-
-    try:
-        # Set up cognee configuration
-        base_config = get_base_config()
-        base_config.graph_db_url = os.getenv("GRAPH_DB_URL", "bolt://localhost:7687")
-        base_config.graph_db_username = os.getenv("GRAPH_DB_USERNAME", "neo4j")
-        base_config.graph_db_password = os.getenv("GRAPH_DB_PASSWORD", "password")
-
-        return True
-    except Exception as e:
-        logger.error(f"Failed to initialize cognee: {e}")
-        return False
-
-
 async def process_files(uploaded_files: List[Any]) -> bool:
     """Process uploaded files through cognee pipeline."""
-    if not uploaded_files or not COGNEE_AVAILABLE:
+    if not uploaded_files:
         return False
 
     try:
@@ -67,7 +35,7 @@ async def process_files(uploaded_files: List[Any]) -> bool:
             file_paths.append(str(file_path))
 
         # Run cognify pipeline
-        await cognify(file_paths)
+        # await cognify(file_paths)
 
         # Clean up temporary files
         for file_path in file_paths:
@@ -116,32 +84,23 @@ def main():
     st.title("🧠 Cognee Knowledge Graph Demo")
     st.markdown("Upload documents and explore knowledge graph insights")
 
-    if not COGNEE_AVAILABLE:
-        st.error("""
-        Cognee is not installed or available. 
-        Please install with: `pip install cognee`
-        """)
-        return
-
     # Initialize cognee
-    if not initialize_cognee():
-        st.error("Failed to initialize cognee configuration")
-        return
+    set_cognee_config()
 
     # Initialize session state
-    if "processing_complete" not in st.session_state:
-        st.session_state.processing_complete = False
-    if "graph_generated" not in st.session_state:
-        st.session_state.graph_generated = False
+    if "processing_complete" not in sss:
+        sss.processing_complete = False
+    if "graph_generated" not in sss:
+        sss.graph_generated = False
 
     # Sidebar for graph visualization
-    with st.sidebar:
-        st.header("Knowledge Graph")
+    # with st.sidebar:
+    #     st.header("Knowledge Graph")
 
-        if st.session_state.graph_generated:
-            display_graph_visualization()
-        else:
-            st.info("Upload and process files to see the knowledge graph")
+    #     if sss.graph_generated:
+    #         display_graph_visualization()
+    #     else:
+    #         st.info("Upload and process files to see the knowledge graph")
 
     # Main content area
     col1, col2 = st.columns([1, 1])
@@ -161,8 +120,8 @@ def main():
                     success = asyncio.run(process_files(uploaded_files))
 
                     if success:
-                        st.session_state.processing_complete = True
-                        st.session_state.graph_generated = True
+                        sss.processing_complete = True
+                        sss.graph_generated = True
                         st.success("✅ Knowledge graph generated successfully!")
                     else:
                         st.error("❌ Failed to process files")
@@ -170,7 +129,7 @@ def main():
     with col2:
         st.header("🔍 Query Knowledge Graph")
 
-        if st.session_state.processing_complete:
+        if sss.processing_complete:
             query = st.text_area(
                 "Enter your query:", placeholder="What insights can you find in these documents?", height=100
             )
