@@ -1,7 +1,10 @@
 """Utility module for configuring Cognee with LLM information from the factory."""
 
-import asyncio
+# Disable LiteLLM async-logging early to prevent startup
 import os
+os.environ["LITELLM_DISABLE_LOGGING"] = "True"
+
+import asyncio
 from pathlib import Path
 
 import cognee
@@ -57,8 +60,6 @@ def set_cognee_config(llm_id: str | None = None, embeddings_id: str | None = "ad
 
     cognee.config.set_llm_config(config)
 
-    # Disable LiteLLM async-logging to suppress CancelledError on exit
-    os.environ["LITELLM_DISABLE_LOGGING"] = "True"
 
 
 async def test_config():
@@ -87,8 +88,6 @@ def print_config():
     print(get_llm_config().to_dict())
     print(get_embedding_config().to_dict())
 
-
-os.environ["LITELLM_DISABLE_LOGGING"] = "True"
 
 if __name__ == "__main__":
     cognee_directory_path = str(Path(".cognee_system").resolve())
