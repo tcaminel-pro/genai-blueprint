@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import streamlit as st
+from cognee import cognify
 from cognee.api.v1.search import SearchType
 from loguru import logger
 from streamlit import session_state as sss
@@ -35,7 +36,7 @@ async def process_files(uploaded_files: List[Any]) -> bool:
             file_paths.append(str(file_path))
 
         # Run cognify pipeline
-        # await cognify(file_paths)
+        await cognify(file_paths)
 
         # Clean up temporary files
         for file_path in file_paths:
