@@ -187,7 +187,11 @@ async def main():
                 demo = next(d for d in cognee_demos if d.name == sss.selected_demo)
                 suggested_queries.extend(demo.example_queries)
             if not suggested_queries:
-                suggested_queries = ["Who has experience in design tools?", "Summarize key insights", "List main topics"]
+                suggested_queries = [
+                    "Who has experience in design tools?",
+                    "Summarize key insights",
+                    "List main topics",
+                ]
 
             query = st.text_area(
                 "Enter your query:",
@@ -223,7 +227,12 @@ async def main():
                                 results = asyncio.run(cognee.search(query_type=search_type[1], query_text=query))
                         except RuntimeError:
                             results = asyncio.run(cognee.search(query_type=search_type[1], query_text=query))
-                        if isinstance(results, list) and results and isinstance(results[0], str) and "error" in results[0]:
+                        if (
+                            isinstance(results, list)
+                            and results
+                            and isinstance(results[0], str)
+                            and "error" in results[0]
+                        ):
                             st.error(f"Error: {results[0]}")
                         else:
                             st.success("Results found!")
