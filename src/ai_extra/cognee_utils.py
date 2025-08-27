@@ -1,11 +1,8 @@
 """Utility module for configuring Cognee with LLM information from the factory."""
 
 # Disable LiteLLM async-logging early to prevent startup
-import os
-
-os.environ["LITELLM_DISABLE_LOGGING"] = "True"
-
 import asyncio
+import os
 from pathlib import Path
 
 import cognee
@@ -60,18 +57,15 @@ def set_cognee_config(llm_id: str | None = None, embeddings_id: str | None = "ad
     os.environ["STRUCTURED_OUTPUT_FRAMEWORK"] = "BAML"
 
     cognee.config.set_llm_config(config)
+    os.environ["LITELLM_DISABLE_LOGGING"] = "True"  # seels useless to avoid error
 
 
 async def test_config():
-    try:
-        # Test with simple data
-        await cognee.add("AI powers Cognee's intelligence.")
-        await cognee.cognify()
+    await cognee.add("AI powers Cognee's intelligence.")
+    await cognee.cognify()
 
-        result = await cognee.search("What powers Cognee?")
-        print(result[0])
-    except Exception as e:
-        logger.exception("test_config failed: {}", e)
+    result = await cognee.search("What powers Cognee?")
+    print(result[0])
 
 
 def print_config():
@@ -105,5 +99,5 @@ if __name__ == "__main__":
 
     try:
         asyncio.run(test_config())
-    except asyncio.exceptions.CancelledError:
+    except asyncio.exceptions.CancelledError:  # does not work
         logger.warning("CancelledError error")

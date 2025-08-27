@@ -15,7 +15,6 @@ Key Features:
 from pathlib import Path
 from typing import Any, List
 
-import folium
 import pandas as pd
 import streamlit as st
 from groq import BaseModel
@@ -31,7 +30,6 @@ from smolagents import (
 )
 from smolagents import Tool as SmolAgentTool
 from streamlit import session_state as sss
-from streamlit_folium import st_folium
 
 from src.ai_core.llm_factory import LlmFactory
 from src.ai_core.mcp_client import dict_to_stdio_server_list, get_mcp_servers_dict
@@ -311,8 +309,8 @@ def display_final_msg(msg: Any) -> None:
         with sss.result_display:
             if isinstance(msg, str):
                 st.markdown(msg)
-            elif isinstance(msg, folium.Map):
-                st_folium(msg)
+            # elif isinstance(msg, folium.Map):
+            #     st_folium(msg)
             elif isinstance(msg, pd.DataFrame):
                 st.dataframe(msg)
             elif isinstance(msg, Path):
