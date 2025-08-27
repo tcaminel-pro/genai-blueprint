@@ -79,7 +79,7 @@ if "input_text" not in st.session_state:
     st.session_state.input_text = "Hello, world! This is a tokenization demo."
 
 # Get available models
-models = ["gpt-2", "gpt-3.5-turbo", "gpt-4p"]
+models = ["gpt-2", "gpt-3.5-turbo", "gpt-4"]
 
 # Main UI
 st.title("🔍 Tokenization Demo")
