@@ -1,12 +1,11 @@
 """Cognee demonstration page with file upload and knowledge graph processing."""
 
 import asyncio
-import os
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import List
 
+import cognee
 import streamlit as st
-from cognee import cognify
 from cognee.api.v1.search import SearchType
 from loguru import logger
 from streamlit import session_state as sss
@@ -18,62 +17,40 @@ setup_logging()
 logger = logger
 
 
-async def process_files(uploaded_files: List[Any]) -> bool:
+async def process_files(uploaded_files: List[Path]) -> bool:
     """Process uploaded files through cognee pipeline."""
     if not uploaded_files:
         return False
 
     try:
-        # Save uploaded files to temporary directory
-        temp_dir = Path("temp_uploads")
-        temp_dir.mkdir(exist_ok=True)
+        files = [str(f) for f in uploaded_files]
+        await cognee.add(data=files)
+        await cognee.cognify()
 
-        file_paths = []
-        for uploaded_file in uploaded_files:
-            file_path = temp_dir / uploaded_file.name
-            with open(file_path, "wb") as f:
-                f.write(uploaded_file.getbuffer())
-            file_paths.append(str(file_path))
-
-        # Run cognify pipeline
-        await cognify(file_paths)
-
-        # Clean up temporary files
-        for file_path in file_paths:
-            os.remove(file_path)
-
-        return True
     except Exception as e:
         logger.error(f"Error processing files: {e}")
         return False
+    return True
 
 
-async def query_knowledge_graph(query: str, search_type: SearchType) -> Dict[str, Any]:
+async def query_knowledge_graph(query: str, search_type: SearchType) -> list:
     """Query the knowledge graph with specified search type."""
     try:
-        if search_type == SearchType.INSIGHTS:
-            results = await graph_search(query_type=SearchType.INSIGHTS, query=query)
-        elif search_type == SearchType.GRAPH_COMPLETION:
-            results = await graph_search(query_type=SearchType.GRAPH_COMPLETION, query=query)
-        elif search_type == SearchType.RAG_COMPLETION:
-            results = await rag_search(query=query)
-        else:
-            results = {"error": "Invalid search type"}
-
+        results = await cognee.search(query_type=SearchType.INSIGHTS, query_text=query)
         return results
     except Exception as e:
         logger.error(f"Error querying knowledge graph: {e}")
-        return {"error": str(e)}
+        return [f"error: {e}"]
 
 
-def display_graph_visualization():
+async def display_graph_visualization():
     """Display the knowledge graph visualization."""
     try:
-        if display_graph is not None:
-            graph_html = display_graph()
-            st.components.v1.html(graph_html, height=600, scrolling=True)
-        else:
-            st.error("Graph visualization not available")
+        from cognee.api.v1.visualize.visualize import visualize_graph
+
+        visu_html = await visualize_graph("/tmp")
+        st.html(Path(visu_html))
+
     except Exception as e:
         st.error(f"Error displaying graph: {e}")
 
@@ -82,7 +59,7 @@ def main():
     """Main Streamlit page for Cognee demonstration."""
     st.set_page_config(page_title="Cognee Demo", page_icon="🧠", layout="wide")
 
-    st.title("🧠 Cognee Knowledge Graph Demo")
+    st.title("🧠 Knowledge Graph Demo")
     st.markdown("Upload documents and explore knowledge graph insights")
 
     # Initialize cognee
@@ -104,11 +81,9 @@ def main():
 
     # Handle file upload popup
     if sss.show_upload_popup and not sss.processing_complete:
-        with st.popover("📁 Upload and Process Files", use_container_width=True):
-            st.header("📁 File Upload")
-
+        with st.popover("📁 Upload and Process Documents", use_container_width=False):
             uploaded_files = st.file_uploader(
-                "Choose files to process",
+                "Choose files:",
                 accept_multiple_files=True,
                 type=["txt", "pdf", "docx", "md", "json"],
                 key="file_uploader_popup",
@@ -117,7 +92,7 @@ def main():
             if uploaded_files:
                 st.info(f"Uploaded {len(uploaded_files)} file(s)")
 
-                if st.button("🚀 Start Cognify Pipeline", type="primary"):
+                if st.button("🚀 Cognify !", type="primary"):
                     with st.spinner("Processing files through cognee pipeline..."):
                         success = asyncio.run(process_files(uploaded_files))
 
