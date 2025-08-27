@@ -109,7 +109,16 @@ async def main():
 
                 if st.button("🚀 Cognify !", type="primary"):
                     with st.spinner("Processing files through cognee pipeline..."):
-                        success = asyncio.run(process_files(uploaded_files))
+                        # Use the existing event loop instead of creating a new one
+                        try:
+                            loop = asyncio.get_event_loop()
+                            if loop.is_running():
+                                success = await process_files(uploaded_files)
+                            else:
+                                success = asyncio.run(process_files(uploaded_files))
+                        except RuntimeError:
+                            # Fallback to creating a new event loop
+                            success = asyncio.run(process_files(uploaded_files))
 
                         if success:
                             sss.processing_complete = True
@@ -150,7 +159,16 @@ async def main():
             if st.button("Search", type="secondary"):
                 if query:
                     with st.spinner("Searching knowledge graph..."):
-                        results = asyncio.run(query_knowledge_graph(query, search_type[1]))
+                        # Use the existing event loop instead of creating a new one
+                        try:
+                            loop = asyncio.get_event_loop()
+                            if loop.is_running():
+                                results = await query_knowledge_graph(query, search_type[1])
+                            else:
+                                results = asyncio.run(query_knowledge_graph(query, search_type[1]))
+                        except RuntimeError:
+                            # Fallback to creating a new event loop
+                            results = asyncio.run(query_knowledge_graph(query, search_type[1]))
 
                         if "error" in results:
                             st.error(f"Error: {results['error']}")
@@ -166,4 +184,16 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # Handle both direct execution and Streamlit execution
+    try:
+        # Check if we're in a running event loop (Streamlit)
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            # Create a task for async execution in Streamlit
+            loop.create_task(main())
+        else:
+            # Run normally when not in Streamlit
+            asyncio.run(main())
+    except RuntimeError:
+        # Fallback for when there's no event loop
+        asyncio.run(main())
