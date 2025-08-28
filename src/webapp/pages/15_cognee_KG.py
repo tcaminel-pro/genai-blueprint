@@ -1,13 +1,14 @@
 """Cognee demonstration page with file upload and knowledge graph processing."""
 
 import asyncio
+import json
 import tempfile
 from pathlib import Path
 from typing import List, Sequence
 
 import cognee
 import streamlit as st
-from beartype.door import infer_hint, is_bearable
+from beartype.door import is_bearable
 from cognee.api.v1.search import SearchType
 from devtools import debug  # noqa: F401
 from loguru import logger
@@ -237,14 +238,10 @@ async def _render_query_section():
                     logger.exception(ex)
                     st.error(f"error: {ex}")
                     return
-
-                # Display results
-                results_type = infer_hint(results)
+                # results_type = infer_hint(results)
 
                 if is_bearable(results, list[dict]) and results:
                     st.success("Results found!")
-                    import json
-
                     # Define fields to exclude
                     fields_to_exclude = {"id", "source_node_id", "target_node_id", "created_at", "updated_at"}
 
@@ -261,7 +258,6 @@ async def _render_query_section():
                         st.write(r)
                 elif is_bearable(results, list[tuple[dict, dict, dict]]) and results:
                     st.success("Results found (a list of 3-tuples: from, relation, to)!")
-                    import json
 
                     # Define fields to exclude
                     fields_to_exclude = {"id", "source_node_id", "target_node_id", "created_at", "updated_at"}
@@ -287,8 +283,6 @@ async def _render_query_section():
                         st.info("No data found in tuples")
                 elif is_bearable(results, list[tuple[dict, ...]]) and results:
                     st.success("Results found (a list of tuples) !")
-                    import json
-
                     # Define fields to exclude
                     fields_to_exclude = {"id", "source_node_id", "target_node_id", "created_at", "updated_at"}
 
