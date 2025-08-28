@@ -119,16 +119,7 @@ async def _handle_file_upload():
         clear_before = st.checkbox("Clear stored data first", value=False, key="clear_before_upload")
         if st.button("🚀 Cognify !", type="primary"):
             if clear_before:
-                with st.spinner("Clearing stored data..."):
-                    try:
-                        from cognee.prune import prune_data
-
-                        await prune_data()
-                        st.success("✅ Stored data cleared")
-                    except Exception as e:
-                        logger.error(f"Error clearing data: {e}")
-                        st.error(f"❌ Failed to clear stored data: {e}")
-                        return
+                await cognee.prune.prune_data()
 
             with st.spinner("Processing files through cognee pipeline..."):
                 success = await process_files([Path(f.name) for f in uploaded_files])
@@ -159,18 +150,10 @@ async def _handle_demo_selection():
             st.text_area("", value=text, height=150, key=f"demo_text_{idx}", disabled=True)
 
     clear_before = st.checkbox("Clear stored data first", value=False, key="clear_before_demo")
-    if st.button("🚀 Cognify Demo !", type="primary"):
+    if st.button("🚀 Cognify !", type="primary"):
         if clear_before:
-            with st.spinner("Clearing stored data..."):
-                try:
-                    from cognee.prune import prune_data
-
-                    await prune_data()
-                    st.success("✅ Stored data cleared")
-                except Exception as e:
-                    logger.error(f"Error clearing data: {e}")
-                    st.error(f"❌ Failed to clear stored data: {e}")
-                    return
+            await cognee.prune.prune_data()
+            st.success("✅ Stored data cleared")
 
         with st.spinner("Processing demo texts through cognee pipeline..."):
             await cognee.add(data=selected_demo.texts)
