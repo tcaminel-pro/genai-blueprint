@@ -170,17 +170,8 @@ async def _handle_demo_selection():
 
     if st.button("🚀 Cognify Demo !", type="primary"):
         with st.spinner("Processing demo texts through cognee pipeline..."):
-            try:
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    await cognee.add(data=selected_demo.texts)
-                    await cognee.cognify()
-                else:
-                    asyncio.run(cognee.add(data=selected_demo.texts))
-                    asyncio.run(cognee.cognify())
-            except RuntimeError:
-                asyncio.run(cognee.add(data=selected_demo.texts))
-                asyncio.run(cognee.cognify())
+            await cognee.add(data=selected_demo.texts)
+            await cognee.cognify()
             sss.processing_complete = True
             sss.graph_generated = True
             st.success("✅ Demo knowledge graph generated successfully!")
@@ -241,14 +232,7 @@ async def _render_query_section():
                 st.warning("Please enter a query")
             else:
                 with st.spinner("Searching knowledge graph..."):
-                    try:
-                        loop = asyncio.get_event_loop()
-                        if loop.is_running():
-                            results = await cognee.search(query_type=search_type[1], query_text=query)
-                        else:
-                            results = asyncio.run(cognee.search(query_type=search_type[1], query_text=query))
-                    except RuntimeError:
-                        results = asyncio.run(cognee.search(query_type=search_type[1], query_text=query))
+                    results = await cognee.search(query_type=search_type[1], query_text=query)
 
                     # Display results
                     if isinstance(results, list) and results and all(isinstance(r, dict) for r in results):
@@ -264,12 +248,4 @@ async def _render_query_section():
 
 
 if __name__ == "__main__":
-    # Handle both direct execution and Streamlit execution
-    try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            loop.create_task(main())
-        else:
-            asyncio.run(main())
-    except RuntimeError:
-        asyncio.run(main())
+    asyncio.run(main())
