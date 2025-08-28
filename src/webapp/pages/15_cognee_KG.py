@@ -250,7 +250,7 @@ async def _render_query_section():
     )
     # Display the description
     st.caption(f"🔍 {get_search_type_description(search_type[1])}")
-    
+
     query, submitted = _display_input_form(
         col2,
         suggested_queries,
