@@ -122,13 +122,14 @@ async def _handle_file_upload():
                 with st.spinner("Clearing stored data..."):
                     try:
                         from cognee.prune import prune_data
+
                         await prune_data()
                         st.success("✅ Stored data cleared")
                     except Exception as e:
                         logger.error(f"Error clearing data: {e}")
                         st.error(f"❌ Failed to clear stored data: {e}")
                         return
-            
+
             with st.spinner("Processing files through cognee pipeline..."):
                 success = await process_files([Path(f.name) for f in uploaded_files])
                 if success:
@@ -163,13 +164,14 @@ async def _handle_demo_selection():
             with st.spinner("Clearing stored data..."):
                 try:
                     from cognee.prune import prune_data
+
                     await prune_data()
                     st.success("✅ Stored data cleared")
                 except Exception as e:
                     logger.error(f"Error clearing data: {e}")
                     st.error(f"❌ Failed to clear stored data: {e}")
                     return
-        
+
         with st.spinner("Processing demo texts through cognee pipeline..."):
             await cognee.add(data=selected_demo.texts)
             await cognee.cognify()
