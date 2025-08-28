@@ -14,7 +14,7 @@ from pydantic import BaseModel
 from streamlit import session_state as sss
 from streamlit.delta_generator import DeltaGenerator
 
-from src.ai_extra.cognee_utils import set_cognee_config
+from src.ai_extra.cognee_utils import get_search_type_description, set_cognee_config
 from src.utils.config_mngr import global_config
 from utils.logger_factory import setup_logging
 
@@ -175,6 +175,7 @@ def _display_input_form(w: DeltaGenerator, demo_examples: list[str]) -> tuple[st
             index=None,
             label_visibility="collapsed",
         )
+        debug(sample_search)
         cf1, cf2 = st.columns([15, 1], vertical_alignment="bottom")
         prompt = cf1.text_area(
             "Your task",
@@ -221,27 +222,8 @@ async def _render_query_section():
         label_visibility="collapsed",
         placeholder="Search type",
     )
-
-    # Add description for the selected search type
-    search_descriptions = {
-        SearchType.SUMMARIES: "Vector search on TextSummary content for concise, high-signal hits. Returns summary objects with provenance.",
-        SearchType.INSIGHTS: "Finds relevant insights across your knowledge graph.",
-        SearchType.CHUNKS: "Returns the most similar text chunks to your query via vector search. Output: Chunk objects with metadata.",
-        SearchType.RAG_COMPLETION: "Pulls top-k chunks via vector search, stitches a context window, then asks an LLM to answer. Output: An LLM answer grounded in retrieved chunks.",
-        SearchType.GRAPH_COMPLETION: "Finds relevant graph triplets using vector hints, resolves them into readable context, and asks an LLM to answer your question grounded in that context. Output: A natural-language answer with references.",
-        SearchType.GRAPH_SUMMARY_COMPLETION: "Builds graph context like GRAPH_COMPLETION, then condenses it before answering. Output: A concise answer grounded in graph context.",
-        SearchType.CODE: "Interprets your intent, searches code embeddings and related graph nodes, and assembles relevant source. Output: Structured code contexts and related graph information.",
-        SearchType.CYPHER: "Executes your Cypher query against the graph database. Output: Raw query results.",
-        SearchType.NATURAL_LANGUAGE: "Infers a Cypher query from your question using the graph schema, runs it, returns the results. Output: Executed graph results.",
-        SearchType.GRAPH_COMPLETION_COT: "Iterative rounds of graph retrieval and LLM reasoning to refine the answer. Output: A refined answer produced through multiple reasoning steps.",
-        SearchType.GRAPH_COMPLETION_CONTEXT_EXTENSION: "Starts with initial graph context, lets the LLM suggest follow-ups, fetches more graph context, repeats. Output: An answer assembled after expanding the relevant subgraph.",
-        SearchType.FEELING_LUCKY: "Uses an LLM to pick the most suitable search mode for your query, then runs it. Output: Results from the selected mode.",
-        SearchType.FEEDBACK: "Records user feedback on recent answers and links it to the associated graph elements for future tuning. Output: A feedback record tied to recent interactions.",
-    }
-
     # Display the description
-    if search_type[1] in search_descriptions:
-        st.caption(f"🔍 {search_descriptions[search_type[1]]}")
+    st.caption(f"🔍 {get_search_type_description(search_type[1])}")
     query, submitted = _display_input_form(col2, suggested_queries)
 
     if submitted:
