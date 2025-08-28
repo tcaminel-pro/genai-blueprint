@@ -5,6 +5,7 @@ import asyncio
 import os
 
 import cognee
+from cognee.api.v1.search import SearchType
 from devtools import debug  # noqa: F401
 from dotenv import load_dotenv
 from loguru import logger
@@ -85,6 +86,26 @@ async def test_config():
 
     result = await cognee.search("What powers Cognee?")
     print(f"answser: {result[0]}")
+
+
+def get_search_type_description(type: SearchType) -> str:
+    search_descriptions = {
+        SearchType.SUMMARIES: "Vector search on TextSummary content for concise, high-signal hits. Returns summary objects with provenance.",
+        SearchType.INSIGHTS: "Finds relevant insights across your knowledge graph.",
+        SearchType.CHUNKS: "Returns the most similar text chunks to your query via vector search. Output: Chunk objects with metadata.",
+        SearchType.RAG_COMPLETION: "Pulls top-k chunks via vector search, stitches a context window, then asks an LLM to answer. Output: An LLM answer grounded in retrieved chunks.",
+        SearchType.GRAPH_COMPLETION: "Finds relevant graph triplets using vector hints, resolves them into readable context, and asks an LLM to answer your question grounded in that context. Output: A natural-language answer with references.",
+        SearchType.GRAPH_SUMMARY_COMPLETION: "Builds graph context like GRAPH_COMPLETION, then condenses it before answering. Output: A concise answer grounded in graph context.",
+        SearchType.CODE: "Interprets your intent, searches code embeddings and related graph nodes, and assembles relevant source. Output: Structured code contexts and related graph information.",
+        SearchType.CYPHER: "Executes your Cypher query against the graph database. Output: Raw query results.",
+        SearchType.NATURAL_LANGUAGE: "Infers a Cypher query from your question using the graph schema, runs it, returns the results. Output: Executed graph results.",
+        SearchType.GRAPH_COMPLETION_COT: "Iterative rounds of graph retrieval and LLM reasoning to refine the answer. Output: A refined answer produced through multiple reasoning steps.",
+        SearchType.GRAPH_COMPLETION_CONTEXT_EXTENSION: "Starts with initial graph context, lets the LLM suggest follow-ups, fetches more graph context, repeats. Output: An answer assembled after expanding the relevant subgraph.",
+        SearchType.FEELING_LUCKY: "Uses an LLM to pick the most suitable search mode for your query, then runs it. Output: Results from the selected mode.",
+        SearchType.FEEDBACK: "Records user feedback on recent answers and links it to the associated graph elements for future tuning. Output: A feedback record tied to recent interactions.",
+    }
+    result = search_descriptions.get(type)
+    return result or f"unknown Search Type: {type}"
 
 
 if __name__ == "__main__":
