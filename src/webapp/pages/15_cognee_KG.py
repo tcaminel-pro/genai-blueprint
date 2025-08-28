@@ -144,7 +144,7 @@ async def _handle_demo_selection():
         await cognee.add(data=data)
         await cognee.cognify()
         return True
-
+    
     await _handle_cognify_process(
         data=selected_demo.texts, process_func=_process_demo_texts, clear_before_key="clear_before_demo"
     )
