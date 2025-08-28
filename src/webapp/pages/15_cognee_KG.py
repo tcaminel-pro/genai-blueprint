@@ -221,7 +221,7 @@ async def _render_query_section():
         label_visibility="collapsed",
         placeholder="Search type",
     )
-    
+
     # Add description for the selected search type
     search_descriptions = {
         SearchType.SUMMARIES: "Vector search on TextSummary content for concise, high-signal hits. Returns summary objects with provenance.",
@@ -238,7 +238,7 @@ async def _render_query_section():
         SearchType.FEELING_LUCKY: "Uses an LLM to pick the most suitable search mode for your query, then runs it. Output: Results from the selected mode.",
         SearchType.FEEDBACK: "Records user feedback on recent answers and links it to the associated graph elements for future tuning. Output: A feedback record tied to recent interactions.",
     }
-    
+
     # Display the description
     if search_type[1] in search_descriptions:
         st.caption(f"🔍 {search_descriptions[search_type[1]]}")
