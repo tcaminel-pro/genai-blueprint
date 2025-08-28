@@ -243,7 +243,18 @@ async def _render_query_section():
 
                 if is_bearable(results, list[dict]) and results:
                     st.success("Results found!")
-                    st.dataframe(results)
+                    import json
+                    
+                    # Define fields to exclude
+                    fields_to_exclude = {'id', 'source_node_id', 'target_node_id', 'created_at', 'updated_at'}
+                    
+                    # Filter out specified fields from each dict
+                    filtered_results = []
+                    for dict_item in results:
+                        filtered_dict = {k: v for k, v in dict_item.items() if k not in fields_to_exclude}
+                        filtered_results.append(filtered_dict)
+                    
+                    st.dataframe(filtered_results)
                 elif is_bearable(results, list[str]) and results:
                     st.success("Results found!")
                     for r in results:
@@ -252,13 +263,21 @@ async def _render_query_section():
                     st.success("Results found (a list of 3-tuples: from, relation, to)!")
                     import json
 
+                    # Define fields to exclude
+                    fields_to_exclude = {'id', 'source_node_id', 'target_node_id', 'created_at', 'updated_at'}
+                    
                     # Create dataframe with from, relation, to columns
                     dataframe_rows = []
                     for from_dict, relation_dict, to_dict in results:
+                        # Filter out specified fields from each dict
+                        filtered_from = {k: v for k, v in from_dict.items() if k not in fields_to_exclude}
+                        filtered_relation = {k: v for k, v in relation_dict.items() if k not in fields_to_exclude}
+                        filtered_to = {k: v for k, v in to_dict.items() if k not in fields_to_exclude}
+                        
                         row = {
-                            "from": json.dumps(from_dict),
-                            "relation": json.dumps(relation_dict),
-                            "to": json.dumps(to_dict),
+                            "from": json.dumps(filtered_from),
+                            "relation": json.dumps(filtered_relation),
+                            "to": json.dumps(filtered_to),
                         }
                         dataframe_rows.append(row)
 
@@ -270,11 +289,16 @@ async def _render_query_section():
                     st.success("Results found (a list of tuples) !")
                     import json
 
+                    # Define fields to exclude
+                    fields_to_exclude = {'id', 'source_node_id', 'target_node_id', 'created_at', 'updated_at'}
+                    
                     # Convert each dict in each tuple to a row with JSON-formatted cells
                     rows = []
                     for tuple_item in results:
                         for dict_item in tuple_item:
-                            json_row = {k: json.dumps(v) for k, v in dict_item.items()}
+                            # Filter out specified fields
+                            filtered_dict = {k: v for k, v in dict_item.items() if k not in fields_to_exclude}
+                            json_row = {k: json.dumps(v) for k, v in filtered_dict.items()}
                             rows.append(json_row)
 
                     if rows:
