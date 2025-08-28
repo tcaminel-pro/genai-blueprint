@@ -201,10 +201,20 @@ async def _render_query_section():
     col1, col2 = st.columns([1, 4])
     search_type = col1.selectbox(
         "Search Type:",
-        options=[
+        options=[  # from https://docs.cognee.ai/core-concepts/main-operations/search
             ("Insights", SearchType.INSIGHTS),
-            ("Graph Completion", SearchType.GRAPH_COMPLETION),
             ("RAG Completion", SearchType.RAG_COMPLETION),
+            ("Graph Completion", SearchType.GRAPH_COMPLETION),
+            ("Summaries", SearchType.SUMMARIES),
+            ("Chunks", SearchType.CHUNKS),
+            ("Graph Summary Completion", SearchType.GRAPH_SUMMARY_COMPLETION),
+            ("Code", SearchType.CODE),
+            ("Cypher", SearchType.CYPHER),
+            ("Natural Language", SearchType.NATURAL_LANGUAGE),
+            ("Graph Completion CoT", SearchType.GRAPH_COMPLETION_COT),
+            ("Graph Completion Context Extension", SearchType.GRAPH_COMPLETION_CONTEXT_EXTENSION),
+            ("Feeling Lucky", SearchType.FEELING_LUCKY),
+            ("Feedback", SearchType.FEEDBACK),
         ],
         format_func=lambda x: x[0],
         key="search_type_select",
