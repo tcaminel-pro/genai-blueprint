@@ -234,7 +234,12 @@ async def _render_query_section():
             st.warning("Please enter a query")
         else:
             with st.spinner("Searching knowledge graph..."):
-                results = await cognee.search(query_type=search_type[1], query_text=query)
+                try:
+                    results = await cognee.search(query_type=search_type[1], query_text=query)
+                except Exception as ex:
+                    logger.exception(ex)
+                    st.error(f"error: {ex}")
+                    return
 
                 # Display results
                 if isinstance(results, list) and results and all(isinstance(r, dict) for r in results):
