@@ -155,11 +155,11 @@ async def _handle_demo_selection():
 
     # Display texts and files in tabs
     texts_and_files = []
-    
+
     # Add texts
     if selected_demo.texts:
-        texts_and_files.extend([("text", text, f"Text {i+1}") for i, text in enumerate(selected_demo.texts)])
-    
+        texts_and_files.extend([("text", text, f"Text {i + 1}") for i, text in enumerate(selected_demo.texts)])
+
     # Add files
     file_contents = []
     if selected_demo.files:
@@ -173,10 +173,16 @@ async def _handle_demo_selection():
                         file_contents.append(text_content)
                         texts_and_files.append(("text_content", text_content, f"File: {file_path.name}"))
                     except Exception as e:
-                        texts_and_files.append(("error", f"File {file_path} loaded (could not display as text: {e})", f"File: {file_path.name}"))
+                        texts_and_files.append(
+                            (
+                                "error",
+                                f"File {file_path} loaded (could not display as text: {e})",
+                                f"File: {file_path.name}",
+                            )
+                        )
             except Exception as e:
                 texts_and_files.append(("error", f"Error loading file {file_path}: {e}", f"File: {file_path.name}"))
-    
+
     if texts_and_files:
         tabs = st.tabs([title for _, _, title in texts_and_files])
         for idx, (content_type, content, title) in enumerate(texts_and_files):
