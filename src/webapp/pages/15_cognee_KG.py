@@ -170,7 +170,7 @@ def _display_input_form(w: DeltaGenerator, demo_examples: list[str]) -> tuple[st
     # Use session state to track the selected example
     if "selected_example" not in sss:
         sss.selected_example = None
-    
+
     # Display the selectbox outside the form to update the text area in real-time
     selected_example = w.selectbox(
         label="Sample",
@@ -178,13 +178,13 @@ def _display_input_form(w: DeltaGenerator, demo_examples: list[str]) -> tuple[st
         options=demo_examples,
         index=None,
         label_visibility="collapsed",
-        key="example_selectbox"
+        key="example_selectbox",
     )
-    
+
     # Update the text area value when a new example is selected
     if selected_example is not None:
         sss.selected_example = selected_example
-    
+
     with w.form("my_form", border=False):
         cf1, cf2 = st.columns([15, 1], vertical_alignment="bottom")
         prompt = cf1.text_area(
@@ -193,7 +193,7 @@ def _display_input_form(w: DeltaGenerator, demo_examples: list[str]) -> tuple[st
             placeholder="Enter or modify your query here...",
             value=sss.selected_example or "",
             label_visibility="collapsed",
-            key="query_text_area"
+            key="query_text_area",
         )
         submitted = cf2.form_submit_button(label="", icon=":material/send:")
     return prompt, submitted
@@ -236,25 +236,25 @@ async def _render_query_section():
         )
         # Display the description
         st.caption(f"🔍 {get_search_type_description(search_type[1])}")
-    
+
     with col2:
         # Use session state to track the selected example
         if "selected_example" not in sss:
             sss.selected_example = None
-        
+
         # Display the selectbox to choose an example
         selected_example = st.selectbox(
             "Sample queries:",
             options=suggested_queries,
             index=None,
             placeholder="Select an example query (optional)",
-            key="example_selectbox"
+            key="example_selectbox",
         )
-        
+
         # Update the text area value when a new example is selected
         if selected_example is not None:
             sss.selected_example = selected_example
-        
+
         # Create the input form
         with st.form("query_form", border=False):
             query = st.text_area(
@@ -262,7 +262,7 @@ async def _render_query_section():
                 height=100,
                 placeholder="Enter or modify your query here...",
                 value=sss.selected_example or "",
-                key="query_text_area"
+                key="query_text_area",
             )
             submitted = st.form_submit_button("➡️ Run search", use_container_width=True)
 
