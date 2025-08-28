@@ -116,20 +116,11 @@ async def _handle_file_upload():
         key="file_uploader_main",
     )
     if uploaded_files:
-        clear_before = st.checkbox("Clear stored data first", value=False, key="clear_before_upload")
-        if st.button("🚀 Cognify !", type="primary"):
-            if clear_before:
-                await cognee.prune.prune_data()
-
-            with st.spinner("Processing files through cognee pipeline..."):
-                success = await process_files([Path(f.name) for f in uploaded_files])
-                if success:
-                    sss.processing_complete = True
-                    sss.graph_generated = True
-                    st.success("✅ Knowledge graph generated successfully!")
-                    st.rerun()
-                else:
-                    st.error("❌ Failed to process files")
+        await _handle_cognify_process(
+            data=[Path(f.name) for f in uploaded_files],
+            process_func=process_files,
+            clear_before_key="clear_before_upload"
+        )
 
 
 async def _handle_demo_selection():
@@ -149,19 +140,45 @@ async def _handle_demo_selection():
         with tabs[idx]:
             st.text_area("", value=text, height=150, key=f"demo_text_{idx}", disabled=True)
 
-    clear_before = st.checkbox("Clear stored data first", value=False, key="clear_before_demo")
+    async def _process_demo_texts(data):
+        await cognee.add(data=data)
+        await cognee.cognify()
+        return True
+    
+    await _handle_cognify_process(
+        data=selected_demo.texts,
+        process_func=_process_demo_texts,
+        clear_before_key="clear_before_demo"
+    )
+
+
+async def _handle_cognify_process(data, process_func, clear_before_key: str):
+    """Common handler for cognify operations with optional data clearing."""
+    clear_before = st.checkbox("Clear stored data first", value=False, key=clear_before_key)
     if st.button("🚀 Cognify !", type="primary"):
         if clear_before:
-            await cognee.prune.prune_data()
-            st.success("✅ Stored data cleared")
+            with st.spinner("Clearing stored data..."):
+                try:
+                    await cognee.prune.prune_data()
+                    st.success("✅ Stored data cleared")
+                except Exception as e:
+                    logger.error(f"Error clearing data: {e}")
+                    st.error(f"❌ Failed to clear stored data: {e}")
+                    return
 
-        with st.spinner("Processing demo texts through cognee pipeline..."):
-            await cognee.add(data=selected_demo.texts)
-            await cognee.cognify()
-            sss.processing_complete = True
-            sss.graph_generated = True
-            st.success("✅ Demo knowledge graph generated successfully!")
-            st.rerun()
+        with st.spinner("Processing through cognee pipeline..."):
+            try:
+                success = await process_func(data)
+                if success:
+                    sss.processing_complete = True
+                    sss.graph_generated = True
+                    st.success("✅ Knowledge graph generated successfully!")
+                    st.rerun()
+                else:
+                    st.error("❌ Failed to process data")
+            except Exception as e:
+                logger.error(f"Error processing data: {e}")
+                st.error(f"❌ Failed to process data: {e}")
 
 
 async def _render_results_section():
