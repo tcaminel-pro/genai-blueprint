@@ -157,35 +157,33 @@ async def _handle_demo_selection():
         for file_path in selected_demo.files:
             try:
                 full_path = global_config().get_file_path(file_path)
-                
+
                 # Display PDF files with st.pdf(), others as text
-                if str(file_path).lower().endswith('.pdf'):
+                if str(file_path).lower().endswith(".pdf"):
                     st.pdf(str(full_path))
                 else:
                     # For non-PDF files, show as text
                     try:
-                        with open(full_path, 'r', encoding='utf-8') as f:
+                        with open(full_path, "r", encoding="utf-8") as f:
                             text_content = f.read()
                             file_contents.append(text_content)
                         st.text_area(f"Content from {file_path}", value=text_content, height=150, disabled=True)
                     except Exception as e:
                         st.info(f"File {file_path} loaded (could not display as text: {e})")
                         # Still add as binary content for processing
-                        with open(full_path, 'rb') as f:
+                        with open(full_path, "rb") as f:
                             file_contents.append(f.read())
             except Exception as e:
                 st.error(f"Error loading file {file_path}: {e}")
 
     # Combine texts and file contents for processing
     all_data = selected_demo.texts + file_contents
-    
+
     if not all_data:
         st.warning("This demo has no texts or files to process")
         return
 
-    await _handle_cognify_process(
-        data=all_data, process_func=_process_documents, clear_before_key="clear_before_demo"
-    )
+    await _handle_cognify_process(data=all_data, process_func=_process_documents, clear_before_key="clear_before_demo")
 
 
 async def _handle_cognify_process(data: CogneeInputType, process_func: Callable, clear_before_key: str):
