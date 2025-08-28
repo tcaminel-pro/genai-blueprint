@@ -251,17 +251,17 @@ async def _render_query_section():
                 elif is_bearable(results, list[tuple[dict, dict, dict]]) and results:
                     st.success("Results found (a list of 3-tuples: from, relation, to)!")
                     import json
-                    
+
                     # Create dataframe with from, relation, to columns
                     dataframe_rows = []
                     for from_dict, relation_dict, to_dict in results:
                         row = {
-                            'from': json.dumps(from_dict),
-                            'relation': json.dumps(relation_dict),
-                            'to': json.dumps(to_dict)
+                            "from": json.dumps(from_dict),
+                            "relation": json.dumps(relation_dict),
+                            "to": json.dumps(to_dict),
                         }
                         dataframe_rows.append(row)
-                    
+
                     if dataframe_rows:
                         st.dataframe(dataframe_rows)
                     else:
