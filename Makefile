@@ -103,7 +103,7 @@ quality: ## Run Ruff an all Python files to check quality
 	find . -path "./src/wip" -prune -o -path "./.venv" -prune -o -type f -name '*.py' | xargs ruff check --fix 
 
 clean-notebooks: ## Clean Jupyter notebook outputs.
-	@find . -name "*.ipynb" | while read -r notebook; do \
+	@find . -path "./.venv" -prune -o -name "*.ipynb" -print | while read -r notebook; do \
 		echo "Cleaning outputs from: $$notebook"; \
 		uvx jupyter nbconvert --clear-output --inplace "$$notebook"; \
 	done
