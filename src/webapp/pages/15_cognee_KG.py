@@ -65,8 +65,9 @@ class CogneeDemo(BaseModel):
     """Configuration for a Cognee demo preset."""
 
     name: str
-    texts: List[str]
+    texts: List[str] = []
     example_queries: List[str]
+    files: List[str] = []
 
 
 def load_demos_from_config() -> List[CogneeDemo]:
@@ -78,7 +79,11 @@ def load_demos_from_config() -> List[CogneeDemo]:
         for demo_name, demo_data in config.items():
             texts = demo_data.get("texts", [])
             example_queries = demo_data.get("example_queries", [])
-            demos.append(CogneeDemo(name=demo_name, texts=texts, example_queries=example_queries))
+            files = demo_data.get("file", [])
+            # Ensure files is always a list
+            if isinstance(files, str):
+                files = [files]
+            demos.append(CogneeDemo(name=demo_name, texts=texts, example_queries=example_queries, files=files))
         return demos
     except Exception as e:
         logger.error(f"Error loading demos from config: {e}")
@@ -137,14 +142,49 @@ async def _handle_demo_selection():
     selected_demo = next(d for d in cognee_demos if d.name == selected_demo_name)
     sss.selected_demo = selected_demo
 
-    st.write("**Demo texts:**")
-    tabs = st.tabs([f"Text {idx}" for idx in range(1, len(selected_demo.texts) + 1)])
-    for idx, text in enumerate(selected_demo.texts):
-        with tabs[idx]:
-            st.text_area("", value=text, height=150, key=f"demo_text_{idx}", disabled=True)
+    # Display texts if any
+    if selected_demo.texts:
+        st.write("**Demo texts:**")
+        tabs = st.tabs([f"Text {idx}" for idx in range(1, len(selected_demo.texts) + 1)])
+        for idx, text in enumerate(selected_demo.texts):
+            with tabs[idx]:
+                st.text_area("", value=text, height=150, key=f"demo_text_{idx}", disabled=True)
+
+    # Display files if any
+    file_contents = []
+    if selected_demo.files:
+        st.write("**Demo files:**")
+        for file_path in selected_demo.files:
+            try:
+                full_path = global_config().get_file_path(file_path)
+                
+                # Display PDF files with st.pdf(), others as text
+                if str(file_path).lower().endswith('.pdf'):
+                    st.pdf(str(full_path))
+                else:
+                    # For non-PDF files, show as text
+                    try:
+                        with open(full_path, 'r', encoding='utf-8') as f:
+                            text_content = f.read()
+                            file_contents.append(text_content)
+                        st.text_area(f"Content from {file_path}", value=text_content, height=150, disabled=True)
+                    except Exception as e:
+                        st.info(f"File {file_path} loaded (could not display as text: {e})")
+                        # Still add as binary content for processing
+                        with open(full_path, 'rb') as f:
+                            file_contents.append(f.read())
+            except Exception as e:
+                st.error(f"Error loading file {file_path}: {e}")
+
+    # Combine texts and file contents for processing
+    all_data = selected_demo.texts + file_contents
+    
+    if not all_data:
+        st.warning("This demo has no texts or files to process")
+        return
 
     await _handle_cognify_process(
-        data=selected_demo.texts, process_func=_process_documents, clear_before_key="clear_before_demo"
+        data=all_data, process_func=_process_documents, clear_before_key="clear_before_demo"
     )
 
 
