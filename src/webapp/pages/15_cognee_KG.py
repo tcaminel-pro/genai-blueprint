@@ -251,14 +251,14 @@ async def _render_query_section():
                 elif is_bearable(results, list[tuple[dict, ...]]) and results:
                     st.success("Results found!")
                     import json
-                    
+
                     # Convert each dict in each tuple to a row with JSON-formatted cells
                     rows = []
                     for tuple_item in results:
                         for dict_item in tuple_item:
                             json_row = {k: json.dumps(v) for k, v in dict_item.items()}
                             rows.append(json_row)
-                    
+
                     if rows:
                         st.dataframe(rows)
                     else:
