@@ -1,49 +1,50 @@
-cv_demo:
-  example_queries:
-  - "Who has experience in design tools?"
-  
-  texts:
-  - 'CV 1: Relevant
-    Name: Dr. Emily Carter
-    Contact Information:
+cognee-demo:
+  cv_demo:
+    example_queries:
+    - "Who has experience in design tools?"
+    
+    texts:
+    - 'CV 1: Relevant
+      Name: Dr. Emily Carter
+      Contact Information:
 
-    Email: emily.carter@example.com
-    Phone: (555) 123-4567
-    Summary:
+      Email: emily.carter@example.com
+      Phone: (555) 123-4567
+      Summary:
 
-    Senior Data Scientist with over 8 years of experience in machine learning and predictive analytics. Expertise in developing advanced algorithms and deploying scalable models in production environments.
+      Senior Data Scientist with over 8 years of experience in machine learning and predictive analytics. Expertise in developing advanced algorithms and deploying scalable models in production environments.
 
-    Education:
+      Education:
 
-    Ph.D. in Computer Science, Stanford University (2014)
-    B.S. in Mathematics, University of California, Berkeley (2010)
-    Experience:
+      Ph.D. in Computer Science, Stanford University (2014)
+      B.S. in Mathematics, University of California, Berkeley (2010)
+      Experience:
 
-    Senior Data Scientist, InnovateAI Labs (2016 - Present)
+      Senior Data Scientist, InnovateAI Labs (2016 - Present)
 
-    Skills:
+      Skills:
 
-    Programming Languages: Python, R, SQL
-    Machine Learning: TensorFlow, Keras, Scikit-Learn
-    Big Data Technologies: Hadoop, Spark
-    Data Visualization: Tableau, Matplotlib'
+      Programming Languages: Python, R, SQL
+      Machine Learning: TensorFlow, Keras, Scikit-Learn
+      Big Data Technologies: Hadoop, Spark
+      Data Visualization: Tableau, Matplotlib'
 
-  - 'CV 2: Relevant
-    Name: Michael Rodriguez
-    Contact Information:
+    - 'CV 2: Relevant
+      Name: Michael Rodriguez
+      Contact Information:
 
-    Email: michael.rodriguez@example.com
-    Phone: (555) 234-5678
-    Summary:
+      Email: michael.rodriguez@example.com
+      Phone: (555) 234-5678
+      Summary:
 
-    Data Scientist with a strong background in machine learning and statistical modeling. Skilled in handling large datasets and translating data into actionable business insights.
+      Data Scientist with a strong background in machine learning and statistical modeling. Skilled in handling large datasets and translating data into actionable business insights.
 
-    Education:
+      Education:
 
-    M.S. in Data Science, Carnegie Mellon University (2013)
-    B.S. in Computer Science, University of Michigan (2011)
-    Experience:
+      M.S. in Data Science, Carnegie Mellon University (2013)
+      B.S. in Computer Science, University of Michigan (2011)
+      Experience:
 
-    Senior Data Scientist, Alpha Analytics (2017 - Present)
-    Developed machine learning models to optimize marketing strategies.
-     '
+      Senior Data Scientist, Alpha Analytics (2017 - Present)
+      Developed machine learning models to optimize marketing strategies.
+      '

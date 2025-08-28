@@ -30,6 +30,7 @@ from smolagents import (
 )
 from smolagents import Tool as SmolAgentTool
 from streamlit import session_state as sss
+from streamlit.delta_generator import DeltaGenerator
 
 from src.ai_core.llm_factory import LlmFactory
 from src.ai_core.mcp_client import dict_to_stdio_server_list, get_mcp_servers_dict
@@ -392,7 +393,7 @@ def handle_selection(selected_pill: str, select_block: Any) -> tuple[CodeactDemo
     return demo, sample_search, df, raw_data_file
 
 
-def display_input_form(select_block: Any, sample_search: str | None) -> tuple[str, int, bool]:
+def display_input_form(select_block: DeltaGenerator, sample_search: str | None) -> tuple[str, int, bool]:
     """Displays the input form and returns user input."""
     with select_block.form("my_form", border=False):
         cf1, cf2 = st.columns([15, 1], vertical_alignment="bottom")

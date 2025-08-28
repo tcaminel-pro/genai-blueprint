@@ -1,6 +1,7 @@
 """Cognee demonstration page with file upload and knowledge graph processing."""
 
 import asyncio
+import tempfile
 from pathlib import Path
 from typing import List, Sequence
 
@@ -51,12 +52,10 @@ async def display_graph_visualization():
         import streamlit.components.v1 as components
         from cognee.api.v1.visualize.visualize import visualize_graph
 
-        # Get the HTML content directly
-        html_content = await visualize_graph(None)
-
-        # Use components.html to render the HTML with JavaScript
-        components.html(html_content, height=600, scrolling=True)
-
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".html", delete=False) as tmp_file:
+            tmp_path = tmp_file.name
+            html_content = await visualize_graph(tmp_path)
+            components.html(html_content, height=600, scrolling=True)
     except Exception as e:
         st.error(f"Error displaying graph: {e}")
 
@@ -89,6 +88,8 @@ cognee_demos = load_demos_from_config()
 
 
 async def main():
+    loop = asyncio.get_event_loop()
+    print(loop.is_running())
     """Main Streamlit page for Cognee demonstration."""
     st.set_page_config(page_title="Cognee Demo", page_icon="🧠", layout="wide")
 
@@ -127,14 +128,7 @@ async def main():
             )
             if uploaded_files and st.button("🚀 Cognify !", type="primary"):
                 with st.spinner("Processing files through cognee pipeline..."):
-                    try:
-                        loop = asyncio.get_event_loop()
-                        if loop.is_running():
-                            success = await process_files([Path(f.name) for f in uploaded_files])
-                        else:
-                            success = asyncio.run(process_files([Path(f.name) for f in uploaded_files]))
-                    except RuntimeError:
-                        success = asyncio.run(process_files([Path(f.name) for f in uploaded_files]))
+                    success = await process_files([Path(f.name) for f in uploaded_files])
                     if success:
                         sss.processing_complete = True
                         sss.graph_generated = True
@@ -159,6 +153,7 @@ async def main():
                         try:
                             loop = asyncio.get_event_loop()
                             if loop.is_running():
+                                print("loop")
                                 await cognee.add(data=selected_demo.texts)
                                 await cognee.cognify()
                             else:
@@ -205,10 +200,10 @@ async def main():
                 format_func=lambda x: x[0],
                 key="search_type_select",
             )
-            st.write("**Suggested queries:**")
-            for q in suggested_queries:
-                if st.button(q, key=f"suggest_{q}"):
-                    query = q
+            # st.write("**Suggested queries:**")
+            # for q in suggested_queries:
+            #     if st.button(q, key=f"suggest_{q}"):
+            #         query = q
 
             query = st.text_area(
                 "Enter your query:",
@@ -257,14 +252,10 @@ async def main():
 if __name__ == "__main__":
     # Handle both direct execution and Streamlit execution
     try:
-        # Check if we're in a running event loop (Streamlit)
         loop = asyncio.get_event_loop()
         if loop.is_running():
-            # Create a task for async execution in Streamlit
             loop.create_task(main())
         else:
-            # Run normally when not in Streamlit
             asyncio.run(main())
     except RuntimeError:
-        # Fallback for when there's no event loop
         asyncio.run(main())
