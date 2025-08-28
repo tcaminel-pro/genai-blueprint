@@ -167,15 +167,17 @@ async def _render_results_section():
 
 def _display_input_form(w: DeltaGenerator, suggested_queries: list[str]) -> tuple[str, bool]:
     """Displays the input form and returns user input."""
+    # Move selectbox outside form so it updates immediately
+    sample_search = st.selectbox(
+        label="Sample queries",
+        placeholder="Select an example (optional)",
+        options=suggested_queries,
+        index=None,
+        key="sample_query_select",
+    )
+    debug(sample_search)
+    
     with w.form("my_form", border=False):
-        sample_search = st.selectbox(
-            label="Sample",
-            placeholder="Select an example (optional)",
-            options=suggested_queries,
-            index=None,
-            label_visibility="collapsed",
-        )
-        debug(sample_search)
         cf1, cf2 = st.columns([15, 1], vertical_alignment="bottom")
         prompt = cf1.text_area(
             "Your task",
