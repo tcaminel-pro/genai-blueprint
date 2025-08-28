@@ -249,7 +249,7 @@ async def _render_query_section():
                     for r in results:
                         st.write(r)
                 elif is_bearable(results, list[tuple[dict, ...]]) and results:
-                    st.success("Results found!")
+                    st.success("Results found (a list of tuples) !")
                     import json
 
                     # Convert each dict in each tuple to a row with JSON-formatted cells
@@ -263,24 +263,6 @@ async def _render_query_section():
                         st.dataframe(rows)
                     else:
                         st.info("No data found in tuples")
-                elif is_bearable(results, list[tuple[dict, dict]]) and results:
-                    st.success("Results found!")
-                    # Handle case where we have tuple pairs of dicts
-                    import json
-
-                    flattened = []
-                    for pair in results:
-                        if len(pair) >= 2:
-                            flattened.extend(pair)
-
-                    if flattened:
-                        json_data = [
-                            {k: json.dumps(v) if isinstance(v, (dict, list)) else str(v) for k, v in item.items()}
-                            for item in flattened
-                        ]
-                        st.dataframe(json_data)
-                    else:
-                        st.info("No data found in nested structures")
                 else:
                     st.success("Results found! ")
                     st.json(results)
