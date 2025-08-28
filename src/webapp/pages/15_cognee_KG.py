@@ -158,6 +158,7 @@ async def _handle_cognify_process(data, process_func, clear_before_key: str):
             with st.spinner("Clearing stored data..."):
                 try:
                     await cognee.prune.prune_data()
+                    await cognee.prune.prune_system(metadata=True)
                     st.success("✅ Stored data cleared")
                 except Exception as e:
                     logger.error(f"Error clearing data: {e}")
