@@ -153,34 +153,40 @@ async def _handle_demo_selection():
     selected_demo = next(d for d in cognee_demos if d.name == selected_demo_name)
     sss.selected_demo = selected_demo
 
-    # Display texts if any
+    # Display texts and files in tabs
+    texts_and_files = []
+    
+    # Add texts
     if selected_demo.texts:
-        st.write("**Demo texts:**")
-        tabs = st.tabs([f"Text {idx}" for idx in range(1, len(selected_demo.texts) + 1)])
-        for idx, text in enumerate(selected_demo.texts):
-            with tabs[idx]:
-                st.text_area("", value=text, height=150, key=f"demo_text_{idx}", disabled=True)
-
-    # Display files if any
+        texts_and_files.extend([("text", text, f"Text {i+1}") for i, text in enumerate(selected_demo.texts)])
+    
+    # Add files
     file_contents = []
     if selected_demo.files:
-        st.write("**Demo files:**")
         for file_path in selected_demo.files:
             try:
-                # Display PDF files with st.pdf(), others as text
                 if file_path.suffix == ".pdf":
-                    st.pdf(file_path)
+                    texts_and_files.append(("pdf", file_path, f"PDF: {file_path.name}"))
                 else:
-                    # For non-PDF files, show as text
                     try:
                         text_content = file_path.read_text()
                         file_contents.append(text_content)
-                        st.text_area(f"Content from {file_path}", value=text_content, height=150, disabled=True)
+                        texts_and_files.append(("text_content", text_content, f"File: {file_path.name}"))
                     except Exception as e:
-                        st.info(f"File {file_path} loaded (could not display as text: {e})")
-
+                        texts_and_files.append(("error", f"File {file_path} loaded (could not display as text: {e})", f"File: {file_path.name}"))
             except Exception as e:
-                st.error(f"Error loading file {file_path}: {e}")
+                texts_and_files.append(("error", f"Error loading file {file_path}: {e}", f"File: {file_path.name}"))
+    
+    if texts_and_files:
+        tabs = st.tabs([title for _, _, title in texts_and_files])
+        for idx, (content_type, content, title) in enumerate(texts_and_files):
+            with tabs[idx]:
+                if content_type == "text" or content_type == "text_content":
+                    st.text_area("", value=content, height=150, key=f"demo_content_{idx}", disabled=True)
+                elif content_type == "pdf":
+                    st.pdf(content)
+                elif content_type == "error":
+                    st.error(content)
 
     # Combine texts and file contents for processing
     all_data = selected_demo.texts + file_contents
