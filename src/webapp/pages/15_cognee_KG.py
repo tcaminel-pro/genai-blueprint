@@ -119,7 +119,7 @@ async def _handle_file_upload():
         await _handle_cognify_process(
             data=[Path(f.name) for f in uploaded_files],
             process_func=process_files,
-            clear_before_key="clear_before_upload"
+            clear_before_key="clear_before_upload",
         )
 
 
@@ -144,11 +144,9 @@ async def _handle_demo_selection():
         await cognee.add(data=data)
         await cognee.cognify()
         return True
-    
+
     await _handle_cognify_process(
-        data=selected_demo.texts,
-        process_func=_process_demo_texts,
-        clear_before_key="clear_before_demo"
+        data=selected_demo.texts, process_func=_process_demo_texts, clear_before_key="clear_before_demo"
     )
 
 
