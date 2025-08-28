@@ -8,9 +8,11 @@ from typing import List, Sequence
 import cognee
 import streamlit as st
 from cognee.api.v1.search import SearchType
+from devtools import debug  # noqa: F401
 from loguru import logger
 from pydantic import BaseModel
 from streamlit import session_state as sss
+from streamlit.delta_generator import DeltaGenerator
 
 from src.ai_extra.cognee_utils import set_cognee_config
 from src.utils.config_mngr import global_config
@@ -87,35 +89,6 @@ def load_demos_from_config() -> List[CogneeDemo]:
 cognee_demos = load_demos_from_config()
 
 
-async def main():
-    """Main Streamlit page for Cognee demonstration."""
-    st.set_page_config(page_title="Cognee Demo", page_icon="🧠", layout="wide")
-
-    st.title("🧠 Knowledge Graph Demo")
-    st.markdown("Upload documents or use predefined demos to explore knowledge graph insights")
-
-    # Initialize cognee
-    set_cognee_config()
-
-    # Initialize session state
-    if "processing_complete" not in sss:
-        sss.processing_complete = False
-    if "graph_generated" not in sss:
-        sss.graph_generated = False
-    if "show_upload_popup" not in sss:
-        sss.show_upload_popup = False
-    if "selected_demo" not in sss:
-        sss.selected_demo = None
-
-    # Choose between file upload or demo
-    if not sss.processing_complete:
-        await _render_input_section()
-
-    # Show two-column layout after processing
-    if sss.processing_complete:
-        await _render_results_section()
-
-
 async def _render_input_section():
     """Render the input section for file upload or demo selection."""
     TEXT1 = "Upload Files"
@@ -161,6 +134,7 @@ async def _handle_demo_selection():
     demo_names = [demo.name for demo in cognee_demos]
     selected_demo_name = st.selectbox("Select a demo:", demo_names, key="demo_select")
     selected_demo = next(d for d in cognee_demos if d.name == selected_demo_name)
+    sss.selected_demo = selected_demo
 
     st.write("**Demo texts:**")
     tabs = st.tabs([f"Text {idx}" for idx in range(1, len(selected_demo.texts) + 1)])
@@ -191,23 +165,41 @@ async def _render_results_section():
         await display_graph_visualization()
 
 
+def _display_input_form(w: DeltaGenerator, demo_examples: list[str]) -> tuple[str, bool]:
+    """Displays the input form and returns user input."""
+    with w.form("my_form", border=False):
+        sample_search = st.selectbox(
+            label="Sample",
+            placeholder="Select an example (optional)",
+            options=demo_examples,
+            index=None,
+            label_visibility="collapsed",
+        )
+        cf1, cf2 = st.columns([15, 1], vertical_alignment="bottom")
+        prompt = cf1.text_area(
+            "Your task",
+            height=68,
+            placeholder="Enter or modify your query here...",
+            value=sample_search or "",
+            label_visibility="collapsed",
+        )
+        submitted = cf2.form_submit_button(label="", icon=":material/send:")
+    return prompt, submitted
+
+
 async def _render_query_section():
     """Render the query section for knowledge graph exploration."""
     st.header("🔍 Query Knowledge Graph")
 
     # Build list of suggested queries
-    suggested_queries = []
-    if sss.selected_demo and cognee_demos:
-        demo = next(d for d in cognee_demos if d.name == sss.selected_demo)
-        suggested_queries.extend(demo.example_queries)
-    if not suggested_queries:
-        suggested_queries = [
-            "Who has experience in design tools?",
-            "Summarize key insights",
-            "List main topics",
-        ]
 
-    search_type = st.selectbox(
+    suggested_queries = []
+    debug(sss.selected_demo, cognee_demos)
+    if sss.selected_demo and cognee_demos:
+        suggested_queries.extend(sss.selected_demo.example_queries)
+
+    col1, col2 = st.columns([1, 4])
+    search_type = col1.selectbox(
         "Search Type:",
         options=[
             ("Insights", SearchType.INSIGHTS),
@@ -216,36 +208,64 @@ async def _render_query_section():
         ],
         format_func=lambda x: x[0],
         key="search_type_select",
+        label_visibility="collapsed",
+        placeholder="Search type",
     )
+    query, submitted = _display_input_form(col2, suggested_queries)
 
-    query = st.text_area(
-        "Enter your query:",
-        placeholder="What insights can you find in these documents?",
-        height=100,
-        key="query_input",
-    )
+    if submitted:
+        if not query:
+            st.warning("Please enter a query")
+        else:
+            with st.spinner("Searching knowledge graph..."):
+                results = await cognee.search(query_type=search_type[1], query_text=query)
 
-    col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
-    with col_btn2:
-        if st.button("➡️ Run search", key="search_button", type="secondary", use_container_width=True):
-            if not query:
-                st.warning("Please enter a query")
-            else:
-                with st.spinner("Searching knowledge graph..."):
-                    results = await cognee.search(query_type=search_type[1], query_text=query)
+                # Display results
+                if isinstance(results, list) and results and all(isinstance(r, dict) for r in results):
+                    st.success("Results found!")
+                    st.dataframe(results)
+                elif isinstance(results, list) and results and all(isinstance(r, str) for r in results):
+                    st.success("Results found!")
+                    for r in results:
+                        st.write(r)
+                else:
+                    st.success("Results found!")
+                    st.json(results)
 
-                    # Display results
-                    if isinstance(results, list) and results and all(isinstance(r, dict) for r in results):
-                        st.success("Results found!")
-                        st.dataframe(results)
-                    elif isinstance(results, list) and results and all(isinstance(r, str) for r in results):
-                        st.success("Results found!")
-                        for r in results:
-                            st.write(r)
-                    else:
-                        st.success("Results found!")
-                        st.json(results)
+
+async def main():
+    """Main Streamlit page for Cognee demonstration."""
+    st.set_page_config(page_title="Cognee Demo", page_icon="🧠", layout="wide")
+
+    st.title("🧠 Knowledge Graph Demo")
+    st.markdown("Upload documents or use predefined demos to explore knowledge graph insights")
+
+    # Initialize cognee
+    set_cognee_config()
+
+    # Initialize session state
+    if "processing_complete" not in sss:
+        sss.processing_complete = False
+    if "graph_generated" not in sss:
+        sss.graph_generated = False
+    if "show_upload_popup" not in sss:
+        sss.show_upload_popup = False
+    if "selected_demo" not in sss:
+        sss.selected_demo = None
+
+    if not sss.processing_complete:
+        await _render_input_section()
+    if sss.processing_complete:
+        await _render_results_section()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # Handle both direct execution and Streamlit execution
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            loop.create_task(main())
+        else:
+            asyncio.run(main())
+    except RuntimeError:
+        asyncio.run(main())
