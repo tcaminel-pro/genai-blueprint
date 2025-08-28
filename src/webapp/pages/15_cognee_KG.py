@@ -239,7 +239,9 @@ async def _render_query_section():
                     return
 
                 # Display results
-                debug(infer_hint(results), is_bearable(results, list[tuple[dict]]))
+                results_type = infer_hint(results)
+                debug(results_type)
+                
                 if is_bearable(results, list[dict]) and results:
                     st.success("Results found!")
                     st.dataframe(results)
@@ -247,11 +249,10 @@ async def _render_query_section():
                     st.success("Results found!")
                     for r in results:
                         st.write(r)
-                elif is_bearable(results, list[tuple[dict]]) and results:
+                elif is_bearable(results, list[tuple[dict, ...]]) and results:
                     st.success("Results found!")
-                    # Flatten list of lists of dicts and display as dataframe with JSON cells
+                    # Flatten list of tuples of dicts and display as dataframe with JSON cells
                     import json
-
                     flattened = [item for sublist in results for item in sublist]
                     if flattened:
                         # Convert dicts to JSON strings for display
@@ -262,6 +263,23 @@ async def _render_query_section():
                         st.dataframe(json_data)
                     else:
                         st.info("No data found in nested lists")
+                elif is_bearable(results, list[tuple[dict, dict]]) and results:
+                    st.success("Results found!")
+                    # Handle case where we have tuple pairs of dicts
+                    import json
+                    flattened = []
+                    for pair in results:
+                        if len(pair) >= 2:
+                            flattened.extend(pair)
+                    
+                    if flattened:
+                        json_data = [
+                            {k: json.dumps(v) if isinstance(v, (dict, list)) else str(v) for k, v in item.items()}
+                            for item in flattened
+                        ]
+                        st.dataframe(json_data)
+                    else:
+                        st.info("No data found in nested structures")
                 else:
                     st.success("Results found! ")
                     st.json(results)
