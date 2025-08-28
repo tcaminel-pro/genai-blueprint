@@ -105,7 +105,7 @@ quality: ## Run Ruff an all Python files to check quality
 clean-notebooks: ## Clean Jupyter notebook outputs.
 	@find . -path "./.venv" -prune -o -name "*.ipynb" -print | while read -r notebook; do \
 		echo "Cleaning outputs from: $$notebook"; \
-		uvx --from nbconvert nbconvert --clear-output --inplace "$$notebook"; \
+		uv run --with nbconvert python -m nbconvert --clear-output --inplace "$$notebook"; \
 	done
 
 ##############################
