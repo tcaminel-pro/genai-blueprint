@@ -192,23 +192,15 @@ async def _render_results_section():
         await display_graph_visualization()
 
 
-def _display_input_form(w: DeltaGenerator, suggested_queries: list[str]) -> tuple[str, bool]:
+def _display_input_form(w: DeltaGenerator, suggested_queries: list[str], value: str = "") -> tuple[str, bool]:
     """Displays the input form and returns user input."""
-    # Move selectbox outside form so it updates immediately
-    sample_search = st.selectbox(
-        label="Sample queries",
-        placeholder="Select an example (optional)",
-        options=suggested_queries,
-        index=None,
-        key="sample_query_select",
-    )
     with w.form("my_form", border=False):
         cf1, cf2 = st.columns([15, 1], vertical_alignment="bottom")
         prompt = cf1.text_area(
             "Your task",
             height=68,
             placeholder="Enter or modify your query here...",
-            value=sample_search or "",
+            value=value,
             label_visibility="collapsed",
         )
         submitted = cf2.form_submit_button(label="", icon=":material/send:")
@@ -224,6 +216,14 @@ async def _render_query_section():
     suggested_queries = []
     if sss.selected_demo and cognee_demos:
         suggested_queries.extend(sss.selected_demo.example_queries)
+
+    sample_search = st.selectbox(
+        label="Sample queries",
+        placeholder="Select an example (optional)",
+        options=suggested_queries,
+        index=None,
+        key="sample_query_select",
+    )
 
     col1, col2 = st.columns([1, 4])
     search_type = col1.selectbox(
@@ -250,7 +250,12 @@ async def _render_query_section():
     )
     # Display the description
     st.caption(f"🔍 {get_search_type_description(search_type[1])}")
-    query, submitted = _display_input_form(col2, suggested_queries)
+    
+    query, submitted = _display_input_form(
+        col2,
+        suggested_queries,
+        value=sample_search or "",
+    )
 
     if submitted:
         if not query:
