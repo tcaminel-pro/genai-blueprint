@@ -7,8 +7,7 @@ from typing import List, Sequence
 
 import cognee
 import streamlit as st
-from beartype import beartype
-from beartype.door import is_bearable
+from beartype.door import infer_hint, is_bearable
 from cognee.api.v1.search import SearchType
 from devtools import debug  # noqa: F401
 from loguru import logger
@@ -177,8 +176,6 @@ def _display_input_form(w: DeltaGenerator, suggested_queries: list[str]) -> tupl
         index=None,
         key="sample_query_select",
     )
-    debug(sample_search)
-
     with w.form("my_form", border=False):
         cf1, cf2 = st.columns([15, 1], vertical_alignment="bottom")
         prompt = cf1.text_area(
@@ -199,7 +196,6 @@ async def _render_query_section():
     # Build list of suggested queries
 
     suggested_queries = []
-    debug(sss.selected_demo, cognee_demos)
     if sss.selected_demo and cognee_demos:
         suggested_queries.extend(sss.selected_demo.example_queries)
 
@@ -226,7 +222,6 @@ async def _render_query_section():
         label_visibility="collapsed",
         placeholder="Search type",
     )
-    debug(suggested_queries)
     # Display the description
     st.caption(f"🔍 {get_search_type_description(search_type[1])}")
     query, submitted = _display_input_form(col2, suggested_queries)
@@ -244,6 +239,7 @@ async def _render_query_section():
                     return
 
                 # Display results
+                debug(infer_hint(results), is_bearable(results, list[tuple[dict]]))
                 if is_bearable(results, list[dict]) and results:
                     st.success("Results found!")
                     st.dataframe(results)
@@ -251,7 +247,7 @@ async def _render_query_section():
                     st.success("Results found!")
                     for r in results:
                         st.write(r)
-                elif is_bearable(results, list[list[dict]]) and results:
+                elif is_bearable(results, list[tuple[dict]]) and results:
                     st.success("Results found!")
                     # Flatten list of lists of dicts and display as dataframe with JSON cells
                     import json
@@ -267,7 +263,7 @@ async def _render_query_section():
                     else:
                         st.info("No data found in nested lists")
                 else:
-                    st.success("Results found!")
+                    st.success("Results found! ")
                     st.json(results)
 
 
