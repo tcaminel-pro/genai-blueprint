@@ -250,19 +250,19 @@ async def _render_query_section():
                         st.write(r)
                 elif is_bearable(results, list[tuple[dict, ...]]) and results:
                     st.success("Results found!")
-                    # Flatten list of tuples of dicts and display as dataframe with JSON cells
                     import json
-
-                    flattened = [item for sublist in results for item in sublist]
-                    if flattened:
-                        # Convert dicts to JSON strings for display
-                        json_data = [
-                            {k: json.dumps(v) if isinstance(v, (dict, list)) else str(v) for k, v in item.items()}
-                            for item in flattened
-                        ]
-                        st.dataframe(json_data)
+                    
+                    # Convert each dict in each tuple to a row with JSON-formatted cells
+                    rows = []
+                    for tuple_item in results:
+                        for dict_item in tuple_item:
+                            json_row = {k: json.dumps(v) for k, v in dict_item.items()}
+                            rows.append(json_row)
+                    
+                    if rows:
+                        st.dataframe(rows)
                     else:
-                        st.info("No data found in nested lists")
+                        st.info("No data found in tuples")
                 elif is_bearable(results, list[tuple[dict, dict]]) and results:
                     st.success("Results found!")
                     # Handle case where we have tuple pairs of dicts
