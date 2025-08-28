@@ -7,6 +7,8 @@ from typing import List, Sequence
 
 import cognee
 import streamlit as st
+from beartype import beartype
+from beartype.door import is_bearable
 from cognee.api.v1.search import SearchType
 from devtools import debug  # noqa: F401
 from loguru import logger
@@ -242,10 +244,10 @@ async def _render_query_section():
                     return
 
                 # Display results
-                if isinstance(results, list) and results and all(isinstance(r, dict) for r in results):
+                if is_bearable(results, list[dict]) and results:
                     st.success("Results found!")
                     st.dataframe(results)
-                elif isinstance(results, list) and results and all(isinstance(r, str) for r in results):
+                elif is_bearable(results, list[str]) and results:
                     st.success("Results found!")
                     for r in results:
                         st.write(r)
