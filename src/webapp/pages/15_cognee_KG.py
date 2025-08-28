@@ -88,8 +88,6 @@ cognee_demos = load_demos_from_config()
 
 
 async def main():
-    loop = asyncio.get_event_loop()
-    print(loop.is_running())
     """Main Streamlit page for Cognee demonstration."""
     st.set_page_config(page_title="Cognee Demo", page_icon="🧠", layout="wide")
 
@@ -110,143 +108,161 @@ async def main():
         sss.selected_demo = None
 
     # Choose between file upload or demo
-    TEXT1 = "Upload Files"
-    TEXT2 = "Predefined demo"
     if not sss.processing_complete:
-        option = st.radio(
-            "Choose input method:",
-            [TEXT1, TEXT2],
-            horizontal=True,
-            key="input_option",
-        )
-        if option == TEXT1:
-            uploaded_files = st.file_uploader(
-                "Choose files:",
-                accept_multiple_files=True,
-                type=["txt", "pdf", "docx", "md", "json"],
-                key="file_uploader_main",
-            )
-            if uploaded_files and st.button("🚀 Cognify !", type="primary"):
-                with st.spinner("Processing files through cognee pipeline..."):
-                    success = await process_files([Path(f.name) for f in uploaded_files])
-                    if success:
-                        sss.processing_complete = True
-                        sss.graph_generated = True
-                        st.success("✅ Knowledge graph generated successfully!")
-                        st.rerun()
-                    else:
-                        st.error("❌ Failed to process files")
-        elif option == TEXT2:
-            if cognee_demos:
-                demo_names = [demo.name for demo in cognee_demos]
-                selected_demo_name = st.selectbox("Select a demo:", demo_names, key="demo_select")
-                selected_demo = next(d for d in cognee_demos if d.name == selected_demo_name)
-
-                st.write("**Demo texts:**")
-                tabs = st.tabs([f"Text {idx}" for idx in range(1, len(selected_demo.texts) + 1)])
-                for idx, text in enumerate(selected_demo.texts):
-                    with tabs[idx]:
-                        st.text_area("", value=text, height=150, key=f"demo_text_{idx}", disabled=True)
-
-                if st.button("🚀 Cognify Demo !", type="primary"):
-                    with st.spinner("Processing demo texts through cognee pipeline..."):
-                        try:
-                            loop = asyncio.get_event_loop()
-                            if loop.is_running():
-                                print("loop")
-                                await cognee.add(data=selected_demo.texts)
-                                await cognee.cognify()
-                            else:
-                                asyncio.run(cognee.add(data=selected_demo.texts))
-                                asyncio.run(cognee.cognify())
-                        except RuntimeError:
-                            asyncio.run(cognee.add(data=selected_demo.texts))
-                            asyncio.run(cognee.cognify())
-                        sss.processing_complete = True
-                        sss.graph_generated = True
-                        st.success("✅ Demo knowledge graph generated successfully!")
-                        st.rerun()
-            else:
-                st.warning("No demos found in config/demos/cognee_kg.yaml")
+        await _render_input_section()
 
     # Show two-column layout after processing
     if sss.processing_complete:
-        st.success("✅ Knowledge graph generated! You can now query and explore the data.")
+        await _render_results_section()
 
-        col1, col2 = st.columns([1, 1])
 
-        with col1:
-            st.header("🔍 Query Knowledge Graph")
+async def _render_input_section():
+    """Render the input section for file upload or demo selection."""
+    TEXT1 = "Upload Files"
+    TEXT2 = "Predefined demo"
+    option = st.radio(
+        "Choose input method:",
+        [TEXT1, TEXT2],
+        horizontal=True,
+        key="input_option",
+    )
+    if option == TEXT1:
+        await _handle_file_upload()
+    elif option == TEXT2:
+        await _handle_demo_selection()
 
-            # Build list of suggested queries
-            suggested_queries = []
-            if sss.selected_demo and cognee_demos:
-                demo = next(d for d in cognee_demos if d.name == sss.selected_demo)
-                suggested_queries.extend(demo.example_queries)
-            if not suggested_queries:
-                suggested_queries = [
-                    "Who has experience in design tools?",
-                    "Summarize key insights",
-                    "List main topics",
-                ]
 
-            search_type = st.selectbox(
-                "Search Type:",
-                options=[
-                    ("Insights", SearchType.INSIGHTS),
-                    ("Graph Completion", SearchType.GRAPH_COMPLETION),
-                    ("RAG Completion", SearchType.RAG_COMPLETION),
-                ],
-                format_func=lambda x: x[0],
-                key="search_type_select",
-            )
-            # st.write("**Suggested queries:**")
-            # for q in suggested_queries:
-            #     if st.button(q, key=f"suggest_{q}"):
-            #         query = q
+async def _handle_file_upload():
+    """Handle file upload and processing."""
+    uploaded_files = st.file_uploader(
+        "Choose files:",
+        accept_multiple_files=True,
+        type=["txt", "pdf", "docx", "md", "json"],
+        key="file_uploader_main",
+    )
+    if uploaded_files and st.button("🚀 Cognify !", type="primary"):
+        with st.spinner("Processing files through cognee pipeline..."):
+            success = await process_files([Path(f.name) for f in uploaded_files])
+            if success:
+                sss.processing_complete = True
+                sss.graph_generated = True
+                st.success("✅ Knowledge graph generated successfully!")
+                st.rerun()
+            else:
+                st.error("❌ Failed to process files")
 
-            query = st.text_area(
-                "Enter your query:",
-                placeholder="What insights can you find in these documents?",
-                height=100,
-                key="query_input",
-            )
 
-            # Container at bottom for search button and results
-            with st.container():
-                col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
-                with col_btn2:
-                    if st.button("➡️ Run search", key="search_button", type="secondary", use_container_width=True):
-                        if not query:
-                            st.warning("Please enter a query")
+async def _handle_demo_selection():
+    """Handle demo selection and processing."""
+    if not cognee_demos:
+        st.warning("No demos found in config/demos/cognee_kg.yaml")
+        return
+
+    demo_names = [demo.name for demo in cognee_demos]
+    selected_demo_name = st.selectbox("Select a demo:", demo_names, key="demo_select")
+    selected_demo = next(d for d in cognee_demos if d.name == selected_demo_name)
+
+    st.write("**Demo texts:**")
+    tabs = st.tabs([f"Text {idx}" for idx in range(1, len(selected_demo.texts) + 1)])
+    for idx, text in enumerate(selected_demo.texts):
+        with tabs[idx]:
+            st.text_area("", value=text, height=150, key=f"demo_text_{idx}", disabled=True)
+
+    if st.button("🚀 Cognify Demo !", type="primary"):
+        with st.spinner("Processing demo texts through cognee pipeline..."):
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    await cognee.add(data=selected_demo.texts)
+                    await cognee.cognify()
+                else:
+                    asyncio.run(cognee.add(data=selected_demo.texts))
+                    asyncio.run(cognee.cognify())
+            except RuntimeError:
+                asyncio.run(cognee.add(data=selected_demo.texts))
+                asyncio.run(cognee.cognify())
+            sss.processing_complete = True
+            sss.graph_generated = True
+            st.success("✅ Demo knowledge graph generated successfully!")
+            st.rerun()
+
+
+async def _render_results_section():
+    """Render the results section with query and visualization."""
+    st.success("✅ Knowledge graph generated! You can now query and explore the data.")
+
+    col1, col2 = st.columns([1, 1])
+
+    with col1:
+        await _render_query_section()
+    with col2:
+        st.header("🕸️ Knowledge Graph Visualization")
+        await display_graph_visualization()
+
+
+async def _render_query_section():
+    """Render the query section for knowledge graph exploration."""
+    st.header("🔍 Query Knowledge Graph")
+
+    # Build list of suggested queries
+    suggested_queries = []
+    if sss.selected_demo and cognee_demos:
+        demo = next(d for d in cognee_demos if d.name == sss.selected_demo)
+        suggested_queries.extend(demo.example_queries)
+    if not suggested_queries:
+        suggested_queries = [
+            "Who has experience in design tools?",
+            "Summarize key insights",
+            "List main topics",
+        ]
+
+    search_type = st.selectbox(
+        "Search Type:",
+        options=[
+            ("Insights", SearchType.INSIGHTS),
+            ("Graph Completion", SearchType.GRAPH_COMPLETION),
+            ("RAG Completion", SearchType.RAG_COMPLETION),
+        ],
+        format_func=lambda x: x[0],
+        key="search_type_select",
+    )
+
+    query = st.text_area(
+        "Enter your query:",
+        placeholder="What insights can you find in these documents?",
+        height=100,
+        key="query_input",
+    )
+
+    col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
+    with col_btn2:
+        if st.button("➡️ Run search", key="search_button", type="secondary", use_container_width=True):
+            if not query:
+                st.warning("Please enter a query")
+            else:
+                with st.spinner("Searching knowledge graph..."):
+                    try:
+                        loop = asyncio.get_event_loop()
+                        if loop.is_running():
+                            results = await cognee.search(query_type=search_type[1], query_text=query)
                         else:
-                            with st.spinner("Searching knowledge graph..."):
-                                try:
-                                    loop = asyncio.get_event_loop()
-                                    if loop.is_running():
-                                        results = await cognee.search(query_type=search_type[1], query_text=query)
-                                    else:
-                                        results = asyncio.run(
-                                            cognee.search(query_type=search_type[1], query_text=query)
-                                        )
-                                except RuntimeError:
-                                    results = asyncio.run(cognee.search(query_type=search_type[1], query_text=query))
+                            results = asyncio.run(
+                                cognee.search(query_type=search_type[1], query_text=query)
+                            )
+                    except RuntimeError:
+                        results = asyncio.run(cognee.search(query_type=search_type[1], query_text=query))
 
-                                # Display results
-                                if isinstance(results, list) and results and all(isinstance(r, dict) for r in results):
-                                    st.success("Results found!")
-                                    st.dataframe(results)
-                                elif isinstance(results, list) and results and all(isinstance(r, str) for r in results):
-                                    st.success("Results found!")
-                                    for r in results:
-                                        st.write(r)
-                                else:
-                                    st.success("Results found!")
-                                    st.json(results)
-
-        with col2:
-            st.header("🕸️ Knowledge Graph Visualization")
-            await display_graph_visualization()
+                    # Display results
+                    if isinstance(results, list) and results and all(isinstance(r, dict) for r in results):
+                        st.success("Results found!")
+                        st.dataframe(results)
+                    elif isinstance(results, list) and results and all(isinstance(r, str) for r in results):
+                        st.success("Results found!")
+                        for r in results:
+                            st.write(r)
+                    else:
+                        st.success("Results found!")
+                        st.json(results)
 
 
 if __name__ == "__main__":
