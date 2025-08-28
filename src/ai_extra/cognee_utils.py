@@ -89,6 +89,7 @@ async def test_config():
 
 
 def get_search_type_description(type: SearchType) -> str:
+    # https://docs.cognee.ai/reference/search-types
     search_descriptions = {
         SearchType.SUMMARIES: "Vector search on TextSummary content for concise, high-signal hits. Returns summary objects with provenance.",
         SearchType.INSIGHTS: "Finds relevant insights across your knowledge graph.",
@@ -99,7 +100,7 @@ def get_search_type_description(type: SearchType) -> str:
         SearchType.CODE: "Interprets your intent, searches code embeddings and related graph nodes, and assembles relevant source. Output: Structured code contexts and related graph information.",
         SearchType.CYPHER: "Executes your Cypher query against the graph database. Output: Raw query results.",
         SearchType.NATURAL_LANGUAGE: "Infers a Cypher query from your question using the graph schema, runs it, returns the results. Output: Executed graph results.",
-        SearchType.GRAPH_COMPLETION_COT: "Iterative rounds of graph retrieval and LLM reasoning to refine the answer. Output: A refined answer produced through multiple reasoning steps.",
+        SearchType.GRAPH_COMPLETION_COT: "Combines graph traversal with chain of thought to provide answers to complex multi hop questions.",
         SearchType.GRAPH_COMPLETION_CONTEXT_EXTENSION: "Starts with initial graph context, lets the LLM suggest follow-ups, fetches more graph context, repeats. Output: An answer assembled after expanding the relevant subgraph.",
         SearchType.FEELING_LUCKY: "Uses an LLM to pick the most suitable search mode for your query, then runs it. Output: Results from the selected mode.",
         SearchType.FEEDBACK: "Records user feedback on recent answers and links it to the associated graph elements for future tuning. Output: A feedback record tied to recent interactions.",

@@ -4,7 +4,7 @@ import asyncio
 import json
 import tempfile
 from pathlib import Path
-from typing import List, Sequence
+from typing import Any, BinaryIO, Callable, List, Sequence
 
 import cognee
 import streamlit as st
@@ -18,21 +18,18 @@ from streamlit.delta_generator import DeltaGenerator
 
 from src.ai_extra.cognee_utils import get_search_type_description, set_cognee_config
 from src.utils.config_mngr import global_config
-from utils.logger_factory import setup_logging
 
-setup_logging()
-logger = logger
+CogneeInputType = BinaryIO | list[BinaryIO] | str | list[str]  # Arguments accepted by cognee.add()
 
 
-async def process_files(uploaded_files: Sequence[Path]) -> bool:
+async def process_files(uploaded_files: Sequence[Path], node_set: list[str] | None) -> bool:
     """Process uploaded files through cognee pipeline."""
     if not uploaded_files:
         return False
 
     try:
         files = [str(f) for f in uploaded_files]
-        await cognee.add(data=files)
-        await cognee.cognify()
+        await _process_documents(data=files, node_set=node_set, dataset_name=sss.selected_demo.name)
 
     except Exception as e:
         logger.error(f"Error processing files: {e}")
@@ -117,10 +114,16 @@ async def _handle_file_upload():
     )
     if uploaded_files:
         await _handle_cognify_process(
-            data=[Path(f.name) for f in uploaded_files],
+            data=[str(Path(f.name)) for f in uploaded_files],
             process_func=process_files,
             clear_before_key="clear_before_upload",
         )
+
+
+async def _process_documents(data: Any, dataset_name: str, node_set: list[str] | None):
+    await cognee.add(data=data, node_set=node_set, dataset_name=dataset_name)
+    await cognee.cognify(datasets=[dataset_name])
+    return True
 
 
 async def _handle_demo_selection():
@@ -140,17 +143,12 @@ async def _handle_demo_selection():
         with tabs[idx]:
             st.text_area("", value=text, height=150, key=f"demo_text_{idx}", disabled=True)
 
-    async def _process_demo_texts(data):
-        await cognee.add(data=data)
-        await cognee.cognify()
-        return True
-
     await _handle_cognify_process(
-        data=selected_demo.texts, process_func=_process_demo_texts, clear_before_key="clear_before_demo"
+        data=selected_demo.texts, process_func=_process_documents, clear_before_key="clear_before_demo"
     )
 
 
-async def _handle_cognify_process(data, process_func, clear_before_key: str):
+async def _handle_cognify_process(data: CogneeInputType, process_func: Callable, clear_before_key: str):
     """Common handler for cognify operations with optional data clearing."""
     clear_before = st.checkbox("Clear stored data first", value=False, key=clear_before_key)
     if st.button("🚀 Cognify !", type="primary"):
