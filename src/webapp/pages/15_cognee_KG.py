@@ -176,7 +176,7 @@ def _display_input_form(w: DeltaGenerator, suggested_queries: list[str]) -> tupl
         key="sample_query_select",
     )
     debug(sample_search)
-    
+
     with w.form("my_form", border=False):
         cf1, cf2 = st.columns([15, 1], vertical_alignment="bottom")
         prompt = cf1.text_area(
