@@ -241,7 +241,7 @@ async def _render_query_section():
                 # Display results
                 results_type = infer_hint(results)
                 debug(results_type)
-                
+
                 if is_bearable(results, list[dict]) and results:
                     st.success("Results found!")
                     st.dataframe(results)
@@ -253,6 +253,7 @@ async def _render_query_section():
                     st.success("Results found!")
                     # Flatten list of tuples of dicts and display as dataframe with JSON cells
                     import json
+
                     flattened = [item for sublist in results for item in sublist]
                     if flattened:
                         # Convert dicts to JSON strings for display
@@ -267,11 +268,12 @@ async def _render_query_section():
                     st.success("Results found!")
                     # Handle case where we have tuple pairs of dicts
                     import json
+
                     flattened = []
                     for pair in results:
                         if len(pair) >= 2:
                             flattened.extend(pair)
-                    
+
                     if flattened:
                         json_data = [
                             {k: json.dumps(v) if isinstance(v, (dict, list)) else str(v) for k, v in item.items()}
