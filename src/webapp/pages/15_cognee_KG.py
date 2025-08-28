@@ -255,11 +255,14 @@ async def _render_query_section():
                     st.success("Results found!")
                     # Flatten list of lists of dicts and display as dataframe with JSON cells
                     import json
+
                     flattened = [item for sublist in results for item in sublist]
                     if flattened:
                         # Convert dicts to JSON strings for display
-                        json_data = [{k: json.dumps(v) if isinstance(v, (dict, list)) else str(v) 
-                                      for k, v in item.items()} for item in flattened]
+                        json_data = [
+                            {k: json.dumps(v) if isinstance(v, (dict, list)) else str(v) for k, v in item.items()}
+                            for item in flattened
+                        ]
                         st.dataframe(json_data)
                     else:
                         st.info("No data found in nested lists")
