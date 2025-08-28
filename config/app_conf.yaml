@@ -18,7 +18,7 @@ paths:
   demo_conf: ${paths.project}/config/demos
   models: ${oc.env:HOME}/.models
   postgres: postgresql://${oc.env:POSTGRES_USER,unknown_user}:${oc.env:POSTGRES_PASSWORD,password}@localhost:5432/ekg
-
+  datasets : ${paths.project}/use_case_data
 
 # Other config files merged to this one at launch time
 merge:
