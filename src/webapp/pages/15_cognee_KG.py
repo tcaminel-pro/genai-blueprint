@@ -240,7 +240,6 @@ async def _render_query_section():
 
                 # Display results
                 results_type = infer_hint(results)
-                debug(results_type)
 
                 if is_bearable(results, list[dict]) and results:
                     st.success("Results found!")
