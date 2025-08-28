@@ -115,16 +115,29 @@ async def _handle_file_upload():
         type=["txt", "pdf", "docx", "md", "json"],
         key="file_uploader_main",
     )
-    if uploaded_files and st.button("🚀 Cognify !", type="primary"):
-        with st.spinner("Processing files through cognee pipeline..."):
-            success = await process_files([Path(f.name) for f in uploaded_files])
-            if success:
-                sss.processing_complete = True
-                sss.graph_generated = True
-                st.success("✅ Knowledge graph generated successfully!")
-                st.rerun()
-            else:
-                st.error("❌ Failed to process files")
+    if uploaded_files:
+        clear_before = st.checkbox("Clear stored data first", value=False, key="clear_before_upload")
+        if st.button("🚀 Cognify !", type="primary"):
+            if clear_before:
+                with st.spinner("Clearing stored data..."):
+                    try:
+                        from cognee.prune import prune_data
+                        await prune_data()
+                        st.success("✅ Stored data cleared")
+                    except Exception as e:
+                        logger.error(f"Error clearing data: {e}")
+                        st.error(f"❌ Failed to clear stored data: {e}")
+                        return
+            
+            with st.spinner("Processing files through cognee pipeline..."):
+                success = await process_files([Path(f.name) for f in uploaded_files])
+                if success:
+                    sss.processing_complete = True
+                    sss.graph_generated = True
+                    st.success("✅ Knowledge graph generated successfully!")
+                    st.rerun()
+                else:
+                    st.error("❌ Failed to process files")
 
 
 async def _handle_demo_selection():
@@ -144,7 +157,19 @@ async def _handle_demo_selection():
         with tabs[idx]:
             st.text_area("", value=text, height=150, key=f"demo_text_{idx}", disabled=True)
 
+    clear_before = st.checkbox("Clear stored data first", value=False, key="clear_before_demo")
     if st.button("🚀 Cognify Demo !", type="primary"):
+        if clear_before:
+            with st.spinner("Clearing stored data..."):
+                try:
+                    from cognee.prune import prune_data
+                    await prune_data()
+                    st.success("✅ Stored data cleared")
+                except Exception as e:
+                    logger.error(f"Error clearing data: {e}")
+                    st.error(f"❌ Failed to clear stored data: {e}")
+                    return
+        
         with st.spinner("Processing demo texts through cognee pipeline..."):
             await cognee.add(data=selected_demo.texts)
             await cognee.cognify()
