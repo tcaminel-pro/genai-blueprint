@@ -246,9 +246,7 @@ async def _render_query_section():
                         if loop.is_running():
                             results = await cognee.search(query_type=search_type[1], query_text=query)
                         else:
-                            results = asyncio.run(
-                                cognee.search(query_type=search_type[1], query_text=query)
-                            )
+                            results = asyncio.run(cognee.search(query_type=search_type[1], query_text=query))
                     except RuntimeError:
                         results = asyncio.run(cognee.search(query_type=search_type[1], query_text=query))
 
