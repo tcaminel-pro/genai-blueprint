@@ -80,7 +80,9 @@ def load_demos_from_config() -> List[CogneeDemo]:
         config = global_config().merge_with(demos_config_path)
         demos = []
         for demo_name in config.get_dict("cognee-demo").keys():
-            texts = config.get_list(f"cognee-demo.{demo_name}.texts", [])
+            texts = [
+                "https://raw.githubusercontent.com/topoteretes/cognee/refs/heads/main/examples/data/car_and_tech_companies.txt"
+            ] if demo_name == "car_and_tech" else config.get_list(f"cognee-demo.{demo_name}.texts", [])
             example_queries = config.get_list(f"cognee-demo.{demo_name}.example_queries", [])
             files = config.get_list(f"cognee-demo.{demo_name}.files", [])
             files_url = [Path(f) for f in files]
