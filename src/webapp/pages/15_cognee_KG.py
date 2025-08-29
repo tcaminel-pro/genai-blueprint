@@ -4,7 +4,7 @@ import asyncio
 import json
 import tempfile
 from pathlib import Path
-from typing import Any, BinaryIO, Callable, List, Sequence
+from typing import BinaryIO, Callable, List
 
 import cognee
 import streamlit as st
@@ -23,40 +23,6 @@ from src.ai_extra.cognee_utils import get_search_type_description, set_cognee_co
 from src.utils.config_mngr import global_config
 
 CogneeInputType = BinaryIO | list[BinaryIO] | str | list[str]  # Arguments accepted by cognee.add()
-
-
-async def process_files(demo_data: CogneeDemoData, node_set: list[str] | None) -> bool:
-    """Process demo data through cognee pipeline."""
-    if not demo_data.has_content():
-        return False
-
-    try:
-        await _process_documents(demo_data=demo_data, node_set=node_set)
-    except Exception as e:
-        logger.error(f"Error processing files: {e}")
-        return False
-    return True
-
-
-async def query_knowledge_graph(query: str, search_type: SearchType) -> list:
-    """Query the knowledge graph with specified search type."""
-    try:
-        results = await cognee.search(query_type=SearchType.INSIGHTS, query_text=query)
-        return results
-    except Exception as e:
-        logger.error(f"Error querying knowledge graph: {e}")
-        return [f"error: {e}"]
-
-
-async def display_graph_visualization():
-    """Display the knowledge graph visualization."""
-    try:
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".html", delete=False) as tmp_file:
-            tmp_path = tmp_file.name
-            html_content = await visualize_graph(tmp_path)
-            components.html(html_content, height=600, scrolling=True)
-    except Exception as e:
-        st.error(f"Error displaying graph: {e}")
 
 
 class CogneeDemoData(BaseModel):
@@ -94,6 +60,40 @@ class CogneeDemoData(BaseModel):
             except Exception as e:
                 items.append(("error", f"Error loading {file_path}: {e}", f"File: {file_path.name}"))
         return items
+
+
+async def process_files(demo_data: CogneeDemoData, node_set: list[str] | None) -> bool:
+    """Process demo data through cognee pipeline."""
+    if not demo_data.has_content():
+        return False
+
+    try:
+        await _process_documents(demo_data=demo_data, node_set=node_set)
+    except Exception as e:
+        logger.error(f"Error processing files: {e}")
+        return False
+    return True
+
+
+async def query_knowledge_graph(query: str, search_type: SearchType) -> list:
+    """Query the knowledge graph with specified search type."""
+    try:
+        results = await cognee.search(query_type=SearchType.INSIGHTS, query_text=query)
+        return results
+    except Exception as e:
+        logger.error(f"Error querying knowledge graph: {e}")
+        return [f"error: {e}"]
+
+
+async def display_graph_visualization():
+    """Display the knowledge graph visualization."""
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".html", delete=False) as tmp_file:
+            tmp_path = tmp_file.name
+            html_content = await visualize_graph(tmp_path)
+            components.html(html_content, height=600, scrolling=True)
+    except Exception as e:
+        st.error(f"Error displaying graph: {e}")
 
 
 def load_demos_from_config() -> List[CogneeDemoData]:
@@ -206,7 +206,7 @@ async def _handle_demo_selection():
                 elif content_type == "error":
                     st.error(content)
                 else:
-                    st.write(f"Cannot display: {title}")
+                    st.write(f"Cannot display: {content_type}")
 
     if not selected_demo.has_content():
         st.warning("This demo has no texts or files to process")
