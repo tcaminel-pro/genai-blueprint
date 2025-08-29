@@ -146,7 +146,9 @@ async def _handle_demo_selection():
         return
 
     demo_names = [demo.name for demo in cognee_demos]
-    selected_demo_name = st.pills("Select a demo:", demo_names, key="demo_select")
+    selected_demo_name = st.selectbox("Select a demo:", demo_names, key="demo_select")
+    selected_demo_name = st.pills("Select a demo:", demo_names, key="demo_select2")
+
     selected_demo = next(d for d in cognee_demos if d.name == selected_demo_name)
     sss.selected_demo = selected_demo
 
