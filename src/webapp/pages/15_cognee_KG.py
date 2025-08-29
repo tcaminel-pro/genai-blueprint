@@ -134,7 +134,7 @@ async def _render_input_section():
         horizontal=True,
         key="input_option",
     )
-    
+
     if option == TEXT1:
         await _handle_file_upload()
     elif option == TEXT2:
@@ -157,7 +157,7 @@ async def _handle_file_upload():
                 with open(file_path, "wb") as f:
                     f.write(uploaded_file.getbuffer())
                 paths.append(file_path)
-            
+
             demo_data = CogneeDemoData(name="uploaded_files", uploaded_file_paths=[UPath(p) for p in paths])
             await _handle_cognify_process(
                 demo_data=demo_data,
@@ -219,9 +219,7 @@ async def _handle_demo_selection():
     )
 
 
-async def _handle_cognify_process(
-    demo_data: CogneeDemoData, process_func: Callable, clear_before_key: str = False
-):
+async def _handle_cognify_process(demo_data: CogneeDemoData, process_func: Callable, clear_before_key: str = False):
     """Common handler for cognify operations with optional data clearing."""
     clear_before = st.checkbox("Clear stored data first", value=False, key=clear_before_key)
     if st.button("🚀 Cognify !", type="primary"):
