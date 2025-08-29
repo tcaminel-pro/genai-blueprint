@@ -67,8 +67,8 @@ class CogneeDemo(BaseModel):
     name: str
     texts: List[str] = []
     example_queries: List[str] = []
-    files: List[UPath] = []
-    ontology: UPath | None = None
+    files: List[Path] = []
+    ontology: Path | None = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -83,10 +83,10 @@ def load_demos_from_config() -> List[CogneeDemo]:
             texts = config.get_list(f"cognee-demo.{demo_name}.texts", [])
             example_queries = config.get_list(f"cognee-demo.{demo_name}.example_queries", [])
             files = config.get_list(f"cognee-demo.{demo_name}.files", [])
-            files_url = [UPath(f) for f in files]
+            files_url = [Path(f) for f in files]
             ontology = config.get_str(f"cognee-demo.{demo_name}.ontology", "")
 
-            ontology_url = UPath(ontology) if ontology else None
+            ontology_url = Path(ontology) if ontology else None
             demos.append(
                 CogneeDemo(
                     name=demo_name, texts=texts, example_queries=example_queries, files=files_url, ontology=ontology_url
@@ -155,6 +155,9 @@ async def _handle_demo_selection():
     selected_demo = next(d for d in cognee_demos if d.name == selected_demo_name)
     sss.selected_demo = selected_demo
 
+    if selected_demo.ontology:
+        st.write(f"ontology: {selected_demo.ontology}")
+
     # cognee.set_user("user_123")
 
     # Display texts and files in tabs before processing
@@ -173,7 +176,7 @@ async def _handle_demo_selection():
                     texts_and_files.append(("pdf", file_path, f"PDF: {file_path.name}"))
                 else:
                     try:
-                        text_content = file_path.read_text()
+                        text_content = UPath(file_path).read_text()
                         file_contents.append(text_content)
                         texts_and_files.append(("text_content", text_content, f"File: {file_path.name}"))
                     except Exception as e:
@@ -194,13 +197,16 @@ async def _handle_demo_selection():
                 if content_type == "text" or content_type == "text_content":
                     st.text_area("", value=content, height=150, key=f"demo_content_{idx}", disabled=True)
                 elif content_type == "pdf":
+                    debug(f"display pdf: {title}")
                     st.pdf(content)
                 elif content_type == "error":
                     st.error(content)
+                else:
+                    st.write(f"Cannot display: {title}")
 
     # Combine texts and file contents for processing
-    all_data = selected_demo.texts
-    all_data.extend(file_contents)
+    all_data = selected_demo.texts + [str(f) for f in selected_demo.files]
+    # all_data.extend(file_contents)
 
     if not all_data:
         st.warning("This demo has no texts or files to process")
