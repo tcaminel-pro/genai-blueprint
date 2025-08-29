@@ -8,8 +8,10 @@ from typing import Any, BinaryIO, Callable, List, Sequence
 
 import cognee
 import streamlit as st
+import streamlit.components.v1 as components
 from beartype.door import is_bearable
 from cognee.api.v1.search import SearchType
+from cognee.api.v1.visualize.visualize import visualize_graph
 from devtools import debug  # noqa: F401
 from loguru import logger
 from pydantic import BaseModel, ConfigDict
@@ -51,9 +53,6 @@ async def query_knowledge_graph(query: str, search_type: SearchType) -> list:
 async def display_graph_visualization():
     """Display the knowledge graph visualization."""
     try:
-        import streamlit.components.v1 as components
-        from cognee.api.v1.visualize.visualize import visualize_graph
-
         with tempfile.NamedTemporaryFile(mode="w", suffix=".html", delete=False) as tmp_file:
             tmp_path = tmp_file.name
             html_content = await visualize_graph(tmp_path)
@@ -88,13 +87,11 @@ def load_demos_from_config() -> List[CogneeDemo]:
             ontology = config.get_str(f"cognee-demo.{demo_name}.ontology", "")
 
             ontology_url = UPath(ontology) if ontology else None
-            debug(ontology, ontology_url)
             demos.append(
                 CogneeDemo(
                     name=demo_name, texts=texts, example_queries=example_queries, files=files_url, ontology=ontology_url
                 )
             )
-        debug(demos)
         return demos
     except Exception as e:
         logger.error(f"Error loading demos from config: {e}")
@@ -136,7 +133,7 @@ async def _handle_file_upload():
         )
 
 
-async def _process_documents(data: Any, dataset_name: str, node_set: list[str] | None):
+async def _process_documents(data: Any, dataset_name: str, node_set: list[str] | None = None):
     await cognee.add(data=data, node_set=node_set, dataset_name=dataset_name)
     await cognee.cognify(datasets=[dataset_name])
     return True
@@ -152,6 +149,8 @@ async def _handle_demo_selection():
     selected_demo_name = st.selectbox("Select a demo:", demo_names, key="demo_select")
     selected_demo = next(d for d in cognee_demos if d.name == selected_demo_name)
     sss.selected_demo = selected_demo
+
+    # cognee.set_user("user_123")
 
     # Display texts and files in tabs
     texts_and_files = []
@@ -201,10 +200,17 @@ async def _handle_demo_selection():
         st.warning("This demo has no texts or files to process")
         return
 
-    await _handle_cognify_process(data=all_data, process_func=_process_documents, clear_before_key="clear_before_demo")
+    await _handle_cognify_process(
+        data=all_data,
+        process_func=_process_documents,
+        func_args={"dataset_name": sss.selected_demo.name},
+        clear_before_key="clear_before_demo",
+    )
 
 
-async def _handle_cognify_process(data: CogneeInputType, process_func: Callable, clear_before_key: str):
+async def _handle_cognify_process(
+    data: CogneeInputType, process_func: Callable, func_args: dict = {}, clear_before_key: str = False
+):
     """Common handler for cognify operations with optional data clearing."""
     clear_before = st.checkbox("Clear stored data first", value=False, key=clear_before_key)
     if st.button("🚀 Cognify !", type="primary"):
@@ -221,7 +227,7 @@ async def _handle_cognify_process(data: CogneeInputType, process_func: Callable,
 
         with st.spinner("Processing through cognee pipeline..."):
             try:
-                success = await process_func(data)
+                success = await process_func(data, **func_args)
                 if success:
                     sss.processing_complete = True
                     sss.graph_generated = True
@@ -284,9 +290,9 @@ async def _render_query_section():
     search_type = col1.selectbox(
         "Search Type:",
         options=[  # from https://docs.cognee.ai/core-concepts/main-operations/search
-            ("Insights", SearchType.INSIGHTS),
             ("RAG Completion", SearchType.RAG_COMPLETION),
             ("Graph Completion", SearchType.GRAPH_COMPLETION),
+            ("Insights", SearchType.INSIGHTS),
             ("Summaries", SearchType.SUMMARIES),
             ("Chunks", SearchType.CHUNKS),
             ("Graph Summary Completion", SearchType.GRAPH_SUMMARY_COMPLETION),
