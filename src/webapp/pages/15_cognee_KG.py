@@ -154,7 +154,7 @@ async def _handle_demo_selection():
 
     # Combine texts and file contents for processing
     all_data = selected_demo.texts
-    
+
     # Add file contents
     file_contents = []
     if selected_demo.files:
@@ -168,7 +168,7 @@ async def _handle_demo_selection():
                         logger.error(f"Error reading file {file_path}: {e}")
             except Exception as e:
                 logger.error(f"Error loading file {file_path}: {e}")
-    
+
     all_data.extend(file_contents)
 
     if not all_data:
@@ -223,10 +223,12 @@ async def _render_results_section():
     if sss.selected_demo and cognee_demos:
         with st.expander("📄 Demo Content (Texts and Files)", expanded=False):
             texts_and_files = []
-            
+
             # Add texts
             if sss.selected_demo.texts:
-                texts_and_files.extend([("text", text, f"Text {i + 1}") for i, text in enumerate(sss.selected_demo.texts)])
+                texts_and_files.extend(
+                    [("text", text, f"Text {i + 1}") for i, text in enumerate(sss.selected_demo.texts)]
+                )
 
             # Add files
             file_contents = []
@@ -249,7 +251,9 @@ async def _render_results_section():
                                     )
                                 )
                     except Exception as e:
-                        texts_and_files.append(("error", f"Error loading file {file_path}: {e}", f"File: {file_path.name}"))
+                        texts_and_files.append(
+                            ("error", f"Error loading file {file_path}: {e}", f"File: {file_path.name}")
+                        )
 
             if texts_and_files:
                 tabs = st.tabs([title for _, _, title in texts_and_files])
