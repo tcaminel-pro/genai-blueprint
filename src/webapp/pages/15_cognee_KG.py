@@ -25,15 +25,13 @@ from src.utils.config_mngr import global_config
 CogneeInputType = BinaryIO | list[BinaryIO] | str | list[str]  # Arguments accepted by cognee.add()
 
 
-async def process_files(uploaded_files: Sequence[Path], node_set: list[str] | None) -> bool:
-    """Process uploaded files through cognee pipeline."""
-    if not uploaded_files:
+async def process_files(demo_data: CogneeDemoData, node_set: list[str] | None) -> bool:
+    """Process demo data through cognee pipeline."""
+    if not demo_data.has_content():
         return False
 
     try:
-        files = [str(f) for f in uploaded_files]
-        await _process_documents(data=files, node_set=node_set, dataset_name=sss.selected_demo.name)
-
+        await _process_documents(demo_data=demo_data, node_set=node_set)
     except Exception as e:
         logger.error(f"Error processing files: {e}")
         return False
@@ -69,8 +67,33 @@ class CogneeDemoData(BaseModel):
     example_queries: List[str] = []
     files: List[UPath] = []
     ontology: UPath | None = None
+    uploaded_file_paths: List[UPath] = []
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    def all_data(self) -> list[str]:
+        """Return combined texts and file paths for processing."""
+        return self.texts + [str(f) for f in self.files + self.uploaded_file_paths]
+
+    def has_content(self) -> bool:
+        """Check if there's any content to process."""
+        return bool(self.all_data())
+
+    def display_content(self):
+        """Display texts and files in tabs."""
+        items = []
+        for idx, text in enumerate(self.texts):
+            items.append(("text", text, f"Text {idx + 1}"))
+        for file_path in self.files + self.uploaded_file_paths:
+            try:
+                if file_path.suffix.lower() == ".pdf":
+                    items.append(("pdf", file_path, f"PDF: {file_path.name}"))
+                else:
+                    content = file_path.read_text()
+                    items.append(("text_content", content, f"File: {file_path.name}"))
+            except Exception as e:
+                items.append(("error", f"Error loading {file_path}: {e}", f"File: {file_path.name}"))
+        return items
 
 
 def load_demos_from_config() -> List[CogneeDemoData]:
@@ -111,6 +134,7 @@ async def _render_input_section():
         horizontal=True,
         key="input_option",
     )
+    
     if option == TEXT1:
         await _handle_file_upload()
     elif option == TEXT2:
@@ -126,14 +150,25 @@ async def _handle_file_upload():
         key="file_uploader_main",
     )
     if uploaded_files:
-        await _handle_cognify_process(
-            data=[str(UPath(f.name)) for f in uploaded_files],
-            process_func=process_files,
-            clear_before_key="clear_before_upload",
-        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            paths = []
+            for uploaded_file in uploaded_files:
+                file_path = Path(tmpdir) / uploaded_file.name
+                with open(file_path, "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+                paths.append(file_path)
+            
+            demo_data = CogneeDemoData(name="uploaded_files", uploaded_file_paths=[UPath(p) for p in paths])
+            await _handle_cognify_process(
+                demo_data=demo_data,
+                process_func=process_files,
+                clear_before_key="clear_before_upload",
+            )
 
 
-async def _process_documents(data: Any, dataset_name: str, node_set: list[str] | None = None):
+async def _process_documents(demo_data: CogneeDemoData, node_set: list[str] | None = None):
+    dataset_name = demo_data.name
+    data = demo_data.all_data()
     await cognee.add(data=data, node_set=node_set, dataset_name=dataset_name)
     await cognee.cognify(datasets=[dataset_name])
     return True
@@ -158,71 +193,34 @@ async def _handle_demo_selection():
     if selected_demo.ontology:
         st.write(f"ontology: {selected_demo.ontology}")
 
-    # cognee.set_user("user_123")
-
-    # Display texts and files in tabs before processing
-    texts_and_files = []
-
-    # Add texts
-    if selected_demo.texts:
-        texts_and_files.extend([("text", text, f"Text {i + 1}") for i, text in enumerate(selected_demo.texts)])
-
-    # Add files
-    file_contents = []
-    if selected_demo.files:
-        for file_path in selected_demo.files:
-            try:
-                if file_path.suffix == ".pdf":
-                    texts_and_files.append(("pdf", file_path, f"PDF: {file_path.name}"))
-                else:
-                    try:
-                        debug(file_path)
-                        text_content = file_path.read_text()
-                        file_contents.append(text_content)
-                        texts_and_files.append(("text_content", text_content, f"File: {file_path.name}"))
-                    except Exception as e:
-                        texts_and_files.append(
-                            (
-                                "error",
-                                f"File {file_path} loaded (could not display as text: {e})",
-                                f"File: {file_path.name}",
-                            )
-                        )
-            except Exception as e:
-                texts_and_files.append(("error", f"Error loading file {file_path}: {e}", f"File: {file_path.name}"))
-
-    if texts_and_files:
-        tabs = st.tabs([title for _, _, title in texts_and_files])
-        for idx, (content_type, content, title) in enumerate(texts_and_files):
+    # Display content
+    content_items = selected_demo.display_content()
+    if content_items:
+        tabs = st.tabs([title for _, _, title in content_items])
+        for idx, (content_type, content, _) in enumerate(content_items):
             with tabs[idx]:
-                if content_type == "text" or content_type == "text_content":
+                if content_type in ["text", "text_content"]:
                     st.text_area("", value=content, height=150, key=f"demo_content_{idx}", disabled=True)
                 elif content_type == "pdf":
-                    debug(f"display pdf: {title}")
                     st.pdf(content)
                 elif content_type == "error":
                     st.error(content)
                 else:
                     st.write(f"Cannot display: {title}")
 
-    # Combine texts and file contents for processing
-    all_data = selected_demo.texts + [str(f) for f in selected_demo.files]
-    # all_data.extend(file_contents)
-
-    if not all_data:
+    if not selected_demo.has_content():
         st.warning("This demo has no texts or files to process")
         return
 
     await _handle_cognify_process(
-        data=all_data,
+        demo_data=selected_demo,
         process_func=_process_documents,
-        func_args={"dataset_name": sss.selected_demo.name},
         clear_before_key="clear_before_demo",
     )
 
 
 async def _handle_cognify_process(
-    data: CogneeInputType, process_func: Callable, func_args: dict = {}, clear_before_key: str = False
+    demo_data: CogneeDemoData, process_func: Callable, clear_before_key: str = False
 ):
     """Common handler for cognify operations with optional data clearing."""
     clear_before = st.checkbox("Clear stored data first", value=False, key=clear_before_key)
@@ -240,7 +238,7 @@ async def _handle_cognify_process(
 
         with st.spinner("Processing through cognee pipeline..."):
             try:
-                success = await process_func(data, **func_args)
+                success = await process_func(demo_data)
                 if success:
                     sss.processing_complete = True
                     sss.graph_generated = True
