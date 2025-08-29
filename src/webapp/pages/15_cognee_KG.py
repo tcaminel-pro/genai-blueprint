@@ -61,36 +61,34 @@ async def display_graph_visualization():
         st.error(f"Error displaying graph: {e}")
 
 
-class CogneeDemo(BaseModel):
+class CogneeDemoData(BaseModel):
     """Configuration for a Cognee demo preset."""
 
     name: str
     texts: List[str] = []
     example_queries: List[str] = []
-    files: List[Path] = []
-    ontology: Path | None = None
+    files: List[UPath] = []
+    ontology: UPath | None = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
-def load_demos_from_config() -> List[CogneeDemo]:
+def load_demos_from_config() -> List[CogneeDemoData]:
     """Load demo configurations from global config."""
     try:
         demos_config_path = "config/demos/cognee_kg.yaml"
         config = global_config().merge_with(demos_config_path)
         demos = []
         for demo_name in config.get_dict("cognee-demo").keys():
-            texts = [
-                "https://raw.githubusercontent.com/topoteretes/cognee/refs/heads/main/examples/data/car_and_tech_companies.txt"
-            ] if demo_name == "car_and_tech" else config.get_list(f"cognee-demo.{demo_name}.texts", [])
+            texts = config.get_list(f"cognee-demo.{demo_name}.texts", [])
             example_queries = config.get_list(f"cognee-demo.{demo_name}.example_queries", [])
             files = config.get_list(f"cognee-demo.{demo_name}.files", [])
-            files_url = [Path(f) for f in files]
+            files_url = [UPath(f) for f in files]
             ontology = config.get_str(f"cognee-demo.{demo_name}.ontology", "")
 
-            ontology_url = Path(ontology) if ontology else None
+            ontology_url = UPath(ontology) if ontology else None
             demos.append(
-                CogneeDemo(
+                CogneeDemoData(
                     name=demo_name, texts=texts, example_queries=example_queries, files=files_url, ontology=ontology_url
                 )
             )
@@ -129,7 +127,7 @@ async def _handle_file_upload():
     )
     if uploaded_files:
         await _handle_cognify_process(
-            data=[str(Path(f.name)) for f in uploaded_files],
+            data=[str(UPath(f.name)) for f in uploaded_files],
             process_func=process_files,
             clear_before_key="clear_before_upload",
         )
@@ -178,7 +176,8 @@ async def _handle_demo_selection():
                     texts_and_files.append(("pdf", file_path, f"PDF: {file_path.name}"))
                 else:
                     try:
-                        text_content = UPath(file_path).read_text()
+                        debug(file_path)
+                        text_content = file_path.read_text()
                         file_contents.append(text_content)
                         texts_and_files.append(("text_content", text_content, f"File: {file_path.name}"))
                     except Exception as e:
@@ -296,7 +295,7 @@ async def _render_results_section():
 
             if texts_and_files:
                 tabs = st.tabs([title for _, _, title in texts_and_files])
-                for idx, (content_type, content, title) in enumerate(texts_and_files):
+                for idx, (content_type, content, _) in enumerate(texts_and_files):
                     with tabs[idx]:
                         if content_type == "text" or content_type == "text_content":
                             st.text_area("", value=content, height=150, key=f"results_content_{idx}", disabled=True)
