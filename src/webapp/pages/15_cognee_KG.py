@@ -152,23 +152,49 @@ async def _handle_demo_selection():
 
     # cognee.set_user("user_123")
 
-    # Combine texts and file contents for processing
-    all_data = selected_demo.texts
+    # Display texts and files in tabs before processing
+    texts_and_files = []
 
-    # Add file contents
+    # Add texts
+    if selected_demo.texts:
+        texts_and_files.extend([("text", text, f"Text {i + 1}") for i, text in enumerate(selected_demo.texts)])
+
+    # Add files
     file_contents = []
     if selected_demo.files:
         for file_path in selected_demo.files:
             try:
-                if file_path.suffix != ".pdf":
+                if file_path.suffix == ".pdf":
+                    texts_and_files.append(("pdf", file_path, f"PDF: {file_path.name}"))
+                else:
                     try:
                         text_content = file_path.read_text()
                         file_contents.append(text_content)
+                        texts_and_files.append(("text_content", text_content, f"File: {file_path.name}"))
                     except Exception as e:
-                        logger.error(f"Error reading file {file_path}: {e}")
+                        texts_and_files.append(
+                            (
+                                "error",
+                                f"File {file_path} loaded (could not display as text: {e})",
+                                f"File: {file_path.name}",
+                            )
+                        )
             except Exception as e:
-                logger.error(f"Error loading file {file_path}: {e}")
+                texts_and_files.append(("error", f"Error loading file {file_path}: {e}", f"File: {file_path.name}"))
 
+    if texts_and_files:
+        tabs = st.tabs([title for _, _, title in texts_and_files])
+        for idx, (content_type, content, title) in enumerate(texts_and_files):
+            with tabs[idx]:
+                if content_type == "text" or content_type == "text_content":
+                    st.text_area("", value=content, height=150, key=f"demo_content_{idx}", disabled=True)
+                elif content_type == "pdf":
+                    st.pdf(content)
+                elif content_type == "error":
+                    st.error(content)
+
+    # Combine texts and file contents for processing
+    all_data = selected_demo.texts
     all_data.extend(file_contents)
 
     if not all_data:
