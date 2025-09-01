@@ -13,30 +13,30 @@ RECORD_SECONDS = 5
 try:
     with wave.open("output.wav", "wb") as wf:
         p = pyaudio.PyAudio()
-        
+
         # Check if audio input is available
         try:
             device_count = p.get_device_count()
             input_devices = []
-            
+
             for i in range(device_count):
                 info = p.get_device_info_by_index(i)
-                if info['maxInputChannels'] > 0:
+                if info["maxInputChannels"] > 0:
                     input_devices.append(i)
-            
+
             if not input_devices:
                 raise RuntimeError("No audio input devices found")
-                
+
             wf.setnchannels(CHANNELS)
             wf.setsampwidth(p.get_sample_size(FORMAT))
             wf.setframerate(RATE)
 
             stream = p.open(
-                format=FORMAT, 
-                channels=CHANNELS, 
-                rate=RATE, 
+                format=FORMAT,
+                channels=CHANNELS,
+                rate=RATE,
                 input=True,
-                input_device_index=input_devices[0] if input_devices else None
+                input_device_index=input_devices[0] if input_devices else None,
             )
 
             print("Recording...")
@@ -45,16 +45,16 @@ try:
             print("Done")
 
             stream.close()
-            
+
         except Exception as e:
             print(f"Audio recording error: {e}")
             print("Creating a silent/dummy audio file instead...")
-            
+
             # Create a silent audio file as fallback
-            silent_frames = b'\x00' * CHUNK
+            silent_frames = b"\x00" * CHUNK
             for _ in range(RATE // CHUNK * RECORD_SECONDS):
                 wf.writeframes(silent_frames)
-                
+
         finally:
             p.terminate()
 
