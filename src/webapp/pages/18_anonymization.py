@@ -15,6 +15,8 @@ from ai_extra.custom_presidio_anonymizer import CustomizedPresidioAnonymizer
 from src.utils.config_mngr import global_config
 from src.webapp.ui_components.config_editor import edit_config_dialog
 
+SPACY_MODEL = "en_core_web_sm"
+
 
 class AnonymizationDemo(BaseModel):
     """Configuration for Presidio anonymization demo."""
@@ -54,6 +56,7 @@ if "anon" not in sss or sss.get("config_hash") != config_hash:
             faker_seed=42,
             company_names=company_names,
             product_names=product_names,
+            spacy_model=SPACY_MODEL,
         )
 
     sss.anon = AnonymizationDemo(anonymizer=anonymizer)

@@ -1,8 +1,16 @@
+import logging
 import sys
 import wave
-import logging
 
 import pyaudio
+
+
+def list_audio_devices():
+    p = pyaudio.PyAudio()
+    for i in range(p.get_device_count()):
+        info = p.get_device_info_by_index(i)
+        print(f"Device {i}: {info['name']}")
+
 
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
@@ -64,3 +72,7 @@ except Exception as e:
     print("1. A system with microphone/line-in")
     print("2. Virtual audio devices")
     print("3. Mock audio data for testing")
+
+    print("*** known audio devices:")
+
+    list_audio_devices()

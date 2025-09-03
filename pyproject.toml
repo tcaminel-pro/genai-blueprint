@@ -16,7 +16,8 @@ dependencies = [ # core dependancies. More in [dependency-groups]
     "pip>=25.1.1",                # Package installer
     #    "modal>=1.0.5",  # Serverless cloud platform
     "python-dotenv>=1.1.1", # Environment variables
-    "beartype>=0.21.0",     # Runtime type checking
+    "beartype>=0.21.0",     # Run time type checking
+
 ]
 
 [project.urls]
@@ -56,10 +57,11 @@ ai = [
 ui = [
     "uvicorn>=0.34.0",          # ASGI server
     "sse-starlette>=2.1.0",     # Server-sent events
-    "streamlit[pdf]>=1.49",          # Web app framework
+    "streamlit[pdf]>=1.49",     # Web app framework
     "streamlit-monaco>=0.1.3",  # Code editor component
     "st-annotated-text>=4.0.2", # Text annotation component
     #"gradio>=5.30.0",  # ML web interface
+    "pyaudio>=0.2.14",
 ]
 ai_extra = [
     "gpt-researcher>=0.13",     # AI research assistant
@@ -92,8 +94,8 @@ nlp = [ # dependencies for Natural Language Processing & Search
     "bm25s>=0.2.13",    # Fast BM25 implementation
     # "enchant>=0.0.1",  # Spell checking
     "en-core-web-sm @https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl", # Small English Spacy model
-    #"en-core-web-lg @https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.8.0/en_core_web_lg-3.8.0-py3-none-any.whl",  # Large English Spacy model
-    "abbreviations>=0.2.5", # Text abbreviation handling
+    "en-core-web-lg @https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.8.0/en_core_web_lg-3.8.0-py3-none-any.whl", # Large English Spacy model
+    "abbreviations>=0.2.5",                                                                                                                   # Text abbreviation handling
 ]
 demos = [
     "bs4>=0.0.2",                 # HTML/XML parsing
