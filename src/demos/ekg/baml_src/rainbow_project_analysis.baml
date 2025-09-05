@@ -6,14 +6,43 @@ enum OpportunityStatus {
     Completed
     Cancelled
 }
-// enum Industry {
-//     Ressources_and_services @alias("Resources and Services")
-//     PSD @alias("Public Sector and Defense")
-//     FSI @alias("Financial Services and Insurance")
-//     Manuf @alias("Manufacturing, MRT") @description("Manufacturing, abreviated as MRT. Include Spacial sector")
-//     Telco @alias("Telecom, Media and Technology")
-//     Health @alias("Health and Life Sciences")
-// }
+enum Industry {
+    Ressources_and_services @alias("Resources and Services")
+    PSD @alias("Public Sector and Defense")
+    FSI @alias("Financial Services and Insurance")
+    Manuf @alias("Manufacturing, MRT") @description("Manufacturing, abreviated as MRT. Include Spatial sector")
+    Telco @alias("Telecom, Media and Technology")
+    Health @alias("Health and Life Sciences")
+}
+
+enum SWProjectRisks {
+    ScheduleRisk @description("Occurs when the project timeline is underestimated, leading to delays and potential cost overruns.")
+    BudgetRisk @description("Arises when the project exceeds its allocated budget, often due to unforeseen expenses or poor financial planning.")
+    ScopeCreep @description("Refers to the gradual expansion of project scope without corresponding adjustments in time, budget, or resources.")
+    TechnicalDebt @description(#"
+        Accumulates when shortcuts are taken in code development, leading to future challenges in maintenance and scalability.
+        It can result in increased costs and time for future modifications and improvements."#)
+    ResourceAvailability @description("Occurs when necessary resources, such as personnel or equipment, are not available when needed, impacting project progress.")
+    QualityRisk @description("Involves the potential for the final product to not meet the required standards or specifications, affecting user satisfaction.")
+    StakeholderAlignment @description("Happens when stakeholders have conflicting interests or expectations, leading to project misdirection or disputes.")
+    IntegrationChallenges @description(#"
+        Arises when integrating new software with existing systems, potentially causing compatibility issues or data inconsistencies.
+        This risk can lead to delays and additional costs in resolving integration problems."#)
+    SecurityVulnerabilities @description("Involves the risk of exposing sensitive data or systems to unauthorized access, requiring robust security measures.")
+    RegulatoryCompliance @description("Concerns the need to adhere to legal and regulatory requirements, which can impact project scope and timelines.")
+    SLAComplianceRisk @description(#"
+        Involves the application of penalties due to non-compliance with Service Level Agreements (SLAs) resulting from quality issues or delivery delays.
+        This risk can lead to financial losses and damage to client relationships."#)
+    DeliveryCostOverrun @description(#"
+        Arises from underestimation of delivery costs, often due to re-deliveries, missing packages, and non-representative platforms.
+        This risk can result in budget overruns and financial strain on the project."#)
+    ScopeManagementRisk @description(#"
+        Concerns the challenges of handling non-mastered subjects or overly broad scopes due to minimal transition on Venus/VIP and intermediate transition on THEIA/MUSCATE.
+        This can lead to quality issues, delays, and cost overruns."#)
+    SkillRetentionRisk @description(#"
+        Involves difficulties in maintaining necessary skills due to high turnover and decreasing activity levels.
+        This risk can impact project quality, timelines, and costs, as experienced personnel are crucial for project success."#)
+}
 
 class ReviewedOpportunity {
   name string @description("Official name of the project/opportunity")
@@ -66,6 +95,7 @@ class FinancialMetrics {
 
 class RiskAnalysis {
   risk_description string? @description("Nature of the risk")
+  risk_caterory SWProjectRisks? @description("classification of the risk")
   impact_level string? @description("High/Medium/Low impact")
   mitigation_strategy string? @description("Planned mitigation approach")
   status string? @description("Current status of risk mitigation")
@@ -86,7 +116,7 @@ class BiddingStrategy {
 
 
 function ExtractRainbow(rainbow_file: string) -> ReviewedOpportunity {
-  client "DeepseekChat" 
+  client "Gpt41mini" 
   prompt #"
     Extract from this content:
     {{ rainbow_file }}
@@ -160,6 +190,14 @@ Solution | Introduction | Solution | Winning Solution | Way Forward
 | Next Steps | Offer |  |  |  |
 | Next Rainbow | Offer | Date | 25/01/2019 |  |
 | Effectiveness |  | Status | 0 |
+
+Key risks
+
+- Application de pénalités du fait de non respect des SLAs suite à des problèmes de qualité ou de délais de livraison
+- Surcout des livraisons du fait de la sous-estimation de ces couts suite à des relivraisons, packages manquants et des problèmes de non représentativité de nos plateformes
+- Problèmes à traiter sur sujets non maitrisés ou un périmètre trop grand du fait de la transition minimum sur Venus/VIP \& intermédiaire sur THEIA/MUSCATE induisant des problèmes de qualité, délai et surcout
+- Difficultés à maintenir des compétences du fait du turnover \& du niveau activité décroissant induisant des problèmes de qualité, délai et surcout
+
 "#
   }
 }

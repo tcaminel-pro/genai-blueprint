@@ -90,7 +90,7 @@ aider-r1:
 aider-qwen:
 	aider $(AIDER_OPTS) --model openrouter/qwen/qwen3-coder ; 
 aider-k2:
-	aider $(AIDER_OPTS) --cache-prompts --model openrouter/moonshotai/kimi-k2
+	aider $(AIDER_OPTS) --cache-prompts --model openrouter/moonshotai/kimi-k2-0905
 aider-gpt:
 	aider $(AIDER_OPTS) --model openrouter/openai/gpt-oss-120b --reasoning-effort high
 

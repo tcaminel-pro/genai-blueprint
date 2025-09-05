@@ -40,6 +40,7 @@ Data Flow:
 """
 
 import asyncio
+import sys
 from pathlib import Path
 from typing import Annotated, Optional
 
@@ -50,6 +51,53 @@ from upath import UPath
 
 LLM_ID = None
 KV_STORE_ID = "file"
+
+
+async def call_ekg_agent(
+    query: str, llm_id: str | None = None, tools: list | None = None, mcp_server_names: list[str] | None = None
+) -> None:
+    """Execute a single query using the EKG agent with tools and stream the response.
+
+    Creates a ReAct agent with EKG tools and optional MCP tools, then streams the
+    response to the query. This is similar to call_react_agent but for EKG agents.
+
+    Args:
+        query: The input query to process
+        llm_id: Optional ID of the language model to use
+        tools: List of tools (e.g., structured RAG tools) to include in the agent
+        mcp_server_names: Optional list of MCP server names to include
+
+    Example:
+        await call_ekg_agent(
+            "Find all projects using Python",
+            llm_id="gpt-4o-mini",
+            tools=[rainbow_tool],
+            mcp_server_names=["filesystem"]
+        )
+    """
+    from langchain_core.messages import HumanMessage
+    from langchain_mcp_adapters.client import MultiServerMCPClient
+    from langgraph.prebuilt import create_react_agent
+    from loguru import logger
+
+    from src.ai_core.llm_factory import get_llm
+    from src.ai_core.mcp_client import get_mcp_servers_dict
+    from src.utils.langgraph import print_astream
+
+    model = get_llm(llm_id=llm_id)
+    all_tools = tools or []
+
+    # Add MCP tools if specified
+    if mcp_server_names:
+        logger.info(f"Connecting to MCP servers: {mcp_server_names}")
+        client = MultiServerMCPClient(get_mcp_servers_dict(mcp_server_names))
+        mcp_tools = await client.get_tools()
+        all_tools.extend(mcp_tools)
+
+    agent = create_react_agent(model, all_tools)
+    logger.info("Executing EKG agent query...")
+    resp = agent.astream({"messages": [HumanMessage(content=query)]})
+    await print_astream(resp)
 
 
 def register_commands(cli_app: typer.Typer) -> None:
@@ -238,6 +286,7 @@ def register_commands(cli_app: typer.Typer) -> None:
 
     @cli_app.command()
     def ekg_agent_shell(
+        input: Annotated[str | None, typer.Option(help="Input query or '-' to read from stdin")] = None,
         cache: Annotated[str, typer.Option(help="Cache strategy: 'sqlite', 'memory' or 'no_cache'")] = "memory",
         mcp: Annotated[
             list[str], typer.Option(help="MCP server names to connect to (e.g. playwright, filesystem, ..)")
@@ -247,13 +296,13 @@ def register_commands(cli_app: typer.Typer) -> None:
         llm_id: Annotated[
             Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
         ] = None,
+        shell: Annotated[bool, Option("--shell", "-s", help="Start an interactive shell to send prompts")] = False,
     ) -> None:
         """Run a ReAct agent to query the Enterprise Knowledge Graph (EKG).
 
-        Starts an interactive shell with a ReAct agent that can query processed project
-        data using semantic search across the vector store. The agent has access to
-        project information extracted from Markdown files and can answer complex queries
-        about projects, teams, timelines, and relationships.
+        Can either start an interactive shell or execute a single query directly.
+        The agent can query processed project data using semantic search across the
+        vector store and has access to project information extracted from Markdown files.
 
         The agent integrates with MCP (Model Context Protocol) servers for extended
         capabilities like file system access, web browsing, or other external tools.
@@ -263,15 +312,30 @@ def register_commands(cli_app: typer.Typer) -> None:
             # Basic interactive shell
             uv run cli ekg-agent-shell
 
+            # Execute a single query
+            uv run cli ekg-agent-shell --input "Find all projects using Python"
+
+            # Read query from stdin
+            echo "Which projects had budgets over $1M?" | uv run cli ekg-agent-shell
+
             # With custom LLM and cache
             uv run cli ekg-agent-shell --llm-id gpt-4o-mini --cache sqlite
 
             # With MCP servers for extended capabilities
-            uv run cli ekg-agent-shell --mcp filesystem --mcp playwright
+            uv run cli ekg-agent-shell --mcp filesystem --mcp playwright --input "List files and analyze project data"
+
+            # Force interactive shell even with input
+            uv run cli ekg-agent-shell --shell --input "This will be ignored"
 
             # Debug mode for troubleshooting
             uv run cli ekg-agent-shell --debug --verbose
             ```
+
+        Usage modes:
+            - No --input parameter: Start interactive shell (default behavior)
+            - With --input: Execute single query and exit
+            - With --shell: Force interactive shell mode (ignores --input)
+            - Reading from stdin: Pipe input directly to the agent
 
         Interactive Usage:
             Once started, you can ask questions like:
@@ -289,6 +353,21 @@ def register_commands(cli_app: typer.Typer) -> None:
             return
 
         rainbow_schema = "Rainbow File"
-
         rainbow_tool = create_structured_rag_tool(rainbow_schema, llm_id=LLM_ID, kvstore_id=KV_STORE_ID)
-        asyncio.run(run_langgraph_agent_shell(llm_id, tools=[rainbow_tool], mcp_server_names=mcp))
+
+        if shell:
+            # Force interactive shell mode (ignores input parameter)
+            asyncio.run(run_langgraph_agent_shell(llm_id, tools=[rainbow_tool], mcp_server_names=mcp))
+        else:
+            # Handle input parameter or stdin
+            if not input and not sys.stdin.isatty():
+                input = sys.stdin.read()
+
+            if input and len(input.strip()) >= 5:
+                # Execute single query and exit
+                asyncio.run(call_ekg_agent(input.strip(), llm_id=llm_id, tools=[rainbow_tool], mcp_server_names=mcp))
+            else:
+                # No input provided or input too short, start interactive shell (default behavior)
+                if input and len(input.strip()) < 5:
+                    print("Warning: Input too short (minimum 5 characters), starting interactive shell instead")
+                asyncio.run(run_langgraph_agent_shell(llm_id, tools=[rainbow_tool], mcp_server_names=mcp))
