@@ -26,8 +26,8 @@ ifneq ($(shell echo 'a b' | xargs -n1 echo 2>/dev/null | wc -l),2)
 endif  
 
 # Locate and load the .env file in the current directory, or parent directory, or parent of parent
-ENV_FILE_RAW := $(shell find $(CURDIR) $(CURDIR)/.. $(CURDIR)/../.. -name ".env" -print -quit)
-ENV_FILE := $(shell realpath $(ENV_FILE_RAW))
+ENV_FILE_RAW := $(shell find $(CURDIR) $(CURDIR)/.. $(CURDIR)/../.. -name ".env" -print -quit 2>/dev/null)
+ENV_FILE := $(shell realpath $(ENV_FILE_RAW) 2>/dev/null || echo "")
 ifneq ($(ENV_FILE),)
 include $(ENV_FILE)
 else
@@ -143,11 +143,6 @@ check-uv: ## Check if uv is installed, install if missing
 install: check_uv   ## Install SW
 	uv sync
 
-install-spacy-models: ## Install Spacy Models for NLP
-	uv run --with spacy spacy download fr_core_news_sm
-	uv run --with spacy spacy download en_core_web_lg
-
-
 ##############
 ##  MISC  ###
 ##############
@@ -216,16 +211,6 @@ test-install: .pythonpath ## Quick test install
 	echo bears | PYTHONPATH="." uv run cli run joke -m parrot_local_fake
 
 
-# Load .env file environ variable in shell
-# export $(grep -v '^#' ~/.env | xargs)
-
-load-env:
-	@echo "Loading environment variables..."
-	@if [ -f ~/.env ]; then \
-		export $$(grep -v '^#' ~/.env | xargs); \
-	fi
-
-
 ##############################
 ##  Project specific commands
 ##############################
@@ -237,7 +222,7 @@ load-env:
 postgres:                                                                              
 	docker rm -f pgvector-container 2>/dev/null || true
 	docker run --name pgvector-container \
-		-e POSTGRES_USER=tcl -e POSTGRES_PASSWORD=tcl -e POSTGRES_DB=ekg \
+		-e POSTGRES_USER=$(POSTGRES_USER) -e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) -e POSTGRES_DB=ekg \
 		-p 5432:5432 \
 		-v /home/tcl/pgvector-data:/var/lib/postgresql/data \
 		-d pgvector/pgvector:pg17
