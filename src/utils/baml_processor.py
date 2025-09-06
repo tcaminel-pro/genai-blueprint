@@ -9,13 +9,15 @@ Key Features:
     - Supports both sync and async document processing
     - Integrates with KV store for caching results
     - Handles concurrent processing with semaphore control
+    - Generic design that works with any BAML-generated type
 
 Usage Examples:
     ```python
     from src.utils.baml_processor import BamlStructuredProcessor
+    from src.demos.ekg.baml_client.types import ReviewedOpportunity
 
     # Process a single document
-    processor = BamlStructuredProcessor(kvstore_id="file")
+    processor = BamlStructuredProcessor(model_class=ReviewedOpportunity, kvstore_id="file")
     result = processor.analyze_document("doc1", markdown_content)
 
     # Process multiple files
@@ -25,35 +27,55 @@ Usage Examples:
 
 import asyncio
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Type, TypeVar, Generic, List, Optional
 
 import nest_asyncio
 from loguru import logger
+from pydantic import BaseModel, Field
 from upath import UPath
 
-from src.demos.ekg.baml_client.async_client import b as baml_async_client
-from src.demos.ekg.baml_client.types import ReviewedOpportunity
 from src.utils.pydantic.kv_store import PydanticStore, save_object_to_kvstore
 
+T = TypeVar('T', bound=BaseModel)
 
-class BamlStructuredProcessor:
-    """Processor that uses BAML for extracting structured data from documents."""
 
-    def __init__(self, kvstore_id: str | None = None):
-        self.kvstore_id = kvstore_id or "file"
+class BamlStructuredProcessor(BaseModel, Generic[T]):
+    """Processor that uses BAML for extracting structured data from documents.
+    
+    Attributes:
+        model_class: The BAML-generated Pydantic model class to use for extraction
+        kvstore_id: Identifier for the key-value store backend (default: "file")
+        baml_client: Optional BAML client instance (will use default if not provided)
+    """
+    model_class: Type[T] = Field(description="The BAML-generated Pydantic model class")
+    kvstore_id: str = Field(default="file", description="KV store identifier")
+    baml_client: Any | None = Field(default=None, description="Optional BAML client instance")
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    def model_post_init(self, __context: Any) -> None:
+        """Initialize the processor after model creation."""
+        if self.baml_client is None:
+            # Import here to avoid circular dependencies
+            try:
+                from src.demos.ekg.baml_client.async_client import b as default_baml_client
+                self.baml_client = default_baml_client
+            except ImportError:
+                logger.warning("BAML client not available. Make sure it's properly configured.")
 
     async def abatch_analyze_documents(
         self, document_ids: list[str], markdown_contents: list[str]
-    ) -> list[ReviewedOpportunity]:
+    ) -> list[T]:
         """Process multiple documents asynchronously with caching using BAML."""
-        analyzed_docs: list[ReviewedOpportunity] = []
+        analyzed_docs: list[T] = []
         remaining_ids: list[str] = []
         remaining_contents: list[str] = []
 
         # Check cache first
         if self.kvstore_id:
             for doc_id, content in zip(document_ids, markdown_contents, strict=True):
-                cached_doc = PydanticStore(kvstore_id=self.kvstore_id, model=ReviewedOpportunity).load_object(doc_id)
+                cached_doc = PydanticStore(kvstore_id=self.kvstore_id, model=self.model_class).load_object(doc_id)
 
                 if cached_doc:
                     analyzed_docs.append(cached_doc)
@@ -72,15 +94,15 @@ class BamlStructuredProcessor:
         logger.info(f"Processing {len(remaining_ids)} documents with BAML async client...")
 
         # Process documents with async concurrency for better performance
-        async def process_single_document(doc_id: str, content: str) -> ReviewedOpportunity | None:
+        async def process_single_document(doc_id: str, content: str) -> T | None:
             try:
                 # Use BAML's async ExtractRainbow function
-                result = await baml_async_client.ExtractRainbow(rainbow_file=content)
+                result = await self.baml_client.ExtractRainbow(rainbow_file=content)
 
                 # Add document_id as a custom attribute
                 result_dict = result.model_dump()
                 result_dict["document_id"] = doc_id
-                result_with_id = ReviewedOpportunity(**result_dict)
+                result_with_id = self.model_class(**result_dict)
 
                 logger.success(f"Processed document: {doc_id}")
 
@@ -98,7 +120,7 @@ class BamlStructuredProcessor:
         # Process all documents concurrently with limited concurrency
         semaphore = asyncio.Semaphore(5)  # Limit concurrent requests
 
-        async def process_with_semaphore(doc_id: str, content: str) -> ReviewedOpportunity | None:
+        async def process_with_semaphore(doc_id: str, content: str) -> T | None:
             async with semaphore:
                 return await process_single_document(doc_id, content)
 
@@ -111,14 +133,14 @@ class BamlStructuredProcessor:
 
         # Collect successful results
         for result in results:
-            if isinstance(result, ReviewedOpportunity):
+            if isinstance(result, self.model_class):
                 analyzed_docs.append(result)
             elif isinstance(result, Exception):
                 logger.error(f"Task failed with exception: {result}")
 
         return analyzed_docs
 
-    def analyze_document(self, document_id: str, markdown: str) -> ReviewedOpportunity:
+    def analyze_document(self, document_id: str, markdown: str) -> T:
         """Analyze a single document synchronously using BAML."""
         try:
             # Try to use the current event loop if available
@@ -207,13 +229,19 @@ technologies. Passionate about clean code and agile development practices.
 if __name__ == "__main__":
     # Quick test with CV extraction
     logger.info("Running BAML processor test with sample CV...")
-
-    processor = BamlStructuredProcessor(kvstore_id="memory")
-
+    
+    # Import the specific model for testing
     try:
+        from src.demos.ekg.baml_client.types import ReviewedOpportunity
+        
+        processor = BamlStructuredProcessor(model_class=ReviewedOpportunity, kvstore_id="memory")
+        
         result = processor.analyze_document("test_cv", SAMPLE_CV)
         logger.success("CV extraction successful!")
         logger.info(f"Extracted data: {result.model_dump_json(indent=2)}")
+    except ImportError as e:
+        logger.error(f"Could not import ReviewedOpportunity model: {e}")
+        logger.error("Make sure BAML client is properly generated")
     except Exception as e:
         logger.error(f"CV extraction failed: {e}")
         raise

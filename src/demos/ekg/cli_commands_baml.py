@@ -34,6 +34,7 @@ from loguru import logger
 from upath import UPath
 
 from src.utils.baml_processor import BamlStructuredProcessor
+from .baml_client.types import ReviewedOpportunity
 
 LLM_ID = None
 KV_STORE_ID = "file"
@@ -103,13 +104,12 @@ def register_baml_commands(cli_app: typer.Typer) -> None:
 
         logger.info(f"Found {len(md_files)} Markdown files to process")
 
-        # Create BAML processor
-        processor = BamlStructuredProcessor(kvstore_id=KV_STORE_ID)
+        # Create BAML processor with specific model class
+        processor = BamlStructuredProcessor(model_class=ReviewedOpportunity, kvstore_id=KV_STORE_ID)
 
         # Filter out files that already have JSON in KV unless forced
         if not force:
             from src.utils.pydantic.kv_store import PydanticStore
-            from .baml_client.types import ReviewedOpportunity
 
             unprocessed_files = []
             for md_file in md_files:
