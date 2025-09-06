@@ -13,11 +13,11 @@ Key Features:
 Usage Examples:
     ```python
     from src.utils.baml_processor import BamlStructuredProcessor
-    
+
     # Process a single document
     processor = BamlStructuredProcessor(kvstore_id="file")
     result = processor.analyze_document("doc1", markdown_content)
-    
+
     # Process multiple files
     await processor.process_files(md_files, batch_size=5)
     ```
@@ -207,9 +207,9 @@ technologies. Passionate about clean code and agile development practices.
 if __name__ == "__main__":
     # Quick test with CV extraction
     logger.info("Running BAML processor test with sample CV...")
-    
+
     processor = BamlStructuredProcessor(kvstore_id="memory")
-    
+
     try:
         result = processor.analyze_document("test_cv", SAMPLE_CV)
         logger.success("CV extraction successful!")
