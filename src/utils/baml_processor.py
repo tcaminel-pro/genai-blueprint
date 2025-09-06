@@ -36,17 +36,18 @@ from upath import UPath
 
 from src.utils.pydantic.kv_store import PydanticStore, save_object_to_kvstore
 
-T = TypeVar('T', bound=BaseModel)
+T = TypeVar("T", bound=BaseModel)
 
 
 class BamlStructuredProcessor(BaseModel, Generic[T]):
     """Processor that uses BAML for extracting structured data from documents.
-    
+
     Attributes:
         model_class: The BAML-generated Pydantic model class to use for extraction
         kvstore_id: Identifier for the key-value store backend (default: "file")
         baml_client: Optional BAML client instance (will use default if not provided)
     """
+
     model_class: Type[T] = Field(description="The BAML-generated Pydantic model class")
     kvstore_id: str = Field(default="file", description="KV store identifier")
     baml_client: Any | None = Field(default=None, description="Optional BAML client instance")
@@ -60,13 +61,12 @@ class BamlStructuredProcessor(BaseModel, Generic[T]):
             # Import here to avoid circular dependencies
             try:
                 from src.demos.ekg.baml_client.async_client import b as default_baml_client
+
                 self.baml_client = default_baml_client
             except ImportError:
                 logger.warning("BAML client not available. Make sure it's properly configured.")
 
-    async def abatch_analyze_documents(
-        self, document_ids: list[str], markdown_contents: list[str]
-    ) -> list[T]:
+    async def abatch_analyze_documents(self, document_ids: list[str], markdown_contents: list[str]) -> list[T]:
         """Process multiple documents asynchronously with caching using BAML."""
         analyzed_docs: list[T] = []
         remaining_ids: list[str] = []
@@ -229,13 +229,13 @@ technologies. Passionate about clean code and agile development practices.
 if __name__ == "__main__":
     # Quick test with CV extraction
     logger.info("Running BAML processor test with sample CV...")
-    
+
     # Import the specific model for testing
     try:
         from src.demos.ekg.baml_client.types import ReviewedOpportunity
-        
+
         processor = BamlStructuredProcessor(model_class=ReviewedOpportunity, kvstore_id="memory")
-        
+
         result = processor.analyze_document("test_cv", SAMPLE_CV)
         logger.success("CV extraction successful!")
         logger.info(f"Extracted data: {result.model_dump_json(indent=2)}")
