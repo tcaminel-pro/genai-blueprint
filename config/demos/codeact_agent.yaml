@@ -1,6 +1,9 @@
 # Data Analyst SmolAgents Demos Configuration
 
+paths:
+  smolagent_custom_tools: src.ai_extra.tools_smolagents
 
+  
 codeact_agent_demos:
   - name: "SmolAgents"
     tools: 
@@ -14,7 +17,7 @@ codeact_agent_demos:
 
   - name: "Titanic"
     tools:
-      - class: src.ai_extra.smolagents_tools:DataFrameTool
+      - class: ${paths.smolagent_custom_tools}.dataframe_tools:DataFrameTool
         name: "titanic_data_reader"
         description: "Data related to the Titanic passengers"
         source_path: ${paths.project}/use_case_data/other/titanic.csv
@@ -34,8 +37,8 @@ codeact_agent_demos:
 
   - name: "Stock Price"
     tools:
-      - function: src.ai_extra.smolagents_tools:get_stock_info
-      - function: src.ai_extra.smolagents_tools:get_historical_price
+      - function: ${paths.smolagent_custom_tools}.yfinance_tools:get_stock_info
+      - function: ${paths.smolagent_custom_tools}.yfinance_tools:get_historical_price
       - class: smolagents:WebSearchTool
       - class: smolagents:VisitWebpageTool
     authorized_imports: ["pandas", "matplotlib.*"]
@@ -69,7 +72,7 @@ codeact_agent_demos:
 
   - name: "Rainbow"
     tools:
-      - class: src.ai_extra.smolagents_tools:DataFrameTool
+      - class: ${paths.smolagent_custom_tools}.dataframe_tools:DataFrameTool
         name: "opportunity_2024"
         description: "Data related to business opportunities"
         source_path: ${paths.ekg_data}/misc/report1750429630460.xlsx
