@@ -125,7 +125,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         from loguru import logger
 
-        from src.ai_extra.mistral_ocr import process_pdf_batch
+        from src.ai_extra.loaders.mistral_ocr import process_pdf_batch
 
         # Collect all PDF files matching the patterns
         all_files = []
@@ -175,7 +175,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             uv run cli gpt-researcher "Latest developments in AI" --config detailed
             uv run cli gpt-researcher "Climate change impacts" --llm-id gpt-4o
         """
-        from src.ai_extra.gpt_researcher_chain import run_gpt_researcher
+        from src.ai_extra.chains.gpt_researcher_chain import run_gpt_researcher
 
         try:
             print(f"Running GPT Researcher with config: {config_name}")
@@ -248,8 +248,8 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         from langchain.globals import set_debug, set_verbose
 
+        from ai_extra.chains.fabric_chain import get_fabric_chain
         from src.ai_core.llm_factory import LlmFactory
-        from src.ai_extra.fabric_chain import get_fabric_chain
 
         set_debug(debug_mode)
         set_verbose(verbose)

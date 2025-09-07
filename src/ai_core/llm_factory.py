@@ -216,7 +216,7 @@ class LlmFactory(BaseModel):
         assert self.llm_id
         return LlmFactory.known_items_dict().get(self.llm_id)  # type: ignore
 
-    def model_post_init(self, __context) -> None:
+    def model_post_init(self, __context: dict) -> None:
         """Post-initialization validation and tag resolution."""
         if self.llm_id and self.llm_tag:
             raise ValueError("Cannot specify both llm_id and llm_tag")

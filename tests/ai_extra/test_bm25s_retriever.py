@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from langchain_core.documents import Document
 
-from ai_extra.bm25s_retriever import BM25FastRetriever
+from ai_extra.retrievers.bm25s_retriever import BM25FastRetriever
 
 
 class TestBM25FastRetriever:
@@ -127,7 +127,7 @@ class TestBM25FastRetriever:
         warnings.filterwarnings("ignore", category=DeprecationWarning, module="spacy.*")
         warnings.filterwarnings("ignore", category=DeprecationWarning, module="weasel.*")
 
-        from ai_extra.bm25s_retriever import get_spacy_preprocess_fn
+        from ai_extra.retrievers.bm25s_retriever import get_spacy_preprocess_fn
         from src.utils.spacy_model_mngr import SpaCyModelManager
 
         # Setup spacy model using SpaCyModelManager

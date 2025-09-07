@@ -25,7 +25,7 @@ FABRIC_PATTERNS_URL = "https://raw.githubusercontent.com/danielmiessler/fabric/r
 
 
 # Pull the URL content's from the GitHub repo
-def fetch_content_from_url(url):
+def _fetch_content_from_url(url: str):
     """Fetches content from the given URL."""
     ALLOWLIST_PATTERN = re.compile(r"^[a-zA-Z0-9\s.,;:!?\-]+$")
 
@@ -39,7 +39,7 @@ def fetch_content_from_url(url):
 
 
 @chain
-def fabric_prompt(param: dict):
+def _fabric_prompt(param: dict):
     """Fetch the pattern from the Fabric GitHub web site and return a prompt.
 
     Argument is a dict with 2 keys: pattern name, and input date
@@ -47,13 +47,13 @@ def fabric_prompt(param: dict):
     system_url = f"{FABRIC_PATTERNS_URL}/{param['pattern']}/system.md"
     user_url = f"{FABRIC_PATTERNS_URL}/{param['pattern']}/user.md"
     # Fetch the prompt content
-    system_content = fetch_content_from_url(system_url)
-    user_file_content = fetch_content_from_url(user_url)
+    system_content = _fetch_content_from_url(system_url)
+    user_file_content = _fetch_content_from_url(user_url)
     return def_prompt(system=system_content, user=user_file_content + f"\n{param['input_data']}")
 
 
 def get_fabric_chain(config: dict):
-    chain = RunnablePassthrough() | fabric_prompt | get_llm(llm_id=config["llm"]) | StrOutputParser()
+    chain = RunnablePassthrough() | _fabric_prompt | get_llm(llm_id=config["llm"]) | StrOutputParser()
     return chain
 
 

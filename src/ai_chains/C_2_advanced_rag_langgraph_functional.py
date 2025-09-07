@@ -24,7 +24,7 @@ from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import def_prompt
 from src.ai_core.vector_store_factory import VectorStoreFactory
-from src.ai_extra.web_search_tool import basic_web_search
+from ai_extra.tools_langchain.web_search_tool import basic_web_search
 from src.utils.singleton import once
 
 load_dotenv(verbose=True)
