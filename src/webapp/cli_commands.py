@@ -24,4 +24,3 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         hashed = hash_password(password)
         print(f"Hashed password: {hashed}")
-

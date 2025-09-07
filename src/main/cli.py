@@ -66,7 +66,7 @@ def main():
     if "--logging" in sys.argv:
         level = "TRACE"
         sys.argv.remove("--logging")
-    else :
+    else:
         level = None
 
     setup_logging(level)

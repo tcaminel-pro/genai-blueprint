@@ -190,6 +190,7 @@ class LlmFactory(BaseModel):
 
     Attributes:
         llm_id: Unique model identifier (if None, uses default from config)
+        llm_tag: LLM tag from config (e.g., 'fake', 'powerful_model')
         json_mode: Whether to force JSON output format (where supported)
         streaming: Whether to enable streaming responses (where supported)
         cache: cache method ("sqlite", "memory", no"_cache, ..) or "default", or None if no change (global setting)
@@ -197,6 +198,7 @@ class LlmFactory(BaseModel):
     """
 
     llm_id: Annotated[str | None, Field(validate_default=True)] = None
+    llm_tag: str | None = None
     json_mode: bool = False
     streaming: bool = False
     cache: str | None = None
@@ -214,16 +216,26 @@ class LlmFactory(BaseModel):
         assert self.llm_id
         return LlmFactory.known_items_dict().get(self.llm_id)  # type: ignore
 
-    @field_validator("llm_id", mode="before")
-    def check_known(cls, llm_id: str | None) -> str:
-        if llm_id is None:
-            llm_id = global_config().get_str("llm.models.default")
-        if llm_id not in LlmFactory.known_items():
-            # TODO : have a more detailed error message
+    def model_post_init(self, __context) -> None:
+        """Post-initialization validation and tag resolution."""
+        if self.llm_id and self.llm_tag:
+            raise ValueError("Cannot specify both llm_id and llm_tag")
+
+        if self.llm_tag and not self.llm_id:
+            # Resolve tag to llm_id
+            resolved_id = LlmFactory.find_llm_id_from_tag(self.llm_tag)
+            object.__setattr__(self, "llm_id", resolved_id)
+
+        # Set default if neither llm_id nor llm_tag provided
+        if not self.llm_id and not self.llm_tag:
+            default_id = global_config().get_str("llm.models.default")
+            object.__setattr__(self, "llm_id", default_id)
+
+        # Final validation that the resolved/default llm_id is known
+        if self.llm_id not in LlmFactory.known_items():
             raise ValueError(
-                f"Unknown LLM: {llm_id}; Check API key and module imports. Should be in {LlmFactory.known_items()}"
+                f"Unknown LLM: {self.llm_id}; Check API key and module imports. Should be in {LlmFactory.known_items()}"
             )
-        return llm_id
 
     @field_validator("cache")
     def check_known_cache(cls, cache: str | None) -> str | None:
@@ -265,7 +277,7 @@ class LlmFactory(BaseModel):
     def find_llm_id_from_tag(llm_tag: str) -> str:
         llm_id = global_config().get_str(f"llm.models.{llm_tag}", default="default")
         if llm_id == "default":
-            raise ValueError(f"Cannot find LLM tagged  : '{llm_tag}' (no key found in config file)")
+            raise ValueError(f"Cannot find LLM of type type : '{llm_tag}' (no key found in config file)")
         if llm_id not in LlmFactory.known_items():
             raise ValueError(f"Cannot find LLM '{llm_id}' of type : '{llm_tag}'")
         return llm_id
@@ -562,15 +574,9 @@ def get_llm(
         result = chain.invoke({"topic": "AI"})
         ```
     """
-    if llm_tag and llm_id:
-        logger.warning(
-            "llm_type and llm_id both  defined whereas they are normally exclusive.  llm_id has the preference"
-        )
-    elif llm_tag:
-        llm_id = LlmFactory.find_llm_id_from_tag(llm_tag)
-
     factory = LlmFactory(
         llm_id=llm_id,
+        llm_tag=llm_tag,
         json_mode=json_mode,
         streaming=streaming,
         cache=cache,

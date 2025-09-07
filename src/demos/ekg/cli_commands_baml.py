@@ -209,7 +209,7 @@ def register_baml_commands(cli_app: typer.Typer) -> None:
             return
 
         logger.info(f"Found {len(md_files)} Markdown files to process")
-        
+
         if force:
             logger.info("Force option enabled - will reprocess all files and overwrite existing KV entries")
 

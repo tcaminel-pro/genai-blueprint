@@ -24,35 +24,11 @@ from typer import Option
 from src.utils.config_mngr import global_config
 
 
-def _resolve_llm_id(llm_id: str | None, tag: str | None) -> str | None:
-    """Resolve LLM ID from either direct ID or tag.
-
-    Args:
-        llm_id: Direct LLM ID (takes precedence)
-        tag: LLM tag to resolve to ID
-
-    Returns:
-        Resolved LLM ID or None if neither provided
-
-    Raises:
-        ValueError: If tag is provided but cannot be resolved
-    """
-    if llm_id and tag:
-        raise ValueError("Cannot specify both --llm-id and --tag options")
-
-    if tag:
-        from src.ai_core.llm_factory import LlmFactory
-
-        return LlmFactory.find_llm_id_from_tag(tag)
-
-    return llm_id
-
-
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def config_info() -> None:
         """
-        Display current configuration and available API keys.
+        Display current configuration, available LLM tags, and API keys.
         """
 
         from rich.console import Console
@@ -82,6 +58,28 @@ def register_commands(cli_app: typer.Typer) -> None:
         models_table.add_row("Vector-store", str(default_vector_store.id))
 
         console.print(models_table)
+
+        # LLM Tags info
+        tags_table = Table(title="Available LLM Tags", show_header=True, header_style="bold magenta")
+        tags_table.add_column("Tag", style="cyan")
+        tags_table.add_column("LLM ID", style="green")
+        tags_table.add_column("Status", style="yellow")
+
+        # Get all LLM tags from config under llm.models.*
+        llm_models_config = config.get("llm.models", {})
+        # Handle both regular dict and OmegaConf DictConfig
+        if llm_models_config and hasattr(llm_models_config, "items"):
+            for tag, llm_id in llm_models_config.items():
+                if tag != "default":  # Skip the default entry as it's shown above
+                    # Check if the LLM ID is available (has API keys and module)
+                    status = (
+                        "[green]✓ available[/green]"
+                        if llm_id in LlmFactory.known_items()
+                        else "[red]✗ unavailable[/red]"
+                    )
+                    tags_table.add_row(tag, str(llm_id), status)
+
+        console.print(tags_table)
 
         # API keys info
         keys_table = Table(title="Available API Keys", show_header=True, header_style="bold magenta")
@@ -120,12 +118,12 @@ def register_commands(cli_app: typer.Typer) -> None:
         input can be either taken from stdin (Unix pipe), or given with the --input param
         If runnable_name is provided, runs the specified Runnable with the given input.
 
-        The LLM can be changed using --llm-id or --tag. Tags are defined in config (e.g., 'fake', 'powerful_model').
+        The LLM can be changed using --llm-id or --llm-tag. Tags are defined in config (e.g., 'fake', 'powerful_model').
         If neither is specified, the default model is used.
         'cache' is the prompt caching strategy, and it can be either 'sqlite' (default) or 'memory'.
 
         Examples:
-            uv run cli llm "Tell me a joke" --tag fake
+            uv run cli llm "Tell me a joke" --llm-tag fake
             uv run cli llm "Explain AI" --llm-id parrot_local_fake
         """
 
@@ -135,14 +133,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         from src.ai_core.llm_factory import LlmFactory
         from src.utils.cli.langchain_setup import setup_langchain
 
-        # Resolve LLM ID from tag if provided
-        try:
-            resolved_llm_id = _resolve_llm_id(llm_id, llm_tag)
-        except ValueError as e:
-            print(f"Error: {e}")
-            return
-
-        if not setup_langchain(resolved_llm_id, lc_debug, lc_verbose, cache):
+        if not setup_langchain(llm_id, lc_debug, lc_verbose, cache):
             return
 
         # Check if executed as part ot a pipe
@@ -153,7 +144,8 @@ def register_commands(cli_app: typer.Typer) -> None:
             return
 
         llm = LlmFactory(
-            llm_id=resolved_llm_id or global_config().get_str("llm.models.default"),
+            llm_id=llm_id,
+            llm_tag=llm_tag,
             json_mode=False,
             streaming=stream,
             cache=cache,
@@ -202,13 +194,13 @@ def register_commands(cli_app: typer.Typer) -> None:
         can be either taken from stdin (Unix pipe), or given with the --input param
         If runnable_name is provided, runs the specified Runnable with the given input.
 
-        The LLM can be changed using --llm-id or --tag. Tags are defined in config (e.g., 'fake', 'powerful_model').
+        The LLM can be changed using --llm-id or --llm-tag. Tags are defined in config (e.g., 'fake', 'powerful_model').
         If neither is specified, the default model is used.
         'cache' is the prompt caching strategy, and it can be either 'sqlite' (default) or 'memory'.
 
         Examples:
             uv run cli run joke --input "bears"
-            uv run cli run joke --input "bears" --tag fake
+            uv run cli run joke --input "bears" --llm-tag fake
             uv run cli run joke --input "bears" --llm-id parrot_local_fake
         """
 
@@ -217,14 +209,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         from src.ai_core.chain_registry import ChainRegistry
         from src.utils.cli.langchain_setup import setup_langchain
 
-        # Resolve LLM ID from tag if provided
-        try:
-            resolved_llm_id = _resolve_llm_id(llm_id, llm_tag)
-        except ValueError as e:
-            print(f"Error: {e}")
-            return
-
-        if not setup_langchain(resolved_llm_id, lc_debug, lc_verbose, cache):
+        if not setup_langchain(llm_id, lc_debug, lc_verbose, cache):
             return
 
         # Handle input from stdin if no input parameter provided
@@ -242,8 +227,18 @@ def register_commands(cli_app: typer.Typer) -> None:
         if runnable_item:
             first_example = runnable_item.examples[0]
             llm_args = {"temperature": temperature}
+            # Create a temporary factory to resolve the final llm_id
+            try:
+                from src.ai_core.llm_factory import LlmFactory
+
+                temp_factory = LlmFactory(llm_id=llm_id, llm_tag=llm_tag)
+                final_llm_id = temp_factory.llm_id
+            except ValueError as e:
+                print(f"Error: {e}")
+                return
+
             config = {
-                "llm": resolved_llm_id if resolved_llm_id else global_config().get_str("llm.models.default"),
+                "llm": final_llm_id,
                 "llm_args": llm_args,
             }
             if path:

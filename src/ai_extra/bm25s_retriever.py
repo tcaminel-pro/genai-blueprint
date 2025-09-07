@@ -40,7 +40,7 @@ def get_spacy_preprocess_fn(model: str, more_stop_words: list[str] | None = None
     stop_words = nlp.Defaults.stop_words
     stop_words.update(more_stop_words or [])
 
-    def preprocess_text(text:str) -> list[str]:
+    def preprocess_text(text: str) -> list[str]:
         lemmas = [token.lemma_.lower() for token in nlp(text)]
         filtered = [token for token in lemmas if token not in stop_words]
         return filtered
