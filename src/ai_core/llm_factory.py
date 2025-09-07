@@ -262,12 +262,12 @@ class LlmFactory(BaseModel):
         return sorted(LlmFactory.known_items_dict().keys())
 
     @staticmethod
-    def find_llm_id_from_type(llm_type: str) -> str:
-        llm_id = global_config().get_str(f"llm.{llm_type}", default="default")
+    def find_llm_id_from_tag(llm_tag: str) -> str:
+        llm_id = global_config().get_str(f"llm.{llm_tag}", default="default")
         if llm_id == "default":
-            raise ValueError(f"Cannot find LLM of type type : '{llm_type}' (no key found in config file)")
+            raise ValueError(f"Cannot find LLM of type type : '{llm_tag}' (no key found in config file)")
         if llm_id not in LlmFactory.known_items():
-            raise ValueError(f"Cannot find LLM '{llm_id}' of type : '{llm_type}'")
+            raise ValueError(f"Cannot find LLM '{llm_id}' of type : '{llm_tag}'")
         return llm_id
 
     def get_id(self) -> str:
@@ -525,7 +525,7 @@ class LlmFactory(BaseModel):
 
 def get_llm(
     llm_id: str | None = None,
-    llm_type: str | None = None,
+    llm_tag: str | None = None,
     json_mode: bool = False,
     streaming: bool = False,
     cache: str | None = None,
@@ -535,7 +535,7 @@ def get_llm(
 
     Args:
         llm_id: Unique model identifier (if None, uses default from config)
-        llm_type: Type of model to use (fast_model, smart_model, etc.)
+        llm_tag: Tag (type) of model to use (fast_model, smart_model, etc.)
         json_mode: Whether to force JSON output format (where supported)
         streaming: Whether to enable streaming responses (where supported)
         cache: cache method ("sqlite", "memory", no"_cache, ..) or "default", or None if no change (global setting)
@@ -562,12 +562,12 @@ def get_llm(
         result = chain.invoke({"topic": "AI"})
         ```
     """
-    if llm_type and llm_id:
+    if llm_tag and llm_id:
         logger.warning(
             "llm_type and llm_id both  defined whereas they are normally exclusive.  llm_id has the preference"
         )
-    elif llm_type:
-        llm_id = LlmFactory.find_llm_id_from_type(llm_type)
+    elif llm_tag:
+        llm_id = LlmFactory.find_llm_id_from_tag(llm_tag)
 
     factory = LlmFactory(
         llm_id=llm_id,

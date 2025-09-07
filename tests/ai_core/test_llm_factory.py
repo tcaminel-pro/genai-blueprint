@@ -226,7 +226,7 @@ def test_factory_find_llm_id_from_type() -> None:
     """Test find_llm_id_from_type method."""
     # This might fail if no config is set up, so we'll test the error case
     with pytest.raises(ValueError):
-        LlmFactory.find_llm_id_from_type("nonexistent_type")
+        LlmFactory.find_llm_id_from_tag("nonexistent_type")
 
 
 def test_llm_factory_model_validation() -> None:
