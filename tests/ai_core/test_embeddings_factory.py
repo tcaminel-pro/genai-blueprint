@@ -16,7 +16,7 @@ global_config().select_config("pytest")
 def test_fake_embeddings() -> None:
     """Test that default embeddings can be created and used."""
 
-    # global_config().set("llm.default_model", "embeddings_768_fake")
+    # global_config().set("llm.models.default", "embeddings_768_fake")
     embedder = get_embeddings("embeddings_768_fake")
     vectors = embedder.embed_documents([SENTENCE_1, SENTENCE_2])
 

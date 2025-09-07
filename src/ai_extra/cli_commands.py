@@ -258,7 +258,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             print(f"Error: unknown llm_id. \n Should be in {LlmFactory.known_items()}")
             return
 
-        config = {"llm": llm_id if llm_id else global_config().get_str("llm.default_model")}
+        config = {"llm": llm_id if llm_id else global_config().get_str("llm.models.default")}
         chain = get_fabric_chain(config)
         input = repr("\n".join(sys.stdin))
         input = input.replace("{", "{{").replace("}", "}}")

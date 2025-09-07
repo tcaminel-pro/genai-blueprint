@@ -6,44 +6,57 @@
 
 training_local:
   llm:
-    default_model:  llama32_3_ollama
+    models:
+      default:  llama32_3_ollama
   embeddings:
-    default_model: artic_22_ollama
+    models:
+      default: artic_22_ollama
+
 
 training_edenai:
   llm:
-    default_model: gpt_4omini_edenai
+    models:
+      default: gpt_4omini_edenai
     cache : memory
   embeddings:
-    default_model: ada_002_edenai
+    models:
+      default: ada_002_edenai
 
 training_openrouter:
   llm:
-    default_model: gpt_41mini_openrouter
+    models:
+      default: gpt_41mini_openrouter
     cache : memory
   embeddings:
-    default_model: bge_m3_deepinfra
+    models:
+      default: bge_m3_deepinfra
 
 training_azure:
   llm:
-    default_model: gpt_4omini_azure
+    models:
+      default: gpt_4omini_azure
   embeddings:
-    default_model: ada_002_azure
+    models:
+      default: ada_002_azure
 
 
 training_openai:
   llm:
-    default_model: gpt_4omini_openai
+    models:
+      default: gpt_4omini_openai
   embeddings:
-    default_model: ada_002_openai
+    models:
+      default: ada_002_openai
   dummy:
     bar: foo
 
 pytest:
   llm:
-    default_model: gpt_4omini_edenai
+    models:
+      default: gpt_4omini_edenai
   embeddings:
-    default_model: ada_002_edenai
+    models:
+      default: ada_002_edenai
 
 container: 
   paths:
@@ -53,11 +66,13 @@ container:
     config: ${paths.project}/config
     demo_conf: ${paths.project}/config/demos
   llm:
-    default_model: gpt_41mini_openrouter
+    models:
+      default: gpt_41mini_openrouter
     cache: sqlite
     cache_path: ${paths.data_root}/llm_cache/langchain.db
   embeddings:
-    default_model: bge_m3_deepinfra
+    models:
+      default: bge_m3_deepinfra
     cache: ${paths.data_root}/hf_models
   vector_store:
     default: Chroma
@@ -69,9 +84,11 @@ container:
 
 ekg_local:
   llm:
-    default_model: kimi_k2_openrouter
+    models:
+      default: kimi_k2_openrouter
   embeddings:
-    default_model: qwen3_06b_deepinfra
+    models:
+      default: qwen3_06b_deepinfra
   vector_store:
     default : PgVector
   cli:

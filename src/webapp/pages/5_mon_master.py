@@ -57,7 +57,7 @@ with st.sidebar:
     else:
         search_method = "Vector"
 
-    default_embeddings = global_config().get_str("embeddings.default_model")
+    default_embeddings = global_config().get_str("embeddings.models.default")
     embeddings_model = st.radio(
         "Embedding Model:",
         options=[

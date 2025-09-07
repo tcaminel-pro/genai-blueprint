@@ -68,7 +68,7 @@ if path := first_example.path:
     if uploaded_file:
         path = Path(str(uploaded_file))
 
-llm_id = global_config().get_str("llm.default_model")
+llm_id = global_config().get_str("llm.models.default")
 config = {}
 first_example = runnable_desc.examples[0]
 config |= {"llm": llm_id}

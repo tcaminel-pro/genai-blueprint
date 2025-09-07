@@ -46,5 +46,5 @@ def setup_langchain(
                 )
             )
             return False
-        global_config().set("llm.default_model", llm_id)
+        global_config().set("llm.models.default", llm_id)
     return True

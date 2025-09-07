@@ -140,7 +140,7 @@ class EmbeddingsFactory(BaseModel):
 
         """
         if embeddings_id is None:
-            embeddings_id = global_config().get_str("embeddings.default_model")
+            embeddings_id = global_config().get_str("embeddings.models.default")
         if embeddings_id not in EmbeddingsFactory.known_items():
             raise ValueError(f"Unknown Embeddings: {embeddings_id}")
         return embeddings_id

@@ -217,7 +217,7 @@ class LlmFactory(BaseModel):
     @field_validator("llm_id", mode="before")
     def check_known(cls, llm_id: str | None) -> str:
         if llm_id is None:
-            llm_id = global_config().get_str("llm.default_model")
+            llm_id = global_config().get_str("llm.models.default")
         if llm_id not in LlmFactory.known_items():
             # TODO : have a more detailed error message
             raise ValueError(
@@ -263,9 +263,9 @@ class LlmFactory(BaseModel):
 
     @staticmethod
     def find_llm_id_from_tag(llm_tag: str) -> str:
-        llm_id = global_config().get_str(f"llm.{llm_tag}", default="default")
+        llm_id = global_config().get_str(f"llm.models.{llm_tag}", default="default")
         if llm_id == "default":
-            raise ValueError(f"Cannot find LLM of type type : '{llm_tag}' (no key found in config file)")
+            raise ValueError(f"Cannot find LLM tagged  : '{llm_tag}' (no key found in config file)")
         if llm_id not in LlmFactory.known_items():
             raise ValueError(f"Cannot find LLM '{llm_id}' of type : '{llm_tag}'")
         return llm_id
@@ -494,7 +494,7 @@ class LlmFactory(BaseModel):
 
         default_llm_id = self.llm_id
         if default_llm_id is None:
-            default_llm_id = global_config().get_str("llm.default_model")
+            default_llm_id = global_config().get_str("llm.models.default")
 
         # The field alternatives is created from our list of LLM
         alternatives = {}

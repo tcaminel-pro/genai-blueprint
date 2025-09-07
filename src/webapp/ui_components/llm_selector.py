@@ -12,7 +12,7 @@ from src.utils.config_mngr import global_config
 
 # LLM Model Selection
 def llm_selector_widget(w: DeltaGenerator) -> None:
-    current_llm = global_config().get_str("llm.default_model")
+    current_llm = global_config().get_str("llm.models.default")
     available_models = LlmFactory().known_items()
 
     try:
@@ -29,5 +29,5 @@ def llm_selector_widget(w: DeltaGenerator) -> None:
     )
 
     if selected_llm != current_llm:
-        global_config().set("llm.default_model", str(selected_llm))
+        global_config().set("llm.models.default", str(selected_llm))
         w.success(f"Default LLM changed to: {selected_llm}")

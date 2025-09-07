@@ -31,14 +31,14 @@ def display_config_info() -> None:
 
     # LLM configuration
     try:
-        llm_model = config.get_str("llm.default_model", "Not set")
+        llm_model = config.get_str("llm.models.default", "Not set")
         config_data.append({"Setting": "LLM Default Model", "Value": llm_model})
     except Exception:
         config_data.append({"Setting": "LLM Default Model", "Value": "Not available"})
 
     # Embeddings configuration
     try:
-        embeddings_model = config.get_str("embeddings.default_model", "Not set")
+        embeddings_model = config.get_str("embeddings.models.default", "Not set")
         config_data.append({"Setting": "Embeddings Default Model", "Value": embeddings_model})
     except Exception:
         config_data.append({"Setting": "Embeddings Default Model", "Value": "Not available"})

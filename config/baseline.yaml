@@ -7,20 +7,24 @@
 ####
 llm:
   list: ${paths.config}/providers/llm.yaml
-  default_model: gpt_4omini_openai # gpt_35_azure # mistral_large_edenai 
+  # default_model: gpt_4omini_openai # gpt_35_azure # mistral_large_edenai 
+  models:
+    default: gpt_4omini_openai   # Mandatory key !!
+    ### 
+    # Optional model definitions (you can add your own type): 
+    ###
+    fake: parrot_local_fake 
+    fast:  llama31_8_groq
+    coder : qwen25_coder32_openrouter
+
   cache : sqlite
   cache_path: ${paths.data_root}/llm_cache/langchain.db
 
-  ### 
-  # Optional model definitions (you can add your own type): 
-  ###
-  coder_model : qwen25_coder32_openrouter
-  powerful_model : gpt_4_openai
-  fast_model : llama31_8_groq
-  
+ 
 embeddings:
   list: ${paths.config}/providers/embeddings.yaml
-  default_model:  ada_002_openai
+  models:
+    default:  ada_002_openai
   cache: ${paths.data_root}/hf_models
 vector_store:
   default: Chroma

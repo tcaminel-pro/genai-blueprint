@@ -24,6 +24,30 @@ from typer import Option
 from src.utils.config_mngr import global_config
 
 
+def _resolve_llm_id(llm_id: str | None, tag: str | None) -> str | None:
+    """Resolve LLM ID from either direct ID or tag.
+
+    Args:
+        llm_id: Direct LLM ID (takes precedence)
+        tag: LLM tag to resolve to ID
+
+    Returns:
+        Resolved LLM ID or None if neither provided
+
+    Raises:
+        ValueError: If tag is provided but cannot be resolved
+    """
+    if llm_id and tag:
+        raise ValueError("Cannot specify both --llm-id and --tag options")
+
+    if tag:
+        from src.ai_core.llm_factory import LlmFactory
+
+        return LlmFactory.find_llm_id_from_tag(tag)
+
+    return llm_id
+
+
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
     def config_info() -> None:
@@ -86,6 +110,9 @@ def register_commands(cli_app: typer.Typer) -> None:
         llm_id: Annotated[
             Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
         ] = None,
+        llm_tag: Annotated[
+            Optional[str], Option("--llm-tag", "-tag", help="LLM tag from config (e.g., 'fake', 'powerful_model')")
+        ] = None,
     ) -> None:
         """
         Invoke an LLM.
@@ -93,8 +120,13 @@ def register_commands(cli_app: typer.Typer) -> None:
         input can be either taken from stdin (Unix pipe), or given with the --input param
         If runnable_name is provided, runs the specified Runnable with the given input.
 
-        The LLM can be changed using --llm-id, otherwise the default one is selected.
+        The LLM can be changed using --llm-id or --tag. Tags are defined in config (e.g., 'fake', 'powerful_model').
+        If neither is specified, the default model is used.
         'cache' is the prompt caching strategy, and it can be either 'sqlite' (default) or 'memory'.
+
+        Examples:
+            uv run cli llm "Tell me a joke" --tag fake
+            uv run cli llm "Explain AI" --llm-id parrot_local_fake
         """
 
         from langchain_core.output_parsers import StrOutputParser
@@ -103,7 +135,14 @@ def register_commands(cli_app: typer.Typer) -> None:
         from src.ai_core.llm_factory import LlmFactory
         from src.utils.cli.langchain_setup import setup_langchain
 
-        if not setup_langchain(llm_id, lc_debug, lc_verbose, cache):
+        # Resolve LLM ID from tag if provided
+        try:
+            resolved_llm_id = _resolve_llm_id(llm_id, llm_tag)
+        except ValueError as e:
+            print(f"Error: {e}")
+            return
+
+        if not setup_langchain(resolved_llm_id, lc_debug, lc_verbose, cache):
             return
 
         # Check if executed as part ot a pipe
@@ -114,7 +153,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             return
 
         llm = LlmFactory(
-            llm_id=llm_id or global_config().get_str("llm.default_model"),
+            llm_id=resolved_llm_id or global_config().get_str("llm.models.default"),
             json_mode=False,
             streaming=stream,
             cache=cache,
@@ -152,6 +191,9 @@ def register_commands(cli_app: typer.Typer) -> None:
         llm_id: Annotated[
             Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
         ] = None,
+        llm_tag: Annotated[
+            Optional[str], Option("--llm-tag", "-tag", help="LLM tag from config (e.g., 'fake', 'powerful_model')")
+        ] = None,
     ) -> None:
         """
         Run a Runnable or directly invoke an LLM.
@@ -160,10 +202,14 @@ def register_commands(cli_app: typer.Typer) -> None:
         can be either taken from stdin (Unix pipe), or given with the --input param
         If runnable_name is provided, runs the specified Runnable with the given input.
 
-        The LLM can be changed using --llm-id, otherwise the default one is selected.
+        The LLM can be changed using --llm-id or --tag. Tags are defined in config (e.g., 'fake', 'powerful_model').
+        If neither is specified, the default model is used.
         'cache' is the prompt caching strategy, and it can be either 'sqlite' (default) or 'memory'.
 
-        \nex : uv run cli run joke --input "bears"
+        Examples:
+            uv run cli run joke --input "bears"
+            uv run cli run joke --input "bears" --tag fake
+            uv run cli run joke --input "bears" --llm-id parrot_local_fake
         """
 
         from devtools import pprint
@@ -171,7 +217,14 @@ def register_commands(cli_app: typer.Typer) -> None:
         from src.ai_core.chain_registry import ChainRegistry
         from src.utils.cli.langchain_setup import setup_langchain
 
-        if not setup_langchain(llm_id, lc_debug, lc_verbose, cache):
+        # Resolve LLM ID from tag if provided
+        try:
+            resolved_llm_id = _resolve_llm_id(llm_id, llm_tag)
+        except ValueError as e:
+            print(f"Error: {e}")
+            return
+
+        if not setup_langchain(resolved_llm_id, lc_debug, lc_verbose, cache):
             return
 
         # Handle input from stdin if no input parameter provided
@@ -190,7 +243,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             first_example = runnable_item.examples[0]
             llm_args = {"temperature": temperature}
             config = {
-                "llm": llm_id if llm_id else global_config().get_str("llm.default_model"),
+                "llm": resolved_llm_id if resolved_llm_id else global_config().get_str("llm.models.default"),
                 "llm_args": llm_args,
             }
             if path:
@@ -286,7 +339,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             if model_id not in EmbeddingsFactory.known_items():
                 print(f"Error: {model_id} is unknown model id.\nShould be in {EmbeddingsFactory.known_items()}")
                 return
-            global_config().set("llm.default_model", model_id)
+            global_config().set("llm.models.default", model_id)
 
         factory = EmbeddingsFactory(
             embeddings_id=model_id,

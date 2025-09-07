@@ -5,9 +5,9 @@ environments. Supports runtime overrides and implements singleton pattern.
 
 Example:
 ```python
-model = global_config().get("llm.default_model")
+model = global_config().get("llm.models.default")
 global_config().select_config("local")
-global_config().set("llm.default_model", "gpt-4")
+global_config().set("llm.models.default", "gpt-4")
 ```
 """
 
@@ -117,7 +117,7 @@ class OmegaConfig(BaseModel):
     def get(self, key: str, default: Optional[Any] = None) -> Any:
         """Get a configuration value using dot notation.
         Args:
-            key: Configuration key in dot notation (e.g., "llm.default_model")
+            key: Configuration key in dot notation (e.g., "llm.models.default")
             default: Default value if key not found
         Returns:
             The configuration value or default if not found
@@ -140,7 +140,7 @@ class OmegaConfig(BaseModel):
     def set(self, key: str, value: Any) -> None:
         """Set a runtime configuration value using dot notation.
         Args:
-            key: Configuration key in dot notation (e.g., "llm.default_model")
+            key: Configuration key in dot notation (e.g., "llm.models.default")
             value: Value to set
         """
         # Ensure the selected config section exists
@@ -333,24 +333,24 @@ def import_from_qualified(qualified_name: str) -> Callable:
 ## for quick test ##
 if __name__ == "__main__":
     # Get a config value
-    model = global_config().get("llm.default_model")
+    model = global_config().get("llm.models.default")
     print(model)
     # Set a runtime override
-    global_config().set("llm.default_model", "gpt-4")
-    model = global_config().get("llm.default_model")
+    global_config().set("llm.models.default", "gpt-4")
+    model = global_config().get("llm.models.default")
     print(model)
     print(global_config().get_list("cli.commands"))
     # Switch configurations
     global_config().select_config("training_local")
-    model = global_config().get("llm.default_model")
+    model = global_config().get("llm.models.default")
     print(model)
     print(global_config().get_list("cli.commands"))
 
-    global_config().set("llm.default_model", "foo")
-    print(global_config().get_str("llm.default_model"))
+    global_config().set("llm.models.default", "foo")
+    print(global_config().get_str("llm.models.default"))
 
     global_config().select_config("training_openai")
     print(global_config().get("training_openai.dummy"))
 
     print(global_config().root.default_config)
-    print(global_config().selected.llm.default_model)
+    print(global_config().selected.llm.models.default)

@@ -25,8 +25,9 @@ paths:
   project: /tmp/test_project                                                                               
   models: /tmp/models                                                                                      
 test_env:                                                                                                  
-  llm:                                                                                                     
-    default_model: "gpt-3.5-turbo"                                                                         
+  llm:
+    models:                                                                                                     
+      default: "gpt-3.5-turbo"                                                                         
     max_tokens: 1000                                                                                       
     temperature: 0.7                                                                                       
   features:                                                                                                
@@ -37,8 +38,9 @@ test_env:
     port: 5432                                                                                             
     name: "test_db"                                                                                        
 prod_env:                                                                                                  
-  llm:                                                                                                     
-    default_model: "gpt-4"                                                                                 
+  llm: 
+    models:                                                                                                    
+      default: "gpt-4"                                                                                 
     max_tokens: 2000                                                                                       
     temperature: 0.1                                                                                       
   features:                                                                                                
@@ -81,7 +83,7 @@ ui:
 
     def test_get_string_value(self) -> None:
         """Test getting string configuration values."""
-        model = self.config.get("llm.default_model")
+        model = self.config.get("llm.models.default")
         self.assertEqual(model, "gpt-3.5-turbo")
 
         # Test with default value
@@ -111,7 +113,7 @@ ui:
 
     def test_get_str_method(self) -> None:
         """Test get_str type-safe method."""
-        model = self.config.get_str("llm.default_model")
+        model = self.config.get_str("llm.models.default")
         self.assertEqual(model, "gpt-3.5-turbo")
 
         with self.assertRaises(TypeError):
@@ -133,7 +135,7 @@ ui:
         self.assertEqual(commands, ["test.module:register_commands", "test.module2:register_commands"])
 
         with self.assertRaises(TypeError):
-            self.config.get_list("llm.default_model")
+            self.config.get_list("llm.models.default")
 
     def test_get_list_with_value_type(self) -> None:
         """Test get_list with value type validation."""
@@ -182,12 +184,12 @@ ui:
     def test_select_config(self) -> None:
         """Test switching between configuration environments."""
         # Initially in test_env
-        self.assertEqual(self.config.get("llm.default_model"), "gpt-3.5-turbo")
+        self.assertEqual(self.config.get("llm.models.default"), "gpt-3.5-turbo")
         self.assertEqual(self.config.get("llm.max_tokens"), 1000)
 
         # Switch to prod_env
         self.config.select_config("prod_env")
-        self.assertEqual(self.config.get("llm.default_model"), "gpt-4")
+        self.assertEqual(self.config.get("llm.models.default"), "gpt-4")
         self.assertEqual(self.config.get("llm.max_tokens"), 2000)
 
         # Test switching to non-existent config
@@ -196,12 +198,12 @@ ui:
 
     def test_set_runtime_override(self) -> None:
         """Test setting runtime configuration overrides."""
-        original_model = self.config.get("llm.default_model")
+        original_model = self.config.get("llm.models.default")
         self.assertEqual(original_model, "gpt-3.5-turbo")
 
         # Set override
-        self.config.set("llm.default_model", "custom-model")
-        self.assertEqual(self.config.get("llm.default_model"), "custom-model")
+        self.config.set("llm.models.default", "custom-model")
+        self.assertEqual(self.config.get("llm.models.default"), "custom-model")
 
         # Test setting nested override
         self.config.set("new.nested.value", "test")
