@@ -15,9 +15,9 @@ dependencies = [ # core dependancies. More in [dependency-groups]
     "universal-pathlib>=0.2.6",   # Cross-platform paths
     "pip>=25.1.1",                # Package installer
     #    "modal>=1.0.5",  # Serverless cloud platform
-    "python-dotenv>=1.1.1", # Environment variables
-    "beartype>=0.21.0",     # Run time type checking
-
+    "python-dotenv>=1.1.1",   # Environment variables
+    "beartype>=0.21.0",       # Run time type checking
+    "browser-use-sdk>=2.0.4",
 ]
 
 [project.urls]
@@ -195,8 +195,9 @@ select = [
 ]
 
 ignore = [ # Ignored linter rules: 
-    "E501",   #Line too long (we use 120 chars instead of default 88) 
-    "W291",   # Trailing whitespace 
+    "E501", #Line too long (we use 120 chars instead of default 88) 
+    "W291", # Trailing whitespace 
+    #  "W293",   # white spaces "
     "B006",   # Do not use mutable data structures for argument defaults
     "C901",   # Function is too complex , 
     "PD901",  # pandas-df-variable-name',

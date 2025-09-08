@@ -25,11 +25,11 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from loguru import logger
 
+from ai_extra.graphs.sql_agent import create_sql_querying_graph
 from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import dedent_ws, def_prompt
 from src.ai_core.vector_store_factory import VectorStoreFactory
-from ai_extra.graphs.sql_agent import create_sql_querying_graph
 from src.demos.maintenance_agent.dummy_data import dummy_database
 from src.utils.config_mngr import global_config
 

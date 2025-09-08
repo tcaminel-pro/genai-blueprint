@@ -272,22 +272,11 @@ class OmegaConfig(BaseModel):
     def get_dsn(self, key: str, driver: str | None = None) -> str:
         """Get a Database Source Name (DSN) compliant with SQLAlchemy URL format.
         The driver part of the connection can be changed (ex: postgress+"asyncpg")"""
-        from sqlalchemy.engine.url import make_url
+
+        from utils.sql_utils import check_dsn_update_driver
 
         db_url = self.get_str(key)
-
-        try:
-            url = make_url(db_url)
-            # If driver is specified and not already in the URL, add it
-            if driver and "+" not in str(url.drivername):
-                drivername = f"{url.drivername}+{driver}"
-                new_url = url.set(drivername=drivername)
-                return new_url.render_as_string(hide_password=False)
-
-            return url.render_as_string(hide_password=False)
-
-        except Exception as e:
-            raise ValueError(f"Invalid database URL for key '{key}': {db_url}") from e
+        return check_dsn_update_driver(db_url, driver)
 
 
 def global_config() -> OmegaConfig:

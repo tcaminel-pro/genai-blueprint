@@ -211,3 +211,48 @@ When making changes:
 3. Update tests in `test_baml_extract.py`
 4. Test with real documents
 5. Update this documentation
+
+
+# Moving to BAML
+
+
+
+1. Audit current implementation
+Read struct_rag_doc_processing.py and any companion modules to catalogue:  
+• Public API surface (classes, methods, arguments, return types)  
+• Places where PydanticModelFactory, YAML schema loading, and LangChain structured output are used  
+• Interactions with vector store, KV-store, chunker, and caching logic  
+Create a short reference map so later refactor preserves every public symbol and side effect.
+2. Study BAML resources
+Open existing BAML setup in the repo, import baml_client.types and inspect ReviewedOpportunity plus any nested types.  
+Review ExtractRainbow usage pattern (client instantiation, parameters, expected result object).  
+Confirm authentication / config is already handled elsewhere.
+3. Define BAML-based config object
+Create StructuredRagConfig v2:  
+• Replace schema | class_definition parameters with a reviewed_opportunity_enabled: bool or similar (defaults to True)  
+• Keep fields for vector_store, kv_store, chunker, llm (if still needed) to preserve compatibility  
+• Implement model_post_init to validate required BAML availability.  
+Follow house documentation rules.
+4. Refactor StructuredRagDocProcessor internals
+a. Delete dynamic PydanticModelFactory logic and YAML parsing.  
+b. Hard-code target_type = ReviewedOpportunity from baml_client.types.  
+c. Swap LangChain call with: ExtractRainbow(text, target_type) (or equivalent async batch variant).  
+d. Keep same public methods: process_document, _extract_structured_data, build_chunks, upsert_to_vector_store, etc.  
+e. Ensure doc hash is created the same way so KV-store caching remains valid.
+5. Integrate batching & caching with BAML
+If BAML has a batch API, wrap multiple ExtractRainbow calls; else iterate with existing batch size constant.  
+Cache the serialized ReviewedOpportunity JSON in KV-store keyed by doc_id or hash identical to legacy path.
+6. Prune unused dependencies
+Remove PydanticModelFactory, YAML-related utils, and LangChain dependencies from imports, setup.cfg/pyproject, and requirements.txt.
+7. Update unit & integration tests
+Adjust mocks to patch baml_client ExtractRainbow instead of LangChain.  
+Write golden-path test: given raw Doc -> expect ReviewedOpportunity object fields populated.  
+Ensure vector store upsert still receives correct metadata.  
+Run full pytest suite.
+8. Revise documentation and example notebooks
+Update README sections and docstrings to mention BAML usage, sample code, and removal of YAML schema option.  
+Honor project docstring rules (Google style, fenced code blocks, no type or exception mentions).
+9. Perform regression testing & code quality checks
+Run mypy/ruff or equivalent, execute end-to-end pipeline on sample corpus, measure performance parity, and verify no breaking changes in public API.  
+Commit and open PR for review.
+

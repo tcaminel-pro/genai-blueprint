@@ -35,6 +35,12 @@ from streamlit.delta_generator import DeltaGenerator
 from src.ai_core.llm_factory import LlmFactory
 from src.ai_core.mcp_client import dict_to_stdio_server_list, get_mcp_servers_dict
 from src.ai_core.prompts import dedent_ws
+
+# Import shared configuration functionality
+from src.ai_extra.tools_smolagents.config_loader import (
+    CodeactDemo,
+    load_all_demos_from_config,
+)
 from src.utils.config_mngr import global_config, import_from_qualified
 from src.utils.load_data import TABULAR_FILE_FORMATS_READERS, load_tabular_data_once
 from src.utils.streamlit.auto_scroll import scroll_to_here
@@ -62,26 +68,7 @@ if "result_display" not in sss:
 llm_selector_widget(st.sidebar)
 
 
-class CodeactDemo(BaseModel):
-    """Configuration class for CodeAct Agent demonstrations.
-
-    This class defines the structure for setting up different demo scenarios
-    including available tools, MCP servers, and example prompts.
-
-    Attributes:
-        name: Name of the demonstration
-        tools: List of available tools for the demo
-        mcp_servers: List of MCP server configurations
-        examples: List of example prompts for the demo
-        authorized_imports: List of Python packages authorized for import
-    """
-
-    name: str
-    tools: list[Tool] = []
-    mcp_servers: list[str] = []
-    examples: list[str]
-    authorized_imports: list[str] = []
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+# CodeactDemo is now imported from src.ai_extra.tools_smolagents.config_loader
 
 
 # get_stock_info is now imported from ai_extra.smolagents_tools
@@ -147,95 +134,12 @@ PRE_PROMPT = dedent_ws(
 #  - Print also the outcome on stdio, or the title if it's a diagram.
 
 
-def load_demos_from_config() -> List[CodeactDemo]:
-    """Load and configure demonstration scenarios from the application configuration.
-
-    This function reads the demo configurations from the global config and creates
-    corresponding CodeactDemo objects with their associated tools and examples.
-
-    Returns:
-        List of configured CodeactDemo objects
-    """
-    """Load demos configuration from YAML file"""
-
-    demos_config = global_config().merge_with(CONF_YAML_FILE).get_list("codeact_agent_demos")
-    result = []
-    # Create Demo objects from the configuration
-    for demo_config in demos_config:
-        name = demo_config.get("name", "")
-        examples = demo_config.get("examples", [])
-        mcp_servers = demo_config.get("mcp_servers", [])
-        authorized_imports = demo_config.get("authorized_imports", [])
-
-        # Process tools
-        tools = []
-        for tool_config in demo_config.get("tools", []):
-            if isinstance(tool_config, dict):
-                if "function" in tool_config:
-                    func_ref = tool_config.get("function")
-                    if isinstance(func_ref, str) and ":" in func_ref:
-                        tool_func = import_from_qualified(func_ref)
-                        tools.append(tool_func)
-                    elif func_ref in globals():
-                        tools.append(globals()[func_ref])
-                    else:
-                        logger.warning(f"Unknown function: {func_ref}")
-                elif "class" in tool_config:
-                    class_ref = tool_config.get("class")
-                    params = {k: v for k, v in tool_config.items() if k not in ["class"]}
-
-                    if isinstance(class_ref, str) and ":" in class_ref:
-                        tool_class = import_from_qualified(class_ref)
-                    elif class_ref in globals():
-                        tool_class = globals()[class_ref]
-                    else:
-                        logger.warning(f"Unknown tool class: {class_ref}")
-                        continue
-
-                    tools.append(tool_class(**params))  # type: ignore
-                elif "factory" in tool_config:
-                    factory_ref = tool_config.get("factory")
-                    params = {k: v for k, v in tool_config.items() if k not in ["factory"]}
-
-                    if isinstance(factory_ref, str) and ":" in factory_ref:
-                        factory_func = import_from_qualified(factory_ref)
-                    elif factory_ref in globals():
-                        factory_func = globals()[factory_ref]
-                    else:
-                        logger.warning(f"Unknown factory function: {factory_ref}")
-                        continue
-
-                    try:
-                        tool_result = factory_func(**params)
-                        if isinstance(tool_result, list):
-                            tools.extend(tool_result)
-                        else:
-                            tools.append(tool_result)
-                    except Exception as ex:
-                        logger.warning(f"Error calling factory function {factory_ref}: {ex}")
-                        continue
-
-        # Convert LangChain BaseTool instances to SmolAgent Tool
-        converted_tools = []
-        for t in tools:
-            if isinstance(t, LangChainBaseTool):
-                converted_tools.append(SmolAgentTool.from_langchain(t))
-            else:
-                converted_tools.append(t)
-        demo = CodeactDemo(
-            name=name,
-            tools=converted_tools,
-            mcp_servers=mcp_servers,
-            examples=examples,
-            authorized_imports=authorized_imports,
-        )
-        result.append(demo)
-    return result
+# load_demos_from_config is now imported as load_all_demos_from_config from shared module
 
 
 # Load demos from config
 try:
-    sample_demos = load_demos_from_config()
+    sample_demos = load_all_demos_from_config()
 except Exception as ex:
     st.error(f"Cannot load demo: {ex}")
     st.stop()

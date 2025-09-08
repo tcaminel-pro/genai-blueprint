@@ -18,45 +18,88 @@ import sys
 from typing import Annotated, Optional
 
 import typer
+from loguru import logger
 from typer import Option
 from upath import UPath
 
+from src.ai_extra.tools_smolagents.config_loader import (
+    CONF_YAML_FILE,
+    load_demo_config,
+    process_tools_from_config,
+)
+from src.ai_extra.tools_smolagents.react_config_loader import (
+    REACT_CONF_YAML_FILE,
+    load_react_demo_config,
+)
 from src.utils.config_mngr import global_config
 
 
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
-    def mcp_agent(
+    def react_agent(
         input: Annotated[str | None, typer.Option(help="Input query or '-' to read from stdin")] = None,
         mcp: Annotated[
             list[str], typer.Option(help="MCP server names to connect to (e.g. playwright, filesystem, ..)")
         ] = [],
+        config: Annotated[
+            Optional[str],
+            Option("--config", "-c", help="Configuration name from react_agent.yaml (e.g. 'Weather', 'Web Research')"),
+        ] = None,
         cache: Annotated[str, typer.Option(help="Cache strategy: 'sqlite', 'memory' or 'no_cache'")] = "memory",
         lc_verbose: Annotated[bool, Option("--verbose", "-v", help="Enable LangChain verbose mode")] = False,
         lc_debug: Annotated[bool, Option("--debug", "-d", help="Enable LangChain debug mode")] = False,
         llm_id: Annotated[
             Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
         ] = None,
-        shell: Annotated[bool, Option("--shell", "-s", help="Start an interactive shell to send prompts")] = False,
+        chat: Annotated[bool, Option("--chat", "-s", help="Start an interactive chat with agent")] = False,
     ) -> None:
         """
         Run a ReaAct agent connected to MCP Servers.
 
-        Example:
+        Examples:
 
+        # Using MCP servers directly:
         echo "get news from atos.net web site" | uv run cli mcp-agent --mcp playwright --mcp filesystem
 
-        Use --shell to start an interactive shell where you can send multiple prompts to the agent.
+        # Using a predefined configuration:
+        uv run cli mcp-agent --config "Weather" "What is the wind force in Toulouse?"
+        uv run cli mcp-agent --config "Web Research" "Research the latest AI developments"
+
+        Use --chat to start an interactive shell where you can send multiple prompts to the agent.
         """
 
         from src.ai_core.mcp_client import call_react_agent
         from src.utils.cli.langchain_setup import setup_langchain
         from src.utils.cli.langgraph_agent_shell import run_langgraph_agent_shell
 
+        # Handle configuration loading
+        demo_config = None
+        config_tools = []
+        config_mcp_servers = []
+
+        if config:
+            demo_config = load_react_demo_config(config)
+            if demo_config is None:
+                print(f"Error: Configuration '{config}' not found in {REACT_CONF_YAML_FILE}")
+                return
+
+            # Extract configuration parameters
+            config_tools = demo_config.get("tools", [])
+            config_mcp_servers = demo_config.get("mcp_servers", [])
+
+            print(f"Using ReAct configuration '{config}':")
+            if config_tools:
+                print(f"  Tools: {', '.join(config_tools)}")
+            if config_mcp_servers:
+                print(f"  MCP servers: {', '.join(config_mcp_servers)}")
+
+        # Merge MCP servers from config and command line
+        final_mcp_servers = list(set(mcp + config_mcp_servers))
+
         setup_langchain(llm_id, lc_debug, lc_verbose, cache)
 
-        if shell:
-            asyncio.run(run_langgraph_agent_shell(llm_id, mcp_server_names=mcp))
+        if chat:
+            asyncio.run(run_langgraph_agent_shell(llm_id, mcp_server_names=final_mcp_servers))
         else:
             if not input and not sys.stdin.isatty():
                 input = sys.stdin.read()
@@ -64,35 +107,77 @@ def register_commands(cli_app: typer.Typer) -> None:
                 print("Error: Input parameter or something in stdin is required")
                 return
 
-            asyncio.run(call_react_agent(input, llm_id=llm_id, mcp_server_filter=mcp))
+            asyncio.run(call_react_agent(input, llm_id=llm_id, mcp_server_filter=final_mcp_servers))
 
     @cli_app.command()
     def smolagents(
-        prompt: Annotated[str, typer.Argument(help="The prompt for the agent to execute")],
+        input: Annotated[str | None, typer.Option(help="Input query or '-' to read from stdin")] = None,
         tools: Annotated[list[str], Option("--tools", "-t", help="Tools to use (web_search, calculator, etc.)")] = [],
+        config: Annotated[
+            Optional[str],
+            Option("--config", "-c", help="Configuration name from codeact_agent.yaml (e.g. 'Titanic', 'MCP')"),
+        ] = None,
         llm_id: Annotated[
             Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
         ] = None,
         imports: list[str] | None = None,
-        shell: bool = False,
+        chat: Annotated[bool, Option("--chat", "-s", help="Start an interactive shell to send prompts")] = False,
     ) -> None:
         """
-        Run a Smolagent agent possibly having tools.
+        Run a SmolAgent CodeAct agent with tools.
 
-        ex: uv run cli smolagents "How many seconds would it take for a leopard at full speed to run through Pont des Arts?" -t web_search
+        Examples:
+
+        # Using tools directly:
+        uv run cli smolagents --input "How many seconds would it take for a leopard at full speed to run through Pont des Arts?" -t web_search
+        echo "Tell me about machine learning" | uv run cli smolagents -t web_search
+
+        # Using a predefined configuration:
+        uv run cli smolagents --config "Titanic" --input "What is the proportion of female passengers that survived?"
+        uv run cli smolagents --config "MCP" --input "What is the current weather in Toulouse?"
+
+        Use --chat to start an interactive shell where you can send multiple prompts to the agent.
         """
         from smolagents import CodeAgent, Tool
         from smolagents.default_tools import TOOL_MAPPING
 
         from src.ai_core.llm_factory import LlmFactory
         from src.utils.cli.langchain_setup import setup_langchain
-        from src.utils.cli.smolagents_shell import run_smolagent_shell
 
         if not setup_langchain(llm_id):
             return
 
+        # Handle configuration loading
+        config_tools = []
+        config_authorized_imports = []
+        final_tools = []
+        final_imports = imports or []
+
+        if config:
+            demo_config = load_demo_config(config)
+            if demo_config is None:
+                print(f"Error: Configuration '{config}' not found in {CONF_YAML_FILE}")
+                return
+
+            # Extract configuration parameters
+            config_tools = process_tools_from_config(demo_config.get("tools", []))
+            config_authorized_imports = demo_config.get("authorized_imports", [])
+
+            print(f"Using CodeAct configuration '{config}':")
+            if config_tools:
+                tool_names = [getattr(t, "name", str(type(t).__name__)) for t in config_tools]
+                print(f"  Tools: {', '.join(tool_names)}")
+            if config_authorized_imports:
+                print(f"  Authorized imports: {', '.join(config_authorized_imports)}")
+
+            # Use config tools and imports
+            final_tools.extend(config_tools)
+            final_imports.extend(config_authorized_imports)
+
         model = LlmFactory(llm_id=llm_id).get_smolagent_model()
-        available_tools = []
+        available_tools = final_tools.copy()
+
+        # Add command-line specified tools
         for tool_name in tools:
             if "/" in tool_name:
                 available_tools.append(Tool.from_space(tool_name))
@@ -102,14 +187,23 @@ def register_commands(cli_app: typer.Typer) -> None:
                 else:
                     raise ValueError(f"Tool {tool_name} is not recognized either as a default tool or a Space.")
 
-        print(f"Running agent with these tools: {tools}")
+        tool_display = tools + [getattr(t, "name", str(type(t).__name__)) for t in config_tools]
+        print(f"Running agent with these tools: {tool_display}")
 
-        if shell:
-            raise NotImplementedError("On going work")
-            asyncio.run(run_smolagent_shell(llm_id, mcp_servers=[]))
+        if chat:
+            print("Chat mode for smolagents is not yet implemented")
+            return
+            # asyncio.run(run_smolagent_shell(llm_id, mcp_servers=[]))
         else:
-            agent = CodeAgent(tools=available_tools, model=model, additional_authorized_imports=imports)
-            agent.run(prompt)
+            # Handle input from --input parameter or stdin
+            if not input and not sys.stdin.isatty():
+                input = sys.stdin.read()
+            if not input or len(input) < 5:
+                print("Error: Input parameter or something in stdin is required")
+                return
+
+            agent = CodeAgent(tools=available_tools, model=model, additional_authorized_imports=final_imports)
+            agent.run(input)
 
     @cli_app.command()
     def ocr_pdf(
@@ -123,7 +217,6 @@ def register_commands(cli_app: typer.Typer) -> None:
         Example:
             python -m src.ai_extra.mistral_ocr ocr_pdf "*.pdf" "data/*.pdf" --output-dir=./ocr_results
         """
-        from loguru import logger
 
         from src.ai_extra.loaders.mistral_ocr import process_pdf_batch
 

@@ -9,6 +9,7 @@ codeact_agent_demos:
     tools: 
       - class: smolagents:WebSearchTool
       - class: smolagents:VisitWebpageTool
+      - langchain: 
     authorized_imports: ["pandas", "matplotlib.*", "sklearn.*"]
     examples:
       - "How many seconds would it take for a leopard at full speed to run through Pont des Arts?"
@@ -77,6 +78,11 @@ codeact_agent_demos:
         description: "Data related to business opportunities"
         source_path: ${paths.ekg_data}/misc/report1750429630460.xlsx
         
+      - class:  ${paths.smolagent_custom_tools}.sql_tools:SQLTool
+        dsn:  postgresql://${oc.env:POSTGRES_USER,unknown_user}:${oc.env:POSTGRES_PASSWORD,password}@localhost:5432/ekg
+        description: "Tools to access opportunities related data on PostgresSQL with pgvector."
+        tables:  [pydantic_fields_qwen3_06bl]
+        
       - class: smolagents:WebSearchTool
       - class: smolagents:VisitWebpageTool
       - factory: src.demos.ekg.struct_rag_tool_factory:create_structured_rag_tool
@@ -85,3 +91,5 @@ codeact_agent_demos:
     examples:
       - "List of won opportunity in Manufacturing whose TCV is greater than 3M€"
       - "What was project manager for opportunity 9000559500"
+
+ 

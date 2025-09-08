@@ -1,5 +1,3 @@
-
-
 enum OpportunityStatus {
     Pursuit
     Active
@@ -44,6 +42,11 @@ enum SWProjectRisks {
         This risk can impact project quality, timelines, and costs, as experienced personnel are crucial for project success."#)
 }
 
+class TechnicalApproach {
+  architecture string? @description("General information on architecture")
+  technical_stack string[]? @description("technical stack (platforms, frameworks, third-party softwares, programming language, ...)")
+}
+
 class ReviewedOpportunity {
   name string @description("Official name of the project/opportunity")
   opportunity_id string @description("Unique identifier from Salesforce or similar CRM")
@@ -53,7 +56,7 @@ class ReviewedOpportunity {
   start_date string? @description("Planned/projected start date")
   end_date string? @description("Planned/projected end date")
   keywords string[]? @description("Key terms for semantic search")
-  tech_stack_fingerprint string[]? @description("Technology combinations")
+  tech_stack TechnicalApproach @description("Architecure and technology choices")
 
   statement_of_work KeyStatementOfWorkElement? @description("Business approach to win the opportunity")
   team Person[] @description("All involved personnel")  

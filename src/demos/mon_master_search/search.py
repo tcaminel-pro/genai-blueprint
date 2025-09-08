@@ -8,9 +8,9 @@ from langchain_core.documents import Document
 from langchain_core.runnables import Runnable
 from loguru import logger
 
+from ai_extra.retrievers.bm25s_retriever import get_spacy_preprocess_fn
 from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.ai_core.vector_store_factory import VectorStoreFactory
-from ai_extra.retrievers.bm25s_retriever import get_spacy_preprocess_fn
 from src.demos.mon_master_search.loader import FILES
 from src.demos.mon_master_search.model_subset import EXAMPLE_QUERIES
 from src.utils.pydantic.jsonl_store import load_objects_from_jsonl

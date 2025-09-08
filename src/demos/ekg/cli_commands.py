@@ -296,7 +296,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         llm_id: Annotated[
             Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
         ] = None,
-        shell: Annotated[bool, Option("--shell", "-s", help="Start an interactive shell to send prompts")] = False,
+        chat: Annotated[bool, Option("--chat", help="Start an interactive shell to send prompts")] = False,
     ) -> None:
         """Run a ReAct agent to query the Enterprise Knowledge Graph (EKG).
 
@@ -334,7 +334,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         Usage modes:
             - No --input parameter: Start interactive shell (default behavior)
             - With --input: Execute single query and exit
-            - With --shell: Force interactive shell mode (ignores --input)
+            - With --chat: Force interactive shell mode (ignores --input)
             - Reading from stdin: Pipe input directly to the agent
 
         Interactive Usage:
@@ -355,7 +355,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         rainbow_schema = "Rainbow File"
         rainbow_tool = create_structured_rag_tool(rainbow_schema, llm_id=LLM_ID, kvstore_id=KV_STORE_ID)
 
-        if shell:
+        if chat:
             # Force interactive shell mode (ignores input parameter)
             asyncio.run(run_langgraph_agent_shell(llm_id, tools=[rainbow_tool], mcp_server_names=mcp))
         else:
