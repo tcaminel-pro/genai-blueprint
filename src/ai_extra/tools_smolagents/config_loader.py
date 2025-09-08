@@ -34,19 +34,19 @@ class CodeactDemo(BaseModel):
 
 def process_tools_from_config(tools_config: List[Dict[str, Any]] | None) -> List[Any]:
     """Process tools configuration and return list of tool instances.
-    
+
     Args:
         tools_config: List of tool configuration dictionaries, or None
-        
+
     Returns:
         List of tool instances
     """
     tools = []
-    
+
     # Handle None case (when YAML has "tools:" with no value)
     if tools_config is None:
         return tools
-    
+
     for tool_config in tools_config:
         if not isinstance(tool_config, dict):
             continue

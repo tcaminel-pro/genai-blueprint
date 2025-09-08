@@ -27,7 +27,7 @@ from upath import UPath
 from src.utils.pydantic.kv_store import load_object_from_kvstore, save_object_to_kvstore
 
 
-def encode_to_base64(path: UPath) -> str:
+def _encode_to_base64(path: UPath) -> str:
     """Encode file content to base64 string."""
     return base64.b64encode(path.read_bytes()).decode("utf-8")
 
@@ -62,7 +62,7 @@ def mistral_ocr(path: UPath, use_cache: bool = True) -> OCRResponse:
     if path.protocol in ["http", "https"]:
         document_url = str(path)
     else:
-        base64_file = encode_to_base64(path)
+        base64_file = _encode_to_base64(path)
         document_url = f"data:application/pdf;base64,{base64_file}"
 
     #     uploaded_pdf = client.files.upload(
@@ -206,7 +206,7 @@ async def process_pdf_batch(pdf_paths: list[UPath], output_dir: UPath, use_cache
             if pdf_path.protocol in ["http", "https"]:
                 document_url = str(pdf_path)
             else:
-                base64_file = encode_to_base64(pdf_path)
+                base64_file = _encode_to_base64(pdf_path)
                 document_url = f"data:application/pdf;base64,{base64_file}"
             document_urls.append(document_url)
 

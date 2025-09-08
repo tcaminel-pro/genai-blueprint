@@ -21,9 +21,9 @@ MAKEFLAGS += --warn-undefined-variables
 SHELL     := bash -euo pipefail -c   # exit on error, undefined var, pipefail 
 
 # Guard against GNU/Make vs BSD/Make incompatibilities 
-ifneq ($(shell echo 'a b' | xargs -n1 echo 2>/dev/null | wc -l),2)                                 
-  $(error You need GNU xargs)                                                                      
-endif  
+# ifneq ($(shell echo 'a b' | xargs -n1 echo 2>/dev/null | wc -l),2)                                 
+#   $(error You need GNU xargs)                                                                      
+# endif  
 
 # Locate and load the .env file in the current directory, or parent directory, or parent of parent
 ENV_FILE_RAW := $(shell find $(CURDIR) $(CURDIR)/.. $(CURDIR)/../.. -name ".env" -print -quit 2>/dev/null)
