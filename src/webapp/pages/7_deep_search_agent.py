@@ -17,7 +17,7 @@ import streamlit as st
 from md2pdf import md2pdf
 from streamlit import session_state as sss
 
-from src.ai_extra.gpt_researcher_chain import run_gpt_researcher
+from src.ai_extra.chains.gpt_researcher_chain import run_gpt_researcher
 from src.utils.config_mngr import global_config
 from src.utils.streamlit.auto_scroll import scroll_to_here
 

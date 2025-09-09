@@ -13,22 +13,17 @@ Key Features:
 """
 
 from pathlib import Path
-from typing import Any, List
+from typing import Any
 
 import pandas as pd
 import streamlit as st
-from groq import BaseModel
-from langchain_core.tools import BaseTool as LangChainBaseTool
 from loguru import logger
-from pydantic import ConfigDict
 from smolagents import (
     CodeAgent,
     LiteLLMModel,
     MCPClient,
-    Tool,
     tool,
 )
-from smolagents import Tool as SmolAgentTool
 from streamlit import session_state as sss
 from streamlit.delta_generator import DeltaGenerator
 
@@ -41,7 +36,6 @@ from src.ai_extra.tools_smolagents.config_loader import (
     CodeactDemo,
     load_all_demos_from_config,
 )
-from src.utils.config_mngr import global_config, import_from_qualified
 from src.utils.load_data import TABULAR_FILE_FORMATS_READERS, load_tabular_data_once
 from src.utils.streamlit.auto_scroll import scroll_to_here
 from src.utils.streamlit.recorder import StreamlitRecorder
@@ -71,10 +65,10 @@ llm_selector_widget(st.sidebar)
 # CodeactDemo is now imported from src.ai_extra.tools_smolagents.config_loader
 
 
-# get_stock_info is now imported from ai_extra.smolagents_tools
+# get_stock_info is now imported from src.ai_extra.smolagents_tools
 
 
-# get_historical_price is now imported from ai_extra.smolagents_tools
+# get_historical_price is now imported from src.ai_extra.smolagents_tools
 
 
 ##########################

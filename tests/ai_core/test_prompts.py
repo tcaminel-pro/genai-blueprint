@@ -2,7 +2,7 @@
 
 from langchain_core.prompts import BasePromptTemplate, ChatPromptTemplate
 
-from ai_core.prompts import (
+from src.ai_core.prompts import (
     DEFAULT_SYSTEM_PROMPT,
     dedent_ws,
     def_prompt,

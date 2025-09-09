@@ -12,8 +12,8 @@ from smolagents import Tool
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import Engine
 
-from ai_core.prompts import dedent_ws
-from utils.sql_utils import check_dsn_update_driver
+from src.ai_core.prompts import dedent_ws
+from src.utils.sql_utils import check_dsn_update_driver
 
 
 class TableConfig(BaseModel):
@@ -94,9 +94,12 @@ class SQLTool(Tool):
         Returns:
             Enhanced description with schema information
         """
-        base_desc = dedent_ws(f"""
-            This tool executes SQL queries on a database. The ourput is a Pandas Dataframe. \n
-            The database is described as:  {database_description}""")
+        base_desc = dedent_ws(
+            f"""
+            This tool executes SQL queries on a database. 
+            IMPORTANT:  output is a Thetupple with a Pandas Dataframe and its 50 first rows. \n
+            The database is described as:  {database_description}"""
+        )
 
         if not self.tables:
             return base_desc
@@ -237,7 +240,7 @@ class SQLTool(Tool):
 
         return "".join(description_parts)
 
-    def forward(self, query: str) -> pd.DataFrame:  # type: ignore
+    def forward(self, query: str) -> tuple[pd.DataFrame, str]:  # type: ignore
         """Execute SQL query and return results as DataFrame.
 
         Args:
@@ -256,7 +259,7 @@ class SQLTool(Tool):
             # Execute query and return as DataFrame
             with self.engine.connect() as conn:  # type: ignore
                 result = pd.read_sql_query(text(query), conn)
-                return result
+                return (result, str(result.head(50)))
         except Exception as e:
             raise RuntimeError(f"Failed to execute SQL query: {e}") from e
 

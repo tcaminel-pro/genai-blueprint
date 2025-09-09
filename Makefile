@@ -219,14 +219,23 @@ test-install: .pythonpath ## Quick test install
 ##  MICS
 ##############################
 
-postgres:                                                                              
+postgres:   ## Start docker Postgres + pgvector                                                                           
 	docker rm -f pgvector-container 2>/dev/null || true
-	docker run --name pgvector-container \
+	docker run -d --name pgvector-container \
 		-e POSTGRES_USER=$(POSTGRES_USER) -e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) -e POSTGRES_DB=ekg \
 		-p 5432:5432 \
 		-v /home/tcl/pgvector-data:/var/lib/postgresql/data \
-		-d pgvector/pgvector:pg17
+		pgvector/pgvector:pg17
 
+chrome:  ## Start docker Chromium 
+# see https://hub.docker.com/r/linuxserver/chromium
+	docker rm -f chromium 2>/dev/null || true
+	docker run -d --name=chromium \
+	--security-opt seccomp=unconfined  -e PUID=1000 -e PGID=1000 -e TZ=Europe/Paris  \
+	-p 3000:3000 -p 3001:3001 -v /home/tcl/.chromiun:/config \
+	--shm-size="1gb" --restart unless-stopped \
+	lscr.io/linuxserver/chromium:latest
+	xdg-open localhost:3000
 
 qwen:
 	@OPENAI_API_KEY=$(OPENROUTER_API_KEY) OPENAI_BASE_URL="https://openrouter.ai/api/v1" OPENAI_MODEL="qwen/qwen3-coder" qwen

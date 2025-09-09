@@ -74,9 +74,14 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+EXAMPLE_TEXT = """Hello, world!       
+This is a tokenization demo. Ceci est un exemple de Tokenisation.
+----------  
+ 大家好！这是一个标 记 化演示。
+ """
 # Initialize session state
 if "input_text" not in st.session_state:
-    st.session_state.input_text = "Hello, world! This is a tokenization demo."
+    st.session_state.input_text = EXAMPLE_TEXT
 
 # Get available models
 models = ["gpt-2", "gpt-3.5-turbo", "gpt-4"]

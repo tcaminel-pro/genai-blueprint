@@ -1,8 +1,6 @@
 """Tests for the CustomizedPresidioAnonymizer class."""
 
-import pytest
-
-from ai_extra.custom_presidio_anonymizer import CustomizedPresidioAnonymizer
+from src.ai_extra.custom_presidio_anonymizer import CustomizedPresidioAnonymizer
 
 
 class TestCustomizedPresidioAnonymizer:

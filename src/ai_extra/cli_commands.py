@@ -341,8 +341,8 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         from langchain.globals import set_debug, set_verbose
 
-        from ai_extra.chains.fabric_chain import get_fabric_chain
         from src.ai_core.llm_factory import LlmFactory
+        from src.ai_extra.chains.fabric_chain import get_fabric_chain
 
         set_debug(debug_mode)
         set_verbose(verbose)

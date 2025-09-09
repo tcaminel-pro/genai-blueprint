@@ -33,7 +33,7 @@ class BrowserUseTool(Tool):
     }
     output_type = "string"
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None) -> None:
         """Initialize the Browser Use tool with API key."""
         super().__init__()
         self.api_key = api_key or os.environ.get("BROWSER_USE_API_KEY")
@@ -50,11 +50,12 @@ class BrowserUseTool(Tool):
             return "Browser Use API key not configured. Please set BROWSER_USE_API_KEY environment variable."
 
         try:
-            # Run the task
-            result = self.client.tasks.run(task=task)
+            # Create and complete the task
+            browser_task = self.client.tasks.create_task(task=task)
+            result = browser_task.complete()
 
-            if result.done_output:
-                return result.done_output
+            if result.output:
+                return result.output
             else:
                 return f"Task completed but no output was returned. Status: {result.status if hasattr(result, 'status') else 'unknown'}"
 
@@ -79,7 +80,7 @@ class AsyncBrowserUseTool(Tool):
     }
     output_type = "string"
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None) -> None:
         """Initialize the Async Browser Use tool."""
         super().__init__()
         self.api_key = api_key or os.environ.get("BROWSER_USE_API_KEY")
@@ -116,30 +117,31 @@ class AsyncBrowserUseTool(Tool):
 
     async def _run_simple(self, task: str) -> str:
         """Run a simple async task."""
-        result = await self.client.tasks.run(task=task)
+        browser_task = await self.client.tasks.create_task(task=task)
+        result = await browser_task.complete()
 
-        if result.done_output:
-            return result.done_output
+        if result.output:
+            return result.output
         else:
             return f"Task completed. Status: {result.status if hasattr(result, 'status') else 'completed'}"
 
     async def _run_with_stream(self, task: str) -> str:
         """Run a task with streaming updates."""
         # Create the task
-        created_task = await self.client.tasks.create(task=task)
+        created_task = await self.client.tasks.create_task(task=task)
 
         updates = []
         # Stream updates
-        async for update in self.client.tasks.stream(created_task.id):
-            if len(update.steps) > 0:
+        async for update in created_task.stream():
+            if hasattr(update, "steps") and len(update.steps) > 0:
                 last_step = update.steps[-1]
                 updates.append(
                     f"Step: {last_step.url if hasattr(last_step, 'url') else 'processing'} - {last_step.next_goal if hasattr(last_step, 'next_goal') else 'working'}"
                 )
 
             if update.status == "finished":
-                if update.done_output:
-                    return update.done_output
+                if hasattr(update, "output") and update.output:
+                    return update.output
                 else:
                     return "Task completed.\nSteps performed:\n" + "\n".join(updates)
 
@@ -165,7 +167,7 @@ class StructuredBrowserUseTool(Tool):
     }
     output_type = "string"
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None) -> None:
         """Initialize the Structured Browser Use tool."""
         super().__init__()
         self.api_key = api_key or os.environ.get("BROWSER_USE_API_KEY")
@@ -198,14 +200,38 @@ class StructuredBrowserUseTool(Tool):
 
     async def _extract_structured_data(self, task: str, schema: Optional[str] = None) -> str:
         """Extract structured data from web pages."""
-        # For now, we'll use the standard run method
-        # In a real implementation, you'd parse the schema and use it
-        result = await self.client.tasks.run(task=task)
+        try:
+            if schema:
+                # Parse the JSON schema and create task with schema parameter
+                import json
 
-        if result.done_output:
-            return result.done_output
-        else:
-            return "No structured data extracted."
+                schema_dict = json.loads(schema)
+                # Create task with schema for structured output
+                browser_task = await self.client.tasks.create_task(task=task, schema=schema_dict)
+            else:
+                # Create task without schema
+                browser_task = await self.client.tasks.create_task(task=task)
+
+            result = await browser_task.complete()
+
+            if result.parsed_output:
+                # Return structured output as JSON string
+                import json
+
+                return json.dumps(result.parsed_output, indent=2)
+            elif result.output:
+                return result.output
+            else:
+                return "No structured data extracted."
+        except json.JSONDecodeError:
+            # If schema parsing fails, fall back to regular task
+            browser_task = await self.client.tasks.create_task(task=task)
+            result = await browser_task.complete()
+
+            if result.output:
+                return result.output
+            else:
+                return "No data extracted."
 
 
 # Example Pydantic models for common extraction tasks
