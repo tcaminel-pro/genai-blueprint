@@ -4,7 +4,7 @@ This module provides SQL database tools for use with SmolAgents,
 allowing agents to execute SQL queries on configured database connections.
 """
 
-from typing import Any
+from typing import Any, Sequence
 
 import pandas as pd
 from pydantic import BaseModel
@@ -173,12 +173,12 @@ class SQLTool(Tool):
         except Exception:
             return "Schema information not available"
 
-    def _generate_table_description(self, table_name: str, columns: list[dict[str, Any]]) -> str:
+    def _generate_table_description(self, table_name: str, columns: Sequence[Any]) -> str:
         """Generate helpful table description for LLM based on schema analysis.
 
         Args:
             table_name: Name of the table
-            columns: List of column information from SQLAlchemy inspector
+            columns: Sequence of column information from SQLAlchemy inspector
 
         Returns:
             Generated description text
