@@ -87,7 +87,7 @@ def vector_store() -> VectorStore:
     vector_store = VectorStoreFactory(
         id="Chroma_in_memory",
         table_name_prefix="test_self_query",
-        embeddings_factory=EmbeddingsFactory(),
+        embeddings_factory=EmbeddingsFactory(embeddings_tag="azure"),  # There's a bug with edenai
     ).get()  # take default one
     vector_store.add_documents(docs)
     return vector_store
@@ -101,7 +101,7 @@ def get_query_constructor(config: dict):
     output_parser = StructuredQueryOutputParser.from_components()
     llm = get_llm(llm_id=config.get("llm"))
 
-   # debug(llm)
+    # debug(llm)
     query_constructor = prompt | llm | output_parser
     return query_constructor
 
