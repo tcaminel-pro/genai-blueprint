@@ -25,7 +25,7 @@ react_agent_demos:
       - "Find information about quantum computing on IBM's website"
       - "Connect to atos.net with a browser, find the page with blogs, and get list of recent blog articles"
   
-  - name: "Ma super idée"
+  - name: "My current idea"
     mcp_servers:
       - "ppt"
       - filesystem

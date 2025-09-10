@@ -33,7 +33,7 @@ def mcp_servers_section() -> None:
                         ),
                     },
                     hide_index=True,
-                    use_container_width=True,
+                    width="stretch",
                 )
 
     asyncio.run(display_tools())

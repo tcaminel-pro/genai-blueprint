@@ -5,7 +5,7 @@ paths:
 
   
 codeact_agent_demos:
-  - name: "SmolAgents"
+  - name: "from Hugging Face"
     tools: 
       - class: smolagents:WebSearchTool
       - class: smolagents:VisitWebpageTool

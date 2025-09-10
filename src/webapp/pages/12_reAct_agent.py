@@ -28,7 +28,9 @@ from src.ai_core.mcp_client import get_mcp_servers_dict
 from src.ai_core.prompts import dedent_ws, dict_input_message
 from src.utils.config_mngr import global_config
 from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
+from src.webapp.ui_components.config_editor import edit_config_dialog
 from src.webapp.ui_components.streamlit_chat import StreamlitStatusCallbackHandler, display_messages
+from webapp.ui_components.llm_selector import llm_selector_widget
 
 load_dotenv()
 
@@ -57,6 +59,11 @@ def my_custom_weather(location: str) -> str:
 
 
 st.title("ReAct Agent")
+
+# Sidebar: LLM selector and config editor (aligned with CodeAct Agent page)
+llm_selector_widget(st.sidebar)
+if st.sidebar.button(":material/edit: Edit Config", help="Edit anonymization configuration"):
+    edit_config_dialog(CONFIG_FILE)
 
 # Default system prompt
 SYSTEM_PROMPT = dedent_ws(
@@ -140,39 +147,61 @@ def clear_display() -> None:
         del sss.tools
 
 
-c01, c02 = st.columns([6, 4], border=False, gap="medium", vertical_alignment="top")
-with c01.container(border=True):
-    selected_pill = st.pills(
-        "🎬 **Demos:**",
-        options=[demo.name for demo in SAMPLES_DEMOS],
-        default=SAMPLES_DEMOS[0].name,
-        on_change=clear_display,
-    )
+def display_header_and_demo_selector(sample_demos: list[ReactDemo]) -> str | None:
+    """Displays the header and demo selector, returning the selected pill."""
+    c01, c02 = st.columns([6, 4], border=False, gap="medium", vertical_alignment="top")
+    c02.title(" ReAct Agent :material/smart_toy:")
+    selected_pill = None
+
+    with c01.container(border=True):
+        selector_col, edit_col = st.columns([8, 1], vertical_alignment="bottom")
+        with selector_col:
+            selected_pill = st.pills(
+                ":material/open_with: **Demos:**",
+                options=[demo.name for demo in sample_demos],
+                default=sample_demos[0].name,
+                on_change=clear_display,
+            )
+    return selected_pill
+
+
+def display_demo_info_and_sample_selector(demo: ReactDemo, select_block):
+    """Display demo information and sample selector."""
+    col_display_left, col_display_right = select_block.columns([6, 3], vertical_alignment="bottom")
+    with col_display_right:
+        if tools_list := ", ".join(f"'{t}'" for t in demo.tools):
+            st.markdown(f"**Tools**: *{tools_list}*")
+        if mcp_list := ", ".join(f"'{mcp}'" for mcp in demo.mcp_servers):
+            st.markdown(f"**MCP**: *{mcp_list}*")
+
+    with col_display_left:
+        sample_search = col_display_left.selectbox(
+            label="Sample",
+            placeholder="Select an example (optional)",
+            options=demo.examples,
+            index=None,
+            label_visibility="collapsed",
+        )
+    return sample_search
+
+
+# Main UI setup
+selected_pill = display_header_and_demo_selector(SAMPLES_DEMOS)
 
 # Get selected demo
 demo = next((d for d in SAMPLES_DEMOS if d.name == selected_pill), None)
 if demo is None:
     st.stop()
 
-# Display demo information
-col_display_left, col_display_right = st.columns([6, 3], vertical_alignment="bottom")
-with col_display_right:
-    if tools_list := ", ".join(f"'{t}'" for t in demo.tools):
-        st.markdown(f"**Tools**: *{tools_list}*")
-    if mcp_list := ", ".join(f"'{mcp}'" for mcp in demo.mcp_servers):
-        st.markdown(f"**MCP**: *{mcp_list}*")
+# Create main placeholder and select block container
+placeholder = st.empty()
+select_block = placeholder.container()
 
-with col_display_left:
-    sample_search = col_display_left.selectbox(
-        label="Sample",
-        placeholder="Select an example (optional)",
-        options=demo.examples,
-        index=None,
-        label_visibility="collapsed",
-    )
+# Display demo information and sample selector
+sample_search = display_demo_info_and_sample_selector(demo, select_block)
 
 # Display tools if available
-with st.expander("Available Tools", expanded=False):
+with select_block.expander("Available Tools", expanded=False):
     if tools := sss.get("tools"):
         tools = cast(list[BaseTool], tools)
         d = {"Name": [t.name for t in tools], "Description": [t.description for t in tools]}
@@ -192,16 +221,29 @@ def get_agent_config() -> tuple[RunnableConfig, BaseCheckpointSaver]:
     return cast(RunnableConfig, config), checkpointer
 
 
-async def main() -> None:
-    """Main async function to run the ReAct agent demo.
+def display_input_form(select_block, sample_search: str | None) -> tuple[str, bool]:
+    """Displays the input form and returns user input."""
+    with select_block.form("react_form", border=False):
+        cf1, cf2 = st.columns([15, 1], vertical_alignment="bottom")
+        prompt = cf1.text_area(
+            "Your question",
+            height=68,
+            placeholder="Enter your question here...",
+            value=sample_search or "",
+            label_visibility="collapsed",
+        )
+        submitted = cf2.form_submit_button(label="", icon=":material/send:")
+    return prompt, submitted
 
-    Handles:
-    - UI setup and demo selection
-    - Tool initialization
-    - Agent execution
-    - Streaming output display
-    """
-    display_messages(st)
+
+async def handle_agent_execution(placeholder, demo: ReactDemo, query: str) -> None:
+    """Handle the agent execution with proper UI layout."""
+    HEIGHT = 800
+    exec_block = placeholder.container()
+    col_display_left, col_display_right = exec_block.columns(2)
+    chat_container = col_display_left.container(height=HEIGHT)
+    result_display = col_display_right.container(height=HEIGHT)
+
     config, checkpointer = get_agent_config()
     llm = get_llm()
 
@@ -214,34 +256,30 @@ async def main() -> None:
         all_tools = local_tools + rcp_tools
         if "tools" not in sss:
             sss["tools"] = all_tools
-            st.rerun()
 
         # Create agent with demo's system prompt
         agent = create_react_agent(model=llm, tools=all_tools, prompt=demo.system_prompt, checkpointer=checkpointer)
 
-        # Use sample as default query if selected
-        query = st.chat_input(placeholder="Enter your question...") or sample_search
-
-        if query:
-            sss.messages.append(HumanMessage(content=query))
-            st_callback = get_streamlit_cb(st.container())
+        with chat_container:
+            display_messages(st)
             st.chat_message("human").write(query)
 
             # Create status to show agent progress
             status = st.status("Agent starting...", expanded=True)
             status_callback = StreamlitStatusCallbackHandler(status)
+            st_callback = get_streamlit_cb(st.container())
 
             inputs = dict_input_message(user=query)
-
             config["configurable"].update({"st_container": status})
             response = "A problem occurred"
+
             with tracing_v2_enabled() as cb:
                 astream = agent.astream(
                     inputs,
-                    config | {"callbacks": [st_callback, status_callback]},  # , stream_mode=["values", "custom"]
+                    config | {"callbacks": [st_callback, status_callback]},
                 )
                 async for step in astream:
-                    if isinstance(step, Tuple):  # we are likely with stream_mode = "updates", that generate tuple
+                    if isinstance(step, Tuple):
                         step = step[1]
                     for node, update in step.items():
                         if node == "agent":
@@ -249,12 +287,26 @@ async def main() -> None:
                             assert isinstance(response, AIMessage)
                             st.chat_message("ai").write(response.content)
                 url = cb.get_run_url()
+
             status.update(label="Done", state="complete", expanded=False)
+            if "messages" not in sss:
+                sss.messages = []
+            sss.messages.append(HumanMessage(content=query))
             sss.messages.append(response)
             st.link_button("Trace", url)
+
     finally:
         if client:
             pass  # Add cleanup if needed
+
+
+async def main() -> None:
+    """Main async function to run the ReAct agent demo."""
+    # Get user input
+    query, submitted = display_input_form(select_block, sample_search)
+
+    if submitted and query:
+        await handle_agent_execution(placeholder, demo, query)
 
 
 # Run the async main function

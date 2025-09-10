@@ -94,7 +94,7 @@ def plot_price_over_time(historical_price_dfs: list[pd.DataFrame]) -> None:
     )
 
     # Show the figure
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 def call_functions(llm_with_tools, user_prompt):

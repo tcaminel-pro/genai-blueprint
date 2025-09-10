@@ -162,7 +162,7 @@ def main() -> None:
                 for idx, uploaded_file in enumerate(uploaded_files):
                     with cols[idx % 4]:
                         image = Image.open(uploaded_file)
-                        st.image(image, use_container_width=True, caption=uploaded_file.name)
+                        st.image(image, width="stretch", caption=uploaded_file.name)
 
                 # Process button
                 if st.button("🚀 Process Images"):

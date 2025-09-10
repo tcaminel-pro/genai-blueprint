@@ -19,7 +19,7 @@ PREFIX = """
     You have access to a python REPL, which you can use to execute python code.
     If you get an error, debug your code and try again.
     The generated diagram is displayed in streamlit container named '{st_container_name}' and it should fit inside.
-    So your code should end with '{st_container_name}.pyplot(fig, use_container_width=True)'.
+    So your code should end with '{st_container_name}.pyplot(fig, width="stretch")'.
     Don't import any package. Don't write 'main'.
     If it does not seem like you can write or execute code, just return "I can't create diagram', and provide explanation.
 """

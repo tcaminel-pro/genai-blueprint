@@ -36,7 +36,7 @@ def edit_config_dialog(config_path: str | Path) -> None:
 
         col1, col2, col3 = st.columns([1, 1, 2])
 
-        if col1.button("💾 Save", use_container_width=True):
+        if col1.button("💾 Save", width="stretch"):
             try:
                 # Validate YAML
                 yaml.safe_load(edited_content)
@@ -54,7 +54,7 @@ def edit_config_dialog(config_path: str | Path) -> None:
             except Exception as e:
                 st.error(f"Error saving file: {e}")
 
-        if col2.button("❌ Cancel", use_container_width=True):
+        if col2.button("❌ Cancel", width="stretch"):
             st.rerun()
 
     except Exception as e:

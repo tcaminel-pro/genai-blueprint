@@ -235,6 +235,10 @@ def display_header_and_demo_selector(sample_demos: list[CodeactDemo]) -> str | N
     c01, c02 = st.columns([6, 4], border=False, gap="medium", vertical_alignment="top")
     c02.title(" CodeAct Agent :material/Mindfulness:")
     selected_pill = None
+
+    if st.sidebar.button(":material/edit: Edit Config", help="Edit anonymization configuration"):
+        edit_config_dialog(CONF_YAML_FILE)
+
     with c01.container(border=True):
         selector_col, edit_col = st.columns([8, 1], vertical_alignment="bottom")
         with selector_col:
@@ -244,14 +248,6 @@ def display_header_and_demo_selector(sample_demos: list[CodeactDemo]) -> str | N
                 default=sample_demos[0].name,
                 on_change=clear_display,
             )
-        with edit_col:
-            if st.button(
-                "",
-                icon=":material/settings:",
-                type="secondary",
-                help="Open a YAML editor to modify and create demos configuration",
-            ):
-                edit_config_dialog(CONF_YAML_FILE)
     return selected_pill
 
 

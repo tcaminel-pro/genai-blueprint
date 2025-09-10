@@ -48,7 +48,7 @@ with st.expander("Search Configuration", expanded=True):
     )
 
 # How it works popover
-with st.popover("How it works", use_container_width=False):
+with st.popover("How it works", width="content"):
     c21, c22 = st.columns([7, 12])
     c21.write("Normal Research")
     c21.image(
@@ -146,7 +146,7 @@ async def main() -> None:
                 if research_full_report.sources:
                     source_data = [(s.get("url", ""), s.get("title", "")) for s in research_full_report.sources]
                     df = pd.DataFrame(source_data, columns=["URL", "Title"])
-                    sources_tab.dataframe(df, use_container_width=True)
+                    sources_tab.dataframe(df, width="stretch")
                 else:
                     sources_tab.write("No sources found")
 
@@ -172,7 +172,7 @@ async def main() -> None:
                     file_name=f"gptr_report_{timestamp}.pdf",
                     mime="application/pdf",
                     help="Download the full research report as PDF",
-                    use_container_width=True,
+                    width="stretch",
                 )
         except Exception as e:
             st.error(f"Error generating PDF: {str(e)}")

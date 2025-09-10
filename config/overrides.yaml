@@ -4,51 +4,21 @@
 # Set by environment variable "BLUEPRINT_CONFIG", or by the 'default_config' key, or in code
 ####   
 
-training_local:
+
+training_adn:
   llm:
     models:
-      default:  llama32_3_ollama
-  embeddings:
-    models:
-      default: artic_22_ollama
-
-
-training_edenai:
-  llm:
-    models:
-      default: gpt_4omini_edenai
-    cache : memory
+      default:  gpt_4omini_edenai
+      azure: gpt_4omini_azure
+      local: gemma3_4b_ollama
   embeddings:
     models:
       default: ada_002_edenai
+      local: artic_22_ollama
+      azure: ada_002_azure
+  vector_store:
+    default: Chroma_in_memory
 
-training_openrouter:
-  llm:
-    models:
-      default: gpt_41mini_openrouter
-    cache : memory
-  embeddings:
-    models:
-      default: bge_m3_deepinfra
-
-training_azure:
-  llm:
-    models:
-      default: gpt_4omini_azure
-  embeddings:
-    models:
-      default: ada_002_azure
-
-
-training_openai:
-  llm:
-    models:
-      default: gpt_4omini_openai
-  embeddings:
-    models:
-      default: ada_002_openai
-  dummy:
-    bar: foo
 
 pytest:
   llm:
@@ -57,6 +27,8 @@ pytest:
   embeddings:
     models:
       default: ada_002_edenai
+  vector_store:
+    default: InMemory
 
 container: 
   paths:

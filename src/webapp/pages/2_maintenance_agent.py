@@ -118,7 +118,7 @@ if b_column[3].button("See tools"):
         df = pd.DataFrame(tool_list, columns=["name", "description"])
         st.dataframe(
             df,
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
             column_config={
                 "name": st.column_config.Column(width="small"),
