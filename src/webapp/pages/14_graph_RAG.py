@@ -38,7 +38,7 @@ class GraphRagDemo(BaseModel):
     name: str
     text: str
     allowed_nodes: List[str]
-    allowed_relationships: List[List[str]]
+    allowed_relationships: List[tuple[str, str, str]]
     example_queries: List[str] = []
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
