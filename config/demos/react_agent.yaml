@@ -1,16 +1,15 @@
-# zzz ReAct Agent Demos Configuration  aaaaaaaa
-  react_agent_demos:
+# ReAct Agent Demos Configuration
+react_agent_demos:
   - name: "Weather"
     tools:  
       - my_custom_weather
     mcp_servers:
       - "weather"
       - "playwright"
-    examples: ()
+    examples:
       - "What is the wind in NY?"
       - "Quel temps fait-il à Toulouse"
 
-    
   - name: "Weather & PowerPoint"
     mcp_servers:
       - "weather"
@@ -32,4 +31,3 @@
       - filesystem
     examples:
       - "write a powerpoint with the current directory. Create one slide with directy list."
-    
