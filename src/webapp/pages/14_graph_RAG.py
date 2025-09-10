@@ -8,6 +8,7 @@ from typing import List
 
 import kuzu
 import streamlit as st
+from devtools import debug
 from langchain_core.documents import Document
 from langchain_experimental.graph_transformers import LLMGraphTransformer
 from langchain_kuzu.chains.graph_qa.kuzu import KuzuQAChain
@@ -137,6 +138,8 @@ with st.form("graph_input_form"):
 DB = "/tmp/test_db"
 if submitted:
     # Define schema
+
+    debug(demo.allowed_relationships)
 
     llm_transformer = LLMGraphTransformer(
         llm=llm,
