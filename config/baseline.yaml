@@ -25,6 +25,7 @@ embeddings:
   list: ${paths.config}/providers/embeddings.yaml
   models:
     default:  ada_002_openai
+    local : artic_22_ollama
   cache: ${paths.data_root}/hf_models
 vector_store:
   default: Chroma

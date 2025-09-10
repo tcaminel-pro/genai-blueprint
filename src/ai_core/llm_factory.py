@@ -326,7 +326,7 @@ class LlmFactory(BaseModel):
             )
         else:
             model = LiteLLMModel(model_id=self.get_litellm_model_name(), **self.llm_params)
-        debug(model)
+        # debug(model)
         return model
 
     def get(self) -> BaseChatModel:

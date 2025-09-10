@@ -4,6 +4,7 @@
 
 from functools import cache
 
+from devtools import debug  # noqa: F401
 from langchain.chains.query_constructor.base import (
     StructuredQueryOutputParser,
     get_query_constructor_prompt,
@@ -99,6 +100,8 @@ def get_query_constructor(config: dict):
     )
     output_parser = StructuredQueryOutputParser.from_components()
     llm = get_llm(llm_id=config.get("llm"))
+
+   # debug(llm)
     query_constructor = prompt | llm | output_parser
     return query_constructor
 

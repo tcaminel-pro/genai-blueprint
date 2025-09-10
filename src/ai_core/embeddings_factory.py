@@ -37,7 +37,7 @@ from dotenv import load_dotenv
 from langchain.embeddings import CacheBackedEmbeddings
 from langchain.embeddings.base import Embeddings
 from loguru import logger
-from pydantic import BaseModel, Field, computed_field, field_validator
+from pydantic import BaseModel, Field, computed_field
 
 from src.ai_extra.kv_store_factory import KvStoreFactory
 from src.utils.config_mngr import global_config
@@ -108,12 +108,14 @@ class EmbeddingsFactory(BaseModel):
 
     Attributes:
         embeddings_id: Unique identifier for the embeddings model
+        embeddings_tag: Embeddings tag from config (e.g., 'local', 'default')
         encoding_str: Optional encoding configuration string
         retrieving_str: Optional retrieving configuration string
-        cache_query_embedding: cache embeddings in a KV store
+        cache_embeddings: cache embeddings in a KV store
     """
 
     embeddings_id: Annotated[str | None, Field(validate_default=True)] = None
+    embeddings_tag: str | None = None
     encoding_str: str | None = None
     retrieving_str: str | None = None
     cache_embeddings: bool = False
@@ -129,21 +131,26 @@ class EmbeddingsFactory(BaseModel):
         assert self.embeddings_id
         return EmbeddingsFactory.known_items_dict().get(self.embeddings_id)  # type: ignore
 
-    @field_validator("embeddings_id", mode="before")
-    @classmethod
-    def check_known(cls, embeddings_id: str) -> str:
-        """Validate and normalize embeddings model identifier.
-        Args:
-            embeddings_id: Model identifier to validate
-        Returns:
-            Validated model identifier
+    def model_post_init(self, __context: dict) -> None:
+        """Post-initialization validation and tag resolution."""
+        if self.embeddings_id and self.embeddings_tag:
+            raise ValueError("Cannot specify both embeddings_id and embeddings_tag")
 
-        """
-        if embeddings_id is None:
-            embeddings_id = global_config().get_str("embeddings.models.default")
-        if embeddings_id not in EmbeddingsFactory.known_items():
-            raise ValueError(f"Unknown Embeddings: {embeddings_id}")
-        return embeddings_id
+        if self.embeddings_tag and not self.embeddings_id:
+            # Resolve tag to embeddings_id
+            resolved_id = EmbeddingsFactory.find_embeddings_id_from_tag(self.embeddings_tag)
+            object.__setattr__(self, "embeddings_id", resolved_id)
+
+        # Set default if neither embeddings_id nor embeddings_tag provided
+        if not self.embeddings_id and not self.embeddings_tag:
+            default_id = global_config().get_str("embeddings.models.default")
+            object.__setattr__(self, "embeddings_id", default_id)
+
+        # Final validation that the resolved/default embeddings_id is known
+        if self.embeddings_id not in EmbeddingsFactory.known_items():
+            raise ValueError(
+                f"Unknown embeddings: {self.embeddings_id}; Check API key and module imports. Should be in {EmbeddingsFactory.known_items()}"
+            )
 
     @lru_cache(maxsize=1)
     @staticmethod
@@ -177,6 +184,26 @@ class EmbeddingsFactory(BaseModel):
             List of model identifiers
         """
         return sorted(EmbeddingsFactory.known_items_dict().keys())
+
+    @staticmethod
+    def find_embeddings_id_from_tag(embeddings_tag: str) -> str:
+        """Find embeddings ID from tag in configuration.
+
+        Args:
+            embeddings_tag: Tag to lookup (e.g., 'local', 'default')
+
+        Returns:
+            Embeddings ID corresponding to the tag
+
+        Raises:
+            ValueError: If tag is not found or corresponds to unknown embeddings
+        """
+        embeddings_id = global_config().get_str(f"embeddings.models.{embeddings_tag}", default="default")
+        if embeddings_id == "default":
+            raise ValueError(f"Cannot find embeddings of type: '{embeddings_tag}' (no key found in config file)")
+        if embeddings_id not in EmbeddingsFactory.known_items():
+            raise ValueError(f"Cannot find embeddings '{embeddings_id}' of type: '{embeddings_tag}'")
+        return embeddings_id
 
     def get(self) -> Embeddings:
         """Create an embeddings model instance."""
@@ -280,8 +307,10 @@ class EmbeddingsFactory(BaseModel):
 
 def get_embeddings(
     embeddings_id: str | None = None,
+    embeddings_tag: str | None = None,
     encoding_str: str | None = None,
     retrieving_str: str | None = None,
+    cache_embeddings: bool = False,
 ) -> Embeddings:
     """Retrieve an embeddings model with optional configuration.
 
@@ -290,26 +319,41 @@ def get_embeddings(
 
     Args:
         embeddings_id: Unique identifier for the embeddings model
+        embeddings_tag: Tag (type) of embeddings to use (local, default, etc.)
         encoding_str: Optional encoding configuration string
         retrieving_str: Optional retrieving configuration string
+        cache_embeddings: Whether to cache embeddings
 
     Returns:
         Configured embeddings model
 
-    Example:
+    Examples:
+        ```python
         # Get default embeddings
         embeddings = get_embeddings()
 
-        # Get specific model
-        embeddings = get_embeddings(embeddings_id="huggingface_all-mpnet-base-v2")
+        # Get specific model by ID
+        embeddings = get_embeddings(embeddings_id="ada_002_openai")
+
+        # Get model by tag
+        embeddings = get_embeddings(embeddings_tag="local")
+
+        # Use the embeddings
         vectors = embeddings.embed_documents(["Sample text"])
+        ```
     """
     factory = EmbeddingsFactory(
         embeddings_id=embeddings_id,
+        embeddings_tag=embeddings_tag,
         encoding_str=encoding_str,
         retrieving_str=retrieving_str,
+        cache_embeddings=cache_embeddings,
     )
-    logger.info(f"get embedder: '{factory.embeddings_id}'")
+    info = f"get embeddings: '{factory.embeddings_id}'"
+    if embeddings_tag:
+        info += f" (from tag: '{embeddings_tag}')"
+    info += f" -cache: {cache_embeddings}" if cache_embeddings else ""
+    logger.debug(info)
     return factory.get()
 
 
