@@ -52,6 +52,7 @@ ui:
       - 7_deep_search_agent.py
       - 12_reAct_agent.py
       - 10_codeAct_agent.py
+      - 13_deep_agent.py
       - 14_graph_RAG.py
       - 18_anonymization.py
       - 15_cognee_KG.py
@@ -70,6 +71,7 @@ cli:
   commands:  # List modules:functions to register CLI commands
     - src.ai_core.cli_commands:register_commands
     - src.ai_extra.cli_commands:register_commands
+    - src.ai_extra.cli_commands_agents:register_commands
     - src.webapp.cli_commands:register_commands
     - src.main.cli:register_commands
     - src.demos.ekg.cli_commands:register_commands

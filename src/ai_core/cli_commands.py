@@ -96,36 +96,19 @@ def register_commands(cli_app: typer.Typer) -> None:
                 keys_table.add_row(provider, key_name, status)
 
         console.print(keys_table)
-        
+
         # Deep Agents info
-        from src.ai_core.deep_agents import deep_agent_factory
-        
+
         agents_table = Table(title="Deep Agents", show_header=True, header_style="bold magenta")
         agents_table.add_column("Type", style="cyan")
         agents_table.add_column("Description", style="green")
         agents_table.add_column("Features", style="yellow")
-        
-        agents_table.add_row(
-            "Research",
-            "Comprehensive research with web search",
-            "Planning, Search, Notes, Reports"
-        )
-        agents_table.add_row(
-            "Coding",
-            "Write, debug, and refactor code",
-            "Sub-agents, Testing, Documentation"
-        )
-        agents_table.add_row(
-            "Analysis",
-            "Data analysis and insights",
-            "Exploration, Patterns, Reports"
-        )
-        agents_table.add_row(
-            "Custom",
-            "User-defined agent with custom instructions",
-            "Fully configurable"
-        )
-        
+
+        agents_table.add_row("Research", "Comprehensive research with web search", "Planning, Search, Notes, Reports")
+        agents_table.add_row("Coding", "Write, debug, and refactor code", "Sub-agents, Testing, Documentation")
+        agents_table.add_row("Analysis", "Data analysis and insights", "Exploration, Patterns, Reports")
+        agents_table.add_row("Custom", "User-defined agent with custom instructions", "Fully configurable")
+
         console.print(agents_table)
 
     @cli_app.command()
@@ -443,8 +426,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         from langchain_community.utils.math import cosine_similarity
 
-        from src.ai_core.embeddings_factory import (EmbeddingsFactory,
-                                                    get_embeddings)
+        from src.ai_core.embeddings_factory import EmbeddingsFactory, get_embeddings
 
         if len(sentences) < 2:
             print("Error: At least 2 sentences are required")
@@ -480,260 +462,6 @@ def register_commands(cli_app: typer.Typer) -> None:
             table.add_row(sentences[0], sentences[i + 1], f"{score:.3f}")
 
         console.print(table)
-
-    @cli_app.command()
-    def deep_agent(
-        agent_type: Annotated[
-            str,
-            typer.Argument(
-                help="Agent type: research, coding, analysis, or custom",
-                callback=lambda x: x.lower()
-            )
-        ],
-        input: Annotated[str | None, typer.Option(help="Input text or '-' to read from stdin")] = None,
-        stream: Annotated[bool, Option("--stream", "-s", help="Stream output progressively")] = False,
-        llm_id: Annotated[
-            Optional[str], Option("--llm-id", "-m", help="LLM model ID")
-        ] = None,
-        instructions: Annotated[
-            Optional[str], Option("--instructions", "-i", help="Custom instructions for the agent")
-        ] = None,
-        tools: Annotated[
-            Optional[list[str]], Option("--tools", "-t", help="Additional tools to include")
-        ] = None,
-        files: Annotated[
-            Optional[list[Path]], Option("--files", "-f", help="Files to include in agent context")
-        ] = None,
-        output_dir: Annotated[
-            Optional[Path], Option("--output-dir", "-o", help="Directory to save agent outputs")
-        ] = None,
-    ) -> None:
-        """
-        Run a Deep Agent for complex AI tasks.
-
-        Deep Agents combine planning, file system access, and sub-agents for comprehensive task execution.
-
-        Agent Types:
-        - research: Conducts thorough research with web search and report generation
-        - coding: Writes, debugs, and refactors code with specialized sub-agents
-        - analysis: Analyzes data and generates insights
-        - custom: Create a custom agent with your own instructions
-
-        Examples:
-            uv run cli deep-agent research "Latest developments in quantum computing"
-            uv run cli deep-agent coding "Write a Python function to calculate Fibonacci"
-            uv run cli deep-agent analysis --files data.csv "Analyze this dataset"
-            echo "Debug this code" | uv run cli deep-agent coding
-        """
-        import asyncio
-
-        from rich.console import Console
-        from rich.progress import Progress, SpinnerColumn, TextColumn
-
-        from src.ai_core.deep_agents import (DeepAgentConfig,
-                                             deep_agent_factory,
-                                             run_deep_agent)
-        from src.ai_core.llm_factory import get_llm
-
-        # Get input from stdin if needed
-        if not input and not sys.stdin.isatty():
-            input = sys.stdin.read()
-        if not input or len(input) < 5:
-            print("Error: Input parameter or something in stdin is required")
-            return
-
-        console = Console()
-        
-        # Load files if provided
-        file_contents = {}
-        if files:
-            for file_path in files:
-                if file_path.exists():
-                    file_contents[file_path.name] = file_path.read_text()
-                else:
-                    console.print(f"[yellow]Warning: File {file_path} not found[/yellow]")
-
-        async def run_agent():
-            # Set the model FIRST if specified, before creating any agents
-            if llm_id:
-                console.print(f"[cyan]Using model: {llm_id}[/cyan]")
-                deep_agent_factory.set_default_model(llm_id)
-            
-            # Configure the agent based on type
-            if agent_type == "research":
-                # Import our search tools module to get real search capabilities
-                from src.ai_core.search_tools import create_search_function
-
-                # Create the best available search function (raw Python function for deep agents)
-                # This will automatically choose between Tavily, Serper, DuckDuckGo, or mock
-                internet_search = create_search_function(verbose=True)
-                
-                agent = deep_agent_factory.create_research_agent(
-                    search_tool=internet_search,
-                    name="CLI Research Agent",
-                    async_mode=True
-                )
-            
-            elif agent_type == "coding":
-                agent = deep_agent_factory.create_coding_agent(
-                    name="CLI Coding Agent",
-                    language="python",
-                    async_mode=True
-                )
-            
-            elif agent_type == "analysis":
-                agent = deep_agent_factory.create_data_analysis_agent(
-                    name="CLI Analysis Agent",
-                    async_mode=True
-                )
-            
-            elif agent_type == "custom":
-                if not instructions:
-                    console.print("[red]Error: Custom agent requires --instructions[/red]")
-                    return
-                
-                config = DeepAgentConfig(
-                    name="CLI Custom Agent",
-                    instructions=instructions,
-                    enable_file_system=True,
-                    enable_planning=True,
-                    model=llm_id
-                )
-                
-                agent = deep_agent_factory.create_agent(
-                    config=config,
-                    tools=[],
-                    async_mode=True
-                )
-            
-            else:
-                console.print(f"[red]Unknown agent type: {agent_type}[/red]")
-                return
-            
-            # Run the agent
-            messages = [{"role": "user", "content": input}]
-            
-            # Show the user's query in a nice format
-            console.print("\n[bold magenta]👤 User Query:[/bold magenta]")
-            console.print(f"[italic white]{input}[/italic white]\n")
-            
-            with Progress(
-                SpinnerColumn(spinner_name="dots", style="cyan"),
-                TextColumn("[bold cyan]{task.description}[/bold cyan]"),
-                console=console,
-            ) as progress:
-                agent_emoji = {
-                    "research": "🔍",
-                    "coding": "💻",
-                    "analysis": "📊",
-                    "custom": "⚙️"
-                }.get(agent_type, "🤖")
-                
-                task = progress.add_task(
-                    f"{agent_emoji} {agent_type.capitalize()} agent is thinking...", 
-                    total=None
-                )
-                
-                try:
-                    result = await run_deep_agent(
-                        agent=agent,
-                        messages=messages,
-                        files=file_contents if file_contents else None,
-                        stream=stream
-                    )
-                    
-                    progress.update(task, description=f"{agent_emoji} {agent_type.capitalize()} agent completed!")
-                    progress.update(task, completed=True)
-                except Exception as e:
-                    progress.update(task, description=f"❌ Error in {agent_type} agent")
-                    progress.update(task, completed=True)
-                    raise
-            
-            # Display results with enhanced markdown rendering
-            if "messages" in result and result["messages"]:
-                # Get the response content
-                response_content = result["messages"][-1].content
-                
-                # Use Rich's Markdown rendering for better display
-                from rich.markdown import Markdown
-                from rich.panel import Panel
-                
-                try:
-                    # Render as markdown for better formatting
-                    md = Markdown(response_content)
-                    # Optionally wrap in a panel for better visual separation
-                    # console.print(Panel(md, border_style="cyan", padding=(1, 2)))
-                    console.print(md)
-                except Exception as e:
-                    # Fallback to plain text if markdown parsing fails
-                    logger.warning(f"Markdown rendering failed: {e}")
-                    console.print(response_content)
-                
-            # Save files if output directory specified
-            if output_dir and "files" in result:
-                output_dir.mkdir(parents=True, exist_ok=True)
-                console.print("[bold yellow]📁 Saving files...[/bold yellow]")
-                for filename, content in result["files"].items():
-                    file_path = output_dir / filename
-                    file_path.write_text(content)
-                    console.print(f"  [green]✓[/green] Saved: [cyan]{file_path}[/cyan]")
-        
-        # Run the async function
-        asyncio.run(run_agent())
-
-    @cli_app.command()
-    def list_deep_agents() -> None:
-        """
-        List all created Deep Agents.
-        """
-        from rich.console import Console
-        from rich.table import Table
-
-        from src.ai_core.deep_agents import deep_agent_factory
-        
-        console = Console()
-        agents = deep_agent_factory.list_agents()
-        
-        if not agents:
-            console.print("[yellow]No Deep Agents have been created yet.[/yellow]")
-            return
-        
-        table = Table(
-            title="Deep Agents",
-            show_header=True,
-            header_style="bold magenta"
-        )
-        table.add_column("Agent Name", style="cyan")
-        table.add_column("Status", style="green")
-        
-        for agent_name in agents:
-            table.add_row(agent_name, "Active")
-        
-        console.print(table)
-
-    @cli_app.command()
-    def deep_agent_demo() -> None:
-        """
-        Launch the Deep Agent interactive demo (Streamlit app).
-        """
-        import subprocess
-        from pathlib import Path
-        
-        demo_path = Path(__file__).parent.parent / "demos" / "deep_agent_demo.py"
-        
-        if not demo_path.exists():
-            print(f"Error: Demo file not found at {demo_path}")
-            return
-        
-        print("Launching Deep Agent Demo...")
-        print("Open your browser at http://localhost:8501")
-        
-        try:
-            subprocess.run(["streamlit", "run", str(demo_path)])
-        except FileNotFoundError:
-            print("Error: Streamlit is not installed. Install it with: pip install streamlit")
-        except KeyboardInterrupt:
-            print("\nDemo stopped.")
 
     @cli_app.command()
     def list_mcp_prompts(
