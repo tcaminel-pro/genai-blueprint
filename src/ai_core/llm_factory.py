@@ -348,8 +348,8 @@ class LlmFactory(BaseModel):
             ```
         """
         api_key_env_var = get_provider_api_env_var(self.info.provider)
-        if api_key_env_var not in os.environ and api_key_env_var != "":
-            raise EnvironmentError(f"No known API key for : {self.llm_id}")
+        if api_key_env_var and not os.getenv(api_key_env_var, "").strip():
+            raise EnvironmentError(f"API key environment variable '{api_key_env_var}' not set or empty for : {self.llm_id}")
         llm = self.model_factory()
         return llm
 

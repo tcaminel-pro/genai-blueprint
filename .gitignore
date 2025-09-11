@@ -126,3 +126,6 @@ package_load_time.txt
 **/baml_client/*
 .cognee_system
 src/wip/low_level/*
+.cursorindexingignore
+.specstory/**
+DEEPAGENTS_README.md

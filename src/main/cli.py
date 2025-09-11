@@ -77,7 +77,8 @@ def main():
             register_commands = import_from_qualified(module)
             register_commands(cli_app)
         except Exception as ex:
-            logger.exception(f"Cannot load module {module}: {ex}")
+            logger.warning(f"Cannot load module {module}: {ex}")
+            # Continue loading other modules instead of crashing
 
     cli_app()
 
