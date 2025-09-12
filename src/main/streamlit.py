@@ -82,18 +82,18 @@ def file_name_to_page_name(file_name: str) -> str:
     """
     try:
         # Remove the numeric prefix and emoji if present
-        if '_' in file_name:
-            parts = file_name.split('_', 2)
-            if len(parts) >= 3 and parts[1].startswith('🛠️') or parts[1].startswith('📊') or parts[1].startswith('🔍'):
+        if "_" in file_name:
+            parts = file_name.split("_", 2)
+            if len(parts) >= 3 and parts[1].startswith("🛠️") or parts[1].startswith("📊") or parts[1].startswith("🔍"):
                 name_without_number = parts[2]
             else:
                 name_without_number = file_name.split("_", 1)[1]
         else:
             name_without_number = file_name
-            
+
         # Remove the file extension
         name_without_ext = name_without_number.rsplit(".", 1)[0]
-        
+
         # Split by underscores and format each word
         words = name_without_ext.split("_")
         formatted_words = []
