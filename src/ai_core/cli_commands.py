@@ -62,27 +62,54 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         console.print(models_table)
 
-        # LLM Tags info
-        tags_table = Table(title="Available LLM Tags", show_header=True, header_style="bold magenta")
-        tags_table.add_column("Tag", style="cyan")
-        tags_table.add_column("LLM ID", style="green")
-        tags_table.add_column("Status", style="yellow")
+        # LLM Tags info with enhanced details
+        tags_table = Table(title="🏷️  LLM Tags (Use these with --llm option)", show_header=True, header_style="bold magenta")
+        tags_table.add_column("Tag", style="cyan", width=15)
+        tags_table.add_column("LLM ID", style="green", width=25)
+        tags_table.add_column("Provider", style="blue", width=12)
+        tags_table.add_column("Status", style="yellow", width=12)
+        tags_table.add_column("Usage Example", style="dim white", width=30)
 
         # Get all LLM tags from config under llm.models.*
         llm_models_config = config.get("llm.models", {})
+        tag_count = 0
         # Handle both regular dict and OmegaConf DictConfig
         if llm_models_config and hasattr(llm_models_config, "items"):
             for tag, llm_id in llm_models_config.items():
                 if tag != "default":  # Skip the default entry as it's shown above
                     # Check if the LLM ID is available (has API keys and module)
-                    status = (
-                        "[green]✓ available[/green]"
-                        if llm_id in LlmFactory.known_items()
-                        else "[red]✗ unavailable[/red]"
-                    )
-                    tags_table.add_row(tag, str(llm_id), status)
+                    is_available = llm_id in LlmFactory.known_items()
+                    status = "[green]✓ available[/green]" if is_available else "[red]✗ unavailable[/red]"
+                    
+                    # Extract provider from LLM ID (last part after underscore)
+                    provider = "unknown"
+                    if isinstance(llm_id, str) and "_" in llm_id:
+                        provider = llm_id.rsplit("_", 1)[-1]
+                    
+                    # Create usage example
+                    example = f"--llm {tag}"
+                    
+                    tags_table.add_row(tag, str(llm_id), provider, status, example)
+                    tag_count += 1
 
+        if tag_count == 0:
+            tags_table.add_row("[dim]No tags configured[/dim]", "[dim]N/A[/dim]", "[dim]N/A[/dim]", "[dim]N/A[/dim]", "[dim]Configure in config file[/dim]")
+        
         console.print(tags_table)
+        
+        # Add helpful usage information
+        if tag_count > 0:
+            console.print(
+                Panel(
+                    f"[bold cyan]💡 Usage Tips:[/bold cyan]\n"
+                    f"• Use tags with [bold]--llm[/bold] option: [green]uv run cli llm 'Hello' --llm fast_model[/green]\n"
+                    f"• Tags are easier to remember than full LLM IDs\n"
+                    f"• Configure more tags in your configuration file under [bold]llm.models[/bold]",
+                    title="How to use LLM Tags",
+                    border_style="cyan",
+                    expand=False
+                )
+            )
 
         # API keys info
         keys_table = Table(title="Available API Keys", show_header=True, header_style="bold magenta")
@@ -122,11 +149,8 @@ def register_commands(cli_app: typer.Typer) -> None:
         raw: Annotated[bool, Option("--raw", "-r", help="Output raw LLM response object")] = False,
         lc_verbose: Annotated[bool, Option("--verbose", "-v", help="Enable LangChain verbose mode")] = False,
         lc_debug: Annotated[bool, Option("--debug", "-d", help="Enable LangChain debug mode")] = False,
-        llm_id: Annotated[
-            Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
-        ] = None,
-        llm_tag: Annotated[
-            Optional[str], Option("--llm-tag", "-tag", help="LLM tag from config (e.g., 'fake', 'powerful_model')")
+        llm: Annotated[
+            Optional[str], Option("--llm", "-m", help="LLM identifier (ID or tag from config)")
         ] = None,
     ) -> None:
         """
@@ -135,13 +159,13 @@ def register_commands(cli_app: typer.Typer) -> None:
         input can be either taken from stdin (Unix pipe), or given with the --input param
         If runnable_name is provided, runs the specified Runnable with the given input.
 
-        The LLM can be changed using --llm-id or --llm-tag. Tags are defined in config (e.g., 'fake', 'powerful_model').
-        If neither is specified, the default model is used.
+        The LLM can be changed using --llm. This can be either an LLM ID or a tag defined in config (e.g., 'fake', 'powerful_model').
+        If not specified, the default model is used.
         'cache' is the prompt caching strategy, and it can be either 'sqlite' (default) or 'memory'.
 
         Examples:
-            uv run cli llm "Tell me a joke" --llm-tag fake
-            uv run cli llm "Explain AI" --llm-id parrot_local_fake
+            uv run cli llm "Tell me a joke" --llm fake
+            uv run cli llm "Explain AI" --llm parrot_local_fake
         """
 
         from langchain_core.output_parsers import StrOutputParser
@@ -149,6 +173,15 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         from src.ai_core.llm_factory import LlmFactory
         from src.utils.cli.langchain_setup import setup_langchain
+
+        # For compatibility with setup_langchain, resolve the llm to an llm_id if provided
+        llm_id = None
+        if llm:
+            resolved_id, error_msg = LlmFactory.resolve_llm_identifier_safe(llm)
+            if error_msg:
+                print(error_msg)
+                return
+            llm_id = resolved_id
 
         if not setup_langchain(llm_id, lc_debug, lc_verbose, cache):
             return
@@ -160,23 +193,23 @@ def register_commands(cli_app: typer.Typer) -> None:
             print("Error: Input parameter or something in stdin is required")
             return
 
-        llm = LlmFactory(
-            llm_id=llm_id,
-            llm_tag=llm_tag,
+        llm_factory = LlmFactory.from_unified_parameter(
+            llm=llm,
             json_mode=False,
             streaming=stream,
             cache=cache,
             llm_params={"temperature": temperature},
-        ).get()
+        )
+        llm_model = llm_factory.get()
         if raw:
             if stream:
-                for chunk in llm.stream(input):
+                for chunk in llm_model.stream(input):
                     pprint(chunk)
             else:
-                result = llm.invoke(input)
+                result = llm_model.invoke(input)
                 pprint(result)
         else:
-            chain = llm | StrOutputParser()
+            chain = llm_model | StrOutputParser()
             if stream:
                 for s in chain.stream(input):
                     print(s, end="", flush=True)
@@ -197,11 +230,8 @@ def register_commands(cli_app: typer.Typer) -> None:
         stream: Annotated[bool, Option("--stream", "-s", help="Stream output progressively")] = False,
         lc_verbose: Annotated[bool, Option("--verbose", "-v", help="Enable LangChain verbose mode")] = False,
         lc_debug: Annotated[bool, Option("--debug", "-d", help="Enable LangChain debug mode")] = False,
-        llm_id: Annotated[
-            Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
-        ] = None,
-        llm_tag: Annotated[
-            Optional[str], Option("--llm-tag", "-tag", help="LLM tag from config (e.g., 'fake', 'powerful_model')")
+        llm: Annotated[
+            Optional[str], Option("--llm", "-m", help="LLM identifier (ID or tag from config)")
         ] = None,
     ) -> None:
         """
@@ -211,20 +241,31 @@ def register_commands(cli_app: typer.Typer) -> None:
         can be either taken from stdin (Unix pipe), or given with the --input param
         If runnable_name is provided, runs the specified Runnable with the given input.
 
-        The LLM can be changed using --llm-id or --llm-tag. Tags are defined in config (e.g., 'fake', 'powerful_model').
-        If neither is specified, the default model is used.
+        The LLM can be changed using --llm. This can be either an LLM ID or a tag defined in config (e.g., 'fake', 'powerful_model').
+        If not specified, the default model is used.
         'cache' is the prompt caching strategy, and it can be either 'sqlite' (default) or 'memory'.
 
         Examples:
             uv run cli run joke --input "bears"
-            uv run cli run joke --input "bears" --llm-tag fake
-            uv run cli run joke --input "bears" --llm-id parrot_local_fake
+            uv run cli run joke --input "bears" --llm fake
+            uv run cli run joke --input "bears" --llm parrot_local_fake
         """
 
         from devtools import pprint
 
         from src.ai_core.chain_registry import ChainRegistry
+        from src.ai_core.llm_factory import LlmFactory
         from src.utils.cli.langchain_setup import setup_langchain
+        from src.utils.config_mngr import global_config
+
+        # For compatibility with setup_langchain, resolve the llm to an llm_id if provided
+        llm_id = None
+        if llm:
+            resolved_id, error_msg = LlmFactory.resolve_llm_identifier_safe(llm)
+            if error_msg:
+                print(error_msg)
+                return
+            llm_id = resolved_id
 
         if not setup_langchain(llm_id, lc_debug, lc_verbose, cache):
             return
@@ -244,13 +285,10 @@ def register_commands(cli_app: typer.Typer) -> None:
         if runnable_item:
             first_example = runnable_item.examples[0]
             llm_args = {"temperature": temperature}
-            # Create a temporary factory to resolve the final llm_id
+            # Use the resolved llm_id or default
             try:
-                from src.ai_core.llm_factory import LlmFactory
-
-                temp_factory = LlmFactory(llm_id=llm_id, llm_tag=llm_tag)
-                final_llm_id = temp_factory.llm_id
-            except ValueError as e:
+                final_llm_id = llm_id or global_config().get_str("llm.models.default")
+            except Exception as e:
                 print(f"Error: {e}")
                 return
 

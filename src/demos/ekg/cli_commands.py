@@ -24,7 +24,7 @@ Usage Examples:
     uv run cli rainbow-generate-fake "templates/*.json" --output-dir ./fake --count 5
 
     # Start interactive agent for querying the knowledge graph
-    uv run cli ekg-agent-shell --llm-id gpt-4o-mini --mcp filesystem
+    uv run cli ekg-agent-shell --llm gpt-4o-mini --mcp filesystem
 
     # Process recursively with custom settings
     uv run cli rainbow-extract ./reviews/ --recursive --batch-size 10 --force
@@ -80,11 +80,11 @@ async def call_ekg_agent(
     from langgraph.prebuilt import create_react_agent
     from loguru import logger
 
-    from src.ai_core.llm_factory import get_llm
+    from src.ai_core.llm_factory import get_llm_unified
     from src.ai_core.mcp_client import get_mcp_servers_dict
     from src.utils.langgraph import print_astream
 
-    model = get_llm(llm_id=llm_id)
+    model = get_llm_unified(llm=llm_id)
     all_tools = tools or []
 
     # Add MCP tools if specified
@@ -113,8 +113,8 @@ def register_commands(cli_app: typer.Typer) -> None:
             ),
         ],
         schema: str = typer.Argument(help="name of he schcme dict to use to extract information"),
-        llm_id: Annotated[
-            Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
+        llm: Annotated[
+            Optional[str], Option("--llm", "-m", help="LLM identifier (ID or tag from config)")
         ] = None,
         recursive: bool = typer.Option(False, help="Search for files recursively"),
         batch_size: int = typer.Option(5, help="Number of files to process in each batch"),
@@ -133,11 +133,16 @@ def register_commands(cli_app: typer.Typer) -> None:
         from src.demos.ekg.struct_rag_doc_processing import StructuredRagConfig, StructuredRagDocProcessor, get_schema
         from src.utils.pydantic.kv_store import PydanticStore
 
-        schema_dict = get_schema(schema)
+        # Resolve LLM identifier if provided
+        llm_id = None
+        if llm:
+            resolved_id, error_msg = LlmFactory.resolve_llm_identifier_safe(llm)
+            if error_msg:
+                print(error_msg)
+                return
+            llm_id = resolved_id
 
-        if llm_id is not None and llm_id not in LlmFactory.known_items():
-            logger.error(f"Unknown llm_id: {llm_id}. Valid options: {LlmFactory.known_items()}")
-            return
+        schema_dict = get_schema(schema)
 
         if schema_dict is None:
             logger.error(f"Invalid schema_name: {schema}")
@@ -223,8 +228,8 @@ def register_commands(cli_app: typer.Typer) -> None:
             ),
         ],
         count: Annotated[int, Option("--count", "-n", help="Number of fake projects to generate per input file")] = 1,
-        llm_id: Annotated[
-            Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
+        llm: Annotated[
+            Optional[str], Option("--llm", "-m", help="LLM identifier (ID or tag from config)")
         ] = None,
         recursive: bool = typer.Option(False, help="Search for files recursively"),
     ) -> None:
@@ -242,9 +247,14 @@ def register_commands(cli_app: typer.Typer) -> None:
         from src.ai_core.llm_factory import LlmFactory
         from src.demos.ekg.generate_fake_rainbows import generate_fake_rainbows_from_samples
 
-        if llm_id is not None and llm_id not in LlmFactory.known_items():
-            logger.error(f"Unknown llm_id: {llm_id}. Valid options: {LlmFactory.known_items()}")
-            return
+        # Resolve LLM identifier if provided
+        llm_id = None
+        if llm:
+            resolved_id, error_msg = LlmFactory.resolve_llm_identifier_safe(llm)
+            if error_msg:
+                print(error_msg)
+                return
+            llm_id = resolved_id
 
         # Collect all JSON files
         all_files = []
@@ -293,8 +303,8 @@ def register_commands(cli_app: typer.Typer) -> None:
         ] = [],
         lc_verbose: Annotated[bool, Option("--verbose", "-v", help="Enable LangChain verbose mode")] = False,
         lc_debug: Annotated[bool, Option("--debug", "-d", help="Enable LangChain debug mode")] = False,
-        llm_id: Annotated[
-            Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
+        llm: Annotated[
+            Optional[str], Option("--llm", "-m", help="LLM identifier (ID or tag from config)")
         ] = None,
         chat: Annotated[bool, Option("--chat", help="Start an interactive shell to send prompts")] = False,
     ) -> None:
@@ -319,7 +329,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             echo "Which projects had budgets over $1M?" | uv run cli ekg-agent-shell
 
             # With custom LLM and cache
-            uv run cli ekg-agent-shell --llm-id gpt-4o-mini --cache sqlite
+            uv run cli ekg-agent-shell --llm gpt-4o-mini --cache sqlite
 
             # With MCP servers for extended capabilities
             uv run cli ekg-agent-shell --mcp filesystem --mcp playwright --input "List files and analyze project data"
@@ -345,9 +355,19 @@ def register_commands(cli_app: typer.Typer) -> None:
             - "Compare project delivery times across different technologies"
         """
 
+        from src.ai_core.llm_factory import LlmFactory
         from src.demos.ekg.struct_rag_tool_factory import create_structured_rag_tool
         from src.utils.cli.langchain_setup import setup_langchain
         from src.utils.cli.langgraph_agent_shell import run_langgraph_agent_shell
+
+        # Resolve LLM identifier if provided
+        llm_id = None
+        if llm:
+            resolved_id, error_msg = LlmFactory.resolve_llm_identifier_safe(llm)
+            if error_msg:
+                print(error_msg)
+                return
+            llm_id = resolved_id
 
         if not setup_langchain(llm_id, lc_debug, lc_verbose, cache):
             return

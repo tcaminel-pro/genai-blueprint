@@ -33,15 +33,15 @@ from src.ai_core.prompts import dedent_ws
 
 # Import shared configuration functionality
 from src.ai_extra.tools_smolagents.config_loader import (
-    CodeactDemo,
+    SmolagentsAgentConfig,
     load_all_demos_from_config,
 )
 from src.utils.load_data import TABULAR_FILE_FORMATS_READERS, load_tabular_data_once
 from src.utils.streamlit.auto_scroll import scroll_to_here
 from src.utils.streamlit.recorder import StreamlitRecorder
 from src.webapp.ui_components.config_editor import edit_config_dialog
+from src.webapp.ui_components.llm_selector import llm_selector_widget
 from src.webapp.ui_components.smolagents_streamlit import stream_to_streamlit
-from webapp.ui_components.llm_selector import llm_selector_widget
 
 MODEL_ID = None  # Use the one by configuration
 # MODEL_ID = "gpt_41mini_openrouter"
@@ -230,7 +230,7 @@ llm = LiteLLMModel(model_id=model_name)
 ##########################
 
 
-def display_header_and_demo_selector(sample_demos: list[CodeactDemo]) -> str | None:
+def display_header_and_demo_selector(sample_demos: list[SmolagentsAgentConfig]) -> str | None:
     """Displays the header and demo selector, returning the selected pill."""
     c01, c02 = st.columns([6, 4], border=False, gap="medium", vertical_alignment="top")
     c02.title(" CodeAct Agent :material/Mindfulness:")
@@ -251,7 +251,9 @@ def display_header_and_demo_selector(sample_demos: list[CodeactDemo]) -> str | N
     return selected_pill
 
 
-def handle_selection(selected_pill: str, select_block: Any) -> tuple[CodeactDemo, str | None, pd.DataFrame | None, Any]:
+def handle_selection(
+    selected_pill: str, select_block: Any
+) -> tuple[SmolagentsAgentConfig, str | None, pd.DataFrame | None, Any]:
     """Handles file upload or demo selection logic."""
     raw_data_file = None
     df = None
@@ -261,7 +263,7 @@ def handle_selection(selected_pill: str, select_block: Any) -> tuple[CodeactDemo
             "Upload a Data file:",
             type=list(TABULAR_FILE_FORMATS_READERS.keys()),
         )
-        demo = CodeactDemo(name="custom", examples=[])
+        demo = SmolagentsAgentConfig(name="custom", examples=[])
     else:
         demo = next((d for d in sample_demos if d.name == selected_pill), None)
         if demo is None:
@@ -303,7 +305,7 @@ def display_input_form(select_block: DeltaGenerator, sample_search: str | None) 
     return prompt, max_steps, submitted
 
 
-def handle_submission(placeholder: Any, demo: CodeactDemo, prompt: str, max_steps: int) -> None:
+def handle_submission(placeholder: Any, demo: SmolagentsAgentConfig, prompt: str, max_steps: int) -> None:
     """Handles the agent execution on form submission."""
     HEIGHT = 800
     exec_block = placeholder.container()

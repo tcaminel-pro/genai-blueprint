@@ -104,8 +104,9 @@ llm:
 - model:
   id: gpt_41
   providers:
-    - openrouter: openai/gpt-4.1-mini
+    - openrouter: openai/gpt-4.1
     - edenai: gpt-4.1-2025-04-14
+    - azure: gpt-4.1/2024-02-15-preview
   capabilities: ['structured_outputs', 'vision']
 
 - model:

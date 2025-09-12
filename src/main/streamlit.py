@@ -68,43 +68,54 @@ pages = {}
 def file_name_to_page_name(file_name: str) -> str:
     """Convert a file name to a formatted page name.
 
-    converts to title case,
-    preserves existing capitalization in acronyms and mixed case words.
+    Converts to title case while preserving existing capitalization in acronyms and mixed case words.
+    Handles file paths by extracting just the filename part.
 
     Examples:
         'CLI_command.py' -> 'CLI Command'
+        'demos/deep_search_agent.py' -> 'Deep Search Agent'
         'reAct_demo.py' -> 'ReAct Demo'
         'API_demo.py' -> 'API Demo'
         'myTool.py' -> 'MyTool'
-        '01_🛠️_data_utils.py' -> 'Data Utils'
-        '02_📊_analytics.py' -> 'Analytics'
-        '03_🔍_search_tool.py' -> 'Search Tool'
     """
     try:
-        # Remove the numeric prefix and emoji if present
-        if "_" in file_name:
-            parts = file_name.split("_", 2)
-            if len(parts) >= 3 and parts[1].startswith("🛠️") or parts[1].startswith("📊") or parts[1].startswith("🔍"):
-                name_without_number = parts[2]
-            else:
-                name_without_number = file_name.split("_", 1)[1]
-        else:
-            name_without_number = file_name
-
+        # Extract just the filename from the path (remove directory)
+        file_name_only = file_name.split("/")[-1]
+        
         # Remove the file extension
-        name_without_ext = name_without_number.rsplit(".", 1)[0]
-
-        # Split by underscores and format each word
-        words = name_without_ext.split("_")
+        name_without_ext = file_name_only.rsplit(".", 1)[0]
+        
+        # Handle numeric prefix and emoji if present
+        name_parts = name_without_ext.split("_")
+        
+        # Skip numeric prefix and emoji prefix if they exist
+        start_idx = 0
+        if len(name_parts) > 0 and name_parts[0].isdigit():
+            start_idx = 1
+            
+        if len(name_parts) > start_idx and name_parts[start_idx] in ["🛠️", "📊", "🔍"]:
+            start_idx += 1
+            
+        # Process the remaining parts
+        words = name_parts[start_idx:]
         formatted_words = []
+        
         for word in words:
-            if any(c.isupper() for c in word[1:]):  # Mixed case (e.g. ReAct)
+            if not word:  # Skip empty parts
+                continue
+                
+            # Check if word has mixed case (e.g., reAct, myTool)
+            if any(c.isupper() for c in word[1:]):
+                # Preserve mixed case but ensure first letter is uppercase
                 formatted_words.append(word[0].upper() + word[1:])
-            elif word == word.upper():  # All caps (e.g. API)
+            # Check if word is all uppercase (e.g., API, CLI)
+            elif word == word.upper() and len(word) > 1:
                 formatted_words.append(word)
+            # Regular word - capitalize first letter
             else:
                 formatted_words.append(word.capitalize())
-        return " ".join(formatted_words)
+                
+        return " ".join(formatted_words) if formatted_words else file_name
     except Exception:
         return file_name
 

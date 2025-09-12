@@ -11,7 +11,6 @@ Key Features:
 """
 
 import os
-
 from typing import Literal
 
 from langchain_core.tools import tool
@@ -33,6 +32,7 @@ def internet_search(
         include_raw_content=include_raw_content,
         topic=topic,
     )
+
 
 @tool
 def basic_web_search(query: str) -> str:

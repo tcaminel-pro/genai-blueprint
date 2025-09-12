@@ -17,7 +17,7 @@ from src.utils.config_mngr import global_config, import_from_qualified
 CONF_YAML_FILE = "config/demos/codeact_agent.yaml"
 
 
-class CodeactDemo(BaseModel):
+class SmolagentsAgentConfig(BaseModel):
     """Configuration class for CodeAct Agent demonstrations.
 
     This class defines the structure for setting up different demo scenarios
@@ -141,7 +141,7 @@ def convert_langchain_tools(tools: List[Any]) -> List[Any]:
     return converted_tools
 
 
-def load_demo_config(config_name: str) -> Optional[Dict[str, Any]]:
+def load_smolagent_demo_config(config_name: str) -> Optional[Dict[str, Any]]:
     """Load configuration for a specific demo from codeact_agent.yaml.
 
     Args:
@@ -161,7 +161,7 @@ def load_demo_config(config_name: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def load_all_demos_from_config() -> List[CodeactDemo]:
+def load_all_demos_from_config() -> List[SmolagentsAgentConfig]:
     """Load and configure all demonstration scenarios from the application configuration.
 
     Returns:
@@ -181,7 +181,7 @@ def load_all_demos_from_config() -> List[CodeactDemo]:
             raw_tools = process_tools_from_config(demo_config.get("tools", []))
             converted_tools = convert_langchain_tools(raw_tools)
 
-            demo = CodeactDemo(
+            demo = SmolagentsAgentConfig(
                 name=name,
                 tools=converted_tools,
                 mcp_servers=mcp_servers,
@@ -196,7 +196,7 @@ def load_all_demos_from_config() -> List[CodeactDemo]:
         return []
 
 
-def create_demo_from_config(config_name: str) -> Optional[CodeactDemo]:
+def create_demo_from_config(config_name: str) -> Optional[SmolagentsAgentConfig]:
     """Create a single CodeactDemo from configuration.
 
     Args:
@@ -205,7 +205,7 @@ def create_demo_from_config(config_name: str) -> Optional[CodeactDemo]:
     Returns:
         CodeactDemo instance or None if not found
     """
-    demo_config = load_demo_config(config_name)
+    demo_config = load_smolagent_demo_config(config_name)
     if not demo_config:
         return None
 
@@ -218,7 +218,7 @@ def create_demo_from_config(config_name: str) -> Optional[CodeactDemo]:
     raw_tools = process_tools_from_config(demo_config.get("tools", []))
     converted_tools = convert_langchain_tools(raw_tools)
 
-    return CodeactDemo(
+    return SmolagentsAgentConfig(
         name=name,
         tools=converted_tools,
         mcp_servers=mcp_servers,

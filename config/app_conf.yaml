@@ -37,25 +37,25 @@ ui:
   navigation:
 
     settings:
-      - 0_welcome.py
-      - 3_configuration.py
-      - 4_MCP_servers.py
+      - settings/welcome.py
+      - settings/configuration.py
+      - settings/MCP_servers.py
 
     training:
-        - 1_runnable_playground.py
-        - 4_CLI_runner.py
-        - 20_tokenization.py
+        - training/runnable_playground.py
+        - training/CLI_runner.py
+        - training/tokenization.py
 
     demos:
-      - 2_maintenance_agent.py
-      - 5_mon_master.py
-      - 7_deep_search_agent.py
-      - 12_reAct_agent.py
-      - 10_codeAct_agent.py
-      - 13_deep_agent.py
-      - 14_graph_RAG.py
-      - 18_anonymization.py
-      - 15_cognee_KG.py
+      - demos/maintenance_agent.py
+      - demos/mon_master.py
+      - demos/deep_search_agent.py
+      - demos/reAct_agent.py
+      - demos/codeAct_agent.py
+      - demos/deep_agent.py
+      - demos/graph_RAG.py
+      - demos/anonymization.py
+      - demos/cognee_KG.py
 
 #### 
 # Authentication

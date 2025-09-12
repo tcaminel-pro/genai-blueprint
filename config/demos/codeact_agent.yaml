@@ -2,6 +2,7 @@
 
 paths:
   smolagent_custom_tools: src.ai_extra.tools_smolagents
+  ekg_data: 
 
   
 codeact_agent_demos:
@@ -84,7 +85,8 @@ codeact_agent_demos:
       - class: ${paths.smolagent_custom_tools}.dataframe_tools:DataFrameTool
         name: "opportunity_2024"
         description: "Data related to business opportunities"
-        source_path: ${paths.ekg_data}/misc/report1750429630460.xlsx
+        source_path: ${oc.env:ONEDRIVE, null}/prj/atos-kg/misc/report1750429630460.xlsx
+        #source_path: ${paths.ekg_data}/misc/report1750429630460.xlsx
         
       - class:  ${paths.smolagent_custom_tools}.sql_tools:SQLTool
         dsn:  postgresql://${oc.env:POSTGRES_USER,unknown_user}:${oc.env:POSTGRES_PASSWORD,password}@localhost:5432/ekg

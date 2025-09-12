@@ -281,6 +281,98 @@ class LlmFactory(BaseModel):
         if llm_id not in LlmFactory.known_items():
             raise ValueError(f"Cannot find LLM '{llm_id}' of type : '{llm_tag}'")
         return llm_id
+        
+    @staticmethod
+    def resolve_llm_identifier(llm: str) -> str:
+        """Resolve a unified LLM identifier to an actual LLM ID.
+        
+        This function accepts a string that could be either an LLM ID or an LLM tag
+        and returns the corresponding LLM ID.
+        
+        Args:
+            llm: A string that could be either an LLM ID or an LLM tag
+            
+        Returns:
+            The resolved LLM ID
+            
+        Raises:
+            ValueError: If the provided string is neither a valid LLM ID nor a valid LLM tag
+        """
+        # Check if it's a known LLM ID
+        if llm in LlmFactory.known_items():
+            return llm
+            
+        # Otherwise, try to resolve it as a tag
+        try:
+            return LlmFactory.find_llm_id_from_tag(llm)
+        except ValueError:
+            # If not a tag either, give a helpful error message
+            raise ValueError(
+                f"Unknown LLM identifier '{llm}'. It is neither a valid LLM ID nor a valid LLM tag. "
+                f"Valid LLM IDs: {LlmFactory.known_items()}"
+            )
+    
+    @staticmethod
+    def resolve_llm_identifier_safe(llm: str) -> tuple[str | None, str | None]:
+        """Safely resolve a unified LLM identifier to an actual LLM ID.
+        
+        This function accepts a string that could be either an LLM ID or an LLM tag
+        and returns the corresponding LLM ID or an error message.
+        
+        Args:
+            llm: A string that could be either an LLM ID or an LLM tag
+            
+        Returns:
+            A tuple of (resolved_id, error_message). If successful, error_message is None.
+            If unsuccessful, resolved_id is None and error_message contains user guidance.
+        """
+        try:
+            resolved_id = LlmFactory.resolve_llm_identifier(llm)
+            return resolved_id, None
+        except ValueError:
+            error_msg = (
+                f"❌ Unknown LLM identifier '{llm}'.\n\n"
+                f"💡 To see available options, try:\n"
+                f"   • uv run cli config-info    (shows LLM tags like 'fast_model', 'powerful_model')\n"
+                f"   • uv run cli list-models    (shows all available LLM IDs)\n\n"
+                f"🏷️  Available LLM tags: Use tags defined in your config for easier access\n"
+                f"🆔 Available LLM IDs: {', '.join(LlmFactory.known_items()[:3])}{'...' if len(LlmFactory.known_items()) > 3 else ''}"
+            )
+            return None, error_msg
+    
+    @classmethod
+    def from_unified_parameter(
+        cls,
+        llm: str | None = None,
+        json_mode: bool = False,
+        streaming: bool = False,
+        cache: str | None = None,
+        llm_params: dict | None = None,
+    ) -> "LlmFactory":
+        """Create LlmFactory instance from unified LLM parameter.
+        
+        Args:
+            llm: Unified LLM identifier (can be either LLM ID or LLM tag)
+            json_mode: Whether to force JSON output format (where supported)
+            streaming: Whether to enable streaming responses (where supported)
+            cache: cache method or None
+            llm_params: Additional LLM parameters
+            
+        Returns:
+            LlmFactory instance with resolved LLM ID
+        """
+        llm_id = None
+        if llm is not None:
+            llm_id = cls.resolve_llm_identifier(llm)
+            
+        return cls(
+            llm_id=llm_id,
+            llm_tag=None,  # Don't use llm_tag since we've already resolved
+            json_mode=json_mode,
+            streaming=streaming,
+            cache=cache,
+            llm_params=llm_params or {},
+        )
 
     def get_id(self) -> str:
         """Return the id of the LLM."""
@@ -583,6 +675,53 @@ def get_llm(
         llm_params=kwargs,
     )
     info = f"get LLM:'{factory.llm_id}'"
+    info += " -streaming" if streaming else ""
+    info += " -json_mode" if json_mode else ""
+    info += f" -cache: {cache}" if cache else ""
+    info += f" -extra: {kwargs}" if kwargs else ""
+    logger.debug(info)
+    return factory.get()
+
+
+def get_llm_unified(
+    llm: str | None = None,
+    json_mode: bool = False,
+    streaming: bool = False,
+    cache: str | None = None,
+    **kwargs,
+) -> BaseChatModel:
+    """Create a configured LangChain BaseLanguageModel instance using unified LLM parameter.
+
+    Args:
+        llm: Unified LLM identifier (can be either LLM ID or LLM tag)
+        json_mode: Whether to force JSON output format (where supported)
+        streaming: Whether to enable streaming responses (where supported)
+        cache: cache method ("sqlite", "memory", no"_cache, ..) or "default", or None if no change (global setting)
+        **kwargs: other llm parameters (temperature, max_token, ....)
+
+    Returns:
+        BaseLanguageModel: Configured language model instance
+
+    Examples:
+        ```python
+        # Get default LLM
+        llm = get_llm_unified()
+
+        # Get specific model by ID
+        llm = get_llm_unified(llm="gpt_35_openai", streaming=True)
+        
+        # Get model by tag
+        llm = get_llm_unified(llm="fast_model", temperature=0.7)
+        ```
+    """
+    factory = LlmFactory.from_unified_parameter(
+        llm=llm,
+        json_mode=json_mode,
+        streaming=streaming,
+        cache=cache,
+        llm_params=kwargs,
+    )
+    info = f"get LLM (unified):'{factory.llm_id}'"
     info += " -streaming" if streaming else ""
     info += " -json_mode" if json_mode else ""
     info += f" -cache: {cache}" if cache else ""

@@ -64,7 +64,7 @@ langserve: ## Lauch langserve app
 	python src/main/langserve_app.py
 
 webapp: ## Launch Streamlit app
-	uv run streamlit run "$(STREAMLIT_ENTRY_POINT)"
+	PYTHONPATH=$(PWD) uv run streamlit run "$(STREAMLIT_ENTRY_POINT)"
 
 
 ##############################
@@ -208,7 +208,7 @@ help:
 test-install: .pythonpath ## Quick test install
 	@echo $(PYTHONPATH)
 	@echo "Call a fake LLM that returns the prompt. Here it should  display 'tell me a joke on ...'"
-	echo bears | PYTHONPATH="." uv run cli run joke -m parrot_local_fake
+	echo bears | PYTHONPATH=$(PWD) uv run cli run joke -m parrot_local_fake
 
 
 ##############################

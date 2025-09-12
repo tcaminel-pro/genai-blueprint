@@ -24,7 +24,7 @@ def llm_selector_widget(w: DeltaGenerator) -> None:
         "Default LLM Model",
         available_models,
         index=index,
-        key="select_llm",
+        key="select_llm_widget",
         help="Select the default LLM model to use across the application",
     )
 

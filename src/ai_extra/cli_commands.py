@@ -114,8 +114,8 @@ def register_commands(cli_app: typer.Typer) -> None:
     def browser_agent(
         task: Annotated[str, typer.Argument(help="The task for the browser agent to execute")],
         headless: Annotated[bool, typer.Option(help="Run browser in headless mode")] = False,
-        llm_id: Annotated[
-            Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
+        llm: Annotated[
+            Optional[str], Option("--llm", "-m", help="LLM identifier (ID or tag from config)")
         ] = None,
     ) -> None:
         """Launch a browser agent to complete a given task.
@@ -125,20 +125,24 @@ def register_commands(cli_app: typer.Typer) -> None:
         """
         from browser_use import Agent, BrowserSession
 
-        from src.ai_core.llm_factory import LlmFactory, get_llm
+        from src.ai_core.llm_factory import LlmFactory, get_llm_unified
         from src.ai_extra.browser_use_langchain import ChatLangchain
 
-        if llm_id is not None and llm_id not in LlmFactory.known_items():
-            print(f"Error: unknown llm_id. \n Should be in {LlmFactory.known_items()}")
-            return
+        # Validate the LLM identifier if provided
+        if llm is not None:
+            resolved_id, error_msg = LlmFactory.resolve_llm_identifier_safe(llm)
+            if error_msg:
+                print(error_msg)
+                return
+                
         print(f"Running browser agent with task: {task}")
         browser_session = BrowserSession(
             headless=headless,
             window_size={"width": 800, "height": 600},
         )
 
-        llm = ChatLangchain(chat=get_llm(llm_id=llm_id))
-        agent = Agent(task=task, llm=llm, browser_session=browser_session)
+        llm_model = ChatLangchain(chat=get_llm_unified(llm=llm))
+        agent = Agent(task=task, llm=llm_model, browser_session=browser_session)
         history = asyncio.run(agent.run())
         print(history.final_result())
 
@@ -149,8 +153,8 @@ def register_commands(cli_app: typer.Typer) -> None:
         debug_mode: Annotated[bool, Option("--debug", "-d", help="Enable debug mode")] = False,
         stream: Annotated[bool, Option("--stream", "-s", help="Stream output progressively")] = False,
         # temperature: float = 0.0,
-        llm_id: Annotated[
-            Optional[str], Option("--llm-id", "-m", help="LLM model ID (use list-models to see options)")
+        llm: Annotated[
+            Optional[str], Option("--llm", "-m", help="LLM identifier (ID or tag from config)")
         ] = None,
     ) -> None:
         """Run 'fabric' pattern on standard input.
@@ -168,9 +172,14 @@ def register_commands(cli_app: typer.Typer) -> None:
         set_debug(debug_mode)
         set_verbose(verbose)
 
-        if llm_id is not None and llm_id not in LlmFactory.known_items():
-            print(f"Error: unknown llm_id. \n Should be in {LlmFactory.known_items()}")
-            return
+        # Validate the LLM identifier if provided and resolve to ID
+        llm_id = None
+        if llm is not None:
+            resolved_id, error_msg = LlmFactory.resolve_llm_identifier_safe(llm)
+            if error_msg:
+                print(error_msg)
+                return
+            llm_id = resolved_id
 
         config = {"llm": llm_id if llm_id else global_config().get_str("llm.models.default")}
         chain = get_fabric_chain(config)

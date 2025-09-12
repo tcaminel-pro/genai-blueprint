@@ -260,7 +260,12 @@ async def mcp_agent_runner(
 
 
 ## quick test ##
-async def call_react_agent(query: str, llm_id: str | None = None, mcp_server_filter: list | None = None) -> None:
+async def call_react_agent(
+    query: str, 
+    llm_id: str | None = None, 
+    mcp_server_filter: list | None = None,
+    additional_tools: list | None = None
+) -> None:
     """Execute a query using MCP tools with a ReAct agent and stream the response.
 
     Creates a ReAct agent with MCP tools and streams the response to the query.
@@ -270,6 +275,7 @@ async def call_react_agent(query: str, llm_id: str | None = None, mcp_server_fil
         query: The input query to process
         llm_id: Optional ID of the language model to use
         mcp_server_filter: Optional list of server names to include in the agent
+        additional_tools: Optional list of additional tools to include in the agent
 
     Example:
     ```python
@@ -285,9 +291,19 @@ async def call_react_agent(query: str, llm_id: str | None = None, mcp_server_fil
     model = get_llm(llm_id=llm_id)
     client = MultiServerMCPClient(get_mcp_servers_dict(mcp_server_filter))
     try:
-        tools = await client.get_tools()
-        agent = create_react_agent(model, tools)
-        logger.info("invoke MCP agent...")
+        # Get MCP tools
+        mcp_tools = await client.get_tools()
+        
+        # Combine MCP tools with additional tools from configuration
+        all_tools = list(mcp_tools)
+        if additional_tools:
+            all_tools.extend(additional_tools)
+            
+        agent = create_react_agent(model, all_tools)
+        
+        tool_names = [getattr(t, "name", str(type(t).__name__)) for t in all_tools]
+        logger.info(f"ReAct agent created with {len(all_tools)} tools: {', '.join(tool_names)}")
+        
         resp = agent.astream({"messages": [HumanMessage(content=query)]})
         await print_astream(resp)
     finally:
