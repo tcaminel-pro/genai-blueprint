@@ -206,8 +206,12 @@ help:
 
 
 test-install: .pythonpath ## Quick test install
-	@echo $(PYTHONPATH)
-	@echo "Call a fake LLM that returns the prompt. Here it should  display 'tell me a joke on ...'"
+	@if [ -z "$(PYTHONPATH)" ]; then \
+		echo -e "\033[33mWarning: PYTHONPATH is not set. Consider setting: export PYTHONPATH=\".\"\033[0m"; \
+	else \
+		echo -e "\033[32mPYTHONPATH is set to: $(PYTHONPATH)\033[0m"; \
+	fi
+	@echo -e "\033[3m\033[36mCall a fake LLM that returns the prompt. Here it should display 'tell me a joke on ...'\033[0m"
 	echo bears | PYTHONPATH=$(PWD) uv run cli run joke -m parrot_local_fake
 
 

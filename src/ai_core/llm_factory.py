@@ -413,7 +413,7 @@ class LlmFactory(BaseModel):
             model = AzureOpenAIServerModel(
                 model_id=name,
                 azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT"),
-                api_key=os.environ.get("AZURE_OPENAI_API_KEY=your_azure_openai_key_here"),
+                api_key=os.environ.get("AZURE_OPENAI_API_KEY"),
                 api_version=api_version,
             )
         else:

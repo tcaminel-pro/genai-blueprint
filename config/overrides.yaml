@@ -10,8 +10,8 @@ training_adn:
     models:
 #      default:  gpt_4omini_edenai
       default: gpt_oss120_openrouter
-      azure: gpt_4omini_azure
-      for_vision : gpt_4o_azure
+      azure: gpt_41_azure
+      for_vision : gpt_41_azure
       openrouter: gpt_oss120_openrouter
       local: gemma3_4b_ollama
   embeddings:

@@ -124,19 +124,19 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         console.print(keys_table)
 
-        # Deep Agents info
+        # # Deep Agents info
 
-        agents_table = Table(title="Deep Agents", show_header=True, header_style="bold magenta")
-        agents_table.add_column("Type", style="cyan")
-        agents_table.add_column("Description", style="green")
-        agents_table.add_column("Features", style="yellow")
+        # agents_table = Table(title="Deep Agents", show_header=True, header_style="bold magenta")
+        # agents_table.add_column("Type", style="cyan")
+        # agents_table.add_column("Description", style="green")
+        # agents_table.add_column("Features", style="yellow")
 
-        agents_table.add_row("Research", "Comprehensive research with web search", "Planning, Search, Notes, Reports")
-        agents_table.add_row("Coding", "Write, debug, and refactor code", "Sub-agents, Testing, Documentation")
-        agents_table.add_row("Analysis", "Data analysis and insights", "Exploration, Patterns, Reports")
-        agents_table.add_row("Custom", "User-defined agent with custom instructions", "Fully configurable")
+        # agents_table.add_row("Research", "Comprehensive research with web search", "Planning, Search, Notes, Reports")
+        # agents_table.add_row("Coding", "Write, debug, and refactor code", "Sub-agents, Testing, Documentation")
+        # agents_table.add_row("Analysis", "Data analysis and insights", "Exploration, Patterns, Reports")
+        # agents_table.add_row("Custom", "User-defined agent with custom instructions", "Fully configurable")
 
-        console.print(agents_table)
+        # console.print(agents_table)
 
     @cli_app.command()
     def llm(
