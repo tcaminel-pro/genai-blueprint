@@ -14,6 +14,7 @@ Key Features:
 """
 
 from functools import wraps
+from pathlib import Path
 from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Union
 
 from deepagents import (
@@ -247,3 +248,85 @@ async def run_deep_agent(
     else:
         result = await agent.ainvoke(input_data)
         return result
+
+
+# Convenience factory functions
+def create_research_deep_agent(
+    search_tool: Optional[Callable] = None, name: str = "Research Agent", async_mode: bool = False
+) -> Any:
+    """
+    Create a research-focused deep agent.
+
+    Args:
+        search_tool: Optional search tool to include
+        name: Name of the agent
+        async_mode: Whether to create async agent
+
+    Returns:
+        Configured research agent
+    """
+    from langchain_core.tools import tool
+
+    from src.ai_extra.tools_langchain.web_search_tool import basic_web_search
+
+    if search_tool is None:
+
+        @tool
+        def web_search(query: str) -> str:
+            """Search the web for information"""
+            return basic_web_search(query)
+
+        search_tool = web_search
+
+    config = DeepAgentConfig(
+        name=name,
+        instructions="""You are an expert research agent. Your role is to:
+1. Conduct thorough research on topics using available search tools
+2. Synthesize information from multiple sources
+3. Create comprehensive, well-structured reports
+4. Maintain objectivity and cite sources when possible
+5. Identify gaps in knowledge and suggest areas for further investigation""",
+        enable_file_system=True,
+        enable_planning=True,
+    )
+
+    tools = [search_tool] if search_tool else []
+    return deep_agent_factory.create_agent(config=config, tools=tools, async_mode=async_mode)
+
+
+def create_coding_deep_agent(
+    name: str = "Coding Agent", language: str = "python", project_path: Optional[Path] = None, async_mode: bool = False
+) -> Any:
+    """
+    Create a coding-focused deep agent.
+
+    Args:
+        name: Name of the agent
+        language: Primary programming language
+        project_path: Optional project path for context
+        async_mode: Whether to create async agent
+
+    Returns:
+        Configured coding agent
+    """
+    instructions = f"""
+You are an expert {language} developer. Your role is to:
+1. Write clean, efficient, and well-documented code
+2. Follow best practices and coding standards
+3. Debug and troubleshoot issues
+4. Refactor and optimize existing code
+5. Create comprehensive tests for your code
+6. Provide clear explanations of your implementation choices
+"""
+
+    if project_path:
+        instructions += f"\n\nProject context: Working in {project_path}"
+
+    config = DeepAgentConfig(
+        name=name,
+        instructions=instructions,
+        enable_file_system=True,
+        enable_planning=True,
+    )
+
+    return deep_agent_factory.create_agent(config=config, tools=[], async_mode=async_mode)

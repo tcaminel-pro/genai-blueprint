@@ -32,11 +32,11 @@ def display_messages(container: DeltaGenerator | Any) -> None:
     for msg in st.session_state.messages:
         # https://docs.streamlit.io/develop/api-reference/chat/st.chat_message
         # we store them as AIMessage and HumanMessage as its easier to send to LangGraph
-        if isinstance(msg, AIMessage):
+        if isinstance(msg, AIMessage) and msg.content:
             container.chat_message("ai").write(msg.content)
             if hasattr(msg, "trace_url"):
                 st.link_button("Trace", msg.trace_url)  # type: ignore
-        elif isinstance(msg, HumanMessage):
+        elif isinstance(msg, HumanMessage) and msg.content:
             container.chat_message("human").write(msg.content)
         else:
             logger.warning(f"unknown message ! {msg}")

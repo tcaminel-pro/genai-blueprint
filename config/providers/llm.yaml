@@ -106,7 +106,7 @@ llm:
   providers:
     - openrouter: openai/gpt-4.1
     - edenai: gpt-4.1-2025-04-14
-    - azure: gpt-4o/2024-02-15-preview
+    - azure: gpt-4.1/2024-02-15-preview
   capabilities: ['structured_outputs', 'vision']
 
 - model:
@@ -122,7 +122,6 @@ llm:
   providers:
     - openai: gpt-4o-mini
     - edenai: openai/gpt-4o-mini
-    - azure: gpt-4o/2024-02-15-preview
   capabilities: ['structured_outputs']
 
 - model:
@@ -141,7 +140,7 @@ llm:
   id: liquid_lfm40
   providers:
     - openrouter: liquid/lfm-40b
-    - vllm:  # NOT TESTED !
+    - vllm:  # DEV ! NOT TESTED !
         model: "bla bla vla"
         trust_remote_code: True
         max_new_tokens: 512

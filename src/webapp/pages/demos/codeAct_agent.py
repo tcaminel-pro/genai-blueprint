@@ -62,15 +62,6 @@ if "result_display" not in sss:
 llm_selector_widget(st.sidebar)
 
 
-# CodeactDemo is now imported from src.ai_extra.tools_smolagents.config_loader
-
-
-# get_stock_info is now imported from src.ai_extra.smolagents_tools
-
-
-# get_historical_price is now imported from src.ai_extra.smolagents_tools
-
-
 ##########################
 #  SmolAgent parameters
 ##########################

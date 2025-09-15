@@ -281,47 +281,47 @@ class LlmFactory(BaseModel):
         if llm_id not in LlmFactory.known_items():
             raise ValueError(f"Cannot find LLM '{llm_id}' of type : '{llm_tag}'")
         return llm_id
-        
+
     @staticmethod
     def resolve_llm_identifier(llm: str) -> str:
         """Resolve a unified LLM identifier to an actual LLM ID.
-        
+
         This function accepts a string that could be either an LLM ID or an LLM tag
         and returns the corresponding LLM ID.
-        
+
         Args:
             llm: A string that could be either an LLM ID or an LLM tag
-            
+
         Returns:
             The resolved LLM ID
-            
+
         Raises:
             ValueError: If the provided string is neither a valid LLM ID nor a valid LLM tag
         """
         # Check if it's a known LLM ID
         if llm in LlmFactory.known_items():
             return llm
-            
+
         # Otherwise, try to resolve it as a tag
         try:
             return LlmFactory.find_llm_id_from_tag(llm)
-        except ValueError:
+        except ValueError as ex:
             # If not a tag either, give a helpful error message
             raise ValueError(
                 f"Unknown LLM identifier '{llm}'. It is neither a valid LLM ID nor a valid LLM tag. "
                 f"Valid LLM IDs: {LlmFactory.known_items()}"
-            )
-    
+            ) from ex
+
     @staticmethod
     def resolve_llm_identifier_safe(llm: str) -> tuple[str | None, str | None]:
         """Safely resolve a unified LLM identifier to an actual LLM ID.
-        
+
         This function accepts a string that could be either an LLM ID or an LLM tag
         and returns the corresponding LLM ID or an error message.
-        
+
         Args:
             llm: A string that could be either an LLM ID or an LLM tag
-            
+
         Returns:
             A tuple of (resolved_id, error_message). If successful, error_message is None.
             If unsuccessful, resolved_id is None and error_message contains user guidance.
@@ -339,7 +339,7 @@ class LlmFactory(BaseModel):
                 f"🆔 Available LLM IDs: {', '.join(LlmFactory.known_items()[:3])}{'...' if len(LlmFactory.known_items()) > 3 else ''}"
             )
             return None, error_msg
-    
+
     @classmethod
     def from_unified_parameter(
         cls,
@@ -350,21 +350,21 @@ class LlmFactory(BaseModel):
         llm_params: dict | None = None,
     ) -> "LlmFactory":
         """Create LlmFactory instance from unified LLM parameter.
-        
+
         Args:
             llm: Unified LLM identifier (can be either LLM ID or LLM tag)
             json_mode: Whether to force JSON output format (where supported)
             streaming: Whether to enable streaming responses (where supported)
             cache: cache method or None
             llm_params: Additional LLM parameters
-            
+
         Returns:
             LlmFactory instance with resolved LLM ID
         """
         llm_id = None
         if llm is not None:
             llm_id = cls.resolve_llm_identifier(llm)
-            
+
         return cls(
             llm_id=llm_id,
             llm_tag=None,  # Don't use llm_tag since we've already resolved
@@ -408,6 +408,8 @@ class LlmFactory(BaseModel):
     def get_smolagent_model(self):  # -> ApiModel
         from smolagents import AzureOpenAIServerModel, LiteLLMModel
 
+        # Seems better to set these variables, nut not sure.
+
         if self.provider in ["azure"]:
             name, _, api_version = self.info.model.partition("/")
             model = AzureOpenAIServerModel(
@@ -418,7 +420,6 @@ class LlmFactory(BaseModel):
             )
         else:
             model = LiteLLMModel(model_id=self.get_litellm_model_name(), **self.llm_params)
-        # debug(model)
         return model
 
     def get(self) -> BaseChatModel:
@@ -441,7 +442,9 @@ class LlmFactory(BaseModel):
         """
         api_key_env_var = get_provider_api_env_var(self.info.provider)
         if api_key_env_var and not os.getenv(api_key_env_var, "").strip():
-            raise EnvironmentError(f"API key environment variable '{api_key_env_var}' not set or empty for : {self.llm_id}")
+            raise EnvironmentError(
+                f"API key environment variable '{api_key_env_var}' not set or empty for : {self.llm_id}"
+            )
         llm = self.model_factory()
         return llm
 
@@ -709,7 +712,7 @@ def get_llm_unified(
 
         # Get specific model by ID
         llm = get_llm_unified(llm="gpt_35_openai", streaming=True)
-        
+
         # Get model by tag
         llm = get_llm_unified(llm="fast_model", temperature=0.7)
         ```

@@ -8,27 +8,25 @@ Supports custom tools, MCP servers integration, and demo presets.
 import asyncio
 import uuid
 from pathlib import Path
-from typing import List, Tuple, cast
+from typing import Tuple, cast
 
 import streamlit as st
 from dotenv import load_dotenv
 from langchain.callbacks import tracing_v2_enabled
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
-from langchain_core.tools import BaseTool, tool
+from langchain_core.tools import tool
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
-from loguru import logger
-from pydantic import BaseModel, ConfigDict
 from streamlit import session_state as sss
+from streamlit.delta_generator import DeltaGenerator
 
 from src.ai_core.llm_factory import get_llm
 from src.ai_core.mcp_client import get_mcp_servers_dict
 from src.ai_core.prompts import dedent_ws, dict_input_message
 from src.ai_extra.tools_langchain.shared_config_loader import LangChainAgentConfig, load_all_langchain_agent_configs
-from src.utils.config_mngr import global_config
 from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
 from src.webapp.ui_components.config_editor import edit_config_dialog
 from src.webapp.ui_components.llm_selector import llm_selector_widget
@@ -65,9 +63,9 @@ def my_custom_weather(location: str) -> str:
 try:
     # This will only work when running in a Streamlit context
     _ = st.session_state  # This will raise an exception if not in Streamlit context
-    
+
     st.title("ReAct Agent")
-    
+
     # Sidebar: LLM selector and config editor (aligned with CodeAct Agent page)
     llm_selector_widget(st.sidebar)
     if st.sidebar.button(":material/edit: Edit Config", help="Edit anonymization configuration"):
@@ -100,8 +98,8 @@ def clear_display() -> None:
 
 def display_header_and_demo_selector(sample_demos: list[LangChainAgentConfig]) -> str | None:
     """Displays the header and demo selector, returning the selected pill."""
-    c01, c02 = st.columns([6, 4], border=False, gap="medium", vertical_alignment="top")
-    c02.title(" ReAct Agent :material/smart_toy:")
+    c01, c02 = st.columns([6, 1], border=False, gap="medium", vertical_alignment="top")
+    # c02.title(" ReAct Agent :material/smart_toy:")
     selected_pill = None
 
     if not sample_demos:
@@ -169,13 +167,14 @@ def display_input_form(select_block, sample_search: str | None) -> tuple[str, bo
     return prompt, submitted
 
 
-async def handle_agent_execution(placeholder, demo: LangChainAgentConfig, query: str) -> None:
+async def handle_agent_execution(placeholder: DeltaGenerator, demo: LangChainAgentConfig, query: str) -> None:
     """Handle the agent execution with proper UI layout."""
     HEIGHT = 800
     exec_block = placeholder.container()
-    col_display_left, col_display_right = exec_block.columns(2)
-    chat_container = col_display_left.container(height=HEIGHT)
-    result_display = col_display_right.container(height=HEIGHT)
+    # col_display_left, col_display_right = exec_block.columns(2)
+    # chat_container = col_display_left.container(height=HEIGHT)
+    # result_display = col_display_right.container(height=HEIGHT)
+    chat_container = exec_block.container(height=HEIGHT)
 
     config, checkpointer = get_agent_config()
     llm = get_llm()
@@ -219,14 +218,16 @@ async def handle_agent_execution(placeholder, demo: LangChainAgentConfig, query:
                         if node == "agent":
                             response = update["messages"][-1]
                             assert isinstance(response, AIMessage)
-                            st.chat_message("ai").write(response.content)
+                            if response.content:
+                                st.chat_message("ai").write(response.content)
                 url = cb.get_run_url()
 
             status.update(label="Done", state="complete", expanded=False)
             if "messages" not in sss:
                 sss.messages = []
             sss.messages.append(HumanMessage(content=query))
-            sss.messages.append(response)
+            if response:
+                sss.messages.append(response)
             st.link_button("Trace", url)
 
     finally:
@@ -240,7 +241,7 @@ async def main() -> None:
     global SAMPLES_DEMOS
     if SAMPLES_DEMOS is None:
         SAMPLES_DEMOS = load_all_langchain_agent_configs(CONFIG_FILE, "react_agent_demos")
-    
+
     # Main UI setup
     selected_pill = display_header_and_demo_selector(SAMPLES_DEMOS)
 
@@ -256,13 +257,6 @@ async def main() -> None:
     # Display demo information and sample selector
     sample_search = display_demo_info_and_sample_selector(demo, select_block)
 
-    # Display tools if available
-    with select_block.expander("Available Tools", expanded=False):
-        if tools := sss.get("tools"):
-            tools = cast(list[BaseTool], tools)
-            d = {"Name": [t.name for t in tools], "Description": [t.description for t in tools]}
-            st.dataframe(d)
-    
     # Get user input
     query, submitted = display_input_form(select_block, sample_search)
 
