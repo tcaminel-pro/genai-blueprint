@@ -1543,7 +1543,6 @@ ai = [
     { name = "chromadb" },
     { name = "deepagents" },
     { name = "langchain" },
-    { name = "langchain-chroma" },
     { name = "langchain-community" },
     { name = "langchain-core" },
     { name = "langchain-deepseek" },
@@ -1553,7 +1552,6 @@ ai = [
     { name = "langchain-mistralai" },
     { name = "langchain-ollama" },
     { name = "langchain-openai" },
-    { name = "langchain-tavily" },
     { name = "langchainhub" },
     { name = "langgraph" },
     { name = "langserve" },
@@ -1658,10 +1656,8 @@ requires-dist = [
 [package.metadata.requires-dev]
 ai = [
     { name = "chromadb", specifier = ">=1.0" },
-    { name = "deepagents", specifier = ">=0.0.3" },
     { name = "deepagents", specifier = ">=0.0.5" },
     { name = "langchain", specifier = ">=0.3" },
-    { name = "langchain-chroma", specifier = ">=0.2" },
     { name = "langchain-community", specifier = ">=0.3" },
     { name = "langchain-core", specifier = ">=0.3" },
     { name = "langchain-deepseek", specifier = ">=0.1.2" },
@@ -1671,7 +1667,6 @@ ai = [
     { name = "langchain-mistralai", specifier = ">=0.2.10" },
     { name = "langchain-ollama", specifier = ">=0.2" },
     { name = "langchain-openai", specifier = ">=0.3" },
-    { name = "langchain-tavily", specifier = ">=0.2.10" },
     { name = "langchainhub", specifier = ">=0.1" },
     { name = "langgraph", specifier = ">=0.5" },
     { name = "langserve", specifier = ">=0.3" },
@@ -2589,20 +2584,6 @@ wheels = [
 ]
 
 [[package]]
-name = "langchain-chroma"
-version = "0.2.6"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "chromadb" },
-    { name = "langchain-core" },
-    { name = "numpy" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/dd/94/93ab8f6e96429a60da50eea2d3f3ac988852f6b8da4e817d73ec026a0bd3/langchain_chroma-0.2.6.tar.gz", hash = "sha256:ec5ca0f6f7692ac053741e076ea086c4be0cfcb5846c8693b1bcc3089c88b65e", size = 17296, upload-time = "2025-09-11T19:54:47.991Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/08/bc/591e416a134f9fb766579d1ca9739f32b9d79c607a5053d34ad2b8fa7246/langchain_chroma-0.2.6-py3-none-any.whl", hash = "sha256:d7e10101b0942cd990eedb798c3d85ed3e8415a992c8a388843196f6ab97b41b", size = 12512, upload-time = "2025-09-11T19:54:46.72Z" },
-]
-
-[[package]]
 name = "langchain-cognee"
 version = "0.1.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2797,21 +2778,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/1f/b9/b9eb61d2f2679bacea0bea02e71e715c18f02c9f72f6c3d523fe7f7f65be/langchain_postgres-0.0.15.tar.gz", hash = "sha256:d6be01ab3a802881e7dcd16439a4efda5a8eba15c368e04fe9a96134ad90854e", size = 198495, upload-time = "2025-06-24T14:19:21.324Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/15/5e/572c90fce17462bfcb7e7b7ac2e24bbdbaced338fb271172c7b96a24ccee/langchain_postgres-0.0.15-py3-none-any.whl", hash = "sha256:dc3d083f6e2ac08fe918f658b63886586be62c057cab0ad30c1c6b38023d99b7", size = 45059, upload-time = "2025-06-24T14:19:19.781Z" },
-]
-
-[[package]]
-name = "langchain-tavily"
-version = "0.2.11"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "aiohttp" },
-    { name = "langchain" },
-    { name = "langchain-core" },
-    { name = "requests" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/17/bb/63ce4058684dddf525af3c8e5dcfab15c5f17515d20241ef6e726ac9e8b7/langchain_tavily-0.2.11.tar.gz", hash = "sha256:ab4f5d0f7fcb276a3905aef2e38c21a334b6cbfc86b405a3238fdc9c6eae1290", size = 22382, upload-time = "2025-07-25T17:26:33.41Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/a8/5a/9326f125b4d3055a96200a5035016efe1aac46149cdafc7182e56710fcfe/langchain_tavily-0.2.11-py3-none-any.whl", hash = "sha256:358317c18fbb26500bca665301450e38945f1f4f6a6f4e06406c7674a76c8d5c", size = 26187, upload-time = "2025-07-25T17:26:32.324Z" },
 ]
 
 [[package]]

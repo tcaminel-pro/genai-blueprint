@@ -45,6 +45,7 @@ ui:
         - training/runnable_playground.py
         - training/CLI_runner.py
         - training/tokenization.py
+        - training/embeddings.py
 
     demos:
       - demos/maintenance_agent.py
@@ -56,6 +57,8 @@ ui:
       - demos/graph_RAG.py
       - demos/anonymization.py
       - demos/cognee_KG.py
+
+
 
 #### 
 # Authentication

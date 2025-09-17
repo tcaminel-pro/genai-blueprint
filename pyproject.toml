@@ -44,9 +44,6 @@ ai = [
     "langchain-mistralai>=0.2.10",                             # Mistral AI integration
     "langchain-mcp-adapters>=0.0.5",                           # MCP protocol adapters
     "langchain-groq>=0.2",                                     # Groq integration
-    "langchain-chroma>=0.2",                                   # Chroma vector store
-    "langchain-tavily>=0.2.10",                                # Tavily search integration
-    "deepagents>=0.0.3",                                       # Deep learning agents
     "openai>=1.80.0",                                          # OpenAI API client
     "litellm==1.74",                                           # LLM API abstraction
     "chromadb>=1.0",                                           # Vector database

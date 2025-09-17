@@ -4,7 +4,7 @@ from pathlib import Path
 
 from langchain_community.document_loaders.text import TextLoader
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnableConfig, RunnableLambda, RunnablePassthrough
+from langchain_core.runnables import Runnable, RunnableConfig, RunnableLambda, RunnablePassthrough
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from loguru import logger
 from rich import print  # noqa: F401
@@ -16,7 +16,7 @@ from src.ai_core.prompts import def_prompt
 from src.ai_core.vector_store_factory import VectorStoreFactory
 
 
-def get_retriever_fn(query: str | None, config: RunnableConfig):
+def get_retriever_fn(query: str | None, config: RunnableConfig) -> Runnable:
     path = config["configurable"].get("path")
     if path is None:
         raise ValueError("Config should have a 'path' key")
