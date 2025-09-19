@@ -193,6 +193,7 @@ class LlmFactory(BaseModel):
         llm_tag: LLM tag from config (e.g., 'fake', 'powerful_model')
         json_mode: Whether to force JSON output format (where supported)
         streaming: Whether to enable streaming responses (where supported)
+        reasoning: Whether to show reasoning/thinking process (None=default, True=enable, False=disable)
         cache: cache method ("sqlite", "memory", no"_cache, ..) or "default", or None if no change (global setting)
         llm_params : other llm parameters (temperature, max_token, ....)
     """
@@ -201,6 +202,7 @@ class LlmFactory(BaseModel):
     llm_tag: str | None = None
     json_mode: bool = False
     streaming: bool = False
+    reasoning: bool | None = None
     cache: str | None = None
     llm_params: dict = {}
 
@@ -346,6 +348,7 @@ class LlmFactory(BaseModel):
         llm: str | None = None,
         json_mode: bool = False,
         streaming: bool = False,
+        reasoning: bool | None = None,
         cache: str | None = None,
         llm_params: dict | None = None,
     ) -> "LlmFactory":
@@ -355,6 +358,7 @@ class LlmFactory(BaseModel):
             llm: Unified LLM identifier (can be either LLM ID or LLM tag)
             json_mode: Whether to force JSON output format (where supported)
             streaming: Whether to enable streaming responses (where supported)
+            reasoning: Whether to show reasoning/thinking process (None=default, True=enable, False=disable)
             cache: cache method or None
             llm_params: Additional LLM parameters
 
@@ -370,6 +374,7 @@ class LlmFactory(BaseModel):
             llm_tag=None,  # Don't use llm_tag since we've already resolved
             json_mode=json_mode,
             streaming=streaming,
+            reasoning=reasoning,
             cache=cache,
             llm_params=llm_params or {},
         )
@@ -472,7 +477,7 @@ class LlmFactory(BaseModel):
             llm_params |= {"response_format": {"type": "json_object"}}
 
         langchain_factory_supported_profider = set(_SUPPORTED_PROVIDERS)
-        langchain_factory_supported_profider -= {"huggingface", "google", "azure"}
+        langchain_factory_supported_profider -= {"huggingface", "google", "azure", "ollama"}
 
         if self.info.provider in langchain_factory_supported_profider:
             # Some parameters are handled differently between provider. Here some workaround:
@@ -579,6 +584,38 @@ class LlmFactory(BaseModel):
             raise NotImplementedError("Chrys, it's here ! ")
             llm = VLLM(...)
 
+        elif self.info.provider == "ollama":
+            import os
+
+            from langchain_ollama import ChatOllama
+
+            # Temporarily disable proxy environment variables for localhost connections
+            # This is necessary because Ollama runs locally and shouldn't go through corporate proxies
+            original_proxy_env = {}
+            proxy_vars = ["HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy"]
+
+            for var in proxy_vars:
+                if var in os.environ:
+                    original_proxy_env[var] = os.environ[var]
+                    del os.environ[var]
+
+            try:
+                # Set reasoning parameter based on factory setting
+                # Default to False for cleaner output unless explicitly enabled
+                reasoning_enabled = self.reasoning if self.reasoning is not None else False
+
+                debug(reasoning_enabled)
+
+                llm = ChatOllama(
+                    model=self.info.model,
+                    base_url="http://localhost:11434",
+                    reasoning=reasoning_enabled,
+                    **llm_params,
+                )
+            finally:
+                # Restore original proxy settings
+                for var, value in original_proxy_env.items():
+                    os.environ[var] = value
         elif self.info.provider == "fake":
             from langchain_core.language_models.fake_chat_models import ParrotFakeChatModel
 
@@ -635,6 +672,7 @@ def get_llm(
     llm_tag: str | None = None,
     json_mode: bool = False,
     streaming: bool = False,
+    reasoning: bool | None = None,
     cache: str | None = None,
     **kwargs,
 ) -> BaseChatModel:
@@ -645,6 +683,7 @@ def get_llm(
         llm_tag: Tag (type) of model to use (fast_model, smart_model, etc.)
         json_mode: Whether to force JSON output format (where supported)
         streaming: Whether to enable streaming responses (where supported)
+        reasoning: Whether to show reasoning/thinking process (None=default, True=enable, False=disable)
         cache: cache method ("sqlite", "memory", no"_cache, ..) or "default", or None if no change (global setting)
         **kwargs: other llm parameters (temperature, max_token, ....)
 
@@ -674,12 +713,14 @@ def get_llm(
         llm_tag=llm_tag,
         json_mode=json_mode,
         streaming=streaming,
+        reasoning=reasoning,
         cache=cache,
         llm_params=kwargs,
     )
     info = f"get LLM:'{factory.llm_id}'"
     info += " -streaming" if streaming else ""
     info += " -json_mode" if json_mode else ""
+    info += f" -reasoning: {reasoning}" if reasoning is not None else ""
     info += f" -cache: {cache}" if cache else ""
     info += f" -extra: {kwargs}" if kwargs else ""
     logger.debug(info)
@@ -690,6 +731,7 @@ def get_llm_unified(
     llm: str | None = None,
     json_mode: bool = False,
     streaming: bool = False,
+    reasoning: bool | None = None,
     cache: str | None = None,
     **kwargs,
 ) -> BaseChatModel:
@@ -699,6 +741,7 @@ def get_llm_unified(
         llm: Unified LLM identifier (can be either LLM ID or LLM tag)
         json_mode: Whether to force JSON output format (where supported)
         streaming: Whether to enable streaming responses (where supported)
+        reasoning: Whether to show reasoning/thinking process (None=default, True=enable, False=disable)
         cache: cache method ("sqlite", "memory", no"_cache, ..) or "default", or None if no change (global setting)
         **kwargs: other llm parameters (temperature, max_token, ....)
 
@@ -721,12 +764,14 @@ def get_llm_unified(
         llm=llm,
         json_mode=json_mode,
         streaming=streaming,
+        reasoning=reasoning,
         cache=cache,
         llm_params=kwargs,
     )
     info = f"get LLM (unified):'{factory.llm_id}'"
     info += " -streaming" if streaming else ""
     info += " -json_mode" if json_mode else ""
+    info += f" -reasoning: {reasoning}" if reasoning is not None else ""
     info += f" -cache: {cache}" if cache else ""
     info += f" -extra: {kwargs}" if kwargs else ""
     logger.debug(info)

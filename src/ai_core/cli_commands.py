@@ -146,6 +146,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             float, Option("--temperature", "--temp", min=0.0, max=1.0, help="Model temperature (0-1)")
         ] = 0.0,
         stream: Annotated[bool, Option("--stream", "-s", help="Stream output progressively")] = False,
+        reasoning: Annotated[bool, Option("--reasoning", help="Enable reasoning/thinking mode (for compatible models)")] = False,
         raw: Annotated[bool, Option("--raw", "-r", help="Output raw LLM response object")] = False,
         lc_verbose: Annotated[bool, Option("--verbose", "-v", help="Enable LangChain verbose mode")] = False,
         lc_debug: Annotated[bool, Option("--debug", "-d", help="Enable LangChain debug mode")] = False,
@@ -197,6 +198,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             llm=llm,
             json_mode=False,
             streaming=stream,
+            reasoning=reasoning,
             cache=cache,
             llm_params={"temperature": temperature},
         )
@@ -228,6 +230,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             float, Option("--temperature", "--temp", min=0.0, max=1.0, help="Model temperature (0-1)")
         ] = 0.0,
         stream: Annotated[bool, Option("--stream", "-s", help="Stream output progressively")] = False,
+        reasoning: Annotated[bool, Option("--reasoning", help="Enable reasoning/thinking mode (for compatible models)")] = False,
         lc_verbose: Annotated[bool, Option("--verbose", "-v", help="Enable LangChain verbose mode")] = False,
         lc_debug: Annotated[bool, Option("--debug", "-d", help="Enable LangChain debug mode")] = False,
         llm: Annotated[
@@ -285,6 +288,8 @@ def register_commands(cli_app: typer.Typer) -> None:
         if runnable_item:
             first_example = runnable_item.examples[0]
             llm_args = {"temperature": temperature}
+            if reasoning:
+                llm_args["reasoning"] = reasoning
             # Use the resolved llm_id or default
             try:
                 final_llm_id = llm_id or global_config().get_str("llm.models.default")
@@ -302,6 +307,8 @@ def register_commands(cli_app: typer.Typer) -> None:
                 config |= {"path": first_example.path}
             if not input:
                 input = first_example.query[0]
+            
+            
             chain = runnable_item.get().with_config(configurable=config)
         else:
             print(f"Runnable '{runnable_name}' not found in config. Should be in: {runnables_list_str}")
