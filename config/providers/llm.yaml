@@ -89,6 +89,12 @@ llm:
   capabilities: ['vision', 'structured_outputs']
 
 - model:
+  id: qwen31_17
+  providers:
+    - ollama: qwen3:1.7b
+  capabilities: ['structured_outputs']
+
+- model:
   id: google_gemini15pro
   providers:
     - openrouter: google/gemini-pro-1.5

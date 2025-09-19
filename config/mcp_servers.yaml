@@ -65,3 +65,14 @@ mcpServers:
     args:
     - vizro-mcp
     disabled: false
+
+  yahoo-finance-mcp:
+    command: npx
+    args:
+    - "-y"
+    - "@smithery/cli@latest"
+    - run
+    - "@Alex2Yang97/yahoo-finance-mcp"
+    - "--key"
+    - 2b62c70d-e801-46fd-9c72-8aa538abaded
+
