@@ -19,12 +19,9 @@ from pathlib import Path
 from typing import Annotated, Optional
 
 import typer
-from dotenv import load_dotenv
 from typer import Option
 
 from src.utils.config_mngr import global_config
-
-load_dotenv()
 
 
 def register_commands(cli_app: typer.Typer) -> None:
@@ -63,7 +60,9 @@ def register_commands(cli_app: typer.Typer) -> None:
         console.print(models_table)
 
         # LLM Tags info with enhanced details
-        tags_table = Table(title="🏷️  LLM Tags (Use these with --llm option)", show_header=True, header_style="bold magenta")
+        tags_table = Table(
+            title="🏷️  LLM Tags (Use these with --llm option)", show_header=True, header_style="bold magenta"
+        )
         tags_table.add_column("Tag", style="cyan", width=15)
         tags_table.add_column("LLM ID", style="green", width=25)
         tags_table.add_column("Provider", style="blue", width=12)
@@ -80,34 +79,40 @@ def register_commands(cli_app: typer.Typer) -> None:
                     # Check if the LLM ID is available (has API keys and module)
                     is_available = llm_id in LlmFactory.known_items()
                     status = "[green]✓ available[/green]" if is_available else "[red]✗ unavailable[/red]"
-                    
+
                     # Extract provider from LLM ID (last part after underscore)
                     provider = "unknown"
                     if isinstance(llm_id, str) and "_" in llm_id:
                         provider = llm_id.rsplit("_", 1)[-1]
-                    
+
                     # Create usage example
                     example = f"--llm {tag}"
-                    
+
                     tags_table.add_row(tag, str(llm_id), provider, status, example)
                     tag_count += 1
 
         if tag_count == 0:
-            tags_table.add_row("[dim]No tags configured[/dim]", "[dim]N/A[/dim]", "[dim]N/A[/dim]", "[dim]N/A[/dim]", "[dim]Configure in config file[/dim]")
-        
+            tags_table.add_row(
+                "[dim]No tags configured[/dim]",
+                "[dim]N/A[/dim]",
+                "[dim]N/A[/dim]",
+                "[dim]N/A[/dim]",
+                "[dim]Configure in config file[/dim]",
+            )
+
         console.print(tags_table)
-        
+
         # Add helpful usage information
         if tag_count > 0:
             console.print(
                 Panel(
-                    f"[bold cyan]💡 Usage Tips:[/bold cyan]\n"
-                    f"• Use tags with [bold]--llm[/bold] option: [green]uv run cli llm 'Hello' --llm fast_model[/green]\n"
-                    f"• Tags are easier to remember than full LLM IDs\n"
-                    f"• Configure more tags in your configuration file under [bold]llm.models[/bold]",
+                    "[bold cyan]💡 Usage Tips:[/bold cyan]\n"
+                    "• Use tags with [bold]--llm[/bold] option: [green]uv run cli llm 'Hello' --llm fast_model[/green]\n"
+                    "• Tags are easier to remember than full LLM IDs\n"
+                    "• Configure more tags in your configuration file under [bold]llm.models[/bold]",
                     title="How to use LLM Tags",
                     border_style="cyan",
-                    expand=False
+                    expand=False,
                 )
             )
 
@@ -146,13 +151,13 @@ def register_commands(cli_app: typer.Typer) -> None:
             float, Option("--temperature", "--temp", min=0.0, max=1.0, help="Model temperature (0-1)")
         ] = 0.0,
         stream: Annotated[bool, Option("--stream", "-s", help="Stream output progressively")] = False,
-        reasoning: Annotated[bool, Option("--reasoning", help="Enable reasoning/thinking mode (for compatible models)")] = False,
+        reasoning: Annotated[
+            bool, Option("--reasoning", help="Enable reasoning/thinking mode (for compatible models)")
+        ] = False,
         raw: Annotated[bool, Option("--raw", "-r", help="Output raw LLM response object")] = False,
         lc_verbose: Annotated[bool, Option("--verbose", "-v", help="Enable LangChain verbose mode")] = False,
         lc_debug: Annotated[bool, Option("--debug", "-d", help="Enable LangChain debug mode")] = False,
-        llm: Annotated[
-            Optional[str], Option("--llm", "-m", help="LLM identifier (ID or tag from config)")
-        ] = None,
+        llm: Annotated[Optional[str], Option("--llm", "-m", help="LLM identifier (ID or tag from config)")] = None,
     ) -> None:
         """
         Invoke an LLM.
@@ -230,12 +235,12 @@ def register_commands(cli_app: typer.Typer) -> None:
             float, Option("--temperature", "--temp", min=0.0, max=1.0, help="Model temperature (0-1)")
         ] = 0.0,
         stream: Annotated[bool, Option("--stream", "-s", help="Stream output progressively")] = False,
-        reasoning: Annotated[bool, Option("--reasoning", help="Enable reasoning/thinking mode (for compatible models)")] = False,
+        reasoning: Annotated[
+            bool, Option("--reasoning", help="Enable reasoning/thinking mode (for compatible models)")
+        ] = False,
         lc_verbose: Annotated[bool, Option("--verbose", "-v", help="Enable LangChain verbose mode")] = False,
         lc_debug: Annotated[bool, Option("--debug", "-d", help="Enable LangChain debug mode")] = False,
-        llm: Annotated[
-            Optional[str], Option("--llm", "-m", help="LLM identifier (ID or tag from config)")
-        ] = None,
+        llm: Annotated[Optional[str], Option("--llm", "-m", help="LLM identifier (ID or tag from config)")] = None,
     ) -> None:
         """
         Run a Runnable or directly invoke an LLM.
@@ -307,8 +312,7 @@ def register_commands(cli_app: typer.Typer) -> None:
                 config |= {"path": first_example.path}
             if not input:
                 input = first_example.query[0]
-            
-            
+
             chain = runnable_item.get().with_config(configurable=config)
         else:
             print(f"Runnable '{runnable_name}' not found in config. Should be in: {runnables_list_str}")

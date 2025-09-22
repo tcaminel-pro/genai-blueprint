@@ -70,8 +70,8 @@ ekg_local:
     commands:  
     - src.ai_core.cli_commands:register_commands
     - src.ai_extra.cli_commands:register_commands
-  #  - src.demos.ekg.cli_commands:register_commands
-  #  - src.demos.ekg.cli_commands_baml:register_baml_commands
+    - src.demos.ekg.cli_commands:register_commands
+    - src.demos.ekg.cli_commands_baml:register_baml_commands
   kv_store: 
     file: 
       path: ${paths.data_root}/kv_store

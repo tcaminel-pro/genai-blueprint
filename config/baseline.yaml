@@ -9,7 +9,7 @@ llm:
   list: ${paths.config}/providers/llm.yaml
   # default_model: gpt_4omini_openai # gpt_35_azure # mistral_large_edenai 
   models:
-    default: gpt_4omini_openai   # Mandatory key !!
+    default: gpt_4o_openai   # Use full GPT-4o model for structured output support
     ### 
     # Optional model definitions (you can add your own type): 
     ###

@@ -20,7 +20,6 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.tools import BaseTool, tool
 from langchain.vectorstores.base import VectorStore
 from langchain_community.document_loaders import TextLoader
-from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from loguru import logger
@@ -29,7 +28,7 @@ from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import dedent_ws, def_prompt
 from src.ai_core.vector_store_factory import VectorStoreFactory
-from src.ai_extra.graphs.sql_agent import create_sql_querying_graph
+from src.ai_extra.tools_langchain.sql_tool_factory import SQLToolFactory
 from src.demos.maintenance_agent.dummy_data import dummy_database
 from src.utils.config_mngr import global_config
 
@@ -105,14 +104,14 @@ def create_maintenance_tools() -> list[BaseTool]:
     """
     logger.info("create tools")
 
-    @tool
-    def get_planning_info(query: str) -> str:
-        """Useful for when you need to answer questions about tasks assigned to employees."""
-
-        db = SQLDatabase.from_uri(dummy_database())
-        graph = create_sql_querying_graph(get_llm(), db, examples=examples[:5])
-        result = graph.invoke({"question": query})
-        return result["answer"]
+    # Create planning info tool using the factory
+    get_planning_info = SQLToolFactory.create_planning_info_tool(
+        llm=get_llm(),
+        database_uri=dummy_database(),
+        examples=examples[:5],
+        tool_name="get_planning_info",
+        tool_description="Useful for when you need to answer questions about tasks assigned to employees.",
+    )
 
     @tool
     def get_maintenance_times(area: str) -> str:

@@ -30,11 +30,12 @@ class LangChainAgentConfig(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
-def process_langchain_tools_from_config(tools_config: List[Dict[str, Any]] | None) -> List[BaseTool]:
+def process_langchain_tools_from_config(tools_config: List[Dict[str, Any]] | None, llm: Optional[Any] = None) -> List[BaseTool]:
     """Process tools configuration and return list of LangChain tool instances.
 
     Args:
         tools_config: List of tool configuration dictionaries, or None
+        llm: Optional LLM instance to pass to factory functions that support it
 
     Returns:
         List of LangChain BaseTool instances
@@ -57,7 +58,7 @@ def process_langchain_tools_from_config(tools_config: List[Dict[str, Any]] | Non
                 if tool_instance:
                     tools.append(tool_instance)
             elif "factory" in tool_config:
-                tools.extend(_process_factory_tool(tool_config))
+                tools.extend(_process_factory_tool(tool_config, llm=llm))
         except Exception as ex:
             raise Exception(f"Failed to process tool config {tool_config}: {ex}") from ex
             logger.warning(f"Failed to process tool config {tool_config}: {ex}")
@@ -119,8 +120,13 @@ def _process_class_tool(tool_config: Dict[str, Any]) -> Optional[BaseTool]:
     return None
 
 
-def _process_factory_tool(tool_config: Dict[str, Any]) -> List[BaseTool]:
-    """Process a factory-based tool configuration."""
+def _process_factory_tool(tool_config: Dict[str, Any], llm: Optional[Any] = None) -> List[BaseTool]:
+    """Process a factory-based tool configuration.
+    
+    Args:
+        tool_config: Tool configuration dictionary
+        llm: Optional LLM instance to pass to factory functions that support it
+    """
     factory_ref = tool_config.get("factory")
     params = {k: v for k, v in tool_config.items() if k != "factory"}
     tools = []
@@ -128,6 +134,13 @@ def _process_factory_tool(tool_config: Dict[str, Any]) -> List[BaseTool]:
     if isinstance(factory_ref, str) and ":" in factory_ref:
         try:
             factory_func = import_from_qualified(factory_ref)
+            
+            # If LLM is provided and factory function accepts it, pass it along
+            import inspect
+            sig = inspect.signature(factory_func)
+            if llm is not None and 'llm' in sig.parameters:
+                params['llm'] = llm
+                
             tool_result = factory_func(**params)
 
             if isinstance(tool_result, list):
@@ -165,7 +178,7 @@ def load_langchain_agent_config(config_file: str, config_section: str, config_na
 
 
 def create_langchain_agent_config(
-    config_file: str, config_section: str, config_name: str
+    config_file: str, config_section: str, config_name: str, llm: Optional[Any] = None
 ) -> Optional[LangChainAgentConfig]:
     """Create a LangChainAgentConfig from YAML configuration.
 
@@ -173,6 +186,7 @@ def create_langchain_agent_config(
         config_file: Path to the YAML configuration file
         config_section: Section name in the YAML file
         config_name: Name of the configuration to load
+        llm: Optional LLM instance to pass to factory functions that support it
 
     Returns:
         LangChainAgentConfig instance or None if not found
@@ -187,8 +201,8 @@ def create_langchain_agent_config(
     tool_configs = demo_config.get("tools", [])
     system_prompt = demo_config.get("system_prompt")
 
-    # Process tools
-    processed_tools = process_langchain_tools_from_config(tool_configs)
+    # Process tools with the provided LLM
+    processed_tools = process_langchain_tools_from_config(tool_configs, llm=llm)
 
     return LangChainAgentConfig(
         name=name,

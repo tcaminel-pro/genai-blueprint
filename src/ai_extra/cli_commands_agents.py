@@ -22,12 +22,6 @@ import typer
 from loguru import logger
 from typer import Option
 
-from src.ai_extra.tools_smolagents.config_loader import (
-    CONF_YAML_FILE,
-    load_smolagent_demo_config,
-    process_tools_from_config,
-)
-
 
 def register_commands(cli_app: typer.Typer) -> None:
     @cli_app.command()
@@ -81,10 +75,17 @@ def register_commands(cli_app: typer.Typer) -> None:
         config_mcp_servers = []
 
         if config:
+            from src.ai_core.llm_factory import get_llm
             from src.ai_extra.tools_langchain.shared_config_loader import create_langchain_agent_config
 
+            # Get the LLM instance that will be used by the agent
+            agent_llm = get_llm(llm_id=llm_id) if llm_id else None
+
             agent_config = create_langchain_agent_config(
-                config_file="config/demos/react_agent.yaml", config_section="react_agent_demos", config_name=config
+                config_file="config/demos/react_agent.yaml",
+                config_section="react_agent_demos",
+                config_name=config,
+                llm=agent_llm,
             )
 
             if agent_config is None:
@@ -153,6 +154,11 @@ def register_commands(cli_app: typer.Typer) -> None:
         from smolagents.default_tools import TOOL_MAPPING
 
         from src.ai_core.llm_factory import LlmFactory
+        from src.ai_extra.tools_smolagents.config_loader import (
+            CONF_YAML_FILE,
+            load_smolagent_demo_config,
+            process_tools_from_config,
+        )
         from src.utils.cli.langchain_setup import setup_langchain
 
         # Resolve LLM identifier if provided

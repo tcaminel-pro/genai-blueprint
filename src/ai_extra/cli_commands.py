@@ -114,9 +114,7 @@ def register_commands(cli_app: typer.Typer) -> None:
     def browser_agent(
         task: Annotated[str, typer.Argument(help="The task for the browser agent to execute")],
         headless: Annotated[bool, typer.Option(help="Run browser in headless mode")] = False,
-        llm: Annotated[
-            Optional[str], Option("--llm", "-m", help="LLM identifier (ID or tag from config)")
-        ] = None,
+        llm: Annotated[Optional[str], Option("--llm", "-m", help="LLM identifier (ID or tag from config)")] = None,
     ) -> None:
         """Launch a browser agent to complete a given task.
 
@@ -134,7 +132,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             if error_msg:
                 print(error_msg)
                 return
-                
+
         print(f"Running browser agent with task: {task}")
         browser_session = BrowserSession(
             headless=headless,
@@ -153,9 +151,7 @@ def register_commands(cli_app: typer.Typer) -> None:
         debug_mode: Annotated[bool, Option("--debug", "-d", help="Enable debug mode")] = False,
         stream: Annotated[bool, Option("--stream", "-s", help="Stream output progressively")] = False,
         # temperature: float = 0.0,
-        llm: Annotated[
-            Optional[str], Option("--llm", "-m", help="LLM identifier (ID or tag from config)")
-        ] = None,
+        llm: Annotated[Optional[str], Option("--llm", "-m", help="LLM identifier (ID or tag from config)")] = None,
     ) -> None:
         """Run 'fabric' pattern on standard input.
 
