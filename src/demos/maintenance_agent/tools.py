@@ -20,6 +20,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.tools import BaseTool, tool
 from langchain.vectorstores.base import VectorStore
 from langchain_community.document_loaders import TextLoader
+from langchain_community.utilities import SQLDatabase
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from loguru import logger
@@ -28,7 +29,7 @@ from src.ai_core.embeddings_factory import EmbeddingsFactory
 from src.ai_core.llm_factory import get_llm
 from src.ai_core.prompts import dedent_ws, def_prompt
 from src.ai_core.vector_store_factory import VectorStoreFactory
-from src.ai_extra.tools_langchain.sql_tool_factory import SQLToolFactory
+from src.ai_extra.tools_langchain.sql_tool_factory import SQLToolFactory, SQLToolConfig
 from src.demos.maintenance_agent.dummy_data import dummy_database
 from src.utils.config_mngr import global_config
 
@@ -104,14 +105,15 @@ def create_maintenance_tools() -> list[BaseTool]:
     """
     logger.info("create tools")
 
-    # Create planning info tool using the factory
-    get_planning_info = SQLToolFactory.create_planning_info_tool(
-        llm=get_llm(),
+    # Create planning info tool using the factory constructor
+    config = SQLToolConfig(
         database_uri=dummy_database(),
-        examples=examples[:5],
         tool_name="get_planning_info",
         tool_description="Useful for when you need to answer questions about tasks assigned to employees.",
+        examples=examples[:5],
     )
+    factory = SQLToolFactory(get_llm())
+    get_planning_info = factory.create_tool(config)
 
     @tool
     def get_maintenance_times(area: str) -> str:

@@ -30,7 +30,9 @@ class LangChainAgentConfig(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
-def process_langchain_tools_from_config(tools_config: List[Dict[str, Any]] | None, llm: Optional[Any] = None) -> List[BaseTool]:
+def process_langchain_tools_from_config(
+    tools_config: List[Dict[str, Any]] | None, llm: Optional[str] = None
+) -> List[BaseTool]:
     """Process tools configuration and return list of LangChain tool instances.
 
     Args:
@@ -120,9 +122,9 @@ def _process_class_tool(tool_config: Dict[str, Any]) -> Optional[BaseTool]:
     return None
 
 
-def _process_factory_tool(tool_config: Dict[str, Any], llm: Optional[Any] = None) -> List[BaseTool]:
+def _process_factory_tool(tool_config: Dict[str, Any], llm: Optional[str] = None) -> List[BaseTool]:
     """Process a factory-based tool configuration.
-    
+
     Args:
         tool_config: Tool configuration dictionary
         llm: Optional LLM instance to pass to factory functions that support it
@@ -134,13 +136,14 @@ def _process_factory_tool(tool_config: Dict[str, Any], llm: Optional[Any] = None
     if isinstance(factory_ref, str) and ":" in factory_ref:
         try:
             factory_func = import_from_qualified(factory_ref)
-            
+
             # If LLM is provided and factory function accepts it, pass it along
             import inspect
+
             sig = inspect.signature(factory_func)
-            if llm is not None and 'llm' in sig.parameters:
-                params['llm'] = llm
-                
+            if llm is not None and "llm" in sig.parameters:
+                params["llm"] = llm
+
             tool_result = factory_func(**params)
 
             if isinstance(tool_result, list):

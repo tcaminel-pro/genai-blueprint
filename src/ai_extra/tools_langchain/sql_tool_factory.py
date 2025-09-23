@@ -6,7 +6,6 @@ capabilities with language model-based natural language processing.
 """
 
 from typing import Any
-from pathlib import Path
 
 from langchain.tools import BaseTool, tool
 from langchain_community.utilities.sql_database import SQLDatabase
@@ -18,27 +17,26 @@ from src.ai_extra.graphs.sql_agent import create_sql_querying_graph
 
 class SQLToolConfig(BaseModel):
     """Configuration for SQL tool factory."""
-    
+
     database_uri: str = Field(description="Database connection URI")
     tool_name: str = Field(default="sql_query", description="Name of the generated tool")
     tool_description: str = Field(
         default="Useful for answering questions by querying the database",
-        description="Description of what the tool does"
+        description="Description of what the tool does",
     )
     examples: list[dict[str, str]] = Field(
-        default_factory=list,
-        description="List of example queries with 'input' and 'query' keys"
+        default_factory=list, description="List of example queries with 'input' and 'query' keys"
     )
     top_k: int = Field(default=10, description="Maximum number of results to return")
 
 
 class SQLToolFactory:
     """Factory for creating SQL querying tools for LangChain agents.
-    
+
     This factory creates tools that can execute natural language queries
     against SQL databases using a language model to generate and interpret
     SQL queries.
-    
+
     Example:
     ```
         config = SQLToolConfig(
@@ -50,29 +48,29 @@ class SQLToolFactory:
                 "query": "SELECT * FROM tasks WHERE employee = 'X'"
             }]
         )
-        
+
         factory = SQLToolFactory(llm)
         tool = factory.create_tool(config)
     ```
     """
-    
+
     def __init__(self, llm: BaseChatModel) -> None:
         """Initialize the factory with a language model.
-        
+
         Args:
             llm: Language model for query generation and answering
         """
         self.llm = llm
-    
+
     def create_tool(self, config: SQLToolConfig) -> BaseTool:
         """Create a SQL querying tool based on the provided configuration.
-        
+
         Args:
             config: Configuration specifying database connection and tool behavior
-            
+
         Returns:
             Configured LangChain tool for SQL querying
-            
+
         Raises:
             ValueError: If database URI is invalid or database is inaccessible
             ConnectionError: If unable to connect to the database
@@ -84,90 +82,49 @@ class SQLToolFactory:
             db.get_table_info()
         except Exception as e:
             raise ConnectionError(f"Failed to connect to database: {e}") from e
-        
+
         # Create the SQL querying graph
-        graph = create_sql_querying_graph(
-            llm=self.llm,
-            db=db,
-            examples=config.examples,
-            top_k=config.top_k
-        )
-        
+        graph = create_sql_querying_graph(llm=self.llm, db=db, examples=config.examples, top_k=config.top_k)
+
         @tool
         def sql_query_tool(query: str) -> str:
             """Execute a natural language query against the database."""
             result = graph.invoke({"question": query})
             return result["answer"]
-        
+
         # Set the tool name and description after creation
         sql_query_tool.name = config.tool_name
         sql_query_tool.description = config.tool_description
-        
+
         return sql_query_tool
-    
+
     def create_tool_from_dict(self, config_dict: dict[str, Any]) -> BaseTool:
         """Create a SQL querying tool from a dictionary configuration.
-        
+
         Args:
             config_dict: Dictionary containing tool configuration
-            
+
         Returns:
             Configured LangChain tool for SQL querying
         """
         config = SQLToolConfig(**config_dict)
         return self.create_tool(config)
-    
-    @classmethod
-    def create_planning_info_tool(
-        cls,
-        llm: BaseChatModel,
-        database_uri: str,
-        examples: list[dict[str, str]] | None = None,
-        tool_name: str = "get_planning_info",
-        tool_description: str = "Useful for when you need to answer questions about tasks assigned to employees.",
-    ) -> BaseTool:
-        """Convenience method to create a planning info tool.
-        
-        This method provides a simplified interface for creating planning-related
-        SQL tools, similar to the original get_planning_info function.
-        
-        Args:
-            llm: Language model for query generation and answering
-            database_uri: Database connection URI
-            examples: Optional list of example queries
-            tool_name: Name of the tool (defaults to "get_planning_info")
-            tool_description: Description of the tool's purpose
-            
-        Returns:
-            Configured planning info tool
-        """
-        config = SQLToolConfig(
-            database_uri=database_uri,
-            tool_name=tool_name,
-            tool_description=tool_description,
-            examples=examples or [],
-        )
-        
-        factory = cls(llm)
-        return factory.create_tool(config)
 
 
-def create_sql_tool_from_config(
-    config: dict[str, Any],
-    llm: BaseChatModel | None = None
-) -> BaseTool:
+
+def create_sql_tool_from_config(config: dict[str, Any], llm: BaseChatModel | None = None) -> BaseTool:
     """Create a SQL tool from a configuration dictionary.
-    
+
     This function provides a simple interface for creating SQL tools
     from configuration files or dictionaries.
-    
+
     Args:
         config: Configuration dictionary with tool settings
         llm: Language model for query generation and answering (optional, will use default if not provided)
-        
+
     Returns:
         Configured SQL querying tool
-        
+
     Example:
     ```
         config = {
@@ -181,14 +138,15 @@ def create_sql_tool_from_config(
                 }
             ]
         }
-        
+
         tool = create_sql_tool_from_config(config)
     ```
     """
     # Get LLM if not provided
     if llm is None:
         from src.ai_core.llm_factory import get_llm
+
         llm = get_llm()
-        
+
     factory = SQLToolFactory(llm)
     return factory.create_tool_from_dict(config)

@@ -4,6 +4,8 @@ This module provides SQL database tools for use with SmolAgents,
 allowing agents to execute SQL queries on configured database connections.
 """
 
+# TODO : Refactor by leveraging LangChain Database wrapper to improve interoperability 
+
 from typing import Any, Sequence
 
 import pandas as pd

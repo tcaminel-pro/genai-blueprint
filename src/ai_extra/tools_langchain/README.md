@@ -42,21 +42,6 @@ result = tool.invoke({"query": "How many users are there?"})
 print(result)
 ```
 
-#### Convenience Method for Planning Tools
-
-```python
-from src.ai_extra.tools_langchain.sql_tool_factory import SQLToolFactory
-
-# Create a planning-specific tool (like the original get_planning_info)
-tool = SQLToolFactory.create_planning_info_tool(
-    llm=get_llm(),
-    database_uri="sqlite:///tasks.db",
-    examples=[{
-        "input": "Tasks for employee John",
-        "query": "SELECT * FROM tasks WHERE employee = 'John'"
-    }]
-)
-```
 
 #### Configuration from Dictionary
 
@@ -126,16 +111,17 @@ The SQL tool factory has been integrated into the existing maintenance agent:
 
 ```python
 # In src/demos/maintenance_agent/tools.py
-from src.ai_extra.tools_langchain.sql_tool_factory import SQLToolFactory
+from src.ai_extra.tools_langchain.sql_tool_factory import SQLToolFactory, SQLToolConfig
 
 # Replace the old hardcoded get_planning_info with:
-get_planning_info = SQLToolFactory.create_planning_info_tool(
-    llm=get_llm(),
+config = SQLToolConfig(
     database_uri=dummy_database(),
-    examples=examples[:5],
     tool_name="get_planning_info",
     tool_description="Useful for when you need to answer questions about tasks assigned to employees.",
+    examples=examples[:5],
 )
+factory = SQLToolFactory(get_llm())
+get_planning_info = factory.create_tool(config)
 ```
 
 ### Architecture

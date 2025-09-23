@@ -15,7 +15,6 @@ from dotenv import load_dotenv
 from langchain.callbacks import tracing_v2_enabled
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
-from langchain_core.tools import tool
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import MemorySaver
@@ -40,23 +39,6 @@ duckduck_search_tool = DuckDuckGoSearchRun()
 
 CONFIG_FILE = "config/demos/react_agent.yaml"
 assert Path(CONFIG_FILE).exists, f"Cannot load {CONFIG_FILE}"
-
-
-@tool
-def my_custom_weather(location: str) -> str:
-    """Return an approximate weather in Toulouse
-
-    Args:
-        location: City name to get weather for
-
-    Returns:
-        Weather description string
-    """
-
-    if location == "Toulouse":
-        return "Il faut beau"
-    else:
-        return "I don't know"
 
 
 # Only run UI code when this script is executed in Streamlit context (not during import)
@@ -119,7 +101,7 @@ def display_header_and_demo_selector(sample_demos: list[LangChainAgentConfig]) -
     return selected_pill
 
 
-def display_demo_info_and_sample_selector(demo: LangChainAgentConfig, select_block):
+def display_demo_info_and_sample_selector(demo: LangChainAgentConfig, select_block: DeltaGenerator):
     """Display demo information and sample selector."""
     col_display_left, col_display_right = select_block.columns([6, 3], vertical_alignment="bottom")
     with col_display_right:
@@ -152,7 +134,7 @@ def get_agent_config() -> tuple[RunnableConfig, BaseCheckpointSaver]:
     return cast(RunnableConfig, config), checkpointer
 
 
-def display_input_form(select_block, sample_search: str | None) -> tuple[str, bool]:
+def display_input_form(select_block: DeltaGenerator, sample_search: str | None) -> tuple[str, bool]:
     """Displays the input form and returns user input."""
     with select_block.form("react_form", border=False):
         cf1, cf2 = st.columns([15, 1], vertical_alignment="bottom")
