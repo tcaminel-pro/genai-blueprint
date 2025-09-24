@@ -33,8 +33,8 @@ import typer
 from loguru import logger
 from upath import UPath
 
-from .baml_client.async_client import b as baml_async_client
-from .baml_client.types import ReviewedOpportunity
+from src.demos.ekg.baml_client.async_client import b as baml_async_client
+from src.demos.ekg.baml_client.types import ReviewedOpportunity
 
 LLM_ID = None
 KV_STORE_ID = "file"
@@ -43,7 +43,7 @@ KV_STORE_ID = "file"
 class BamlStructuredProcessor:
     """Processor that uses BAML for extracting structured data from documents."""
 
-    def __init__(self, kvstore_id: str | None = None, force: bool = False):
+    def __init__(self, kvstore_id: str | None = None, force: bool = False) -> None:
         self.kvstore_id = kvstore_id or KV_STORE_ID
         self.force = force
 

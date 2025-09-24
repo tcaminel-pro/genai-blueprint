@@ -8,9 +8,9 @@ import asyncio
 
 from loguru import logger
 
-from .baml_client import b as baml_sync_client
-from .baml_client.async_client import b as baml_async_client
-from .cli_commands_baml import BamlStructuredProcessor
+from src.demos.ekg.baml_client import b as baml_sync_client
+from src.demos.ekg.baml_client.async_client import b as baml_async_client
+from src.demos.ekg.cli_commands_baml import BamlStructuredProcessor
 
 # Sample rainbow document content from the BAML test
 SAMPLE_RAINBOW_CONTENT = """# Solution Review Slides

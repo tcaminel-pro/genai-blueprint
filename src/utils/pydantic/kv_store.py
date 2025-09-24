@@ -31,8 +31,17 @@ class StoredObject(BaseModel):
     def from_model(cls, model: BaseModel, metadata: dict | None = None) -> "StoredObject":
         """Create StoredObject from a Pydantic model."""
         content = model.model_dump()
-        fingerprint = hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()[:16]
-        merged_metadata = {"fingerprint": fingerprint, **(metadata or {})}
+        content_fingerprint = hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()[:16]
+
+        # Generate model fingerprint from the serialized model schema
+        model_schema = model.model_json_schema()
+        model_fingerprint = hashlib.sha256(json.dumps(model_schema, sort_keys=True).encode()).hexdigest()[:16]
+
+        merged_metadata = {
+            "fingerprint": content_fingerprint,
+            "model_fingerprint": model_fingerprint,
+            **(metadata or {}),
+        }
         return cls(content=content, metadata=merged_metadata)
 
     @classmethod

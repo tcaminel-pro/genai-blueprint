@@ -279,8 +279,10 @@ class OmegaConfig(BaseModel):
         return check_dsn_update_driver(db_url, driver)
 
 
-def global_config() -> OmegaConfig:
-    """Get the global config singleton."""
+def global_config(reload: bool = False) -> OmegaConfig:
+    """Get the global config singleton. Reload from file if 'reload" is True"""
+    if reload:
+        global_config_reload()
     return OmegaConfig.singleton()
 
 

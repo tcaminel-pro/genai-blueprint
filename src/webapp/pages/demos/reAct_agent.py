@@ -212,8 +212,9 @@ def display_tool_calls_sidebar(tool_calls: List[Dict[str, Any]]) -> None:
                 st.markdown("**Output:**")
                 # Truncate very long outputs
                 display_output = output
-                if len(str(output)) > 1000:
-                    display_output = str(output)[:1000] + "\n\n... (truncated)"
+                MAX_OUTPUT = 2000
+                if len(str(output)) > MAX_OUTPUT:
+                    display_output = str(output)[:MAX_OUTPUT] + "\n\n... (truncated)"
                 st.code(display_output, language="text")
             else:
                 st.info("Tool is still running...")
@@ -446,7 +447,7 @@ async def main() -> None:
 
     # Left column: Tool calls
     with col_tools:
-        st.header("🔧 Tool Activity")
+        st.header("🔧 Activity")
         display_tool_calls_sidebar(sss.tool_calls)
 
         # Show trace link if available

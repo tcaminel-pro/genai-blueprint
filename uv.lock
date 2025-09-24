@@ -1122,7 +1122,7 @@ wheels = [
 
 [[package]]
 name = "dlt"
-version = "1.16.0"
+version = "1.17.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -1153,9 +1153,9 @@ dependencies = [
     { name = "tzdata" },
     { name = "win-precise-time", marker = "os_name == 'nt'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/47/45/8f32b8cc4c709c79edc54763ab0e5f62df55a17bfaf8c31e2d2538422e34/dlt-1.16.0.tar.gz", hash = "sha256:113d17a3f27aa4f41c3438b0b032a68d30db195d8415a471ba43a9502e971a21", size = 809187, upload-time = "2025-09-10T06:53:06.365Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/af/2e/959f7ba35a710c4128bd7ff329038af35791c77346beeeb16c6d3e2bd87c/dlt-1.17.0.tar.gz", hash = "sha256:7a41a360f0cfeb155da1da3cdd51edb3749a4378d99bb6d1d0a26c7ef471198d", size = 823873, upload-time = "2025-09-24T10:54:00.95Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c6/1c/0a96ced9fb52e859b44624cc86ace5f59324ca899ac7e5a5cfeb1f1c797c/dlt-1.16.0-py3-none-any.whl", hash = "sha256:882ef281bbdc32eaba3b5ced984a8ed7014d8978fd7ab4a58b198023c8938c9f", size = 1029963, upload-time = "2025-09-10T06:53:04.014Z" },
+    { url = "https://files.pythonhosted.org/packages/e1/ed/86aa307dd764ed56c2ab32fa7842a9b5a3a1b3a3b4709307756fd9ac756b/dlt-1.17.0-py3-none-any.whl", hash = "sha256:e5da62695cfbd37f2569b16af3e50582dc2ede2af5c1c014ded7bb7c089de5b1", size = 1048344, upload-time = "2025-09-24T10:53:58.642Z" },
 ]
 
 [package.optional-dependencies]
@@ -3745,7 +3745,7 @@ wheels = [
 
 [[package]]
 name = "openai"
-version = "1.109.0"
+version = "1.109.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -3757,9 +3757,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/62/9f/d11cc7fb2d60af14a97dbef4e3c7b23917387995c257951fdc321d8efd0a/openai-1.109.0.tar.gz", hash = "sha256:701e26d13e3953524ba99f44cf5fbbda40eafd41ba15a8d85b76229a2693cfe5", size = 563971, upload-time = "2025-09-23T16:59:41.508Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c6/a1/a303104dc55fc546a3f6914c842d3da471c64eec92043aef8f652eb6c524/openai-1.109.1.tar.gz", hash = "sha256:d173ed8dbca665892a6db099b4a2dfac624f94d20a93f46eb0b56aae940ed869", size = 564133, upload-time = "2025-09-24T13:00:53.075Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b8/d3/d65e318e8d3b5845afaa5960d8da779988b4cb9f4e1ca82e588fed9c6a9d/openai-1.109.0-py3-none-any.whl", hash = "sha256:8c0910bdd4ee1274d5ff0354786bdd0bc79e68c158d5d2c19e24208b412e5792", size = 948421, upload-time = "2025-09-23T16:59:39.516Z" },
+    { url = "https://files.pythonhosted.org/packages/1d/2a/7dd3d207ec669cacc1f186fd856a0f61dbc255d24f6fdc1a6715d6051b0f/openai-1.109.1-py3-none-any.whl", hash = "sha256:6bcaf57086cf59159b8e27447e4e7dd019db5d29a438072fbd49c290c7e65315", size = 948627, upload-time = "2025-09-24T13:00:50.754Z" },
 ]
 
 [[package]]
@@ -4512,16 +4512,16 @@ wheels = [
 
 [[package]]
 name = "pydantic-settings"
-version = "2.10.1"
+version = "2.11.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "typing-inspection" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/68/85/1ea668bbab3c50071ca613c6ab30047fb36ab0da1b92fa8f17bbc38fd36c/pydantic_settings-2.10.1.tar.gz", hash = "sha256:06f0062169818d0f5524420a360d632d5857b83cffd4d42fe29597807a1614ee", size = 172583, upload-time = "2025-06-24T13:26:46.841Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/20/c5/dbbc27b814c71676593d1c3f718e6cd7d4f00652cefa24b75f7aa3efb25e/pydantic_settings-2.11.0.tar.gz", hash = "sha256:d0e87a1c7d33593beb7194adb8470fc426e95ba02af83a0f23474a04c9a08180", size = 188394, upload-time = "2025-09-24T14:19:11.764Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/58/f0/427018098906416f580e3cf1366d3b1abfb408a0652e9f31600c24a1903c/pydantic_settings-2.10.1-py3-none-any.whl", hash = "sha256:a60952460b99cf661dc25c29c0ef171721f98bfcb52ef8d9ea4c943d7c8cc796", size = 45235, upload-time = "2025-06-24T13:26:45.485Z" },
+    { url = "https://files.pythonhosted.org/packages/83/d6/887a1ff844e64aa823fb4905978d882a633cfe295c32eacad582b78a7d8b/pydantic_settings-2.11.0-py3-none-any.whl", hash = "sha256:fe2cea3413b9530d10f3a5875adffb17ada5c1e1bab0b2885546d7310415207c", size = 48608, upload-time = "2025-09-24T14:19:10.015Z" },
 ]
 
 [[package]]

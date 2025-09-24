@@ -13,6 +13,23 @@ enum Industry {
     Health @alias("Health and Life Sciences")
 }
 
+enum Competitor {
+    Cap @description("Capgemini or subsidary is mentionned")
+    Thales @description("Thales Group or subsidary is mentionned")
+    IBM @description("IBM of subsidary is mentionned")
+    Accenture @description("Accenture or subsidary is mentionned")
+    DXC @description("DXC Technology or subsidary is mentionned")
+    TCS @description("Tata Consultancy Services or subsidary is mentionned")
+    Infosys @description("Infosys Limited or subsidary is mentionned")
+    Wipro @description("Wipro Limited or subsidary is mentionned")
+    Cognizant @description("Cognizant Technology or subsidary is mentionned")
+    HCL @description("HCL Technologies or subsidary is mentionned")
+    CGI @description("CGI Inc. or subsidary is mentionned")
+    Sopra @description("Sopra Steria or subsidaryis mentionned")
+    CS @description("CS is mentionned" )
+    Other @description("Other Competitors are mentionned")
+}
+
 enum SWProjectRisks {
     ScheduleRisk @description("Occurs when the project timeline is underestimated, leading to delays and potential cost overruns.")
     BudgetRisk @description("Arises when the project exceeds its allocated budget, often due to unforeseen expenses or poor financial planning.")
@@ -47,33 +64,32 @@ class TechnicalApproach {
   technical_stack string[]? @description("technical stack (platforms, frameworks, third-party softwares, programming language, ...)")
 }
 
-class ReviewedOpportunity {
+class Customer {
+  name string  @description("Client organization name")
+  segment string? @description("Industry vertical of the customer")
+  contacts Person[]?  @description("Contacts at the customer")
+}
+
+class Partner {
+  name string
+  role string? @description("role in the project")
+}
+
+class Opportunity {
   name string @description("Official name of the project/opportunity")
   opportunity_id string @description("Unique identifier from Salesforce or similar CRM")
-  customer string @description("Client organization name")
-  customer_segment string? @description("Industry vertical of the customer")
   status OpportunityStatus? @description("Current phase: Pursuit/Active/Completed/Cancelled")
-  start_date string? @description("Planned/projected start date")
-  end_date string? @description("Planned/projected end date")
-  keywords string[]? @description("Key terms for semantic search")
-  tech_stack TechnicalApproach @description("Architecure and technology choices")
-
-  statement_of_work KeyStatementOfWorkElement? @description("Business approach to win the opportunity")
-  team Person[] @description("All involved personnel")  
-  delivery DeliveryInfo @description("Operational delivery information")
-  financials FinancialMetrics @description("Financial metrics")
-  risks RiskAnalysis[] @description("Risk analysis")
-  competition CompetitiveLandscape @description("Competitive landscape")
-  bidding BiddingStrategy @description("Bidding strategy")
+  customer Customer @description("Client or customer information")
 }
 
-class KeyStatementOfWorkElement {
-  objectives string[]? @description("Key business objectives of the project")
-  scope string? @description("Scope of work description")
-  requirements string[]? @description("Key requirements")
-  success_metrics string[]? @description("Measurable success criteria")
 
-}
+// class KeyStatementOfWorkElement {
+//   objectives string[]? @description("Key business objectives of the project")
+//   scope string? @description("Scope of work description")
+//   requirements string[]? @description("Key requirements")
+//   success_metrics string[]? @description("Measurable success criteria")
+
+// }
 
 class Person {
   name string? @description("Full name of involved person")
@@ -82,18 +98,16 @@ class Person {
   contact_type string? @description("Internal/External/Client/Partner")
 }
 
-class DeliveryInfo {
-  business_lines string[]? @description("Involved business units")
-  locations string[]? @description("Geographic locations of delivery")
-  partners string[]? @description("Third-party partners/subcontractors")
-  technologies string[]? @description("Key technologies/platforms used")
-}
+// class DeliveryInfo {
+//   business_lines string[]? @description("Involved business units")
+//   locations string[]? @description("Geographic locations of delivery")
+
+// }
 
 class FinancialMetrics {
   tcv float? @description("Total Contract Value in EUR")
   annual_revenue float? @description("Yearly revenue projection")
   project_margin float? @description("Gross margin percentage")
-  payment_terms string? @description("Payment schedule and conditions")
 }
 
 class RiskAnalysis {
@@ -105,7 +119,7 @@ class RiskAnalysis {
 }
 
 class CompetitiveLandscape {
-  competitors string[]? @description("Identified competitors")
+  competitors Competitor[]? @description("Identified competitors for that opportunity")
   competitive_position string? @description("Position vs competition")
   differentiators string[]? @description("Unique selling points vs competition")
 }
@@ -117,9 +131,24 @@ class BiddingStrategy {
   challenges string[]? @description("Key bidding challenges")
 }
 
+class ReviewedOpportunity {
+  opportunity Opportunity
+  start_date string? @description("Planned/projected start date")
+  keywords string[]? @description("Key terms for semantic search")
+  tech_stack TechnicalApproach @description("Architecure and technology choices")
+
+  // statement_of_work KeyStatementOfWorkElement? @description("Business approach to win the opportunity")
+  team Person[] @description("Atos or Eviden person involved")  
+  financials FinancialMetrics @description("Financial metrics")
+  risks RiskAnalysis[] @description("Risk analysis")
+  competition CompetitiveLandscape @description("Competitive landscape")
+  // bidding BiddingStrategy @description("Bidding strategy")
+  partners Partner[]? @description("Third-party partners/subcontractors")
+
+} 
 
 function ExtractRainbow(rainbow_file: string) -> ReviewedOpportunity {
-  client "Gpt41mini" 
+  client "GptOss120" 
   prompt #"
     Extract from this content:
     {{ rainbow_file }}
