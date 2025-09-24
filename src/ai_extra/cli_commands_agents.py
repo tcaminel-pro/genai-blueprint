@@ -89,7 +89,10 @@ def register_commands(cli_app: typer.Typer) -> None:
             )
 
             if agent_config is None:
-                print(f"Error: Configuration '{config}' not found in config/demos/react_agent.yaml")
+                print(f"❌ Error: Configuration '{config}' not found in config/demos/react_agent.yaml")
+                print()
+                from src.utils.cli.config_display import display_react_agent_configs
+                display_react_agent_configs()
                 return
 
             # Extract configuration parameters
@@ -158,6 +161,7 @@ def register_commands(cli_app: typer.Typer) -> None:
             CONF_YAML_FILE,
             load_smolagent_demo_config,
             process_tools_from_config,
+            convert_langchain_tools,
         )
         from src.utils.cli.langchain_setup import setup_langchain
 
@@ -182,11 +186,15 @@ def register_commands(cli_app: typer.Typer) -> None:
         if config:
             demo_config = load_smolagent_demo_config(config)
             if demo_config is None:
-                print(f"Error: Configuration '{config}' not found in {CONF_YAML_FILE}")
+                print(f"❌ Error: Configuration '{config}' not found in {CONF_YAML_FILE}")
+                print()
+                from src.utils.cli.config_display import display_smolagents_configs
+                display_smolagents_configs()
                 return
 
             # Extract configuration parameters
-            config_tools = process_tools_from_config(demo_config.get("tools", []))
+            raw_config_tools = process_tools_from_config(demo_config.get("tools", []))
+            config_tools = convert_langchain_tools(raw_config_tools)  # Convert LangChain tools to SmolAgent tools
             config_authorized_imports = demo_config.get("authorized_imports", [])
 
             print(f"Using CodeAct configuration '{config}':")

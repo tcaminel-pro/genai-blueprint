@@ -91,6 +91,7 @@ codeact_agent_demos:
         #source_path: ${paths.ekg_data}/misc/report1750429630460.xlsx
         
       - class:  ${paths.smolagent_custom_tools}.sql_tools:SQLTool
+        name: "rainbow_opportunities_db"
         dsn:  postgresql://${oc.env:POSTGRES_USER,unknown_user}:${oc.env:POSTGRES_PASSWORD,password}@localhost:5432/ekg
         description: "Tools to access opportunities related data on PostgresSQL with pgvector."
         tables:  [pydantic_fields_qwen3_06b]

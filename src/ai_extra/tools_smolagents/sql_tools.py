@@ -2,16 +2,16 @@
 
 This module provides SQL database tools for use with SmolAgents,
 allowing agents to execute SQL queries on configured database connections.
+Refactored to leverage LangChain's SQLDatabase utility for better interoperability.
 """
 
-# TODO : Refactor by leveraging LangChain Database wrapper to improve interoperability 
-
-from typing import Any, Sequence
+from typing import Any
 
 import pandas as pd
+from langchain_community.utilities import SQLDatabase
 from pydantic import BaseModel
 from smolagents import Tool
-from sqlalchemy import create_engine, inspect, text
+from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 
 from src.ai_core.prompts import dedent_ws
@@ -29,8 +29,8 @@ class SQLTool(Tool):
     """A tool for executing SQL queries on databases.
 
     This tool provides SQL query execution capabilities for AI agents,
-    connecting to databases using DSN configuration and providing detailed
-    schema information for configured tables.
+    connecting to databases using DSN configuration and leveraging LangChain's
+    SQLDatabase utility for enhanced functionality and better interoperability.
     """
 
     name: str
@@ -40,6 +40,7 @@ class SQLTool(Tool):
     dsn: str
     tables: list[TableConfig]
     engine: Engine | None = None
+    db: SQLDatabase | None = None
 
     def __init__(self, name: str, dsn: str, description: str, tables: dict[str, Any] | list[str] | None = None) -> None:
         """Initialize SQL tool with database connection and table configuration.
@@ -48,13 +49,13 @@ class SQLTool(Tool):
             dsn: Database connection string
             description: Description of the database purpose
             tables: Table configuration (dict with name/description or list of names)
-            name: Tool name (defaults to 'SQL')
+            name: Tool name
         """
         super().__init__()
         self.name = name
         self.dsn = dsn
         self.tables = self._parse_tables_config(tables)
-        self._initialize_engine()
+        self._initialize_database()
         self.description = self._build_description(description)
 
     def _parse_tables_config(self, tables: dict[str, Any] | list[str] | None) -> list[TableConfig]:
@@ -112,11 +113,15 @@ class SQLTool(Tool):
         else:
             return base_desc
 
-    def _initialize_engine(self) -> None:
-        """Initialize SQLAlchemy engine using DSN."""
+    def _initialize_database(self) -> None:
+        """Initialize SQLAlchemy engine and LangChain SQLDatabase using DSN."""
         try:
             dsn = check_dsn_update_driver(self.dsn, None)  # Async not supported
             self.engine = create_engine(dsn)
+
+            # Initialize LangChain SQLDatabase with the engine
+            self.db = SQLDatabase(engine=self.engine)
+
             # Test connection
             with self.engine.connect() as conn:
                 conn.execute(text("SELECT 1"))
@@ -124,151 +129,127 @@ class SQLTool(Tool):
             raise ConnectionError(f"Failed to connect to database using DSN '{self.dsn}': {e}") from e
 
     def _get_detailed_schema_info(self) -> str:
-        """Get detailed schema information for configured tables.
+        """Get detailed schema information for configured tables using LangChain SQLDatabase.
 
         Returns:
             Formatted schema information suitable for LLM consumption
         """
-        if not self.engine or not self.tables:
+        if not self.db:
             return ""
 
         try:
-            inspector = inspect(self.engine)
-            available_tables = inspector.get_table_names()
-
-            schema_parts = ["Available tables:"]
-
-            for table_config in self.tables:
-                table_name = table_config.name
-                if table_name not in available_tables:
-                    schema_parts.append(f"\n- {table_name}: Table not found in database")
-                    continue
-
-                # Get column information first to build description
+            # If specific tables are configured, get schema for those
+            if self.tables:
+                table_names = [table.name for table in self.tables]
                 try:
-                    columns = inspector.get_columns(table_name)
-                    if not columns:
-                        schema_parts.append(f"\n- {table_name}: No column information available")
-                        continue
+                    # Use LangChain's get_table_info method for specific tables
+                    schema_info = self.db.get_table_info(table_names=table_names)
 
-                    # Build comprehensive table description
-                    table_desc = f"\n- Table '{table_name}':"
+                    # Enhance with user-provided descriptions
+                    enhanced_parts = ["Available tables:"]
 
-                    # Add user-provided description if available
-                    if table_config.description:
-                        table_desc += f"\n  Description: {table_config.description}"
+                    for table_config in self.tables:
+                        table_name = table_config.name
+                        enhanced_parts.append(f"\n- Table '{table_name}':")
 
-                    # Generate helpful schema description for LLM
-                    table_desc += self._generate_table_description(table_name, columns)
+                        if table_config.description:
+                            enhanced_parts.append(f"\n  Description: {table_config.description}")
 
-                    # Add detailed column information
-                    table_desc += "\n  Schema:"
-                    for col in columns:
-                        col_type = str(col["type"]).replace("NULL", "VECTOR")  # Handle pgvector type
-                        nullable = "nullable" if col["nullable"] else "not null"
-                        table_desc += f"\n    - {col['name']}: {col_type} ({nullable})"
+                        # Add guidance based on table analysis
+                        guidance = self._generate_table_guidance(table_name)
+                        if guidance:
+                            enhanced_parts.append(f"\n  Query guidance: {guidance}")
 
-                    schema_parts.append(table_desc)
+                    # Add the raw schema information from LangChain
+                    enhanced_parts.append(f"\n\nDetailed Schema Information:\n{schema_info}")
 
-                except Exception as e:
-                    schema_parts.append(f"\n- {table_name}: Could not retrieve schema information ({e})")
+                    return "\n".join(enhanced_parts)
 
-            return "\n".join(schema_parts)
+                except Exception:
+                    # Fallback to all table info if specific tables fail
+                    return f"Schema information (fallback): {self.db.get_table_info()}"
+            else:
+                # No specific tables configured, return all available tables
+                return f"Available database schema:\n{self.db.get_table_info()}"
 
-        except Exception:
-            return "Schema information not available"
+        except Exception as e:
+            return f"Schema information not available: {e}"
 
-    def _generate_table_description(self, table_name: str, columns: Sequence[Any]) -> str:
-        """Generate helpful table description for LLM based on schema analysis.
+    def _generate_table_guidance(self, table_name: str) -> str:
+        """Generate query guidance for a table based on LangChain schema information.
 
         Args:
             table_name: Name of the table
-            columns: Sequence of column information from SQLAlchemy inspector
 
         Returns:
-            Generated description text
+            Generated guidance text
         """
-        description_parts = []
+        if not self.db:
+            return ""
 
-        # Analyze columns to infer purpose
-        column_names = [col["name"].lower() for col in columns]
-        column_types = [str(col["type"]).upper() for col in columns]
+        try:
+            # Get table info from LangChain's SQLDatabase
+            table_info = self.db.get_table_info(table_names=[table_name])
+            table_info_lower = table_info.lower()
 
-        # Identify key columns and their purposes (avoid duplicates)
-        key_columns = []
-        processed_columns = set()
+            guidance = []
 
-        # Process columns in order of specificity to avoid duplicates
-        for col in columns:
-            col_name = col["name"]
-            col_name_lower = col_name.lower()
+            # Analyze column names in the schema to provide guidance
+            if "embedding" in table_info_lower:
+                guidance.append("supports vector similarity searches")
+            if "tsv" in table_info_lower or "tsvector" in table_info_lower:
+                guidance.append("supports full-text search queries")
+            if "_id" in table_info_lower or table_info_lower.count("id") > 1:
+                guidance.append("use ID fields for filtering and joins")
+            if "content" in table_info_lower:
+                guidance.append("contains text content for analysis")
+            if "metadata" in table_info_lower:
+                guidance.append("includes metadata for filtering")
 
-            if col_name in processed_columns:
-                continue
+            return ", ".join(guidance) if guidance else "general purpose table"
 
-            if "embedding" in col_name_lower:
-                key_columns.append(f"'{col_name}' (vector embeddings)")
-                processed_columns.add(col_name)
-            elif "tsv" in col_name_lower:
-                key_columns.append(f"'{col_name}' (full-text search)")
-                processed_columns.add(col_name)
-            elif "content" in col_name_lower:
-                key_columns.append(f"'{col_name}' (text content)")
-                processed_columns.add(col_name)
-            elif "id" in col_name_lower:
-                key_columns.append(f"'{col_name}' (identifier)")
-                processed_columns.add(col_name)
-            elif "metadata" in col_name_lower:
-                key_columns.append(f"'{col_name}' (metadata)")
-                processed_columns.add(col_name)
-
-        # Build description
-        description_parts.append(f"\n  Purpose: This table contains {len(columns)} columns")
-
-        if key_columns:
-            description_parts.append(f"\n  Key columns: {', '.join(key_columns)}")
-
-        # Add query guidance
-        guidance = []
-        if any("embedding" in name for name in column_names):
-            guidance.append("supports vector similarity searches")
-        if any("tsv" in name for name in column_names):
-            guidance.append("supports full-text search queries")
-        if any("id" in name for name in column_names):
-            guidance.append("use ID fields for filtering and joins")
-
-        if guidance:
-            description_parts.append(f"\n  Query guidance: This table {', '.join(guidance)}")
-
-        return "".join(description_parts)
+        except Exception:
+            return "general purpose table"
 
     def forward(self, query: str) -> tuple[pd.DataFrame, str]:  # type: ignore
-        """Execute SQL query and return results as DataFrame.
+        """Execute SQL query and return results as DataFrame using LangChain SQLDatabase.
 
         Args:
             query: SQL query string to execute
 
         Returns:
-            DataFrame containing query results
+            Tuple of (DataFrame containing query results, string representation of first 50 rows)
         """
         if not query or not query.strip():
             raise ValueError("SQL query cannot be empty")
 
-        if not self.engine:
-            self._initialize_engine()
+        if not self.db:
+            self._initialize_database()
 
         try:
-            # Execute query and return as DataFrame
+            # Also get results as DataFrame for compatibility with existing interface
             with self.engine.connect() as conn:  # type: ignore
-                result = pd.read_sql_query(text(query), conn)
-                return (result, str(result.head(50)))
+                result_df = pd.read_sql_query(text(query), conn)
+
+            # Return both DataFrame and string representation
+            return (result_df, str(result_df.head(50)))
+
         except Exception as e:
             raise RuntimeError(f"Failed to execute SQL query: {e}") from e
 
     def get_schema_info(self) -> str:
-        """Get database schema information for context.
+        """Get database schema information for context using LangChain SQLDatabase.
 
         Returns:
             String representation of configured tables and their schemas
         """
         return self._get_detailed_schema_info() or "No schema information available"
+
+    @property
+    def langchain_db(self) -> SQLDatabase | None:
+        """Provide access to the underlying LangChain SQLDatabase for advanced usage.
+
+        Returns:
+            The LangChain SQLDatabase instance if initialized
+        """
+        return self.db
