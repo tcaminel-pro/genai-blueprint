@@ -1,0 +1,207 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <script src="https://d3js.org/d3.v5.min.js"></script>
+        <style>
+            body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: linear-gradient(90deg, #101010, #1a1a2e); color: white; font-family: 'Inter', sans-serif; }
+
+            svg { width: 100vw; height: 100vh; display: block; }
+            .links line { stroke: rgba(255, 255, 255, 0.4); stroke-width: 2px; }
+            .links line.weighted { stroke: rgba(255, 215, 0, 0.7); }
+            .links line.multi-weighted { stroke: rgba(0, 255, 127, 0.8); }
+            .nodes circle { stroke: white; stroke-width: 0.5px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.3)); }
+            .node-label { font-size: 8px; font-weight: bold; fill: white; text-anchor: middle; dominant-baseline: middle; font-family: 'Inter', sans-serif; pointer-events: none; }
+            .edge-label { font-size: 3px; fill: rgba(255, 255, 255, 0.7); text-anchor: middle; dominant-baseline: middle; font-family: 'Inter', sans-serif; pointer-events: none; }
+            
+            .tooltip {
+                position: absolute;
+                text-align: left;
+                padding: 8px;
+                font-size: 12px;
+                background: rgba(0, 0, 0, 0.9);
+                color: white;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 4px;
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.2s;
+                z-index: 1000;
+                max-width: 300px;
+                word-wrap: break-word;
+            }
+        </style>
+    </head>
+    <body>
+        <svg></svg>
+        <div class="tooltip" id="tooltip"></div>
+        <script>
+            var nodes = [{"name": "Pierre Bourrous...", "role": "Strategie Achat \u2013 Sponsor (Green)", "organization": "CNES", "contact_type": "Client", "type": "Person", "id": "Person_Pierre_Bourrous...", "color": "#45B7D1"}, {"name": "G\u00e9rard Lassalle...", "role": "Sponsor (Green)", "organization": "CNES", "contact_type": "Client", "type": "Person", "id": "Person_G\u00e9rard_Lassalle...", "color": "#45B7D1"}, {"name": "Sylvia Sylvande...", "role": "CP CNES \u2013 D\u00e9cideur (Amber)", "organization": "CNES", "contact_type": "Client", "type": "Person", "id": "Person_Sylvia_Sylvande...", "color": "#45B7D1"}, {"name": "Barth\u00e9l\u00e9my MART...", "role": "Bid Manager / Project Lead", "organization": "Atos", "contact_type": "Internal", "type": "Person", "id": "Person_Barth\u00e9l\u00e9my_MART...", "color": "#45B7D1"}, {"name": "Olivier RONDEAU", "role": "Solution Manager / Project Manager", "organization": "Atos", "contact_type": "Internal", "type": "Person", "id": "Person_Olivier_RONDEAU", "color": "#45B7D1"}, {"name": "Sonia GOUEL", "role": "Technical Assessment & Delivery Commitment Expert", "organization": "Atos", "contact_type": "Internal", "type": "Person", "id": "Person_Sonia_GOUEL", "color": "#45B7D1"}, {"name": "Caroline JAULIN", "role": "Finance Lead", "organization": "Atos", "contact_type": "Internal", "type": "Person", "id": "Person_Caroline_JAULIN", "color": "#45B7D1"}, {"name": "Yanide PSEAUME", "role": "Procurement / Alliance Management Lead", "organization": "Atos", "contact_type": "Internal", "type": "Person", "id": "Person_Yanide_PSEAUME", "color": "#45B7D1"}, {"name": "Marc FERRER", "role": "Global Client Leader", "organization": "Atos", "contact_type": "Internal", "type": "Person", "id": "Person_Marc_FERRER", "color": "#45B7D1"}, {"name": "Aurore DOREZ", "role": "Sales Lead / Deal Maker", "organization": "Atos", "contact_type": "Internal", "type": "Person", "id": "Person_Aurore_DOREZ", "color": "#45B7D1"}, {"name": "Dani\u00e8le PHANKON...", "role": "Deal Lawyer", "organization": "Atos", "contact_type": "Internal", "type": "Person", "id": "Person_Dani\u00e8le_PHANKON...", "color": "#45B7D1"}, {"name": "CNES TMA VENUS ...", "opportunity_id": "9000559500", "status": "Pursuit", "type": "Opportunity", "id": "Opportunity_CNES_TMA_VENUS_...", "color": "#FF6B6B"}, {"competitive_position": "Competitive \u2013 leveraging existing contracts (PEPS), deep domain expertise in Earth observation, and strong CNES partnership.", "competitors": "[Competitor.Cap,Competitor.Thales,Competitor.CS]", "type": "CompetitiveLandscape", "name": "Competitive \u2013 l...", "id": "CompetitiveLandscape_Competitive_\u2013_l...", "color": "#5F27CD"}, {"name": "CNES", "segment": "Government - Space Agency", "type": "Customer", "id": "Customer_CNES", "color": "#4ECDC4"}, {"name": "ACS", "role": "Sub\u2011contractor for maintenance on VENUS VIP (mandated by CNES)", "type": "Partner", "id": "Partner_ACS", "color": "#96CEB4"}, {"name": "PIXSTART", "role": "Sub\u2011contractor for first\u2011year corrective work and knowledge transfer on THEIA MUSCATE; also delivers Space4dev reporting", "type": "Partner", "id": "Partner_PIXSTART", "color": "#96CEB4"}, {"risk_description": "Penalty application for SLA non\u2011compliance due to quality or delivery delays", "impact_level": "High", "status": "Monitored", "type": "RiskAnalysis", "name": "Penalty applica...", "id": "RiskAnalysis_Penalty_applica...", "color": "#FECA57"}, {"risk_description": "Delivery cost overrun caused by under\u2011estimation (re\u2011deliveries, missing packages, non\u2011representative platforms)", "impact_level": "Medium", "status": "Open", "type": "RiskAnalysis", "name": "Delivery cost o...", "id": "RiskAnalysis_Delivery_cost_o...", "color": "#FECA57"}, {"risk_description": "Scope management risk due to minimal transition on Venus/VIP and intermediate transition on THEIA/MUSCATE", "impact_level": "High", "status": "Open", "type": "RiskAnalysis", "name": "Scope managemen...", "id": "RiskAnalysis_Scope_managemen...", "color": "#FECA57"}, {"risk_description": "Skill retention risk caused by high turnover and decreasing activity levels", "impact_level": "Medium", "status": "Open", "type": "RiskAnalysis", "name": "Skill retention...", "id": "RiskAnalysis_Skill_retention...", "color": "#FECA57"}, {"risk_description": "Potential delivery cost overruns related to re\u2011deliveries and missing components", "impact_level": "Medium", "status": "Open", "type": "RiskAnalysis", "name": "Potential deliv...", "id": "RiskAnalysis_Potential_deliv...", "color": "#FECA57"}, {"tcv": "1800000.000000", "annual_revenue": "449846.000000", "project_margin": "21.000000", "type": "FinancialMetrics", "name": "$1800000.000000", "id": "FinancialMetrics_$1800000.000000", "color": "#FF9FF3"}];
+            var links = [{"source": "Opportunity_CNES_TMA_VENUS_...", "target": "Customer_CNES", "relation": "HAS_CUSTOMER", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Opportunity_CNES_TMA_VENUS_...", "target": "RiskAnalysis_Penalty_applica...", "relation": "HAS_RISK", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Opportunity_CNES_TMA_VENUS_...", "target": "RiskAnalysis_Delivery_cost_o...", "relation": "HAS_RISK", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Opportunity_CNES_TMA_VENUS_...", "target": "RiskAnalysis_Scope_managemen...", "relation": "HAS_RISK", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Opportunity_CNES_TMA_VENUS_...", "target": "RiskAnalysis_Skill_retention...", "relation": "HAS_RISK", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Opportunity_CNES_TMA_VENUS_...", "target": "RiskAnalysis_Potential_deliv...", "relation": "HAS_RISK", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Opportunity_CNES_TMA_VENUS_...", "target": "Partner_ACS", "relation": "HAS_PARTNER", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Opportunity_CNES_TMA_VENUS_...", "target": "Partner_PIXSTART", "relation": "HAS_PARTNER", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Opportunity_CNES_TMA_VENUS_...", "target": "FinancialMetrics_$1800000.000000", "relation": "HAS_FINANCIALS", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Opportunity_CNES_TMA_VENUS_...", "target": "CompetitiveLandscape_Competitive_\u2013_l...", "relation": "HAS_COMPETITION", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Opportunity_CNES_TMA_VENUS_...", "target": "Person_Barth\u00e9l\u00e9my_MART...", "relation": "HAS_TEAM_MEMBER", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Opportunity_CNES_TMA_VENUS_...", "target": "Person_Olivier_RONDEAU", "relation": "HAS_TEAM_MEMBER", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Opportunity_CNES_TMA_VENUS_...", "target": "Person_Sonia_GOUEL", "relation": "HAS_TEAM_MEMBER", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Opportunity_CNES_TMA_VENUS_...", "target": "Person_Caroline_JAULIN", "relation": "HAS_TEAM_MEMBER", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Opportunity_CNES_TMA_VENUS_...", "target": "Person_Yanide_PSEAUME", "relation": "HAS_TEAM_MEMBER", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Opportunity_CNES_TMA_VENUS_...", "target": "Person_Marc_FERRER", "relation": "HAS_TEAM_MEMBER", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Opportunity_CNES_TMA_VENUS_...", "target": "Person_Aurore_DOREZ", "relation": "HAS_TEAM_MEMBER", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Opportunity_CNES_TMA_VENUS_...", "target": "Person_Dani\u00e8le_PHANKON...", "relation": "HAS_TEAM_MEMBER", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Customer_CNES", "target": "Person_Pierre_Bourrous...", "relation": "HAS_CONTACT", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Customer_CNES", "target": "Person_G\u00e9rard_Lassalle...", "relation": "HAS_CONTACT", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}, {"source": "Customer_CNES", "target": "Person_Sylvia_Sylvande...", "relation": "HAS_CONTACT", "weight": null, "all_weights": {}, "relationship_type": null, "edge_info": {}}];
+
+            var svg = d3.select("svg"),
+                width = window.innerWidth,
+                height = window.innerHeight;
+
+            var container = svg.append("g");
+            var tooltip = d3.select("#tooltip");
+
+            var simulation = d3.forceSimulation(nodes)
+                .force("link", d3.forceLink(links).id(d => d.id).strength(0.1))
+                .force("charge", d3.forceManyBody().strength(-275))
+                .force("center", d3.forceCenter(width / 2, height / 2))
+                .force("x", d3.forceX().strength(0.1).x(width / 2))
+                .force("y", d3.forceY().strength(0.1).y(height / 2));
+
+            var link = container.append("g")
+                .attr("class", "links")
+                .selectAll("line")
+                .data(links)
+                .enter().append("line")
+                .attr("stroke-width", d => {
+                    if (d.weight) return Math.max(2, d.weight * 5);
+                    if (d.all_weights && Object.keys(d.all_weights).length > 0) {
+                        var avgWeight = Object.values(d.all_weights).reduce((a, b) => a + b, 0) / Object.values(d.all_weights).length;
+                        return Math.max(2, avgWeight * 5);
+                    }
+                    return 2;
+                })
+                .attr("class", d => {
+                    if (d.all_weights && Object.keys(d.all_weights).length > 1) return "multi-weighted";
+                    if (d.weight || (d.all_weights && Object.keys(d.all_weights).length > 0)) return "weighted";
+                    return "";
+                })
+                .on("mouseover", function(d) {
+                    // Create tooltip content for edge
+                    var content = "<strong>Edge Information</strong><br/>";
+                    content += "Relationship: " + d.relation + "<br/>";
+
+                    // Show all weights
+                    if (d.all_weights && Object.keys(d.all_weights).length > 0) {
+                        content += "<strong>Weights:</strong><br/>";
+                        Object.keys(d.all_weights).forEach(function(weightName) {
+                            content += "&nbsp;&nbsp;" + weightName + ": " + d.all_weights[weightName] + "<br/>";
+                        });
+                    } else if (d.weight !== null && d.weight !== undefined) {
+                        content += "Weight: " + d.weight + "<br/>";
+                    }
+
+                    if (d.relationship_type) {
+                        content += "Type: " + d.relationship_type + "<br/>";
+                    }
+                    // Add other edge properties
+                    if (d.edge_info) {
+                        Object.keys(d.edge_info).forEach(function(key) {
+                            if (key !== 'weight' && key !== 'weights' && key !== 'relationship_type' && 
+                                key !== 'source_node_id' && key !== 'target_node_id' && 
+                                key !== 'relationship_name' && key !== 'updated_at' && 
+                                !key.startsWith('weight_')) {
+                                content += key + ": " + d.edge_info[key] + "<br/>";
+                            }
+                        });
+                    }
+
+                    tooltip.html(content)
+                        .style("left", (d3.event.pageX + 10) + "px")
+                        .style("top", (d3.event.pageY - 10) + "px")
+                        .style("opacity", 1);
+                })
+                .on("mouseout", function(d) {
+                    tooltip.style("opacity", 0);
+                });
+
+            var edgeLabels = container.append("g")
+                .attr("class", "edge-labels")
+                .selectAll("text")
+                .data(links)
+                .enter().append("text")
+                .attr("class", "edge-label")
+                .text(d => {
+                    var label = d.relation;
+                    if (d.all_weights && Object.keys(d.all_weights).length > 1) {
+                        // Show count of weights for multiple weights
+                        label += " (" + Object.keys(d.all_weights).length + " weights)";
+                    } else if (d.weight) {
+                        label += " (" + d.weight + ")";
+                    } else if (d.all_weights && Object.keys(d.all_weights).length === 1) {
+                        var singleWeight = Object.values(d.all_weights)[0];
+                        label += " (" + singleWeight + ")";
+                    }
+                    return label;
+                });
+
+            var nodeGroup = container.append("g")
+                .attr("class", "nodes")
+                .selectAll("g")
+                .data(nodes)
+                .enter().append("g");
+
+            var node = nodeGroup.append("circle")
+                .attr("r", 13)
+                .attr("fill", d => d.color)
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+
+            nodeGroup.append("text")
+                .attr("class", "node-label")
+                .attr("dy", 4)
+                .attr("text-anchor", "middle")
+                .text(d => d.name);
+
+            node.append("title").text(d => JSON.stringify(d));
+
+            simulation.on("tick", function() {
+                link.attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                edgeLabels
+                    .attr("x", d => (d.source.x + d.target.x) / 2)
+                    .attr("y", d => (d.source.y + d.target.y) / 2 - 5);
+
+                node.attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+
+                nodeGroup.select("text")
+                    .attr("x", d => d.x)
+                    .attr("y", d => d.y)
+                    .attr("dy", 4)
+                    .attr("text-anchor", "middle");
+            });
+
+            svg.call(d3.zoom().on("zoom", function() {
+                container.attr("transform", d3.event.transform);
+            }));
+
+            function dragstarted(d) {
+                if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragged(d) {
+                d.fx = d3.event.x;
+                d.fy = d3.event.y;
+            }
+
+            function dragended(d) {
+                if (!d3.event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+
+            window.addEventListener("resize", function() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                svg.attr("width", width).attr("height", height);
+                simulation.force("center", d3.forceCenter(width / 2, height / 2));
+                simulation.alpha(1).restart();
+            });
+        </script>
+    </body>
+    </html>
+    

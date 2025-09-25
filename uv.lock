@@ -2990,7 +2990,7 @@ wheels = [
 
 [[package]]
 name = "langsmith"
-version = "0.4.30"
+version = "0.4.31"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
@@ -3001,9 +3001,9 @@ dependencies = [
     { name = "requests-toolbelt" },
     { name = "zstandard" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fe/d5/4cc88f246ce615a518a715cd2bf40001d1678ad6805a3706a90570adca8f/langsmith-0.4.30.tar.gz", hash = "sha256:388fe1060aca6507be41f417c7d4168a92dffe27f28bb6ef8a1bfee4a59f3681", size = 958857, upload-time = "2025-09-22T19:05:14.156Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/55/f5/edbdf89a162ee025348b3b2080fb3b88f4a1040a5a186f32d34aca913994/langsmith-0.4.31.tar.gz", hash = "sha256:5fb3729e22bd9a225391936cb9d1080322e6c375bb776514af06b56d6c46ed3e", size = 959698, upload-time = "2025-09-25T04:18:19.55Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ae/d1/b2b2ea7b443c6b028aca209d2e653256912906900cc146e64c65201211b7/langsmith-0.4.30-py3-none-any.whl", hash = "sha256:110767eb83e6da2cc99cfc61958631b5c36624758b52e7af35ec5550ad846cb3", size = 386300, upload-time = "2025-09-22T19:05:11.819Z" },
+    { url = "https://files.pythonhosted.org/packages/3e/8e/e7a43d907a147e1f87eebdd6737483f9feba52a5d4b20f69d0bd6f2fa22f/langsmith-0.4.31-py3-none-any.whl", hash = "sha256:64f340bdead21defe5f4a6ca330c11073e35444989169f669508edf45a19025f", size = 386347, upload-time = "2025-09-25T04:18:16.69Z" },
 ]
 
 [[package]]
@@ -3700,15 +3700,15 @@ wheels = [
 
 [[package]]
 name = "ollama"
-version = "0.5.4"
+version = "0.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/72/62/a36be4555e4218d6c8b35e72e0dfe0823845400097275cd81c9aec4ddf39/ollama-0.5.4.tar.gz", hash = "sha256:75857505a5d42e5e58114a1b78cc8c24596d8866863359d8a2329946a9b6d6f3", size = 45233, upload-time = "2025-09-16T00:25:25.785Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d6/47/f9ee32467fe92744474a8c72e138113f3b529fc266eea76abfdec9a33f3b/ollama-0.6.0.tar.gz", hash = "sha256:da2b2d846b5944cfbcee1ca1e6ee0585f6c9d45a2fe9467cbcd096a37383da2f", size = 50811, upload-time = "2025-09-24T22:46:02.417Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1b/af/d0a23c8fdec4c8ddb771191d9b36a57fbce6741835a78f1b18ab6d15ae7d/ollama-0.5.4-py3-none-any.whl", hash = "sha256:6374c9bb4f2a371b3583c09786112ba85b006516745689c172a7e28af4d4d1a2", size = 13548, upload-time = "2025-09-16T00:25:24.186Z" },
+    { url = "https://files.pythonhosted.org/packages/b5/c1/edc9f41b425ca40b26b7c104c5f6841a4537bb2552bfa6ca66e81405bb95/ollama-0.6.0-py3-none-any.whl", hash = "sha256:534511b3ccea2dff419ae06c3b58d7f217c55be7897c8ce5868dfb6b219cf7a0", size = 14130, upload-time = "2025-09-24T22:46:01.19Z" },
 ]
 
 [[package]]
@@ -5350,7 +5350,7 @@ wheels = [
 
 [[package]]
 name = "smolagents"
-version = "1.21.3"
+version = "1.22.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "huggingface-hub" },
@@ -5360,9 +5360,9 @@ dependencies = [
     { name = "requests" },
     { name = "rich" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1e/de/c1ee32344af18e483e77e8e63228e05f7f87bcf0bf39316e06930e7b12a4/smolagents-1.21.3.tar.gz", hash = "sha256:cfebebbb2d21df3fe79c64ee6f5057ec2a96adac3c121a4afc94069a76fd262e", size = 202304, upload-time = "2025-09-01T14:33:35.676Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b9/bc/ad2f168b82d26597257adb071c51348dd94da0bc29a6cc10ba4c1bee27c8/smolagents-1.22.0.tar.gz", hash = "sha256:5fb66f48e3b3ab5e8defcef577a89d5b6dfa8fcb55fc98a58e156cb3c59eb68f", size = 213047, upload-time = "2025-09-25T08:42:56.086Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/71/d6/3ac80e2be428913cd2d67be7e119e2d91683a61529f6bc5f23e608dddc00/smolagents-1.21.3-py3-none-any.whl", hash = "sha256:60692ee2bcfd4893929cc68add795887231e37f06ff2854c8e20b2daee09f32b", size = 145423, upload-time = "2025-09-01T14:33:33.634Z" },
+    { url = "https://files.pythonhosted.org/packages/a6/17/54d7de27b7ac2722ac2c0f452da612bf4af80ae09f90231b44bb7b12b33d/smolagents-1.22.0-py3-none-any.whl", hash = "sha256:5334adb4e7e5814cd814f1d9ad7efa806ef57f53db40635a29d2bd727774c5f5", size = 149836, upload-time = "2025-09-25T08:42:54.205Z" },
 ]
 
 [package.optional-dependencies]
