@@ -3,6 +3,7 @@
 Provides an interactive chat interface to run ReAct agents with different configurations.
 Supports custom tools, MCP servers integration, demo presets, and command handling.
 Features a two-column layout with tool calls tracking and conversation display.
+Example prompts are displayed for easy copy/paste into the chat input.
 
 """
 
@@ -99,8 +100,6 @@ def initialize_session_state() -> None:
         sss.agent_config = None
     if "current_demo" not in sss:
         sss.current_demo = None
-    if "selected_example" not in sss:
-        sss.selected_example = None
     if "just_processed" not in sss:
         sss.just_processed = False
 
@@ -164,16 +163,13 @@ def display_header_and_demo_selector(sample_demos: list[LangChainAgentConfig]) -
                 mcp_list = ", ".join(f"'{mcp}'" for mcp in demo.mcp_servers)
                 st.markdown(f"**MCP**: {mcp_list}")
             if demo.examples:
-                st.markdown("**Examples:**")
-                example = st.selectbox(
-                    "Choose an example:",
-                    options=["Select an example..."] + demo.examples,
-                    index=0,
-                    key=f"example_selector_{demo.name}",
-                )
-                if example != "Select an example..." and sss.selected_example != example:
-                    sss.selected_example = example
-                    st.success(f"✨ Example selected: '{example[:50]}{'...' if len(example) > 50 else ''}'")
+                with st.container(border=True):
+                    st.markdown(
+                        "**Examples:**",
+                        help="💡 **Copy any example below and paste it into the chat input to get started!",
+                    )
+                    for i, example in enumerate(demo.examples, 1):
+                        st.code(example, language="text",height =None, wrap_lines=True)
 
         if st.button("🗑️ Clear Chat History"):
             clear_chat_history()
@@ -326,10 +322,17 @@ async def setup_agent_if_needed(demo: LangChainAgentConfig) -> Any:
     return sss.agent
 
 
-async def process_user_input(demo: LangChainAgentConfig, user_input: str, status_container) -> None:
+async def process_user_input(
+    demo: LangChainAgentConfig, user_input: str, status_container, chat_container=None
+) -> None:
     """Process user input and generate agent response."""
     # Add user message to chat
     sss.messages.append(HumanMessage(content=user_input))
+
+    # Display user message immediately if chat container is provided
+    if chat_container:
+        with chat_container:
+            st.chat_message("human").write(user_input)
 
     # Set up agent
     agent = await setup_agent_if_needed(demo)
@@ -386,16 +389,29 @@ async def process_user_input(demo: LangChainAgentConfig, user_input: str, status
 
             status.update(label="✅ Complete!", state="complete", expanded=False)
 
-        # Add the response to messages
+        # Add the response to messages and display immediately
         if final_response and final_response.content:
             sss.messages.append(final_response)
+            # Display AI response immediately if chat container is provided
+            if chat_container:
+                with chat_container:
+                    st.chat_message("ai").write(final_response.content)
             status_container.success(f"Response added: {len(final_response.content)} characters")
         elif response_content:
-            sss.messages.append(AIMessage(content=response_content))
+            ai_message = AIMessage(content=response_content)
+            sss.messages.append(ai_message)
+            # Display AI response immediately if chat container is provided
+            if chat_container:
+                with chat_container:
+                    st.chat_message("ai").write(response_content)
             status_container.success(f"Response added: {len(response_content)} characters")
         else:
             error_msg = "I apologize, but I couldn't generate a proper response."
             sss.messages.append(AIMessage(content=error_msg))
+            # Display error message immediately if chat container is provided
+            if chat_container:
+                with chat_container:
+                    st.chat_message("ai").write(error_msg)
             status_container.warning("No response content found")
 
         # Update tool calls in session state
@@ -403,7 +419,7 @@ async def process_user_input(demo: LangChainAgentConfig, user_input: str, status
             sss.tool_calls.extend(tool_callback.tool_calls)
             status_container.info(f"Added {len(tool_callback.tool_calls)} tool calls")
 
-        # Mark that we just processed input to trigger UI update
+        # Mark that we just processed input to prevent re-execution
         sss.just_processed = True
         status_container.success(
             f"✅ Processing complete! Messages: {len(sss.messages)}, Tool calls: {len(sss.tool_calls)}"
@@ -412,6 +428,8 @@ async def process_user_input(demo: LangChainAgentConfig, user_input: str, status
     except Exception as e:
         status_container.error(f"An error occurred: {str(e)}")
         sss.messages.append(AIMessage(content=f"I encountered an error: {str(e)}"))
+        # Also set flag for error case to prevent re-execution
+        sss.just_processed = True
         import traceback
 
         st.error(f"Full traceback: {traceback.format_exc()}")
@@ -438,7 +456,8 @@ async def main() -> None:
         st.error("Selected demo configuration not found")
         st.stop()
 
-    # Check if we just processed something and reset the flag
+    # Reset the just_processed flag at the start of each run
+    # This ensures that after one cycle of processing, we can handle new input
     if sss.just_processed:
         sss.just_processed = False
 
@@ -450,10 +469,11 @@ async def main() -> None:
         st.header("🔧 Activity")
         display_tool_calls_sidebar(sss.tool_calls)
 
-        # Show trace link if available
+        # Show trace link if available (persistent after interactions)
         if sss.last_trace_url:
             st.divider()
             st.link_button("🔗 View Trace", sss.last_trace_url)
+            st.caption("Latest interaction trace")
 
     # Right column: Chat interface
     with col_chat:
@@ -471,20 +491,6 @@ async def main() -> None:
                     st.chat_message("human").write(msg.content)
                 elif isinstance(msg, AIMessage):
                     st.chat_message("ai").write(msg.content)
-
-        # Handle example selection - if an example was selected, process it
-        if sss.selected_example and not sss.just_processed:
-            col_tools.info(f"🚀 Processing example: {sss.selected_example[:100]}...")
-
-            # Process it (this will add messages to session state)
-            await process_user_input(demo, sss.selected_example, col_tools)
-
-            # Clear the selection
-            sss.selected_example = None
-
-            # Immediate rerun to show results
-            col_tools.info("🔄 Refreshing UI to show results...")
-            st.rerun()
 
         # Chat input at the bottom
         user_input = st.chat_input("Type your message here... (or use /help for commands)", key="chat_input")
@@ -504,10 +510,8 @@ async def main() -> None:
             # Process regular user input
             if user_input:
                 col_tools.info(f"🚀 Processing input: {user_input[:100]}...")
-                await process_user_input(demo, user_input, col_tools)
-                # Immediate rerun to show results
-                col_tools.info("🔄 Refreshing UI to show results...")
-                st.rerun()
+                await process_user_input(demo, user_input, col_tools, chat_container)
+                # Processing complete - response is already displayed
 
 
 # Run the async main function only when executing in Streamlit context

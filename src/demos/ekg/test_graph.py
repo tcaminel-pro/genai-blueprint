@@ -28,12 +28,12 @@ from baml_client.types import (
 )
 from graph_core import create_graph, restart_database
 from graph_schema import GraphNodeConfig, GraphRelationConfig, create_simplified_schema
-from kuzu_graph_html import generate_kuzu_graph_html
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from src.demos.ekg.kuzu_graph_html import generate_html_visualization
 from src.utils.pydantic.kv_store import PydanticStore
 
 console = Console()
@@ -350,9 +350,7 @@ def run_advanced_graph_queries(conn: kuzu.Connection) -> None:
         table.add_column("Team Member", style="magenta")
         table.add_column("Team Role", style="green")
         for _, row in df.iterrows():
-            table.add_row(
-                str(row["customer"]), str(row["team_member"]), str(row["team_role"])
-            )
+            table.add_row(str(row["customer"]), str(row["team_member"]), str(row["team_role"]))
         console.print(table)
     else:
         console.print("[yellow]No connections found[/yellow]")
@@ -419,7 +417,6 @@ def main() -> None:
         # Generate visualization
         console.print(Panel("[bold cyan]Generating Visualization[/bold cyan]"))
         try:
-            from src.demos.ekg.kuzu_graph_html import generate_html_visualization
             generate_html_visualization(conn, "ekg_visu.html", title="Enhanced Knowledge Graph")
             console.print("[green]✓[/green] Graph visualization saved to ekg_visu.html")
         except ImportError as e:
