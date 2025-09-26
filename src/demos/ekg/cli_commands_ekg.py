@@ -65,94 +65,10 @@ def get_ekg_db_path() -> Path:
     return EKG_DB_PATH
 
 
-def load_opportunity_data(opportunity_key: str):
-    """Load opportunity data from the key-value store.
-
-    Args:
-        opportunity_key: The opportunity identifier to load
-
-    Returns:
-        ReviewedOpportunity instance or None if not found
-    """
-
-    from src.demos.ekg.baml_client.types import (
-        ReviewedOpportunity,
-    )
-    from src.utils.pydantic.kv_store import PydanticStore
-
-    try:
-        store = PydanticStore(kvstore_id=KV_STORE_ID, model=ReviewedOpportunity)
-        opportunity = store.load_object(opportunity_key)
-        return opportunity
-    except Exception as e:
-        console.print(f"[red]Error loading opportunity data: {e}[/red]")
-        return None
+# Removed - now handled by subgraph classes
 
 
-def create_graph_configuration() -> object:
-    """Create the graph schema configuration.
-
-    Returns:
-        GraphSchema with all node and relationship configurations
-    """
-    # Define nodes - just specify the class and key field
-
-    from src.demos.ekg.baml_client.types import (
-        CompetitiveLandscape,
-        Customer,
-        FinancialMetrics,
-        Opportunity,
-        Partner,
-        Person,
-        ReviewedOpportunity,
-        RiskAnalysis,
-        TechnicalApproach,
-    )
-    from src.demos.ekg.graph_schema import GraphNodeConfig, GraphRelationConfig, create_simplified_schema
-
-    nodes = [
-        # Root node
-        GraphNodeConfig(baml_class=ReviewedOpportunity, key="start_date"),
-        # Regular nodes - field paths auto-deduced
-        GraphNodeConfig(baml_class=Opportunity, key="name"),
-        GraphNodeConfig(baml_class=Customer, key="name"),
-        GraphNodeConfig(baml_class=Person, key="name", deduplication_key="name"),  # Handles both contacts and team
-        GraphNodeConfig(baml_class=Partner, key="name"),
-        GraphNodeConfig(baml_class=RiskAnalysis, key="risk_description"),
-        GraphNodeConfig(
-            baml_class=TechnicalApproach,
-            key="technical_stack",
-            key_generator=lambda data, base: data.get("technical_stack")
-            or data.get("architecture")
-            or f"{base}_default",
-        ),
-        GraphNodeConfig(
-            baml_class=CompetitiveLandscape,
-            key="competitive_position",
-            key_generator=lambda data, base: data.get("competitive_position") or f"{base}_competitive_position",
-        ),
-        # Embedded node - financials will be embedded in Opportunity table
-        GraphNodeConfig(baml_class=FinancialMetrics, key="tcv", embed_in_parent=True, embed_prefix="financial_"),
-    ]
-
-    # Define relationships - just specify from/to classes and relationship name
-    # Field paths are automatically deduced from the model structure
-    relations = [
-        GraphRelationConfig(from_node=ReviewedOpportunity, to_node=Opportunity, name="REVIEWS"),
-        GraphRelationConfig(from_node=Opportunity, to_node=Customer, name="HAS_CUSTOMER"),
-        GraphRelationConfig(from_node=Customer, to_node=Person, name="HAS_CONTACT"),
-        GraphRelationConfig(from_node=ReviewedOpportunity, to_node=Person, name="HAS_TEAM_MEMBER"),
-        GraphRelationConfig(from_node=ReviewedOpportunity, to_node=Partner, name="HAS_PARTNER"),
-        GraphRelationConfig(from_node=ReviewedOpportunity, to_node=RiskAnalysis, name="HAS_RISK"),
-        GraphRelationConfig(from_node=ReviewedOpportunity, to_node=TechnicalApproach, name="HAS_TECH_STACK"),
-        GraphRelationConfig(from_node=ReviewedOpportunity, to_node=CompetitiveLandscape, name="HAS_COMPETITION"),
-        # Note: No relationship to FinancialMetrics because it's embedded in Opportunity
-    ]
-
-    # Create and validate the schema - this will auto-deduce all field paths
-    schema = create_simplified_schema(root_model_class=ReviewedOpportunity, nodes=nodes, relations=relations)
-
-    return schema
+# Removed - now handled by subgraph classes
 
 
 def get_db_connection() -> tuple[kuzu.Database, kuzu.Connection] | None:
@@ -179,33 +95,42 @@ def get_db_connection() -> tuple[kuzu.Database, kuzu.Connection] | None:
 
 
 def register_ekg_commands(cli_app: typer.Typer) -> None:
-    # app = typer.Typer()
-    # app.add_typer(cli_app, name="ekg")
+    """Register EKG commands with the CLI application."""
+    from src.demos.ekg.rainbow_subgraph import get_subgraph
+
     app = cli_app
 
     @app.command("kg-add")
-    def add_opportunity(
-        key: Annotated[str, typer.Option("--key", "-k", help="Opportunity key to add to the EKG database")],
+    def add_data(
+        key: Annotated[str, typer.Option("--key", "-k", help="Data key to add to the EKG database")],
+        subgraph: Annotated[str, typer.Option("--subgraph", "-g", help="Subgraph type to use")] = "opportunity",
     ) -> None:
-        """Add opportunity data to the shared EKG database.
+        """Add data to the shared EKG database.
 
-        Loads opportunity data from the key-value store and adds it to the
+        Loads data from the key-value store and adds it to the
         shared EKG database, creating the database if it doesn't exist.
         """
+        from graph_core import create_graph
 
-        from src.demos.ekg.graph_core import create_graph
+        # Get subgraph implementation
+        try:
+            subgraph_impl = get_subgraph(subgraph)
+        except ValueError as e:
+            console.print(f"[red]❌ {e}[/red]")
+            raise typer.Exit(1)
 
-        console.print(Panel(f"[bold cyan]Adding Opportunity Data: {key}[/bold cyan]"))
+        console.print(Panel(f"[bold cyan]Adding {subgraph.title()} Data: {key}[/bold cyan]"))
 
-        # Check if opportunity data exists
-        console.print("📁 Loading opportunity data...")
-        opportunity = load_opportunity_data(key)
-        if not opportunity:
-            console.print(f"[red]❌ No opportunity data found for key: {key}[/red]")
+        # Check if data exists
+        console.print("📁 Loading data...")
+        data = subgraph_impl.load_data(key)
+        if not data:
+            console.print(f"[red]❌ No {subgraph} data found for key: {key}[/red]")
             console.print("[yellow]💡 Use structured extraction commands to create data first[/yellow]")
             raise typer.Exit(1)
 
-        console.print(f"[green]✓[/green] Loaded opportunity: [bold]{opportunity.opportunity.name}[/bold]")
+        entity_name = subgraph_impl.get_entity_name_from_data(data)
+        console.print(f"[green]✓[/green] Loaded {subgraph}: [bold]{entity_name}[/bold]")
 
         # Get database path
         db_path = get_ekg_db_path()
@@ -221,7 +146,7 @@ def register_ekg_commands(cli_app: typer.Typer) -> None:
 
         # Create graph configuration
         console.print("⚙️  Creating graph schema...")
-        schema = create_graph_configuration()
+        schema = subgraph_impl.build_schema()
         console.print(
             f"[green]✓[/green] Schema created with {len(schema.nodes)} node types and {len(schema.relations)} relationships"
         )
@@ -231,20 +156,20 @@ def register_ekg_commands(cli_app: typer.Typer) -> None:
         db = kuzu.Database(str(db_path))
         conn = kuzu.Connection(db)
 
-        # Add opportunity data to the knowledge graph
-        console.print(f"🚀 Adding opportunity data: {key}...")
+        # Add data to the knowledge graph
+        console.print(f"🚀 Adding {subgraph} data: {key}...")
         with console.status("[bold green]Processing graph data..."):
-            nodes_dict, relationships = create_graph(conn, opportunity, schema)
+            nodes_dict, relationships = create_graph(conn, data, schema)
 
         # Display addition summary
         total_nodes = sum(len(node_list) for node_list in nodes_dict.values())
-        console.print(Panel("[bold green]✅ Opportunity Data Added Successfully![/bold green]"))
+        console.print(Panel(f"[bold green]✅ {subgraph.title()} Data Added Successfully![/bold green]"))
 
         summary_table = Table(title="Addition Summary")
         summary_table.add_column("Metric", style="cyan", no_wrap=True)
         summary_table.add_column("Count", justify="right", style="magenta")
 
-        summary_table.add_row("Opportunity Added", key)
+        summary_table.add_row(f"{subgraph.title()} Added", key)
         summary_table.add_row("Nodes Added", str(total_nodes))
         summary_table.add_row("Relationships Added", str(len(relationships)))
         summary_table.add_row("Node Types", str(len([k for k, v in nodes_dict.items() if v])))
@@ -253,9 +178,9 @@ def register_ekg_commands(cli_app: typer.Typer) -> None:
         console.print(summary_table)
 
         console.print("\n[green]💡 Next steps:[/green]")
-        console.print("   • Query: [bold]ekg query[/bold]")
-        console.print("   • Info:  [bold]ekg info[/bold]")
-        console.print("   • Export: [bold]ekg export-html[/bold]")
+        console.print("   • Query: [bold]ekg kg-query[/bold]")
+        console.print("   • Info:  [bold]ekg kg-info[/bold]")
+        console.print("   • Export: [bold]ekg kg-export-html[/bold]")
 
     @app.command("kg-delete")
     def delete_ekg() -> None:
@@ -332,18 +257,28 @@ def register_ekg_commands(cli_app: typer.Typer) -> None:
     @app.command("kg-query")
     def query_ekg(
         query: Annotated[str | None, typer.Option("--query", "-q", help="Cypher query to execute")] = None,
+        subgraph: Annotated[
+            str, typer.Option("--subgraph", "-g", help="Subgraph type for sample queries")
+        ] = "opportunity",
     ) -> None:
         """Execute Cypher queries on the EKG database.
 
         If no query is provided, starts an interactive query shell.
         """
+        # Get subgraph implementation for sample queries
+        try:
+            subgraph_impl = get_subgraph(subgraph)
+        except ValueError as e:
+            console.print(f"[red]❌ {e}[/red]")
+            raise typer.Exit(1)
+
         console.print(Panel("[bold cyan]Querying EKG Database[/bold cyan]"))
 
         # Get database connection
         result = get_db_connection()
         if not result:
             console.print("[red]❌ No EKG database found[/red]")
-            console.print("[yellow]💡 Add data first: [bold]ekg add --key <opportunity_key>[/bold][/yellow]")
+            console.print("[yellow]💡 Add data first: [bold]ekg kg-add --key <data_key>[/bold][/yellow]")
             raise typer.Exit(1)
 
         db, conn = result
@@ -395,13 +330,8 @@ def register_ekg_commands(cli_app: typer.Typer) -> None:
         console.print("\n[bold green]🔍 Interactive Query Shell[/bold green]")
         console.print("[dim]Enter Cypher queries (type 'exit' or 'quit' to leave, 'help' for examples)[/dim]\n")
 
-        # Sample queries
-        sample_queries = [
-            "MATCH (n) RETURN labels(n)[0] as NodeType, count(n) as Count",
-            "MATCH (o:Opportunity) RETURN o.name, o.status LIMIT 5",
-            "MATCH (c:Customer)-[:HAS_CONTACT]->(p:Person) RETURN c.name, p.name, p.role LIMIT 5",
-            "MATCH (ro:ReviewedOpportunity)-[:HAS_RISK]->(r:RiskAnalysis) RETURN r.risk_description, r.impact_level LIMIT 3",
-        ]
+        # Get sample queries from subgraph
+        sample_queries = subgraph_impl.get_sample_queries()
 
         while True:
             try:
@@ -411,7 +341,7 @@ def register_ekg_commands(cli_app: typer.Typer) -> None:
                     console.print("[yellow]Goodbye! 👋[/yellow]")
                     break
                 elif query_input.lower() == "help":
-                    console.print(Panel("Sample Queries", style="green"))
+                    console.print(Panel(f"Sample Queries ({subgraph} subgraph)", style="green"))
                     for i, sample in enumerate(sample_queries, 1):
                         console.print(f"{i}. [cyan]{sample}[/cyan]")
                     console.print()
@@ -435,19 +365,30 @@ def register_ekg_commands(cli_app: typer.Typer) -> None:
                 break
 
     @app.command("kg-info")
-    def show_info() -> None:
-        """Display EKG database information, schema, and BAM class mapping.
+    def show_info(
+        subgraph: Annotated[
+            str, typer.Option("--subgraph", "-g", help="Subgraph type to display info for")
+        ] = "opportunity",
+    ) -> None:
+        """Display EKG database information, schema, and entity mapping.
 
         Shows comprehensive information about the EKG database including
-        node/relationship counts, schema details, and mapping to BAM classes.
+        node/relationship counts, schema details, and semantic mapping.
         """
-        console.print(Panel("[bold cyan]EKG Database Information[/bold cyan]"))
+        # Get subgraph implementation
+        try:
+            subgraph_impl = get_subgraph(subgraph)
+        except ValueError as e:
+            console.print(f"[red]❌ {e}[/red]")
+            raise typer.Exit(1)
+
+        console.print(Panel(f"[bold cyan]{subgraph.title()} EKG Database Information[/bold cyan]"))
 
         # Get database connection
         result = get_db_connection()
         if not result:
             console.print("[red]❌ No EKG database found[/red]")
-            console.print("[yellow]💡 Add data first: [bold]ekg add --key <opportunity_key>[/bold][/yellow]")
+            console.print("[yellow]💡 Add data first: [bold]ekg kg-add --key <data_key>[/bold][/yellow]")
             raise typer.Exit(1)
 
         db, conn = result
@@ -462,6 +403,7 @@ def register_ekg_commands(cli_app: typer.Typer) -> None:
         info_table.add_row("Database Path", str(db_path))
         info_table.add_row("Database Type", "Kuzu Graph Database")
         info_table.add_row("Storage", "Persistent File Storage")
+        info_table.add_row("Subgraph Type", subgraph_impl.name)
 
         console.print(info_table)
         console.print()
@@ -528,28 +470,18 @@ def register_ekg_commands(cli_app: typer.Typer) -> None:
         except Exception as e:
             console.print(f"[red]Error retrieving schema information: {e}[/red]")
 
-        # BAM Class Mapping
-        console.print(Panel("[bold cyan]BAM Class Mapping[/bold cyan]"))
+        # Node Mapping
+        console.print(Panel(f"[bold cyan]{subgraph.title()} Node Mapping[/bold cyan]"))
 
-        mapping_table = Table(title="Node Type → BAM Class Mapping")
+        mapping_table = Table(title="Node Type → Description")
         mapping_table.add_column("Graph Node Type", style="cyan", no_wrap=True)
-        mapping_table.add_column("BAM Python Class", style="green")
         mapping_table.add_column("Description", style="yellow")
 
-        # Define the mapping based on our schema configuration
-        baml_mapping = {
-            "ReviewedOpportunity": ("ReviewedOpportunity", "Root node containing the complete reviewed opportunity"),
-            "Opportunity": ("Opportunity", "Core opportunity information with financial metrics embedded"),
-            "Customer": ("Customer", "Customer organization details"),
-            "Person": ("Person", "Individual contacts and team members"),
-            "Partner": ("Partner", "Partner organization information"),
-            "RiskAnalysis": ("RiskAnalysis", "Risk assessment and mitigation details"),
-            "TechnicalApproach": ("TechnicalApproach", "Technical implementation approach and stack"),
-            "CompetitiveLandscape": ("CompetitiveLandscape", "Competitive positioning and analysis"),
-        }
+        # Get node labels from subgraph implementation
+        node_labels = subgraph_impl.get_node_labels()
 
-        for node_type, (baml_class, description) in baml_mapping.items():
-            mapping_table.add_row(node_type, baml_class, description)
+        for node_type, description in node_labels.items():
+            mapping_table.add_row(node_type, description)
 
         console.print(mapping_table)
         console.print()
@@ -560,16 +492,8 @@ def register_ekg_commands(cli_app: typer.Typer) -> None:
         rel_mapping_table.add_column("From → To", style="green")
         rel_mapping_table.add_column("Meaning", style="yellow")
 
-        relationship_meanings = {
-            "REVIEWS": ("ReviewedOpportunity → Opportunity", "Review relationship to core opportunity"),
-            "HAS_CUSTOMER": ("Opportunity → Customer", "Opportunity belongs to customer"),
-            "HAS_CONTACT": ("Customer → Person", "Customer contact persons"),
-            "HAS_TEAM_MEMBER": ("ReviewedOpportunity → Person", "Internal team members"),
-            "HAS_PARTNER": ("ReviewedOpportunity → Partner", "Partner organizations involved"),
-            "HAS_RISK": ("ReviewedOpportunity → RiskAnalysis", "Identified risks and mitigations"),
-            "HAS_TECH_STACK": ("ReviewedOpportunity → TechnicalApproach", "Technical implementation approach"),
-            "HAS_COMPETITION": ("ReviewedOpportunity → CompetitiveLandscape", "Competitive analysis"),
-        }
+        # Get relationship labels from subgraph implementation
+        relationship_meanings = subgraph_impl.get_relationship_labels()
 
         for rel_type, (direction, meaning) in relationship_meanings.items():
             rel_mapping_table.add_row(rel_type, direction, meaning)
@@ -578,8 +502,8 @@ def register_ekg_commands(cli_app: typer.Typer) -> None:
 
         # Quick query suggestions
         console.print("\n[green]💡 Try these queries:[/green]")
-        console.print('   • [bold]ekg query --query "MATCH (n) RETURN labels(n)[0], count(n)"[/bold]')
-        console.print("   • [bold]ekg query[/bold] (interactive shell)")
+        console.print('   • [bold]ekg kg-query --query "MATCH (n) RETURN labels(n)[0], count(n)"[/bold]')
+        console.print("   • [bold]ekg kg-query[/bold] (interactive shell)")
 
     @app.command("kg-export-html")
     def export_html(

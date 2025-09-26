@@ -31,7 +31,7 @@ import kuzu  # Requires the `kuzu` package
 
 # Import new schema types
 
-# from .graph_schema import GraphNodeConfig, GraphRelationConfig, GraphSchema
+# from src.demos.ekg.graph_schema import GraphNodeConfig, GraphRelationConfig, GraphSchema
 
 
 def _generate_node_id(node_type: str, node_name: str, max_length: int = 50) -> str:

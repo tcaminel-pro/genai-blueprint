@@ -818,7 +818,7 @@ class KnowledgeGraphExtractor:
         """
         try:
             # Import the HTML visualization function
-            from .kuzu_graph_html import _fetch_graph_data
+            from src.demos.ekg.kuzu_graph_html import _fetch_graph_data
 
             # Use the existing data fetching logic
             nodes_data, edges_data = _fetch_graph_data(self.conn)

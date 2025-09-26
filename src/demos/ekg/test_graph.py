@@ -15,7 +15,12 @@ Features the simplified GraphSchema API that:
 # Add the src directory to Python path for imports
 
 import kuzu
-from baml_client.types import (
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
+
+from src.demos.ekg.baml_client.types import (
     CompetitiveLandscape,
     Customer,
     FinancialMetrics,
@@ -26,13 +31,8 @@ from baml_client.types import (
     RiskAnalysis,
     TechnicalApproach,
 )
-from graph_core import create_graph, restart_database
-from graph_schema import GraphNodeConfig, GraphRelationConfig, create_simplified_schema
-from rich.console import Console
-from rich.panel import Panel
-from rich.table import Table
-from rich.text import Text
-
+from src.demos.ekg.graph_core import create_graph, restart_database
+from src.demos.ekg.graph_schema import GraphNodeConfig, GraphRelationConfig, create_simplified_schema
 from src.demos.ekg.kuzu_graph_html import generate_html_visualization
 from src.utils.pydantic.kv_store import PydanticStore
 
