@@ -73,7 +73,7 @@ def get_image() -> modal.Image:
             .run_commands(
                 # Install Python dependencies using uv after adding source
                 "cd /app && uv sync",
-                # Install python-dotenv separately
+                # Install python-dotenv for secrets
                 "cd /app && uv add python-dotenv",
             )
         )
@@ -98,12 +98,13 @@ app = modal.App("genai-framework")
     gpu=None,  # Optional: Use GPU if needed
     scaledown_window=300,  # Keep container alive for 5 minutes
 )
-@modal.concurrent(max_inputs=5)
-@modal.web_server(8000)
-def run():
-    """Serve the Streamlit app via Modal web server."""
-    import shlex
+@modal.web_server(8000, startup_timeout=600)  # 10 minutes startup timeout
+def streamlit_server():
+    """Serve the Streamlit app directly."""
     import subprocess
+    import time
+    import threading
+    from pathlib import Path
 
     sys.path.append("/app")
     os.chdir("/app")
@@ -118,10 +119,35 @@ def run():
     os.makedirs(f"{VOLUME_PATH}/hf_models", exist_ok=True)
     os.makedirs(f"{VOLUME_PATH}/kv_store", exist_ok=True)
 
-    # Start Streamlit server following Modal's recommended pattern
-    target = shlex.quote("src/main/streamlit.py")
-    cmd = f"uv run streamlit run {target} --server.port 8000 --server.enableCORS=false --server.enableXsrfProtection=false"
-    subprocess.Popen(cmd, shell=True)
+    # Ensure required files exist
+    streamlit_file = Path("src/main/streamlit.py")
+    if not streamlit_file.exists():
+        print(f"ERROR: Streamlit file not found at {streamlit_file.absolute()}")
+        print(f"Current directory: {Path.cwd()}")
+        print(f"Directory contents: {list(Path.cwd().iterdir())}")
+        raise FileNotFoundError(f"Streamlit app file not found: {streamlit_file}")
+
+    print(f"Starting Streamlit server from {Path.cwd()}")
+    print(f"Streamlit file exists: {streamlit_file.exists()}")
+
+    # Start Streamlit server with proper settings for Modal
+    cmd = [
+        "uv", "run", "streamlit", "run", str(streamlit_file),
+        "--server.port", "8000",
+        "--server.address", "0.0.0.0",  # Bind to all interfaces for Modal
+        "--server.enableCORS", "false",
+        "--server.enableXsrfProtection", "false",
+        "--server.headless", "true",
+        "--browser.gatherUsageStats", "false",
+        "--server.runOnSave", "false",
+        "--server.fileWatcherType", "none"
+    ]
+    
+    print(f"Executing command: {' '.join(cmd)}")
+    
+    # Use exec to replace the current process with Streamlit
+    # This ensures Streamlit runs as the main process and binds to port 8000
+    os.execvp("uv", cmd)
 
 
 # @app.local_entrypoint()

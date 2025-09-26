@@ -14,9 +14,9 @@ dependencies = [ # core dependancies. More in [dependency-groups]
     "rich[jupyter]>=13.9.4",      # Terminal formatting
     "universal-pathlib>=0.2.6",   # Cross-platform paths
     "pip>=25.1.1",                # Package installer
-    #    "modal>=1.0.5",  # Serverless cloud platform
-    "python-dotenv>=1.1.1", # Environment variables
-    "beartype>=0.21.0",     # Run time type checking
+    "modal>=1.0.5",               # Serverless cloud platform
+    "python-dotenv>=1.1.1",       # Environment variables
+    "beartype>=0.21.0",           # Run time type checking
 ]
 
 [project.urls]
@@ -60,7 +60,7 @@ ui = [
     "streamlit-monaco>=0.1.3",  # Code editor component
     "st-annotated-text>=4.0.2", # Text annotation component
     #"gradio>=5.30.0",  # ML web interface
-    "pyaudio>=0.2.14",
+    # "pyaudio>=0.2.14",
 ]
 ai_extra = [
     "gpt-researcher>=0.13",     # AI research assistant
