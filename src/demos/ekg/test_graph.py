@@ -3,6 +3,13 @@
 
 This script demonstrates the complete workflow of creating a knowledge graph
 from structured Pydantic data using Kuzu as the graph database.
+
+Features the simplified GraphSchema API that:
+- Automatically deduces field paths from Pydantic model structure
+- Auto-computes excluded fields based on relationships
+- Provides built-in validation and coherence checking
+- Eliminates duplicate configurations for the same class
+- Handles ForwardRef types automatically
 """
 
 # Add the src directory to Python path for imports
@@ -19,14 +26,15 @@ from baml_client.types import (
     RiskAnalysis,
     TechnicalApproach,
 )
-from graph_core import NodeInfo, RelationInfo, create_graph, restart_database
+from graph_core import create_graph, restart_database
+from graph_schema import GraphNodeConfig, GraphRelationConfig, create_simplified_schema
+from kuzu_graph_html import generate_kuzu_graph_html
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
 from src.utils.pydantic.kv_store import PydanticStore
-from kuzu_graph_html import generate_kuzu_graph_html
 
 console = Console()
 
@@ -35,111 +43,64 @@ KV_STORE_ID = "file"
 OPPORTUNITY_KEY = "cnes-venus-tma"
 
 
-def create_configuration() -> tuple[list[NodeInfo], list[RelationInfo]]:
-    """Create the node and relationship configuration for the opportunity graph.
+def create_configuration():
+    """Create graph configuration using the simplified GraphSchema API.
+
+    This approach provides:
+    - 70% less configuration code than legacy approach
+    - Auto-deduced field paths from Pydantic model structure
+    - Auto-computed excluded fields based on relationships
+    - No duplicate configurations for same class in different relationships
+    - Automatic coherence validation
 
     Returns:
-        Tuple of (nodes, relations) configurations
+        GraphSchema with all auto-deduced configurations
     """
+    # Define nodes - just specify the class and key field
     nodes = [
-        NodeInfo(baml_class=Opportunity, key="name", indexed=True, field_path="opportunity"),
-        NodeInfo(baml_class=Customer, key="name", indexed=True, field_path="opportunity.customer"),
-        NodeInfo(
-            baml_class=Person,
-            key="name",
-            indexed=True,
-            field_path="opportunity.customer.contacts",
-            is_list=True,
-            deduplication_key="name",
-        ),
-        NodeInfo(
-            baml_class=Person, key="name", indexed=True, field_path="team", is_list=True, deduplication_key="name"
-        ),
-        NodeInfo(baml_class=Partner, key="name", indexed=True, field_path="partners", is_list=True),
-        NodeInfo(baml_class=RiskAnalysis, key="risk_description", indexed=False, field_path="risks", is_list=True),
-        NodeInfo(
-            baml_class=FinancialMetrics,
-            key="tcv",
-            indexed=False,
-            field_path="financials",
-            key_generator=lambda data, base: str(data.get("tcv", 0.0)),
-        ),
-        NodeInfo(
+        # Root node
+        GraphNodeConfig(baml_class=ReviewedOpportunity, key="start_date"),
+        # Regular nodes - field paths auto-deduced
+        GraphNodeConfig(baml_class=Opportunity, key="name"),
+        GraphNodeConfig(baml_class=Customer, key="name"),
+        GraphNodeConfig(baml_class=Person, key="name", deduplication_key="name"),  # Handles both contacts and team
+        GraphNodeConfig(baml_class=Partner, key="name"),
+        GraphNodeConfig(baml_class=RiskAnalysis, key="risk_description"),
+        GraphNodeConfig(
             baml_class=TechnicalApproach,
             key="technical_stack",
-            indexed=False,
-            field_path="tech_stack",
-            key_generator=lambda data, base: data.get("technical_stack") or data.get("architecture") or f"{base}_default",
+            key_generator=lambda data, base: data.get("technical_stack")
+            or data.get("architecture")
+            or f"{base}_default",
         ),
-        NodeInfo(
+        GraphNodeConfig(
             baml_class=CompetitiveLandscape,
             key="competitive_position",
-            indexed=False,
-            field_path="competition",
             key_generator=lambda data, base: data.get("competitive_position") or f"{base}_competitive_position",
         ),
+        # Embedded node - financials will be embedded in Opportunity table
+        GraphNodeConfig(baml_class=FinancialMetrics, key="tcv", embed_in_parent=True, embed_prefix="financial_"),
     ]
 
+    # Define relationships - just specify from/to classes and relationship name
+    # Field paths are automatically deduced from the model structure
     relations = [
-        RelationInfo(
-            from_node=Opportunity,
-            to_node=Customer,
-            name="HAS_CUSTOMER",
-            from_field_path="opportunity",
-            to_field_path="opportunity.customer",
-        ),
-        RelationInfo(
-            from_node=Customer,
-            to_node=Person,
-            name="HAS_CONTACT",
-            from_field_path="opportunity.customer",
-            to_field_path="opportunity.customer.contacts",
-        ),
-        RelationInfo(
-            from_node=Opportunity,
-            to_node=Person,
-            name="HAS_TEAM_MEMBER",
-            from_field_path="opportunity",
-            to_field_path="team",
-        ),
-        RelationInfo(
-            from_node=Opportunity,
-            to_node=Partner,
-            name="HAS_PARTNER",
-            from_field_path="opportunity",
-            to_field_path="partners",
-        ),
-        RelationInfo(
-            from_node=Opportunity,
-            to_node=RiskAnalysis,
-            name="HAS_RISK",
-            from_field_path="opportunity",
-            to_field_path="risks",
-        ),
-        RelationInfo(
-            from_node=Opportunity,
-            to_node=FinancialMetrics,
-            name="HAS_FINANCIALS",
-            from_field_path="opportunity",
-            to_field_path="financials",
-        ),
-        RelationInfo(
-            from_node=Opportunity,
-            to_node=TechnicalApproach,
-            name="HAS_TECH_STACK",
-            from_field_path="opportunity",
-            to_field_path="tech_stack",
-        ),
-        RelationInfo(
-            from_node=Opportunity,
-            to_node=CompetitiveLandscape,
-            name="HAS_COMPETITION",
-            from_field_path="opportunity",
-            to_field_path="competition",
-        ),
+        GraphRelationConfig(from_node=ReviewedOpportunity, to_node=Opportunity, name="REVIEWS"),
+        GraphRelationConfig(from_node=Opportunity, to_node=Customer, name="HAS_CUSTOMER"),
+        GraphRelationConfig(from_node=Customer, to_node=Person, name="HAS_CONTACT"),
+        GraphRelationConfig(from_node=ReviewedOpportunity, to_node=Person, name="HAS_TEAM_MEMBER"),
+        GraphRelationConfig(from_node=ReviewedOpportunity, to_node=Partner, name="HAS_PARTNER"),
+        GraphRelationConfig(from_node=ReviewedOpportunity, to_node=RiskAnalysis, name="HAS_RISK"),
+        GraphRelationConfig(from_node=ReviewedOpportunity, to_node=TechnicalApproach, name="HAS_TECH_STACK"),
+        GraphRelationConfig(from_node=ReviewedOpportunity, to_node=CompetitiveLandscape, name="HAS_COMPETITION"),
+        # Note: No relationship to FinancialMetrics because it's embedded in Opportunity
     ]
 
-    return nodes, relations
+    # Create and validate the schema - this will auto-deduce all field paths
+    # and validate consistency with the Pydantic model structure
+    schema = create_simplified_schema(root_model_class=ReviewedOpportunity, nodes=nodes, relations=relations)
+
+    return schema
 
 
 def load_test_data() -> ReviewedOpportunity:
@@ -167,15 +128,74 @@ def load_test_data() -> ReviewedOpportunity:
     return opportunity
 
 
-def create_statistics_table(conn: kuzu.Connection, nodes: list[NodeInfo], relations: list[RelationInfo]) -> None:
+def display_schema_configuration(schema):
+    """Display the complete schema configuration with auto-deduced information.
+
+    Args:
+        schema: GraphSchema object with all configuration details
+    """
+    console.print(Panel("[bold cyan]Graph Schema Configuration[/bold cyan]"))
+
+    # Call the built-in schema summary display
+    schema.print_schema_summary()
+
+    # Display validation results
+    warnings = schema.get_warnings()
+    if warnings:
+        console.print("\n[bold red]Schema Validation Warnings:[/bold red]")
+        for warning in warnings:
+            console.print(f"⚠️  {warning}")
+    else:
+        console.print("\n[bold green]✓ Schema validation passed - no warnings![/bold green]")
+
+    # Display configuration statistics
+    console.print("\n[bold]Configuration Summary:[/bold]")
+    console.print(f"• Root model: {schema.root_model_class.__name__}")
+    console.print(f"• Node types configured: {len(schema.nodes)}")
+    console.print(f"• Relationships configured: {len(schema.relations)}")
+    console.print(f"• Auto-deduced field paths: {sum(len(n.field_paths) for n in schema.nodes)}")
+    console.print(f"• Auto-computed excluded fields: {sum(len(n.excluded_fields) for n in schema.nodes)}")
+
+    # Display auto-deduced details
+    console.print("\n[bold]Auto-deduced Information:[/bold]")
+    for node in schema.nodes:
+        if node.field_paths:
+            paths_info = ", ".join(
+                [f"{path}{'(list)' if node.is_list_at_paths.get(path, False) else ''}" for path in node.field_paths]
+            )
+        else:
+            paths_info = "ROOT"
+
+        console.print(f"• {node.baml_class.__name__}: {paths_info}")
+        if node.excluded_fields:
+            console.print(f"  └─ Excluded fields: {', '.join(sorted(node.excluded_fields))}")
+
+
+def create_statistics_table(conn: kuzu.Connection, config=None) -> None:
     """Display comprehensive statistics about the created graph.
 
     Args:
         conn: The Kuzu database connection
-        nodes: Node configurations
-        relations: Relation configurations
+        config: Either GraphSchema, tuple of (nodes, relations), or None
     """
     console.print(Panel("[bold cyan]Graph Statistics[/bold cyan]"))
+
+    # Handle different config formats
+    if config is None:
+        console.print("[yellow]No configuration provided for statistics[/yellow]")
+        return
+
+    # Extract nodes and relations from config
+    if hasattr(config, "nodes") and hasattr(config, "relations"):
+        # GraphSchema format
+        nodes = config.nodes
+        relations = config.relations
+    elif isinstance(config, tuple) and len(config) == 2:
+        # Legacy (nodes, relations) tuple format
+        nodes, relations = config
+    else:
+        console.print(f"[red]Unsupported config format: {type(config)}[/red]")
+        return
 
     # Node statistics
     node_table = Table(title="Node Counts")
@@ -259,10 +279,10 @@ def run_sample_queries(conn: kuzu.Connection) -> None:
     else:
         console.print("[yellow]No customer contacts found[/yellow]")
 
-    # Team members
+    # Team members - Query directly from ReviewedOpportunity since that's where the relationship is
     console.print("\n[bold]Team Members (Top 5):[/bold]")
     query = """
-        MATCH (o:Opportunity)-[:HAS_TEAM_MEMBER]->(p:Person)
+        MATCH (ro:ReviewedOpportunity)-[:HAS_TEAM_MEMBER]->(p:Person)
         RETURN p.name as name, p.role as role, p.organization as org
         LIMIT 5
         """
@@ -280,10 +300,10 @@ def run_sample_queries(conn: kuzu.Connection) -> None:
     else:
         console.print("[yellow]No team members found[/yellow]")
 
-    # Risks
+    # Risks - Query directly from ReviewedOpportunity since that's where the relationship is
     console.print("\n[bold]Top 3 Risks:[/bold]")
     query = """
-        MATCH (o:Opportunity)-[:HAS_RISK]->(r:RiskAnalysis)
+        MATCH (ro:ReviewedOpportunity)-[:HAS_RISK]->(r:RiskAnalysis)
         RETURN r.risk_description as description, r.impact_level as impact, r.status as status
         LIMIT 3
         """
@@ -316,11 +336,9 @@ def run_advanced_graph_queries(conn: kuzu.Connection) -> None:
     # Path analysis - connections between customer contacts and team members
     console.print("[bold]Connectivity Analysis:[/bold]")
     query = """
-        MATCH path = (customer:Customer)-[:HAS_CONTACT]->(contact:Person),
-                     (opportunity:Opportunity)-[:HAS_TEAM_MEMBER]->(team:Person)
-        WHERE (opportunity)-[:HAS_CUSTOMER]->(customer)
-        RETURN contact.name as contact_person, team.name as team_member,
-               contact.role as contact_role, team.role as team_role
+        MATCH (ro:ReviewedOpportunity)-[:REVIEWS]->(o:Opportunity)-[:HAS_CUSTOMER]->(c:Customer),
+              (ro)-[:HAS_TEAM_MEMBER]->(p:Person)
+        RETURN c.name as customer, p.name as team_member, p.role as team_role
         LIMIT 5
         """
     console.print(f"[dim]Query: {query.strip()}[/dim]")
@@ -328,13 +346,12 @@ def run_advanced_graph_queries(conn: kuzu.Connection) -> None:
     df = result.get_as_df()
     if not df.empty:
         table = Table(title="Customer-Team Connections")
-        table.add_column("Customer Contact", style="cyan")
+        table.add_column("Customer", style="cyan")
         table.add_column("Team Member", style="magenta")
-        table.add_column("Contact Role", style="green")
-        table.add_column("Team Role", style="yellow")
+        table.add_column("Team Role", style="green")
         for _, row in df.iterrows():
             table.add_row(
-                str(row["contact_person"]), str(row["team_member"]), str(row["contact_role"]), str(row["team_role"])
+                str(row["customer"]), str(row["team_member"]), str(row["team_role"])
             )
         console.print(table)
     else:
@@ -343,7 +360,7 @@ def run_advanced_graph_queries(conn: kuzu.Connection) -> None:
     # Risk impact analysis
     console.print("\n[bold]Risk Impact Distribution:[/bold]")
     query = """
-        MATCH (o:Opportunity)-[:HAS_RISK]->(r:RiskAnalysis)
+        MATCH (ro:ReviewedOpportunity)-[:HAS_RISK]->(r:RiskAnalysis)
         RETURN r.impact_level as impact, count(r) as risk_count
         ORDER BY risk_count DESC
         """
@@ -371,26 +388,43 @@ def main() -> None:
         opportunity = load_test_data()
 
         # Create graph configuration
-        nodes, relations = create_configuration()
+        console.print(Panel("[bold cyan]Creating Graph Schema[/bold cyan]"))
+        schema = create_configuration()
+
         console.print(
-            f"\n[green]✓[/green] Created configuration with {len(nodes)} node types and {len(relations)} relationship types"
+            f"[green]✓[/green] Created schema with {len(schema.nodes)} node types and {len(schema.relations)} relationship types"
         )
+
+        # Display schema configuration
+        display_schema_configuration(schema)
 
         # Initialize database
         db, conn = restart_database()
 
         # Create the knowledge graph
         console.print(Panel("[bold cyan]Creating Knowledge Graph[/bold cyan]"))
-        nodes_dict, relationships = create_graph(conn, opportunity, nodes, relations)
+        nodes_dict, relationships = create_graph(conn, opportunity, schema)
 
         # Display statistics
-        create_statistics_table(conn, nodes, relations)
+        create_statistics_table(conn, schema)
 
         # Run sample queries
+        console.print(Panel("[bold cyan]Sample Queries[/bold cyan]"))
         run_sample_queries(conn)
 
         # Run advanced queries
+        console.print(Panel("[bold cyan]Advanced Analysis[/bold cyan]"))
         run_advanced_graph_queries(conn)
+
+        # Generate visualization
+        console.print(Panel("[bold cyan]Generating Visualization[/bold cyan]"))
+        try:
+            from src.demos.ekg.kuzu_graph_html import generate_html_visualization
+            generate_html_visualization(conn, "ekg_visu.html", title="Enhanced Knowledge Graph")
+            console.print("[green]✓[/green] Graph visualization saved to ekg_visu.html")
+        except ImportError as e:
+            console.print(f"[yellow]Warning: Could not generate visualization: {e}[/yellow]")
+            console.print("[green]✓[/green] Database operations completed successfully")
 
         # Summary
         console.print(Panel("[bold green]Test Completed Successfully![/bold green]"))
@@ -400,8 +434,8 @@ def main() -> None:
         console.print(f"• Total relationships created: {len(relationships)}")
         console.print(f"• Node types: {len([k for k, v in nodes_dict.items() if v])}")
         console.print(f"• Relationship types: {len(set(rel[4] for rel in relationships))}")
-
-        generate_kuzu_graph_html(conn, "ekg_visu.html")
+        console.print(f"• Auto-deduced field paths: {sum(len(n.field_paths) for n in schema.nodes)}")
+        console.print(f"• Auto-computed excluded fields: {sum(len(n.excluded_fields) for n in schema.nodes)}")
 
     except Exception as e:
         console.print(Panel(f"[bold red]Test Failed[/bold red]\n\n{str(e)}", style="red"))

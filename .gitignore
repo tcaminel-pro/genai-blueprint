@@ -129,3 +129,5 @@ src/wip/low_level/*
 .cursorindexingignore
 .specstory/**
 DEEPAGENTS_README.md
+xtrash/** 
+ekg_visu.html
