@@ -7,20 +7,21 @@ requires-python = ">=3.12,<3.13"
 dependencies = [ # core dependencies - genai_tk provides AI capabilities
     # GenAI Toolkit - core AI components
     "genai_tk @ git+https://github.com/tcaminel-pro/genai-tk@main",
-    
-    # Application framework dependencies  
-    "pydantic>=2.7.0,<3",         # Data validation framework
-    "devtools>=0.12.2",           # Development utilities
-    "loguru>=0.7.3",              # Logging library
-    "typer>=0.13.0",              # CLI framework
-    "omegaconf>=2.3.0",           # Configuration management
+    # Application framework dependencies
+    "pydantic>=2.7.0,<3", # Data validation framework
+    "devtools>=0.12.2", # Development utilities
+    "loguru>=0.7.3", # Logging library
+    "typer>=0.13.0", # CLI framework
+    "omegaconf>=2.3.0", # Configuration management
     "fastapi[standard]>=0.115.6", # Web framework
-    "rich[jupyter]>=13.9.4",      # Terminal formatting
-    "universal-pathlib>=0.2.6",   # Cross-platform paths
-    "pip>=25.1.1",                # Package installer
-    "modal>=1.0.5",               # Serverless cloud platform
-    "python-dotenv>=1.1.1",       # Environment variables
-    "beartype>=0.21.0",           # Run time type checking
+    "rich[jupyter]>=13.9.4", # Terminal formatting
+    "universal-pathlib>=0.2.6", # Cross-platform paths
+    "pip>=25.1.1", # Package installer
+    "modal>=1.0.5", # Serverless cloud platform
+    "python-dotenv>=1.1.1", # Environment variables
+    "beartype>=0.21.0", # Run time type checking
+    "baml-py>=0.209.0",
+    "kuzu>=0.11.2",
 ]
 
 [project.urls]
@@ -97,15 +98,13 @@ default-groups = [
     "dev",
 ]
 
-[tool.hatch.metadata]
-allow-direct-references = true
-
-[tool.hatch.build.targets.wheel]
-packages = ["src"]
-
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["genai_bp"]
+package-dir = {"genai_bp" = "src"}
 
 [tool.ruff]
 builtins = ["ic", "debug"]
@@ -159,5 +158,5 @@ python_files = ["test_*.py", "*_test.py"]
 
 
 [project.scripts]
-cli = "src.main.cli:main"
-mcp_math_server = "src.mcp_server.math_server:main" # (for test)
+cli = "genai_bp.main.cli:main"
+mcp_math_server = "genai_bp.mcp_server.math_server:main" # (for test)

@@ -72,11 +72,11 @@ auth:
 ####
 cli:
   commands:  # List modules:functions to register CLI commands
-    - src.ai_core.cli_commands:register_commands
-    - src.ai_extra.cli_commands:register_commands
-    - src.ai_extra.cli_commands_agents:register_commands
- #   - src.webapp.cli_commands:register_commands
-    - src.main.cli:register_commands
+    - genai_tk.main.commands_core:register_commands:register_commands
+#     - src.ai_extra.cli_commands:register_commands
+#     - src.ai_extra.cli_commands_agents:register_commands
+#  #   - src.webapp.cli_commands:register_commands
+#     - src.main.cli:register_commands
  
 logging:
   format: "<cyan>{time:HH:mm:ss}</cyan>-<level>{level: <7}</level> | <magenta>{file.name}</magenta>:<green>{line} <italic>{function}</italic></green>- <level>{message}</level>"
