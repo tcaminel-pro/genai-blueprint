@@ -27,9 +27,6 @@ dependencies = [ # core dependencies - genai_tk provides AI capabilities
 Homepage = "https://github.com/tcaminel-pro/genai-blueprint"
 Repository = "https://github.com/tcaminel-pro/genai-blueprint"
 
-[tool.setuptools.packages.find]
-where = ["./"]
-include = ["python"]
 
 
 [dependency-groups]
@@ -100,14 +97,11 @@ default-groups = [
     "dev",
 ]
 
-[tool.hatch.build.targets.sdist]
-include = ["./python"]
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-include = ["./python"]
-
-[tool.hatch.build.targets.wheel.sources]
-"./python" = "python"
+packages = ["src"]
 
 [build-system]
 requires = ["hatchling"]
