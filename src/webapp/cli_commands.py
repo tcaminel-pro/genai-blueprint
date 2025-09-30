@@ -20,7 +20,7 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         The hashed password can be added to the auth.yaml file.
         """
-        from src.utils.basic_auth import hash_password
+        from genai_tk.utils.basic_auth import hash_password
 
         hashed = hash_password(password)
         print(f"Hashed password: {hashed}")

@@ -12,7 +12,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from smolagents import CodeAgent, LiteLLMModel, OpenAIServerModel, TransformersModel, tool  # noqa: F401
 from smolagents.agents import ActionStep
 
-from src.ai_core.llm_factory import LlmFactory
+from genai_tk.core.llm_factory import LlmFactory
 
 load_dotenv()
 

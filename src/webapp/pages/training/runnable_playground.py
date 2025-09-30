@@ -20,8 +20,8 @@ from devtools import debug
 from langchain.callbacks import tracing_v2_enabled
 from pydantic import BaseModel
 
-from src.ai_core.chain_registry import ChainRegistry
-from src.utils.config_mngr import global_config
+from genai_tk.core.chain_registry import ChainRegistry
+from genai_tk.utils.config_mngr import global_config
 
 st.title("💬 Runnable Playground")
 

@@ -6,7 +6,7 @@ This demonstrates the deep agents without requiring external API keys
 
 import asyncio
 from langchain.tools import tool
-from src.ai_core.deep_agents import (
+from genai_tk.ai_core.deep_agents import (
     DeepAgentConfig,
     deep_agent_factory,
     run_deep_agent

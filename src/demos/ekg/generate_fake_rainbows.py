@@ -13,8 +13,8 @@ from pathlib import Path
 from loguru import logger
 from pydantic import BaseModel
 
-from src.ai_core.llm_factory import get_llm
-from src.ai_core.prompts import dedent_ws, def_prompt
+from genai_tk.core.llm_factory import get_llm
+from genai_tk.core.prompts import dedent_ws, def_prompt
 from src.demos.ekg.rainbow_model import RainbowProjectAnalysis
 
 

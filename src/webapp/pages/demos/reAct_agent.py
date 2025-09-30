@@ -25,10 +25,10 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 from streamlit import session_state as sss
 
-from src.ai_core.llm_factory import get_llm
-from src.ai_core.mcp_client import get_mcp_servers_dict
-from src.ai_core.prompts import dedent_ws
-from src.ai_extra.tools_langchain.shared_config_loader import LangChainAgentConfig, load_all_langchain_agent_configs
+from genai_tk.core.llm_factory import get_llm
+from genai_tk.core.mcp_client import get_mcp_servers_dict
+from genai_tk.core.prompts import dedent_ws
+from genai_tk.extra.tools_langchain.shared_config_loader import LangChainAgentConfig, load_all_langchain_agent_configs
 from src.webapp.ui_components.config_editor import edit_config_dialog
 from src.webapp.ui_components.llm_selector import llm_selector_widget
 

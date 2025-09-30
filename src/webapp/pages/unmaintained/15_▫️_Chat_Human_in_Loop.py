@@ -4,7 +4,7 @@ import streamlit as st
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage
 
-from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
+from genai_tk.utils.streamlit.thread_issue_fix import get_streamlit_cb
 
 load_dotenv()
 

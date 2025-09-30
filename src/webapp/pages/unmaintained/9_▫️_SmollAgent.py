@@ -6,7 +6,7 @@ from smolagents import (
     WebSearchTool,
 )
 
-from src.ai_core.llm_factory import LlmFactory
+from genai_tk.core.llm_factory import LlmFactory
 from src.webapp.ui_components.smolagents_streamlit import stream_to_streamlit
 
 # MODEL_ID = "gpt_4o_azure"

@@ -13,7 +13,7 @@ from loguru import logger
 from typer.testing import CliRunner
 
 from src.main.cli import cli_app
-from src.utils.config_mngr import global_config, import_from_qualified
+from genai_tk.utils.config_mngr import global_config, import_from_qualified
 
 
 def load_cli_examples() -> list[dict]:

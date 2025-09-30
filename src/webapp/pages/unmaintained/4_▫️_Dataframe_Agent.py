@@ -10,8 +10,8 @@ from langchain_experimental.agents import create_pandas_dataframe_agent
 from loguru import logger  # noqa: F401
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
-from src.ai_core.llm_factory import get_llm
-from src.utils.load_data import (
+from genai_tk.core.llm_factory import get_llm
+from genai_tk.utils.load_data import (
     TABULAR_FILE_FORMATS_READERS,
     load_tabular_data_once,
 )

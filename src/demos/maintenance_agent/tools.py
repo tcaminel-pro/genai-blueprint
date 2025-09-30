@@ -25,13 +25,13 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from loguru import logger
 
-from src.ai_core.embeddings_factory import EmbeddingsFactory
-from src.ai_core.llm_factory import get_llm
-from src.ai_core.prompts import dedent_ws, def_prompt
-from src.ai_core.vector_store_factory import VectorStoreFactory
-from src.ai_extra.tools_langchain.sql_tool_factory import SQLToolFactory, SQLToolConfig
+from genai_tk.core.embeddings_factory import EmbeddingsFactory
+from genai_tk.core.llm_factory import get_llm
+from genai_tk.core.prompts import dedent_ws, def_prompt
+from genai_tk.core.vector_store_factory import VectorStoreFactory
+from genai_tk.extra.tools_langchain.sql_tool_factory import SQLToolFactory, SQLToolConfig
 from src.demos.maintenance_agent.dummy_data import dummy_database
-from src.utils.config_mngr import global_config
+from genai_tk.utils.config_mngr import global_config
 
 # Tools setup
 PROCEDURES = [

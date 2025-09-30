@@ -9,11 +9,11 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from loguru import logger
 from rich import print  # noqa: F401
 
-from src.ai_core.chain_registry import Example, RunnableItem, register_runnable
-from src.ai_core.embeddings_factory import EmbeddingsFactory
-from src.ai_core.llm_factory import get_llm
-from src.ai_core.prompts import def_prompt
-from src.ai_core.vector_store_factory import VectorStoreFactory
+from genai_tk.core.chain_registry import Example, RunnableItem, register_runnable
+from genai_tk.core.embeddings_factory import EmbeddingsFactory
+from genai_tk.core.llm_factory import get_llm
+from genai_tk.core.prompts import def_prompt
+from genai_tk.core.vector_store_factory import VectorStoreFactory
 
 
 def get_retriever_fn(query: str | None, config: RunnableConfig) -> Runnable:

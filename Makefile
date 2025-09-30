@@ -211,6 +211,9 @@ test-install: .pythonpath ## Quick test install
 	else \
 		echo -e "\033[32mPYTHONPATH is set to: $(PYTHONPATH)\033[0m"; \
 	fi
+	@echo -e "\033[3m\033[36mTesting genai_bp installation with genai_tk dependency...\033[0m"
+	@PYTHONPATH=$(PWD) uv run python -c "import genai_tk.core; print('✓ genai_tk.core imported successfully')" || echo "✗ Failed to import genai_tk.core"
+	@PYTHONPATH=$(PWD) uv run python -c "import src.main.cli; print('✓ genai_bp CLI module imported successfully')" || echo "✗ Failed to import genai_bp CLI"
 	@echo -e "\033[3m\033[36mCall a fake LLM that returns the prompt. Here it should display 'tell me a joke on ...'\033[0m"
 	echo bears | PYTHONPATH=$(PWD) uv run cli run joke -m parrot_local_fake
 

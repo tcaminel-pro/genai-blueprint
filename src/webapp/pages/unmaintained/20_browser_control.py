@@ -4,7 +4,7 @@ import streamlit as st
 from browser_use import Agent, BrowserSession
 from streamlit import session_state as sss
 
-from src.ai_core.llm_factory import get_llm
+from genai_tk.core.llm_factory import get_llm
 
 LLM_ID = "gpt_4o_azure"
 

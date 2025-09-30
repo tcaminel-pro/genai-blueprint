@@ -18,14 +18,14 @@ from markpickle import dumps
 from pydantic import BaseModel, ConfigDict, PrivateAttr
 from upath import UPath
 
-from src.ai_core.embeddings_factory import EmbeddingsFactory
-from src.ai_core.llm_factory import get_llm
-from src.ai_core.prompts import def_prompt
-from src.ai_core.vector_store_factory import VectorStoreFactory
+from genai_tk.core.embeddings_factory import EmbeddingsFactory
+from genai_tk.core.llm_factory import get_llm
+from genai_tk.core.prompts import def_prompt
+from genai_tk.core.vector_store_factory import VectorStoreFactory
 from src.demos.ekg.cli_commands import KV_STORE_ID
-from src.utils.config_mngr import global_config
-from src.utils.pydantic.dyn_model_factory import PydanticModelFactory
-from src.utils.pydantic.kv_store import PydanticStore, save_object_to_kvstore
+from genai_tk.utils.config_mngr import global_config
+from genai_tk.utils.pydantic.dyn_model_factory import PydanticModelFactory
+from genai_tk.utils.pydantic.kv_store import PydanticStore, save_object_to_kvstore
 
 # Markdown separators for text splitting
 # fmt:off

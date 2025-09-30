@@ -4,7 +4,7 @@ from langchain_core.retrievers import BaseRetriever
 from langchain_core.runnables import RunnableLambda
 from smolagents import CodeAgent, LiteLLMModel, MultiStepAgent, Tool
 
-from src.ai_core.llm_factory import LlmFactory
+from genai_tk.core.llm_factory import LlmFactory
 
 
 def get_model_from_factory(llm_factory: LlmFactory) -> LiteLLMModel:

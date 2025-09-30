@@ -4,8 +4,8 @@ Test script to verify Deep Agent with real search works
 
 import asyncio
 import os
-from src.ai_core.search_tools import create_search_tool
-from src.ai_core.deep_agents import DeepAgentFactory, run_deep_agent
+from genai_tk.ai_core.search_tools import create_search_tool
+from genai_tk.ai_core.deep_agents import DeepAgentFactory, run_deep_agent
 from langchain_openai import ChatOpenAI
 
 async def test_research_agent():

@@ -8,15 +8,15 @@ from fastapi import FastAPI
 from langchain_openai import ChatOpenAI
 from langserve import add_routes
 
-from src.ai_core.chain_registry import ChainRegistry
+from genai_tk.core.chain_registry import ChainRegistry
 
 """The usual "tell me a joke" LLM call."""
 
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import Runnable, RunnablePassthrough
 
-from src.ai_core.llm_factory import get_llm
-from src.ai_core.prompts import def_prompt
+from genai_tk.core.llm_factory import get_llm
+from genai_tk.core.prompts import def_prompt
 
 load_dotenv(verbose=True)
 

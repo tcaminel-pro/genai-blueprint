@@ -15,14 +15,14 @@ from langchain.vectorstores.base import VectorStore
 from langchain_community.query_constructors.chroma import ChromaTranslator
 from langchain_core.documents import Document
 
-from src.ai_core.chain_registry import (
+from genai_tk.core.chain_registry import (
     Example,
     RunnableItem,
     register_runnable,
 )
-from src.ai_core.embeddings_factory import EmbeddingsFactory
-from src.ai_core.llm_factory import get_llm
-from src.ai_core.vector_store_factory import VectorStoreFactory
+from genai_tk.core.embeddings_factory import EmbeddingsFactory
+from genai_tk.core.llm_factory import get_llm
+from genai_tk.core.vector_store_factory import VectorStoreFactory
 
 # cSpell:disable
 

@@ -5,9 +5,9 @@ import streamlit as st
 from dotenv import load_dotenv
 from loguru import logger
 
-from src.utils.basic_auth import authenticate, load_auth_config
-from src.utils.config_mngr import global_config
-from src.utils.logger_factory import setup_logging
+from genai_tk.utils.basic_auth import authenticate, load_auth_config
+from genai_tk.utils.config_mngr import global_config
+from genai_tk.utils.logger_factory import setup_logging
 
 load_dotenv(verbose=True)
 

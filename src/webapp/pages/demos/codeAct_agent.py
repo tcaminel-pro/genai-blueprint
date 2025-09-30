@@ -27,18 +27,18 @@ from smolagents import (
 from streamlit import session_state as sss
 from streamlit.delta_generator import DeltaGenerator
 
-from src.ai_core.llm_factory import LlmFactory
-from src.ai_core.mcp_client import dict_to_stdio_server_list, get_mcp_servers_dict
-from src.ai_core.prompts import dedent_ws
+from genai_tk.core.llm_factory import LlmFactory
+from genai_tk.core.mcp_client import dict_to_stdio_server_list, get_mcp_servers_dict
+from genai_tk.core.prompts import dedent_ws
 
 # Import shared configuration functionality
-from src.ai_extra.tools_smolagents.config_loader import (
+from genai_tk.extra.tools_smolagents.config_loader import (
     SmolagentsAgentConfig,
     load_all_demos_from_config,
 )
-from src.utils.load_data import TABULAR_FILE_FORMATS_READERS, load_tabular_data_once
-from src.utils.streamlit.auto_scroll import scroll_to_here
-from src.utils.streamlit.recorder import StreamlitRecorder
+from genai_tk.utils.load_data import TABULAR_FILE_FORMATS_READERS, load_tabular_data_once
+from genai_tk.utils.streamlit.auto_scroll import scroll_to_here
+from genai_tk.utils.streamlit.recorder import StreamlitRecorder
 from src.webapp.ui_components.config_editor import edit_config_dialog
 from src.webapp.ui_components.llm_selector import llm_selector_widget
 from src.webapp.ui_components.smolagents_streamlit import stream_to_streamlit

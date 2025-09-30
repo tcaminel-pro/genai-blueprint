@@ -23,15 +23,15 @@ from smolagents import Tool as SmolAgentTool
 from streamlit import session_state as sss
 from streamlit.delta_generator import DeltaGenerator
 
-from src.ai_core.llm_factory import get_llm
-from src.ai_core.deep_agents import deep_agent_factory, run_deep_agent, DeepAgentConfig
-from src.ai_core.prompts import dict_input_message
-from src.ai_extra.tools_smolagents.deep_config_loader import (
+from genai_tk.core.llm_factory import get_llm
+from genai_tk.core.deep_agents import deep_agent_factory, run_deep_agent, DeepAgentConfig
+from genai_tk.core.prompts import dict_input_message
+from genai_tk.extra.tools_smolagents.deep_config_loader import (
     load_all_deep_agent_demos_from_config,
     load_deep_agent_demo_config,
 )
-from src.ai_extra.tools_smolagents.config_loader import process_tools_from_config
-from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
+from genai_tk.extra.tools_smolagents.config_loader import process_tools_from_config
+from genai_tk.utils.streamlit.thread_issue_fix import get_streamlit_cb
 from src.webapp.ui_components.config_editor import edit_config_dialog
 from src.webapp.ui_components.llm_selector import llm_selector_widget
 from src.webapp.ui_components.streamlit_chat import StreamlitStatusCallbackHandler, display_messages

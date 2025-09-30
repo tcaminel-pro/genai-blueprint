@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional
 from langchain.tools import tool
 from loguru import logger
 
-from src.ai_core.deep_agents import DeepAgentConfig, deep_agent_factory, run_deep_agent
+from genai_tk.core.deep_agents import DeepAgentConfig, deep_agent_factory, run_deep_agent
 
 
 class CodingAgentExample:

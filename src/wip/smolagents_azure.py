@@ -3,7 +3,7 @@ from smolagents import (
     WebSearchTool,
 )
 
-from src.ai_core.llm_factory import LlmFactory
+from genai_tk.core.llm_factory import LlmFactory
 
 llm_factory = LlmFactory(llm_tag="azure", llm_params={"temperature": 0.7})
 llm = llm_factory.get_smolagent_model()

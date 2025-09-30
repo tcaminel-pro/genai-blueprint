@@ -4,13 +4,13 @@ from dotenv import load_dotenv
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import Runnable, RunnableConfig, RunnableLambda, RunnablePassthrough
 
-from src.ai_core.chain_registry import (
+from genai_tk.core.chain_registry import (
     Example,
     RunnableItem,
     register_runnable,
 )
-from src.ai_core.llm_factory import get_llm_unified
-from src.ai_core.prompts import def_prompt
+from genai_tk.core.llm_factory import get_llm_unified
+from genai_tk.core.prompts import def_prompt
 
 load_dotenv(verbose=True)
 

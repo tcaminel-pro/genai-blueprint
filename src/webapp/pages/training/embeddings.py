@@ -11,7 +11,7 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.metrics.pairwise import cosine_similarity
 
-from src.ai_core.embeddings_factory import EmbeddingsFactory, get_embeddings
+from genai_tk.core.embeddings_factory import EmbeddingsFactory, get_embeddings
 
 
 def calculate_similarity_matrix(embeddings: list[list[float]]) -> np.ndarray:

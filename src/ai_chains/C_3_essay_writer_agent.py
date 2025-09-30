@@ -19,9 +19,9 @@ from loguru import logger
 from pydantic import BaseModel
 from tavily import TavilyClient
 
-from src.ai_core.chain_registry import Example, RunnableItem, register_runnable
-from src.ai_core.llm_factory import get_llm
-from src.ai_core.prompts import def_prompt
+from genai_tk.core.chain_registry import Example, RunnableItem, register_runnable
+from genai_tk.core.llm_factory import get_llm
+from genai_tk.core.prompts import def_prompt
 
 
 class AgentState(TypedDict, total=False):

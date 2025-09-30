@@ -22,8 +22,8 @@ from dotenv import load_dotenv
 from loguru import logger
 
 # Import modules where runnables are registered
-from src.utils.config_mngr import global_config, import_from_qualified
-from src.utils.logger_factory import setup_logging
+from genai_tk.utils.config_mngr import global_config, import_from_qualified
+from genai_tk.utils.logger_factory import setup_logging
 
 load_dotenv(verbose=True)
 

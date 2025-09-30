@@ -15,7 +15,7 @@ from langchain_core.tools.base import ArgsSchema
 from loguru import logger
 from pydantic import BaseModel, Field
 
-from src.ai_core.prompts import dedent_ws
+from genai_tk.core.prompts import dedent_ws
 from src.demos.ekg.struct_rag_doc_processing import StructuredRagConfig, get_schema
 
 T = TypeVar("T", bound=BaseModel)

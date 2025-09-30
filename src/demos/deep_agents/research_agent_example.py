@@ -14,8 +14,8 @@ from langchain.tools import tool
 from loguru import logger
 from tavily import TavilyClient
 
-from src.ai_core.deep_agents import DeepAgentConfig, deep_agent_factory, run_deep_agent
-from src.ai_extra.tools_langchain.web_search_tool import basic_web_search
+from genai_tk.core.deep_agents import DeepAgentConfig, deep_agent_factory, run_deep_agent
+from genai_tk.extra.tools_langchain.web_search_tool import basic_web_search
 
 load_dotenv()
 

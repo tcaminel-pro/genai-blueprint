@@ -20,7 +20,7 @@ except ImportError as ex:
 
 from langchain_community.tools import DuckDuckGoSearchRun
 
-from src.ai_core.llm_factory import get_llm
+from genai_tk.core.llm_factory import get_llm
 
 # NOTE: to find which model names you have, use cli tool:  `ollama list`
 llm = get_llm()

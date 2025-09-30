@@ -27,16 +27,16 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 from loguru import logger  # noqa: F401
 
-from src.ai_core.llm_factory import get_llm
-from src.ai_core.prompts import dedent_ws, dict_input_message
+from genai_tk.core.llm_factory import get_llm
+from genai_tk.core.prompts import dedent_ws, dict_input_message
 from src.demos.maintenance_agent.dummy_data import dummy_database
 from src.demos.maintenance_agent.tools import (
     DATA_PATH,
     PROCEDURES,
     create_maintenance_tools,
 )
-from src.utils.streamlit.clear_result import with_clear_container
-from src.utils.streamlit.thread_issue_fix import get_streamlit_cb
+from genai_tk.utils.streamlit.clear_result import with_clear_container
+from genai_tk.utils.streamlit.thread_issue_fix import get_streamlit_cb
 from src.webapp.ui_components.streamlit_chat import StreamlitStatusCallbackHandler, display_messages
 
 # fmt:off

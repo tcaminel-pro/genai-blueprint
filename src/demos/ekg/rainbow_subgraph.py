@@ -79,7 +79,7 @@ class ReviewedOpportunitySubgraph(Subgraph, BaseModel):
         """
         try:
             from src.demos.ekg.baml_client.types import ReviewedOpportunity
-            from src.utils.pydantic.kv_store import PydanticStore
+            from genai_tk.utils.pydantic.kv_store import PydanticStore
 
             store = PydanticStore(kvstore_id=self.kv_store_id, model=ReviewedOpportunity)
             opportunity = store.load_object(opportunity_key)

@@ -6,12 +6,12 @@ from langchain.agents import AgentExecutor, create_tool_calling_agent, tool
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable
 
-from src.ai_core.chain_registry import (
+from genai_tk.core.chain_registry import (
     Example,
     RunnableItem,
     register_runnable,
 )
-from src.ai_core.llm_factory import get_llm
+from genai_tk.core.llm_factory import get_llm
 
 
 @tool

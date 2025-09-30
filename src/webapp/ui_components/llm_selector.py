@@ -6,8 +6,8 @@ Provides a UI component for selecting and configuring the default LLM model.
 
 from streamlit.delta_generator import DeltaGenerator
 
-from src.ai_core.llm_factory import LlmFactory
-from src.utils.config_mngr import global_config
+from genai_tk.core.llm_factory import LlmFactory
+from genai_tk.utils.config_mngr import global_config
 
 
 # LLM Model Selection

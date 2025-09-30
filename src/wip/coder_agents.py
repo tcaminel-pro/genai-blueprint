@@ -11,7 +11,7 @@ from langchain_experimental.agents.agent_toolkits import (
 )
 from langchain_experimental.tools.python.tool import PythonAstREPLTool
 
-from src.ai_core.prompts import dedent_ws
+from genai_tk.core.prompts import dedent_ws
 from src.GenAI_Lab import app_conf
 
 PREFIX = """

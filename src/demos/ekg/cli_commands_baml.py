@@ -51,7 +51,7 @@ class BamlStructuredProcessor:
         self, document_ids: list[str], markdown_contents: list[str]
     ) -> list[ReviewedOpportunity]:
         """Process multiple documents asynchronously with caching using BAML."""
-        from src.utils.pydantic.kv_store import PydanticStore, save_object_to_kvstore
+        from genai_tk.utils.pydantic.kv_store import PydanticStore, save_object_to_kvstore
 
         analyzed_docs: list[ReviewedOpportunity] = []
         remaining_ids: list[str] = []
@@ -218,7 +218,7 @@ def register_baml_commands(cli_app: typer.Typer) -> None:
 
         # Filter out files that already have JSON in KV unless forced
         if not force:
-            from src.utils.pydantic.kv_store import PydanticStore
+            from genai_tk.utils.pydantic.kv_store import PydanticStore
 
             unprocessed_files = []
             for md_file in md_files:

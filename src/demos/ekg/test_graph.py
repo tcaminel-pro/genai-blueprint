@@ -34,7 +34,7 @@ from src.demos.ekg.baml_client.types import (
 from src.demos.ekg.graph_core import create_graph, restart_database
 from src.demos.ekg.graph_schema import GraphNodeConfig, GraphRelationConfig, create_simplified_schema
 from src.demos.ekg.kuzu_graph_html import generate_html_visualization
-from src.utils.pydantic.kv_store import PydanticStore
+from genai_tk.utils.pydantic.kv_store import PydanticStore
 
 console = Console()
 

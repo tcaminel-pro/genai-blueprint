@@ -9,7 +9,7 @@ def mcp_servers_section() -> None:
 
     import asyncio
 
-    from src.ai_core.mcp_client import get_mcp_tools_info
+    from genai_tk.core.mcp_client import get_mcp_tools_info
 
     async def display_tools():
         with st.spinner("Loading MCP servers and tools..."):

@@ -12,9 +12,9 @@ import os
 import streamlit as st
 from langchain.globals import set_debug, set_verbose
 
-from src.ai_core.cache import LlmCache
-from src.ai_core.llm_factory import PROVIDER_INFO
-from src.utils.config_mngr import global_config
+from genai_tk.core.cache import LlmCache
+from genai_tk.core.llm_factory import PROVIDER_INFO
+from genai_tk.utils.config_mngr import global_config
 from src.webapp.ui_components.llm_selector import llm_selector_widget
 
 
@@ -165,7 +165,7 @@ def main() -> None:
         if st.button("Run Test"):
             from langchain_core.messages import HumanMessage
 
-            from src.ai_core.llm_factory import get_llm
+            from genai_tk.core.llm_factory import get_llm
 
             with st.spinner("Running LLM test..."):
                 try:

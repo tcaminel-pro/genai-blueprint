@@ -10,8 +10,8 @@ import json_repair
 import pandas as pd
 import typer
 
-from src.utils.config_mngr import global_config
-from src.utils.pydantic.jsonl_store import load_objects_from_jsonl, store_objects_to_jsonl
+from genai_tk.utils.config_mngr import global_config
+from genai_tk.utils.pydantic.jsonl_store import load_objects_from_jsonl, store_objects_to_jsonl
 
 try:
     from abbreviations import schwartz_hearst
@@ -24,11 +24,11 @@ from loguru import logger
 from pydantic import BaseModel
 from unidecode import unidecode
 
-from src.ai_core.embeddings_factory import EmbeddingsFactory
-from src.ai_core.llm_factory import get_llm
-from src.ai_core.prompts import def_prompt
-from src.ai_core.vector_store_factory import VectorStoreFactory
-from src.ai_extra.retrievers.bm25s_retriever import BM25FastRetriever, get_spacy_preprocess_fn
+from genai_tk.core.embeddings_factory import EmbeddingsFactory
+from genai_tk.core.llm_factory import get_llm
+from genai_tk.core.prompts import def_prompt
+from genai_tk.core.vector_store_factory import VectorStoreFactory
+from genai_tk.extra.retrievers.bm25s_retriever import BM25FastRetriever, get_spacy_preprocess_fn
 from src.demos.mon_master_search.model_subset import (
     ACRONYMS,
     STOP_WORDS,

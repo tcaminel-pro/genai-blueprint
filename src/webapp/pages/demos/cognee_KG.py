@@ -19,8 +19,8 @@ from streamlit import session_state as sss
 from streamlit.delta_generator import DeltaGenerator
 from upath import UPath
 
-from src.ai_extra.cognee_utils import get_search_type_description, set_cognee_config
-from src.utils.config_mngr import global_config
+from genai_tk.extra.cognee_utils import get_search_type_description, set_cognee_config
+from genai_tk.utils.config_mngr import global_config
 
 CogneeInputType = BinaryIO | list[BinaryIO] | str | list[str]  # Arguments accepted by cognee.add()
 

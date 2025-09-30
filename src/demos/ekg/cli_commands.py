@@ -80,9 +80,9 @@ async def call_ekg_agent(
     from langgraph.prebuilt import create_react_agent
     from loguru import logger
 
-    from src.ai_core.llm_factory import get_llm_unified
-    from src.ai_core.mcp_client import get_mcp_servers_dict
-    from src.utils.langgraph import print_astream
+    from genai_tk.core.llm_factory import get_llm_unified
+    from genai_tk.core.mcp_client import get_mcp_servers_dict
+    from genai_tk.utils.langgraph import print_astream
 
     model = get_llm_unified(llm=llm_id)
     all_tools = tools or []
@@ -129,9 +129,9 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         from loguru import logger
 
-        from src.ai_core.llm_factory import LlmFactory
+        from genai_tk.core.llm_factory import LlmFactory
         from src.demos.ekg.struct_rag_doc_processing import StructuredRagConfig, StructuredRagDocProcessor, get_schema
-        from src.utils.pydantic.kv_store import PydanticStore
+        from genai_tk.utils.pydantic.kv_store import PydanticStore
 
         # Resolve LLM identifier if provided
         llm_id = None
@@ -244,7 +244,7 @@ def register_commands(cli_app: typer.Typer) -> None:
            uv run cli generate-fake-rainbow sample_project.json --output-dir=./generated --count=3
            uv run cli generate-fake-rainbow "data/**/*.json" --recursive --output-dir=./generated
         """
-        from src.ai_core.llm_factory import LlmFactory
+        from genai_tk.core.llm_factory import LlmFactory
         from src.demos.ekg.generate_fake_rainbows import generate_fake_rainbows_from_samples
 
         # Resolve LLM identifier if provided
@@ -355,10 +355,10 @@ def register_commands(cli_app: typer.Typer) -> None:
             - "Compare project delivery times across different technologies"
         """
 
-        from src.ai_core.llm_factory import LlmFactory
+        from genai_tk.core.llm_factory import LlmFactory
         from src.demos.ekg.struct_rag_tool_factory import create_structured_rag_tool
-        from src.utils.cli.langchain_setup import setup_langchain
-        from src.utils.cli.langgraph_agent_shell import run_langgraph_agent_shell
+        from genai_tk.utils.cli.langchain_setup import setup_langchain
+        from genai_tk.utils.cli.langgraph_agent_shell import run_langgraph_agent_shell
 
         # Resolve LLM identifier if provided
         llm_id = None
