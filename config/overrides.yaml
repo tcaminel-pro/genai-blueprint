@@ -1,0 +1,83 @@
+
+#### 
+# Overridden configurations
+# Set by environment variable "BLUEPRINT_CONFIG", or by the 'default_config' key, or in code
+####   
+
+
+training_adn:
+  llm:
+    models:
+      #default:  gpt_4omini_edenai
+      default: gpt_41_azure
+      azure: gpt_41_azure
+      for_vision : gpt_41_azure
+      openrouter: gpt_oss120_openrouter
+      local: gemma3_4b_ollama
+  embeddings:
+    models:
+      default: ada_002_edenai
+      local: artic_22_ollama
+      azure: ada_002_azure
+  vector_store:
+    default: Chroma_in_memory
+
+
+pytest:
+  llm:
+    models:
+      default: gpt_4omini_edenai
+  embeddings:
+    models:
+      default: ada_002_edenai
+  vector_store:
+    default: InMemory
+
+container: 
+  paths:
+    data_root: /data
+    project: /app
+    src: ${paths.project}/src
+    config: ${paths.project}/config
+    demo_conf: ${paths.project}/config/demos
+  llm:
+    models:
+      default: gpt_41mini_openrouter
+    cache: sqlite
+    cache_path: ${paths.data_root}/llm_cache/langchain.db
+  embeddings:
+    models:
+      default: bge_m3_deepinfra
+    cache: ${paths.data_root}/hf_models
+  vector_store:
+    default: Chroma
+    path: ${paths.data_root}/vector_store
+    table_name: "table_name"
+  monitoring: 
+    default:  langsmith
+  external_data: ${paths.data_root}/external
+
+ekg_local:
+  llm:
+    models:
+      default: kimi_k2_openrouter
+  embeddings:
+    models:
+      default: qwen3_06b_deepinfra
+  vector_store:
+    default : PgVector
+  cli:
+    commands:  
+    - src.ai_core.cli_commands:register_commands
+    - src.ai_extra.cli_commands:register_commands
+    - src.ai_extra.cli_commands_agents:register_commands
+    - src.demos.ekg.cli_commands:register_commands
+    - src.demos.ekg.cli_commands_baml:register_baml_commands
+    - src.demos.ekg.cli_commands_ekg:register_ekg_commands
+  kv_store: 
+    file: 
+      path: ${paths.data_root}/kv_store
+    sql: 
+      path: ${paths.postgres}
+  paths:
+    ekg_data : ${oc.env:ONEDRIVE, null}/prj/atos-kg

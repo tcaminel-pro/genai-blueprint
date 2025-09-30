@@ -1,0 +1,74 @@
+graph_rag_demos:
+- name: Company Leadership
+  text: Tim Cook is the CEO of Apple. Apple has its headquarters in California.
+  allowed_nodes:
+  - Person
+  - Company
+  - Location
+  - Role
+  allowed_relationships:
+  - ["Person", "IS_CEO_OF", "Company"]
+  - ["Company", "HAS_HEADQUARTERS_IN", "Location"]
+  example_queries:
+  - Who is CEO of Apple?
+  - Where is Apple headquartered?
+- name: Scientific Achievements
+  text: Marie Curie, born in 1867, was a Polish and naturalised-French physicist and
+    chemist who conducted pioneering research on radioactivity. She was the first
+    woman to win a Nobel Prize, the first person to win a Nobel Prize twice, and the
+    only person to win a Nobel Prize in two scientific fields. Her husband, Pierre
+    Curie, was a co-winner of her first Nobel Prize, making them the first-ever married
+    couple to win the Nobel Prize and launching the Curie family legacy of five Nobel
+    Prizes. She was, in 1906, the first woman to become a professor at the University
+    of Paris.
+  allowed_nodes:
+  - Person
+  - Country
+  - Organization
+  - Award
+  allowed_relationships:
+  - ["Person", "NATIONALITY", "Country"]
+  - ["Person", "WORKED_AT", "Organization"]
+  - ["Person", "SPOUSE", "Person"]
+  - ["Person", "WON", "Award"]
+  example_queries:
+  - What awards did Marie Curie win?
+  - Where did Marie Curie work?
+  - Who was Marie Curie's spouse?
+- name: Corporate Acquisitions
+  text: Microsoft acquired GitHub for $7.5 billion in 2018. GitHub was founded by
+    Tom Preston-Werner, Chris Wanstrath, and PJ Hyett in 2008. Microsoft is headquartered
+    in Redmond, Washington and was founded by Bill Gates and Paul Allen in 1975. Satya
+    Nadella is the current CEO of Microsoft.
+  allowed_nodes:
+  - Person
+  - Company
+  - Location
+  allowed_relationships:
+    - ["Company", "ACQUIRED", "Company"]
+    - ["Person", "FOUNDED", "Company"]
+    - ["Company", "HEADQUARTERED_IN", "Location"]
+    - ["Person", "IS_CEO_OF", "Company"]
+  example_queries:
+  - When did Microsoft acquire GitHub?
+  - Who founded GitHub?
+  - Who is the CEO of Microsoft?
+- name: Movie Industry
+  text: Christopher Nolan directed Inception, which starred Leonardo DiCaprio and
+    was released in 2010. The movie was produced by Warner Bros. Pictures. DiCaprio
+    won an Academy Award for Best Actor for his role in The Revenant in 2016. Nolan
+    also directed The Dark Knight trilogy, which featured Christian Bale as Batman.
+  allowed_nodes:
+  - Person
+  - Movie
+  - Company
+  - Award
+  allowed_relationships:
+  - ["Person", "ACTED_IN", "Movie"]
+  - ["Company", "PRODUCED", "Movie"]
+  - ["Person", "WON", "Award"]
+  - ["Movie", "RELEASED_IN", "Year"]
+  example_queries:
+  - What movies did Christopher Nolan direct?
+  - Who starred in Inception?
+  - What awards has Leonardo DiCaprio won?

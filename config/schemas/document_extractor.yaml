@@ -1,0 +1,219 @@
+
+Document_extractor_demo:
+- schema_name: test
+  key: person.name
+  top_class: Person
+  schema:
+    Person:
+      description: "class for members of the family"
+      fields:
+        name:
+            description: "Person's full name"
+            required: true
+        age:
+            type: int
+            description: "Age in years"
+            required: false
+        email:
+            type: list[Email]
+            description: "Email addresses"
+            required: true
+        address:
+            type: Address
+            description: "Home address"
+            required: false
+    
+    Email:
+      description: "email contact"
+      fields:
+        url:
+            type: str
+            required: true
+        email_type:
+            type: str
+            required: false
+
+    Address:
+      description: "postal contact"
+      fields:
+        street:
+            type: str
+            required: true
+        city:
+            type: str
+            required: true
+        zip_code:
+            type: str
+            required: false
+        country:
+            type: str
+            required: false
+
+
+- schema_name: Rainbow File
+  version: 1.0
+  key: identification.opportunity_id
+  top_class: RainbowProjectAnalysis
+  schema:
+    ProjectIdentification:
+      description: "Core project identification information"
+      fields:
+        name:
+          description: "Official name of the project/opportunity"
+          required: true
+        opportunity_id:
+          description: "Unique identifier from Salesforce or similar CRM"
+        customer:
+          description: "Client organization name"
+          required: true
+        customer_segment:
+          description: "Industry vertical of the customer"
+        status:
+          description: "Current phase: Pursuit/Active/Completed/Cancelled"
+        start_date:
+          type: "date"
+          description: "Planned/projected start date"
+        end_date:
+          type: "date"
+          description: "Planned/projected end date"
+    ProjectDescription:
+      description: "Detailed description of project characteristics"
+      fields:
+        objectives:
+          type: "list[str]"
+          description: "Key business objectives of the project"
+        scope:
+          description: "Scope of work description"
+        success_metrics:
+          type: "list[str]"
+          description: "Measurable success criteria"
+        differentiators:
+          type: "list[str]"
+          description: "Unique selling points vs competition"
+    PersonRole:
+      description: "Representation of involved parties and their roles"
+      fields:
+        name:
+          description: "Full name of involved person"
+        role:
+          description: "Formal role in project"
+        organization:
+          description: "Affiliated organization"
+        contact_type:
+          description: "Internal/External/Client/Partner"
+    DeliveryInfo:
+      description: "Operational delivery information"
+      fields:
+        business_lines:
+          type: "list[str]"
+          description: "Involved business units"
+        locations:
+          type: "list[str]"
+          description: "Geographic locations of delivery"
+        partners:
+          type: "list[str]"
+          description: "Third-party partners/subcontractors"
+        technologies:
+          type: "list[str]"
+          description: "Key technologies/platforms used"
+    FinancialMetrics:
+      description: "Quantitative financial aspects"
+      fields:
+        tcv:
+          type: "float"
+          description: "Total Contract Value in EUR"
+        annual_revenue:
+          type: "float"
+          description: "Yearly revenue projection"
+        project_margin:
+          type: "float"
+          description: "Gross margin percentage"
+        payment_terms:
+          description: "Payment schedule and conditions"
+    RiskAnalysis:
+      description: "Risk and mitigation information"
+      fields:
+        risk_description:
+          description: "Nature of the risk"
+        impact_level:
+          description: "High/Medium/Low impact"
+        mitigation_strategy:
+          description: "Planned mitigation approach"
+        status:
+          description: "Current status of risk mitigation"
+    CompetitiveLandscape:
+      description: "Competitive environment analysis"
+      fields:
+        competitors:
+          type: "list[str]"
+          description: "Identified competitors"
+        competitive_position:
+          description: "Position vs competition"
+        key_differentiators:
+          type: "list[str]"
+          description: "Competitive advantages"
+    BiddingStrategy:
+      description: "Bidding process details"
+      fields:
+        strategy_type:
+          description: "Prime/Sub/JV bidding strategy"
+        win_themes:
+          type: "list[str]"
+          description: "Key winning strategy elements"
+        pricing_strategy:
+          description: "Cost-led/Value-based pricing"
+        challenges:
+          type: "list[str]"
+          description: "Key bidding challenges"
+    SimilarityAttributes:
+      description: "Attributes for project similarity search"
+      fields:
+        keywords:
+          type: "list[str]"
+          description: "Key terms for semantic search"
+        tech_stack_fingerprint:
+          type: "list[str]"
+          description: "Technology combinations"
+    RainbowProjectAnalysis:
+      description: "Input document for a review meeting (called 'Rainbow') that assess an opportunity for a project 
+        and the business proposal, before it's sent to the customer."
+      fields:
+        identification:
+          type: "ProjectIdentification"
+          description: "Project identification information"
+          required: true
+        description:
+          type: "ProjectDescription"
+          description: "Project characteristics description"
+          required: true
+        team:
+          type: "list[PersonRole]"
+          description: "All involved personnel"
+          required: true
+        delivery:
+          type: "DeliveryInfo"
+          description: "Operational delivery information"
+          required: true
+        financials:
+          type: "FinancialMetrics"
+          description: "Financial metrics"
+          required: true
+        risks:
+          type: "list[RiskAnalysis]"
+          description: "Risk analysis"
+          required: true
+        competition:
+          type: "CompetitiveLandscape"
+          description: "Competitive landscape"
+          required: true
+        bidding:
+          type: "BiddingStrategy"
+          description: "Bidding strategy"
+          required: true
+        similarity:
+          type: "SimilarityAttributes"
+          description: "Similarity search attributes"
+          required: true
+        source:
+          description: "Source document metadata"
+          required: true

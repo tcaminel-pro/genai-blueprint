@@ -1,0 +1,35 @@
+
+**Maintenance Procedure:**
+
+* **Name:** Power Plant Maintenance
+* **Duration:** 2 weeks
+
+**Objective:**
+The objective of this maintenance procedure is to ensure the reliable operation of the power plant by performing routine maintenance tasks, repairing any faulty equipment, and replacing spare parts as needed.
+
+**Scope:**
+This maintenance procedure applies to all equipment and systems within the power plant, including generators, transformers, switchgears, and electrical distribution systems.
+
+**Tasks:**
+
+1. Visual Inspection of Generators
+	* Prerequisite: Completion of previous maintenance tasks
+	* Required Tools: Ladder, flashlight, safety glasses, multimeter
+	* Spare Parts: None
+2. Cleaning of Transformers
+	* Prerequisite: Completion of visual inspection of generators
+	* Required Tools: Cleaning solutions, scrub brushes, safety glasses, gloves
+	* Spare Parts: None
+3. Repair of Faulty Switchgear
+	* Prerequisite: Completion of cleaning of transformers
+	* Required Tools: Wire stripper, pliers, screwdrivers, multimeter
+	* Spare Parts: Switchgear components (e.g. circuit breakers, fuses)
+4. Replacement of Electrical Distribution System Components
+	* Prerequisite: Completion of repair of faulty switchgear
+	* Required Tools: Wire stripper, pliers, screwdrivers, multimeter
+	* Spare Parts: Electrical distribution system components (e.g. wiring, fuses, circuit breakers)
+5. Testing and Commissioning
+	* Prerequisite: Completion of all previous tasks
+	* Required Tools: Multimeter, oscilloscope, thermal imaging camera
+	* Spare Parts: None
+

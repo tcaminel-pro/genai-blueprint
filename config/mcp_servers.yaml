@@ -1,0 +1,78 @@
+# MCP Servers configuration.  
+# Similar to their usual JSON equivalent, but loaded from OmegaConf so variable are resolved.
+mcpServers:
+  filesystem:
+      command: npx
+      args: 
+      - "-y"
+      - "@modelcontextprotocol/server-filesystem"
+      - ${paths.project}
+
+  pubmed:
+      command: uvx
+      args: ["--quiet", "pubmedmcp@0.1.3"]
+      description: Provides access to PubMed medical research database
+      example : "Find relevant studies on alcohol hangover and treatment."
+      disabled: true
+
+  playwright:
+    command: npx
+    args: 
+    - "@playwright/mcp@latest"
+    - "--headless"
+
+  playwright_ui:  # Does not seems to work in headed mode (in WSL...)
+    command: npx
+    args: 
+    - "@playwright/mcp@latest"
+
+  github:
+    command: npx
+    args:  ["-y", "@modelcontextprotocol/server-github"]
+    env:
+      GITHUB_PERSONAL_ACCESS_TOKEN: ${oc.env:GITHUB_TOKEN_, "dummy token"}
+    disabled: true
+
+  tavily-mcp: 
+    command: npx
+    args: [ "-y" ,"tavily-mcp"]
+    env: 
+      TAVILY_API_KEY : ${oc.env:TAVILY_API_KEY,  "dummy key"}
+  #  disabled: true
+    
+  ppt: 
+    command: uvx
+    args: ["--from", "office-powerpoint-mcp-server", "ppt_mcp_server"]
+
+  math:
+      command: uv
+      args: 
+        - run 
+        - ${paths.src}/mcp_server/math_server.py
+      disabled: true
+    
+  weather:
+      command: uv
+      args: 
+        - "--directory"
+        - ${paths.src}/mcp_server/
+        - run 
+        - weather_server.py
+      disabled: false
+
+  vizro-mcp:
+    command: uvx
+    args:
+    - vizro-mcp
+    disabled: false
+
+  yahoo-finance-mcp:
+    command: npx
+    args:
+    - "-y"
+    - "@smithery/cli@latest"
+    - run
+    - "@Alex2Yang97/yahoo-finance-mcp"
+    - "--key"
+    - 2b62c70d-e801-46fd-9c72-8aa538abaded
+

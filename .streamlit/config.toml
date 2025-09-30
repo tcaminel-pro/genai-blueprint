@@ -1,0 +1,33 @@
+
+[theme]
+base="dark"
+
+#backgroundColor="#000040"  
+#secondaryBackgroundColor="#04044E"
+
+backgroundColor="#002733"  
+secondaryBackgroundColor="#19323B"
+
+# EvidenDark = "#002733"
+# EvidenDarkModified="#002733"
+# MyEvidenSecondary="#19323B"
+# AtosDarkBlue="#00005c"
+# AtosBlue="0073e6"
+# ElisaDark = "#1e2c44" 
+# ElizaGrey =#334155"
+
+
+[runner]
+magicEnabled = false
+
+[browser]
+gatherUsageStats = false
+
+[server]
+runOnSave = true
+enableCORS = false
+enableXsrfProtection = false
+
+[client]
+showErrorDetails = true
+toolbarMode = "developer"

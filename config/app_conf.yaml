@@ -1,0 +1,85 @@
+################
+# Application configuration file 
+################
+
+# Default configuration, as defined in baseline.yaml, overrides.yaml, here, or elsewhere.
+# It can be overidden by 'BLUEPRINT_CONFIG' environment variable, or in code
+
+default_config: ${oc.env:BLUEPRINT_CONFIG,ekg_local}
+
+# Note : configuration leverage OmegaConf solvers. See :
+# https://omegaconf.readthedocs.io/en/2.3_branch/usage.html#variable-interpolation
+
+paths:
+  data_root : ${oc.env:HOME}
+  project : ${oc.env:PWD}
+  src: ${paths.project}/src
+  config: ${paths.project}/config
+  demo_conf: ${paths.project}/config/demos
+  models: ${oc.env:HOME}/.models
+  postgres: postgresql://${oc.env:POSTGRES_USER,unknown_user}:${oc.env:POSTGRES_PASSWORD,password}@localhost:5432/ekg
+  datasets : ${paths.project}/use_case_data
+
+# Other config files merged to this one at launch time
+merge:
+  - ${paths.config}/baseline.yaml
+  - ${paths.config}/overrides.yaml
+  - ${paths.config}/mcp_servers.yaml
+
+
+
+#### 
+# User Interface Configuration : list of Streamlit pages, authentication, ... 
+####    
+ui:
+  app_name : GenAI Lab and Practicum
+  pages_dir : ${paths.src}/webapp/pages
+  navigation:
+
+    settings:
+      - settings/welcome.py
+      - settings/configuration.py
+      - settings/MCP_servers.py
+
+    training:
+        - training/runnable_playground.py
+        - training/CLI_runner.py
+        - training/tokenization.py
+        - training/embeddings.py
+
+    demos:
+      - demos/maintenance_agent.py
+      - demos/mon_master.py
+      - demos/deep_search_agent.py
+      - demos/reAct_agent.py
+      - demos/codeAct_agent.py
+      - demos/deep_agent.py
+      - demos/graph_RAG.py
+      - demos/anonymization.py
+      - demos/cognee_KG.py
+
+
+
+#### 
+# Authentication
+####  
+auth:
+  enabled: ${oc.env:BASIC_AUTH_ENABLED,false}
+  config_file: ${paths.config}/basic_auth.yaml
+
+#####
+# Command Line Interface configuration
+####
+cli:
+  commands:  # List modules:functions to register CLI commands
+    - src.ai_core.cli_commands:register_commands
+    - src.ai_extra.cli_commands:register_commands
+    - src.ai_extra.cli_commands_agents:register_commands
+ #   - src.webapp.cli_commands:register_commands
+    - src.main.cli:register_commands
+ 
+logging:
+  format: "<cyan>{time:HH:mm:ss}</cyan>-<level>{level: <7}</level> | <magenta>{file.name}</magenta>:<green>{line} <italic>{function}</italic></green>- <level>{message}</level>"
+  level: INFO
+  backtrace : True  # Should be False in production  - see https://loguru.readthedocs.io/en/stable/overview.html#fully-descriptive-exceptions
+  

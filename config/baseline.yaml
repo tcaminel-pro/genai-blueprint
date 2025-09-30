@@ -1,0 +1,63 @@
+# Default application configuration
+# Can be overriden in file 'overrides.yaml', with config selected either in code or by environment variable
+
+   
+#####
+# AI Components
+####
+llm:
+  list: ${paths.config}/providers/llm.yaml
+  # default_model: gpt_4omini_openai # gpt_35_azure # mistral_large_edenai 
+  models:
+    default: gpt_4o_openai   # Use full GPT-4o model for structured output support
+    ### 
+    # Optional model definitions (you can add your own type): 
+    ###
+    fake: parrot_local_fake 
+    fast:  llama31_8_groq
+    coder : qwen25_coder32_openrouter
+
+  cache : sqlite
+  cache_path: ${paths.data_root}/llm_cache/langchain.db
+
+ 
+embeddings:
+  list: ${paths.config}/providers/embeddings.yaml
+  models:
+    default:  ada_002_openai
+    local : artic_22_ollama
+  cache: ${paths.data_root}/hf_models
+vector_store:
+  default: Chroma
+  chroma_path: ${paths.data_root}/vector_store
+  record_manager: sqlite:///${paths.data_root}/vector_store/record_manager_cache.sql
+  postgres_url: ${paths.postgres}
+  postgres_schema: public
+documents:
+  base: ./use_case_data
+monitoring: 
+  langsmith : true
+  project: GenAI_demo
+kv_store:
+  file:
+    path: ${paths.data_root}/kv_store
+
+external_data: ${oc.env:ONEDRIVE, null}/_ongoing/training_GenAI
+
+#####
+# Modules to be loaded
+####
+
+chains:
+  root: src.ai_chains
+  modules:
+    - ${..root}.A_1_joke 
+    - ${..root}.B_1_naive_rag_example
+    - ${..root}.B_2_self_query
+    - ${..root}.C_1_tools_example
+    - ${..root}.C_2_advanced_rag_langgraph
+    # - ${..root}.C_3_essay_writer_agent
+      
+
+
+ 

@@ -1,0 +1,40 @@
+# Example CLI commands 
+
+
+cli_commands:
+
+  - name: Calculate an embedding vector
+    command: embedd "hello world"
+
+  - name: Similarity matching
+    command: similarity "This is a test" "This is another test" "Ceci est un test" "How are you ?"
+
+  - name: Simple LLM query
+    command: llm --input "Tell me a joke on managers" --raw
+  
+  - name: "Run a joke chain"
+    command: run joke --input "bears" 
+  
+  - name: List available models
+    command: list-models 
+
+  - name: print configuration
+    command: config-info  
+
+  # - name: List MCP server tools
+  #   command: list-mcp-tools --filter filesystem
+
+  # - name: Agent with MCP server
+  #   command: mcp-agent --input "list configuration file in local dir" --server filesystem 
+
+  # - name: Agent with Browser
+  #   command: mcp-agent --input" get news from atos.net web site" --server playwright --server filesystem
+    
+  # - name: CodeAct Agent with internet
+  #   command: smolagents "How many seconds would it take for a leopard at full speed to run through Pont des Arts?" -t web_search 
+
+
+
+  # - name: Fabric pattern
+  #   command: fabric --pattern "create_aphorisms" 
+

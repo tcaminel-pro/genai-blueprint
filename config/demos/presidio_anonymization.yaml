@@ -1,0 +1,34 @@
+anonymization_config:                                                                                            
+  analyzed_fields:                                                                                                        
+    - "PERSON"                                                                                                            
+    - "PHONE_NUMBER"                                                                                                      
+    - "EMAIL_ADDRESS"                                                                                                     
+    - "CREDIT_CARD"                                                                                                       
+    - "LOCATION"                                                                                                          
+                                                                                                                          
+  company_names:                                                                                                          
+    - "Microsoft"                                                                                                         
+    - "Google"                                                                                                            
+    - "Apple"                                                                                                             
+    - "Amazon"                                                                                                            
+    - "Meta"                                                                                                              
+    - "Tesla"                                                                                                             
+    - "Netflix"                                                                                                           
+    - "Capgemini"                                                                                                         
+    - "Atos"                                                                                                              
+                                                                                                                          
+  product_names:                                                                                                          
+    - "Azure"                                                                                                             
+    - "AWS"                                                                                                               
+    - "ChatGPT"                                                                                                           
+    - "LangChain"                                                                                                         
+    - "Presidio"                                                                                                          
+    - "iPhone"                                                                                                            
+    - "Android"                                                                                                           
+    - "Windows"                                                                                                           
+    - "iOS"  
+
+  fuzzy_matching:  True
+
+  examples:
+    - "My name is John Smith and my email is john.smith@microsoft.com. I work at Google as a product manager on Android."
