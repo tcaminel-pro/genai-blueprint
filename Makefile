@@ -28,7 +28,7 @@ SHELL     := bash -euo pipefail -c   # exit on error, undefined var, pipefail
 # Guard against GNU/Make vs BSD/Make incompatibilities 
 # ifneq ($(shell echo 'a b' | xargs -n1 echo 2>/dev/null | wc -l),2)                                 
 #   $(error You need GNU xargs)                                                                      
-# endif  
+# endif
 
 # .env file discovery - check most common locations first
 ENV_FILE := $(shell \
@@ -150,10 +150,6 @@ clean:  ## Clean Python bytecode and cache files
 	uv cache prune
 	@# Single find command for all cleanup operations
 	find . \( -name "*.py[co]" -o -name "__pycache__" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null || true
-
-
-
-
 
 clean-history: ## Remove duplicate entries and common commands from .bash_history
 	@if [ -f ~/.bash_history ]; then \

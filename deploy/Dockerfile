@@ -43,37 +43,45 @@ WORKDIR /app
 ENV VIRTUAL_ENV=/app/.venv \
     PATH="/app/.venv/bin:$PATH"                                                                  
                                                                                                  
-COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}     
-COPY --from=builder /root/.nvm /root/.nvm   
-
-# Create symlinks for node, npm, and npx to make them available globally                         
-RUN ln -sf /root/.nvm/versions/node/$(ls /root/.nvm/versions/node | head -1)/bin/node /usr/local/bin/node && \                                                                         
-    ln -sf /root/.nvm/versions/node/$(ls /root/.nvm/versions/node | head -1)/bin/npm /usr/local/bin/npm && \                                                                          
-    ln -sf /root/.nvm/versions/node/$(ls /root/.nvm/versions/node | head -1)/bin/npx /usr/local/bin/npx && \
-    ln -sf /usr/bin/curl /usr/local/bin/curl && \
+COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+# Copy Node.js installation from builder to a non-root location
+COPY --from=builder /root/.nvm/versions/node /opt/node-versions
+# Prepare Node.js for non-root user
+RUN set -eux; \
+    chmod -R a+rx /opt/node-versions; \
+    ln -s /opt/node-versions/* /opt/node; \
+    ln -sf /usr/bin/curl /usr/local/bin/curl; \
     ln -sf /usr/bin/wget /usr/local/bin/wget
                                                                                                  
-# Create data directory (training data will be mounted at runtime)
-RUN mkdir -p /data/external
+# Create data directories with proper ownership (training data will be mounted at runtime)
+# Create appuser first to set ownership during directory creation
+RUN groupadd -r appuser && useradd -r -g appuser -m -d /home/appuser appuser
+RUN mkdir -p /data/external \
+    && mkdir -p /data/llm_cache \
+    && mkdir -p /data/hf_models \
+    && mkdir -p /data/vector_store \
+    && mkdir -p /data/kv_store \
+    && mkdir -p /tmp/mcp-workspace \
+    && chown -R appuser:appuser /data /home/appuser /tmp/mcp-workspace
 
-# Copy application files                                                                         
-COPY --from=builder /app/use_case_data ./use_case_data                                           
-COPY --from=builder /app/src ./src                                                               
-COPY --from=builder /app/config ./config                                                         
-COPY --from=builder /app/.streamlit ./.streamlit                                                 
-COPY --from=builder /app/pyproject.toml ./
+# Copy application files with proper ownership
+COPY --from=builder --chown=appuser:appuser /app/use_case_data ./use_case_data                   
+COPY --from=builder --chown=appuser:appuser /app/genai_blueprint ./genai_blueprint               
+COPY --from=builder --chown=appuser:appuser /app/config ./config                                 
+COPY --from=builder --chown=appuser:appuser /app/.streamlit ./.streamlit                         
+COPY --from=builder --chown=appuser:appuser /app/pyproject.toml ./                               
+COPY --from=builder --chown=appuser:appuser /app/uv.lock ./
                                                                                                  
 # Secrets will be mounted at runtime via Docker secrets                                          
 ENV BASIC_AUTH_ENABLED=1 \
     BLUEPRINT_CONFIG="container" \
-    PYTHONPATH="/app:/app/src" \
+    PYTHONPATH="/app:/app/genai_blueprint" \
     REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
     SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt \
-    CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+    CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
+    NODE_PATH="/usr/local/lib/node_modules" \
+    PATH="/opt/node/bin:/app/.venv/bin:/usr/local/bin:/usr/bin:/bin:/sbin"
 
-# Create a non-root user for security
-RUN groupadd -r appuser && useradd -r -g appuser appuser
-RUN chown -R appuser:appuser /app
 USER appuser
 
 EXPOSE 8501 
