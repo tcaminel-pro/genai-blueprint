@@ -49,7 +49,7 @@ external_data: ${oc.env:ONEDRIVE, null}/_ongoing/training_GenAI
 ####
 
 chains:
-  root: genai_tk.chains
+  root: genai_blueprint.ai_chains
   modules:
     - ${..root}.A_1_joke 
     - ${..root}.B_1_naive_rag_example

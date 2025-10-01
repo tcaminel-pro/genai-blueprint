@@ -9,13 +9,16 @@
 
 
 STREAMLIT_ENTRY_POINT="genai_blueprint/main/streamlit.py"
-MODAL_ENTRY_POINT="src/main/modal_app.py"
+MODAL_ENTRY_POINT="genai_blueprint/main/modal_app.py"
 APP=genai-blueprint
 IMAGE_VERSION=0.2a
 AWS_REGION=eu-west-1
 AWS_ACCOUNT_ID=909658914353
 
-DEV_PATH="/home/tcl/prj/genai-tk:/home/tcl/prj/genai-blueprint:$(PWD)"
+# Development PYTHONPATH for local genai-tk development
+# Assumes project structure: parent/genai-tk and parent/genai-blueprint
+# For different structures, override with: make target DEV_PYTHONPATH="/custom/path/genai-tk:.:$(PWD)"
+DEV_PYTHONPATH="../genai-tk:.:$(PWD)"
 
 all: help 
 
@@ -42,7 +45,7 @@ endif
 #include deploy/github.mk
 include deploy/modal.mk
 
-.PHONY: .uv   .pre-commit .pythonpath
+.PHONY: .uv   .pre-commit .pythonpath show-dev-path
 .uv:  ## Check that uv is installed
 	@uv -V || echo 'Please install uv: curl -LsSf https://astral.sh/uv/install.sh | sh 
 
@@ -54,6 +57,13 @@ include deploy/modal.mk
 		echo "Warning: PYTHONPATH is not set. Consider to put somewhere: export PYTHONPATH=\".\" "; \
 	fi
 
+show-dev-path: ## Show current DEV_PYTHONPATH setting
+	@echo "Current DEV_PYTHONPATH: $(DEV_PYTHONPATH)"
+	@echo "Expanded paths:"
+	@echo "  ../genai-tk -> $$(realpath ../genai-tk 2>/dev/null || echo 'NOT FOUND')"
+	@echo "  . -> $(PWD)"
+	@echo "Usage: make webapp (uses DEV_PYTHONPATH) or make test-install"
+
 
 ##############################
 ##  GenAI Blueprint related commands
@@ -63,10 +73,10 @@ fast-api: ## langsLauch FastAPI server localy
 	uvicorn $(FASTAPI_ENTRY_POINT) --reload
 
 langserve: ## Lauch langserve app
-	python src/main/langserve_app.py
+	PYTHONPATH=$(DEV_PYTHONPATH) uv run python genai_blueprint/main/langserve_app.py
 
 webapp: ## Launch Streamlit app
-	PYTHONPATH=$(DEV_PATH) uv run streamlit run "$(STREAMLIT_ENTRY_POINT)"
+	PYTHONPATH=$(DEV_PYTHONPATH) uv run streamlit run "$(STREAMLIT_ENTRY_POINT)"
 
 
 ##############################
@@ -208,28 +218,13 @@ help:
 
 
 test-install: .pythonpath ## Quick test install
-	@echo -e "\033[36mTesting genai_bp structure and GitHub dependencies...\033[0m"
-	@echo -e "\033[32m✓ Project structure validated\033[0m"
-	@echo -e "\033[32m✓ Dependencies configured for GitHub installation\033[0m"
-	@echo -e "\033[33mNote: Full installation test requires: uv pip install git+https://github.com/tcaminel-pro/genai-blueprint@main\033[0m"
-	@echo ""
-	@echo -e "\033[36mTesting basic imports with current structure...\033[0m"
-	@PYTHONPATH=$(PWD) python3 -c "import src.main.cli; print('✓ genai_bp CLI module structure valid')" 2>/dev/null || echo "✗ genai_bp CLI structure issue"
-	@echo -e "\033[36mTesting genai_tk availability from GitHub...\033[0m"
-	@uv run --isolated --with "genai_tk @ git+https://github.com/tcaminel-pro/genai-tk@main" python -c "import genai_tk.core; print('✓ genai_tk from GitHub works')" 2>/dev/null || echo "✗ genai_tk GitHub installation failed"
-	@echo ""
-	@echo -e "\033[32m✓ Basic validation complete. For full testing, install from GitHub.\033[0m"
-
-test-github: ## Test full GitHub installation in isolated environment  
-	@echo -e "\033[36mTesting complete GitHub installation...\033[0m"
-	@echo "Creating temporary test environment..."
-	@cd /tmp && rm -rf genai_bp_test .venv && mkdir genai_bp_test && cd genai_bp_test && \
-		uv venv && \
-		uv pip install git+https://github.com/tcaminel-pro/genai-blueprint@main && \
-		echo -e "\033[32m✓ Installation successful\033[0m" && \
-		. .venv/bin/activate && python -c "import genai_tk.core, genai_tk.utils, src.main.cli; print('✓ All imports work'); print('✓ GitHub installation test passed')" && \
-		cd /tmp && rm -rf genai_bp_test
-	@echo -e "\033[32m✓ Complete GitHub installation test passed\033[0m"
+	@if [ -z "$(PYTHONPATH)" ]; then \
+		echo -e "\033[33mWarning: PYTHONPATH is not set. Consider setting: export PYTHONPATH=\".\"\033[0m"; \
+	else \
+		echo -e "\033[32mPYTHONPATH is set to: $(PYTHONPATH)\033[0m"; \
+	fi
+	@echo -e "\033[3m\033[36mCall a fake LLM that returns the prompt. Here it should display 'tell me a joke on ...'\033[0m"
+	echo bears | PYTHONPATH=$(DEV_PYTHONPATH) uv run cli run joke -m parrot_local_fake
 
 
 ##############################
