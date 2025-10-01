@@ -55,21 +55,33 @@ make install
 ```
 
 **Configuration**:
-- Main settings: `config/app_conf.yaml`
-- API keys: `.env` file in project root or parent directories
-- `config/baseline.yaml`: Main configuration file for LLMs, embeddings, vector stores and chains
-- `config/overrides.yaml`: Override configuration (can be selected by environment variable)
-- `config/providers/`: Provider-specific configurations
-  - `llm.yaml`: LLM model definitions and provider configurations
-  - `embeddings.yaml`: Embedding model configurations
-- `config/mcp_servers.yaml`: MCP server parameters
-- `config/demos/`: Demo-specific configurations
-  - `cli_examples.yaml`, `codeact_agent.yaml`, `react_agent.yaml`, etc.
-- `config/components/`: Component-specific configurations
-  - `cognee.yaml`, `gpt_researcher.yaml`
-- `config/schemas/`: Schema definitions
-  - `document_extractor.yaml`
-- `pyproject.toml`: uv project configuration
+
+**🚀 Enhanced Configuration System**
+The configuration system now supports **flexible project directory discovery**:
+- Works from **any subdirectory** (notebooks/, demos/, etc.) - automatically finds config files
+- **Parent directory search** - searches up the directory tree for configuration files
+- **Hierarchical overrides** - environment-specific configurations
+- **Dynamic path resolution** - paths automatically adjust based on project location
+
+**Main Configuration Files**:
+- `config/app_conf.yaml`: Main application settings and paths
+- `config/baseline.yaml`: Core LLM, embeddings, and vector store configurations
+- `config/overrides.yaml`: Environment-specific overrides (selected via `BLUEPRINT_CONFIG`)
+- `config/mcp_servers.yaml`: MCP server configurations
+- `.env`: API keys and environment variables (can be in project root or parent directories)
+
+**Provider Configurations**:
+- `config/providers/llm.yaml`: LLM model definitions and provider configurations
+- `config/providers/embeddings.yaml`: Embedding model configurations
+
+**Demo and Component Configurations**:
+- `config/demos/`: Demo-specific configurations (CLI examples, agent configs, etc.)
+- `config/components/`: Component-specific configurations (Cognee, GPT Researcher, etc.)
+- `config/schemas/`: Schema definitions for structured data
+
+**Development Configuration**:
+- `pyproject.toml`: Project dependencies and build configuration
+- Uses modern Python packaging with `uv` for fast dependency management
 
 
 **Quick Test**:
@@ -85,57 +97,26 @@ Configure LLMs via `/config/providers/llm.yaml` after setting up API keys.
 ### Key Files and Directories
 
 #### Core AI Components
-- `src/ai_core/`: Core AI infrastructure
-  - `llm_factory.py`: LLM factory and configuration
-  - `embeddings_factory.py`: Embeddings factory and management
-  - `vector_store_factory.py`: Vector store factory and operations
-  - `chain_registry.py`: Runnable component registry
-  - `cache.py`: LLM caching implementation
-  - `langgraph_runner.py`: LangGraph session management
-  - `prompts.py`: Prompt templates and utilities
-  - `deep_agents.py`: Deep learning agent implementations
-  - `mcp_client.py`: Model Context Protocol client
-  - `structured_output.py`: Structured output handling
-  - `providers.py`: Provider configuration and management
-  - `cli_commands.py`: Core CLI command implementations
+- `genai_blueprint/ai_chains/`: AI chain implementations and examples
+  - `A_1_joke.py`: Simple joke generation chain example
+  - `B_1_naive_rag_example.py`: Basic RAG implementation
+  - `B_2_self_query.py`: Self-querying retrieval demo
+  - `C_1_tools_example.py`: Tool usage examples
+  - `C_2_advanced_rag_langgraph.py`: Advanced RAG with LangGraph
+  - `C_2_Agentic_Rag_Functional.py`: Agentic RAG functional approach
+  - `C_3_essay_writer_agent.py`: Essay writing agent
+  - `C_4_agent_structured_output.py`: Structured output agents
 
-#### Reusable AI Components
-- `src/ai_extra/`: Generic and reusable AI components
-  - `autogen_utils.py`: AutoGen model utilities and integrations
-  - `browser_use_langchain.py`: Browser automation with LangChain
-  - `cognee_utils.py`: Cognee knowledge graph utilities
-  - `custom_presidio_anonymizer.py`: Custom anonymization utilities
-  - `image_analysis.py`: Image analysis capabilities
-  - `kv_store_factory.py`: Key-value store factory
-  - `pgvector_factory.py`: PostgreSQL vector store factory
-  - `chains/`: Chain implementations
-    - `fabric_chain.py`: Fabric pattern integration and content fetching
-    - `gpt_researcher_chain.py`: GPT Researcher integration for autonomous research
-  - `graphs/`: Graph-based agent implementations
-    - `custom_react_agent.py`: Custom ReAct agent using Functional API
-    - `react_agent_structured_output.py`: ReAct agent with structured output
-    - `sql_agent.py`: SQL querying agent with database integration
-  - `loaders/`: Data loading utilities
-    - `mistral_ocr.py`: OCR functionality using Mistral API with batch processing
-  - `retrievers/`: Information retrieval components
-    - `bm25s_retriever.py`: Fast BM25 retriever without Elasticsearch
-  - `tools_langchain/`: LangChain-compatible tools
-    - `config_loader.py`: Configuration loading tools
-    - `multi_search_tools.py`: Multi-search functionality
-    - `shared_config_loader.py`: Shared configuration utilities
-    - `web_search_tool.py`: Web search integration
-  - `tools_smolagents/`: SmolAgents-compatible tools
-    - `browser_use.py`: Browser automation for SmolAgents
-    - `config_loader.py`: Configuration tools for SmolAgents
-    - `dataframe_tools.py`: DataFrame manipulation tools
-    - `deep_config_loader.py`: Deep configuration loading
-    - `react_config_loader.py`: ReAct agent configuration
-    - `sql_tools.py`: SQL tools for SmolAgents
-    - `yfinance_tools.py`: Yahoo Finance integration
-  - `cli_commands.py` and `cli_commands_agents.py`: Additional CLI commands
+#### Main Application Components
+- `genai_blueprint/main/`: Main application entry points
+  - `cli.py`: Command-line interface implementation
+  - `fastapi_app.py`: FastAPI web application
+  - `langserve_app.py`: LangServe integration
+  - `modal_app.py`: Modal deployment setup
+  - `streamlit.py`: Streamlit web application
 
 #### Demos and Examples
-- `src/demos/`: Various demonstration implementations
+- `genai_blueprint/demos/`: Various demonstration implementations
   - `deep_agents/`: Deep learning agent demonstrations
     - `coding_agent_example.py`: Coding agent implementation
     - `research_agent_example.py`: Research agent demonstration
@@ -153,7 +134,7 @@ Configure LLMs via `/config/providers/llm.yaml` after setting up API keys.
     - `model_subset.py`: Model subset management
     - `search.py`: Search implementation
 
-- `src/webapp/`: Streamlit web application
+- `genai_blueprint/webapp/`: Streamlit web application
   - `pages/`: Streamlit page implementations organized by category
     - `demos/`: Main demo pages
       - `mon_master.py`: Hybrid search UI
@@ -182,34 +163,19 @@ Configure LLMs via `/config/providers/llm.yaml` after setting up API keys.
   - `cli_commands.py`: Webapp-specific CLI commands
 
 
-#### Utilities
-- `src/utils/`: Utility functions and helpers
-  - `config_mngr.py`: Configuration management with OmegaConf
-  - `basic_auth.py`: Basic authentication utilities
-  - `collection_helpers.py`: Collection manipulation utilities
-  - `langgraph.py`: LangGraph utilities
-  - `load_data.py`: Data loading utilities
-  - `logger_factory.py`: Logging configuration factory
-  - `markdown.py`: Markdown processing utilities
-  - `singleton.py`: Singleton pattern implementation
-  - `spacy_model_mngr.py`: spaCy model management
-  - `sql_utils.py`: SQL utilities
-  - `cli/`: CLI-specific utilities
-    - `langchain_setup.py`: LangChain setup utilities
-    - `langgraph_agent_shell.py`: LangGraph interactive shell
-    - `smolagents_shell.py`: SmolAgents interactive shell
-  - `crew_ai/remove_telemetry.py`: CrewAI telemetry removal
-  - `pydantic/`: Pydantic utilities
-    - `dyn_model_factory.py`: Dynamic model factory
-    - `field_adder.py`: Pydantic field manipulation
-    - `jsonl_store.py`: JSONL storage utilities
-    - `kv_store.py`: Key-value store implementation
+#### Utilities and Infrastructure
+- `genai_blueprint/utils/`: Utility functions and helpers
   - `streamlit/`: Streamlit-specific utilities
     - `auto_scroll.py`: Auto-scrolling functionality
     - `capturing_callback_handler.py`: Callback handler for capturing
     - `clear_result.py`: State management
     - `recorder.py`: Streamlit action recording
     - `thread_issue_fix.py`: Streamlit threading fixes
+
+- `genai_blueprint/mcp_server/`: MCP server implementations
+  - `math_server.py`: Mathematical computation server
+  - `tech_news.py`: Technology news server
+  - `weather_server.py`: Weather information server
 
 #### Testing and Development
 - `tests/`: Unit and integration tests
@@ -232,12 +198,27 @@ Configure LLMs via `/config/providers/llm.yaml` after setting up API keys.
 
 
 ## CLI Usage Examples
-- The framework provides several CLI commands, typically for interacting with AI components. 
-- They are implemented in `cli_command.py` files, and registered in `app_conf.yaml`  (key: `commands/modules`)
 
+**🎯 Works from Any Directory!**
+Thanks to the enhanced configuration system, CLI commands work from any project directory:
 
 ```bash
-uv run cli --help   # list of defined commands
+# From project root
+cd /path/to/genai-blueprint && uv run cli config-info
+
+# From notebooks directory
+cd /path/to/genai-blueprint/notebooks && uv run cli config-info
+
+# From any subdirectory - automatically finds project configuration!
+cd /path/to/genai-blueprint/genai_blueprint/demos && uv run cli config-info
+```
+
+**Available Commands**:
+The framework provides extensive CLI commands for AI interactions, implemented in `cli_command.py` files and registered in `app_conf.yaml`:
+
+```bash
+uv run cli --help   # List all available commands with descriptions
+uv run cli config-info  # Show current configuration and available models
 ```
 
 **Basic LLM Interaction**
@@ -313,4 +294,49 @@ make install_spacy_models
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
 nvm install --lts
+```
+
+## 🔧 Troubleshooting
+
+### Configuration Issues
+
+**Problem**: `AssertionError: cannot find config file` when running from subdirectories
+
+**Solution**: ✅ **Fixed!** The enhanced configuration system now automatically searches parent directories for config files. Commands work from any project directory:
+
+```bash
+# All of these work now:
+cd /project/root && uv run cli config-info
+cd /project/root/notebooks && uv run cli config-info  
+cd /project/root/genai_blueprint/demos && uv run cli config-info
+```
+
+### Dependency Issues
+
+**Problem**: `ModuleNotFoundError: No module named 'langchain_postgres'`
+
+**Solution**: ✅ **Fixed!** Optional dependencies are now handled gracefully. Missing packages won't break the system.
+
+### Directory Rename Issues
+
+**Problem**: Build errors after renaming the `src/` directory
+
+**Solution**: ✅ **Fixed!** All configuration files and path references have been updated to use the new `genai_blueprint/` directory structure.
+
+### Development Workflow
+
+For local development with both projects:
+
+```bash
+# Use PYTHONPATH for development (optional)
+export GENAI_DEV_PATH="/path/to/local/genai-tk:$PYTHONPATH"
+alias uv-dev="PYTHONPATH=$GENAI_DEV_PATH uv"
+
+# Then use uv-dev for development:
+uv-dev run cli config-info
+```
+
+Or rely on the standard Git dependency system - just push changes to genai-tk and run:
+```bash
+uv cache clean genai-tk && uv sync -U
 ```
