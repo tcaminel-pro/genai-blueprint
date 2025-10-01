@@ -19,7 +19,6 @@ from genai_tk.extra.tools.smolagents.config_loader import process_tools_from_con
 from genai_tk.extra.tools.smolagents.deep_config_loader import (
     load_all_deep_agent_demos_from_config,
 )
-from genai_tk.utils.streamlit.thread_issue_fix import get_streamlit_cb
 from langchain.callbacks import tracing_v2_enabled
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
@@ -30,6 +29,7 @@ from smolagents import Tool as SmolAgentTool
 from streamlit import session_state as sss
 from streamlit.delta_generator import DeltaGenerator
 
+from genai_blueprint.utils.streamlit.thread_issue_fix import get_streamlit_cb
 from genai_blueprint.webapp.ui_components.config_editor import edit_config_dialog
 from genai_blueprint.webapp.ui_components.llm_selector import llm_selector_widget
 from genai_blueprint.webapp.ui_components.streamlit_chat import StreamlitStatusCallbackHandler, display_messages

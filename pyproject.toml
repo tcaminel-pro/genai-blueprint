@@ -104,7 +104,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["genai_bp"]
-package-dir = {"genai_bp" = "src"}
+package-dir = {"genai_bp" = "genai_blueprint"}
 
 [tool.ruff]
 builtins = ["ic", "debug"]

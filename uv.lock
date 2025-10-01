@@ -1190,7 +1190,7 @@ ui = [
 [[package]]
 name = "genai-tk"
 version = "0.1.0"
-source = { git = "https://github.com/tcaminel-pro/genai-tk?rev=main#b595c4b989e767a33fba767ce4176ad478c25ef8" }
+source = { git = "https://github.com/tcaminel-pro/genai-tk?rev=main#d4d5f5ad1cba5dce0ef8e6033d4e740202df353d" }
 dependencies = [
     { name = "beartype" },
     { name = "chromadb" },

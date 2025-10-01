@@ -65,7 +65,7 @@ Advanced search capabilities across document collections:
 - **Document Loader** (`loader.py`) - Document processing and indexing
 - **Model Integration** (`model_subset.py`) - Optimized model subsets for search
 
-### Web Interface (`src/webapp/`)
+### Web Interface (`genai_blueprint/webapp/`)
 
 #### Streamlit Pages
 
@@ -172,7 +172,7 @@ uv run cli --help
 
 **Streamlit Cloud:**
 ```bash
-streamlit run src/main/streamlit.py
+streamlit run genai_blueprint/main/streamlit.py
 ```
 
 **FastAPI with Uvicorn:**
@@ -228,7 +228,7 @@ result = graph.query("What are the main risk factors?")
 ```python
 import streamlit as st
 from genai_tk.core import LLMFactory
-from genai_tk.utils.streamlit import CapturingCallbackHandler
+from genai_blueprint.utils.streamlit import CapturingCallbackHandler
 
 # Create interactive agent interface
 llm = LLMFactory.create("openai/gpt-4")

@@ -8,7 +8,7 @@
 #cSpell: disable
 
 
-STREAMLIT_ENTRY_POINT="src/main/streamlit.py"
+STREAMLIT_ENTRY_POINT="genai_blueprint/main/streamlit.py"
 MODAL_ENTRY_POINT="src/main/modal_app.py"
 APP=genai-blueprint
 IMAGE_VERSION=0.2a
@@ -176,7 +176,7 @@ backup-sync:
 
 ROOT1=/home/tcl/prj/genai-blueprint/
 ROOT2=/home/tcl/prj/ecod-engine-v3
-SYNC_DIRS=src/ai_core src/ai_extra src/ai_utils src/webapp/ui_components   
+SYNC_DIRS=src/ai_core src/ai_extra src/ai_utils genai_blueprint/webapp/ui_components   
 
 sync-dirs: ## Sync subdirectories between two root directories
 	@if [ -z "$(ROOT1)" ] || [ -z "$(ROOT2)" ] || [ -z "$(SYNC_DIRS)" ]; then \

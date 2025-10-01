@@ -226,7 +226,7 @@ def advanced_rag_workflow(question: str) -> dict:
 #                 ]
 #             )
 #         ],
-#         diagram="src/webapp/static/adaptative_rag_fallback.png",
+#         diagram="genai_blueprint/webapp/static/adaptative_rag_fallback.png",
 #     )
 # )
 

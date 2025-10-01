@@ -20,7 +20,7 @@ title_col1, title_col2 = st.columns([2, 1])
 
 title_col1.title("Welcome ! ")
 LOGO = "New Atos logo white.png"
-logo = str(Path.cwd() / "src/webapp/static" / LOGO)
+logo = str(Path.cwd() / "genai_blueprint/webapp/static" / LOGO)
 title_col2.image(logo, width=250)
 title_col1.markdown(
     """

@@ -27,8 +27,6 @@ from genai_tk.extra.tools.smolagents.config_loader import (
     load_all_demos_from_config,
 )
 from genai_tk.utils.load_data import TABULAR_FILE_FORMATS_READERS, load_tabular_data_once
-from genai_tk.utils.streamlit.auto_scroll import scroll_to_here
-from genai_tk.utils.streamlit.recorder import StreamlitRecorder
 from loguru import logger
 from smolagents import (
     CodeAgent,
@@ -39,6 +37,8 @@ from smolagents import (
 from streamlit import session_state as sss
 from streamlit.delta_generator import DeltaGenerator
 
+from genai_blueprint.utils.streamlit.auto_scroll import scroll_to_here
+from genai_blueprint.utils.streamlit.recorder import StreamlitRecorder
 from genai_blueprint.webapp.ui_components.config_editor import edit_config_dialog
 from genai_blueprint.webapp.ui_components.llm_selector import llm_selector_widget
 from genai_blueprint.webapp.ui_components.smolagents_streamlit import stream_to_streamlit

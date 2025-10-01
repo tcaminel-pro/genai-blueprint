@@ -21,8 +21,6 @@ import pandas as pd
 import streamlit as st
 from genai_tk.core.llm_factory import get_llm
 from genai_tk.core.prompts import dedent_ws, dict_input_message
-from genai_tk.utils.streamlit.clear_result import with_clear_container
-from genai_tk.utils.streamlit.thread_issue_fix import get_streamlit_cb
 from langchain.callbacks import tracing_v2_enabled
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
@@ -37,6 +35,8 @@ from genai_blueprint.demos.maintenance_agent.tools import (
     PROCEDURES,
     create_maintenance_tools,
 )
+from genai_blueprint.utils.streamlit.clear_result import with_clear_container
+from genai_blueprint.utils.streamlit.thread_issue_fix import get_streamlit_cb
 from genai_blueprint.webapp.ui_components.streamlit_chat import StreamlitStatusCallbackHandler, display_messages
 
 # fmt:off

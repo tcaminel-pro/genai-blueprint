@@ -1,7 +1,8 @@
 import random
 
 import streamlit as st
-from genai_tk.utils.streamlit.auto_scroll import scroll_to_here
+
+from genai_blueprint.utils.streamlit.auto_scroll import scroll_to_here
 
 
 def test_simple() -> None:

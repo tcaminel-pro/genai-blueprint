@@ -51,7 +51,7 @@ if auth_config.enabled and not st.session_state.authenticated:
 
 # Only show the main application if authenticated
 LOGO = "New Atos logo white.png"
-logo = str(Path.cwd() / "src/webapp/static" / LOGO)
+logo = str(Path.cwd() / "genai_blueprint/webapp/static" / LOGO)
 st.logo(logo, size="medium")
 
 # Get Streamlit pages to display from config

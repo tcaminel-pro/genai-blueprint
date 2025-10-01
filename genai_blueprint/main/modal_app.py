@@ -101,9 +101,6 @@ app = modal.App("genai-framework")
 @modal.web_server(8000, startup_timeout=600)  # 10 minutes startup timeout
 def streamlit_server():
     """Serve the Streamlit app directly."""
-    import subprocess
-    import threading
-    import time
     from pathlib import Path
 
     sys.path.append("/app")
@@ -120,7 +117,7 @@ def streamlit_server():
     os.makedirs(f"{VOLUME_PATH}/kv_store", exist_ok=True)
 
     # Ensure required files exist
-    streamlit_file = Path("src/main/streamlit.py")
+    streamlit_file = Path("genai_blueprint/main/streamlit.py")
     if not streamlit_file.exists():
         print(f"ERROR: Streamlit file not found at {streamlit_file.absolute()}")
         print(f"Current directory: {Path.cwd()}")

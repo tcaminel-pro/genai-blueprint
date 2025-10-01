@@ -13,7 +13,7 @@ default_config: ${oc.env:BLUEPRINT_CONFIG,ekg_local}
 paths:
   data_root : ${oc.env:HOME}
   project : ${oc.env:PWD}
-  src: ${paths.project}/src
+  src: ${paths.project}/genai_blueprint
   config: ${paths.project}/config
   demo_conf: ${paths.project}/config/demos
   models: ${oc.env:HOME}/.models
@@ -72,11 +72,11 @@ auth:
 ####
 cli:
   commands:  # List modules:functions to register CLI commands
-    - genai_tk.main.commands_core:register_commands:register_commands
+    - genai_tk.main.commands_core:register_commands
 #     - genai_tk.extra.cli_commands:register_commands
 #     - genai_tk.extra.cli_commands_agents:register_commands
-#  #   - src.webapp.cli_commands:register_commands
-#     - src.main.cli:register_commands
+#  #   - genai_blueprint.webapp.cli_commands:register_commands
+#     - genai_blueprint.main.cli:register_commands
  
 logging:
   format: "<cyan>{time:HH:mm:ss}</cyan>-<level>{level: <7}</level> | <magenta>{file.name}</magenta>:<green>{line} <italic>{function}</italic></green>- <level>{message}</level>"

@@ -29,12 +29,13 @@ from typing import Dict, List, Optional
 
 import streamlit as st
 from devtools import debug  # ignore
-from genai_tk.utils.streamlit.auto_scroll import scroll_to_here
 from PIL import Image
 from smolagents.agent_types import AgentAudio, AgentImage, AgentText
 from smolagents.agents import MultiStepAgent, PlanningStep
 from smolagents.memory import ActionStep, FinalAnswerStep, MemoryStep
 from smolagents.models import ChatMessageStreamDelta
+
+from genai_blueprint.utils.streamlit.auto_scroll import scroll_to_here
 
 
 def get_step_footnote_content(step_log: ActionStep | PlanningStep, step_name: str) -> str:

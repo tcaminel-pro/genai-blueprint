@@ -32,7 +32,7 @@ DEFAULT_RESULT_COUNT = 100
 
 title_col1, title_col2 = st.columns([2, 1])
 
-logo_eviden = str(Path.cwd() / "src/webapp/static/eviden-logo-white.png")
+logo_eviden = str(Path.cwd() / "genai_blueprint/webapp/static/eviden-logo-white.png")
 
 st.logo(logo_eviden)
 

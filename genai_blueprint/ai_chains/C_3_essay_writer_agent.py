@@ -183,7 +183,7 @@ register_runnable(
                 ]
             )
         ],
-        diagram="src/webapp/static/essay_writer_agent_screenshot.png",
+        diagram="genai_blueprint/webapp/static/essay_writer_agent_screenshot.png",
     )
 )
 

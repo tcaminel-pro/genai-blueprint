@@ -37,7 +37,7 @@ container:
   paths:
     data_root: /data
     project: /app
-    src: ${paths.project}/src
+    src: ${paths.project}/genai_blueprint
     config: ${paths.project}/config
     demo_conf: ${paths.project}/config/demos
   llm:
@@ -72,9 +72,9 @@ ekg_local:
     # - genai_tk.extra.cli_commands:register_commands
     # - genai_tk.extra.cli_commands_agents:register_commands
     - genai_tk.main.commands_core:register_commands
-    - src.demos.ekg.cli_commands:register_commands
-    - src.demos.ekg.cli_commands_baml:register_baml_commands
-    - src.demos.ekg.cli_commands_ekg:register_ekg_commands
+    - genai_blueprint.demos.ekg.cli_commands:register_commands
+    - genai_blueprint.demos.ekg.cli_commands_baml:register_baml_commands
+    - genai_blueprint.demos.ekg.cli_commands_ekg:register_ekg_commands
   kv_store: 
     file: 
       path: ${paths.data_root}/kv_store
