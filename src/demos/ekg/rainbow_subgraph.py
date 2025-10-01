@@ -94,8 +94,6 @@ class ReviewedOpportunitySubgraph(Subgraph, BaseModel):
         Returns:
             GraphSchema with all node and relationship configurations
         """
-        from src.demos.ekg.graph_schema import GraphNodeConfig, GraphRelationConfig, create_simplified_schema
-
         from src.demos.ekg.baml_client.types import (
             CompetitiveLandscape,
             Customer,
@@ -107,6 +105,7 @@ class ReviewedOpportunitySubgraph(Subgraph, BaseModel):
             RiskAnalysis,
             TechnicalApproach,
         )
+        from src.demos.ekg.graph_schema import GraphNodeConfig, GraphRelationConfig, create_simplified_schema
 
         # Define nodes with descriptions
         nodes = [

@@ -1,10 +1,7 @@
 from genai_tk.core.embeddings_factory import EmbeddingsFactory, get_embeddings
+from genai_tk.utils.config_mngr import global_config
 
-print(EmbeddingsFactory.known_items())
-embedder = get_embeddings()
+model = global_config().get("llm.models")
+print(model)
 
-# or select by tag from a configuration YAML file:
-# azure_embedder = get_embeddings(embeddings_tag="azure")
-
-# Generate embedding for first sentence
-vector_1 = embedder.embed_documents(["Hello"])
+print(EmbeddingsFactory.known_list())
