@@ -30,22 +30,25 @@ SHELL     := bash -euo pipefail -c   # exit on error, undefined var, pipefail
 #   $(error You need GNU xargs)                                                                      
 # endif  
 
-# Locate and load the .env file in the current directory, or parent directory, or parent of parent
-ENV_FILE_RAW := $(shell find $(CURDIR) $(CURDIR)/.. $(CURDIR)/../.. -name ".env" -print -quit 2>/dev/null)
-ENV_FILE := $(shell realpath $(ENV_FILE_RAW) 2>/dev/null || echo "")
+# .env file discovery - check most common locations first
+ENV_FILE := $(shell \
+	if [ -f ".env" ]; then echo "$(CURDIR)/.env"; \
+	elif [ -f "../.env" ]; then echo "$(CURDIR)/../.env"; \
+	elif [ -f "../../.env" ]; then echo "$(CURDIR)/../../.env"; \
+	else echo ""; fi)
 ifneq ($(ENV_FILE),)
 include $(ENV_FILE)
 else
-$(warning .env file not found in current or parent directory)
+$(warning .env file not found in current or parent directories)
 endif
 
 
-#include deploy/docker.mk
+include deploy/docker.mk
 #include deploy/aws.mk
 #include deploy/github.mk
-include deploy/modal.mk
+#include deploy/modal.mk
 
-.PHONY: .uv   .pre-commit .pythonpath show-dev-path
+.PHONY: .uv   .pre-commit .pythonpath show-dev-path benchmark
 .uv:  ## Check that uv is installed
 	@uv -V || echo 'Please install uv: curl -LsSf https://astral.sh/uv/install.sh | sh 
 
@@ -59,9 +62,7 @@ include deploy/modal.mk
 
 show-dev-path: ## Show current DEV_PYTHONPATH setting
 	@echo "Current DEV_PYTHONPATH: $(DEV_PYTHONPATH)"
-	@echo "Expanded paths:"
-	@echo "  ../genai-tk -> $$(realpath ../genai-tk 2>/dev/null || echo 'NOT FOUND')"
-	@echo "  . -> $(PWD)"
+	@echo "Checking genai-tk availability: $$([ -d ../genai-tk ] && echo 'EXISTS' || echo 'NOT FOUND')"
 	@echo "Usage: make webapp (uses DEV_PYTHONPATH) or make test-install"
 
 
@@ -88,31 +89,14 @@ rebase: ## Sync local repo with remote one (changes are stashed before!)
 	git stash
 	git rebase origin/main
 
-# Configure aider to use ruff as linter
-AIDER_OPTS=--watch-files --lint-cmd "ruff format" --read vibe_coding/CONVENTIONS.md --editor "code --wait"
-
-aider-v3:  ## Call aider-chat (a coding assistant)
-	aider $(AIDER_OPTS) --cache-prompts --model deepseek/deepseek-chat-v3.1
-aider-gemini:
-	aider $(AIDER_OPTS) --cache-prompts --model openrouter/google/gemini-2.5-pro ;   
-aider-sonnet:
-	aider $(AIDER_OPTS) --cache-prompts --model openrouter/anthropic/claude-sonnet-4;   
-aider-r1:
-	aider $(AIDER_OPTS) --model openrouter/deepseek/deepseek-r1
-aider-qwen:
-	aider $(AIDER_OPTS) --model openrouter/qwen/qwen3-coder ; 
-aider-k2:
-	aider $(AIDER_OPTS) --cache-prompts --model openrouter/moonshotai/kimi-k2-0905
-aider-gpt:
-	aider $(AIDER_OPTS) --model openrouter/openai/gpt-oss-120b --reasoning-effort high
-
 lint: ## Run Ruff an all Python files to format fix imports
 	ruff check --select I --fix
 	ruff format
 
 
-quality: ## Run Ruff an all Python files to check quality
-	find . -path "./src/wip" -prune -o -path "./.venv" -prune -o -type f -name '*.py' | xargs ruff check --fix 
+quality: ## Run Ruff on all Python files to check quality (fast version)
+	@echo "Running ruff on Python files (excluding .venv and wip)..."
+	ruff check --fix --exclude .venv --exclude genai_blueprint/wip .
 
 clean-notebooks: ## Clean Jupyter notebook outputs.
 	@find . -path "./.venv" -prune -o -name "*.ipynb" -print | while read -r notebook; do \
@@ -123,18 +107,18 @@ clean-notebooks: ## Clean Jupyter notebook outputs.
 ##############################
 ##  Telemetry  Tasks
 ##############################
-.PHONY: telemetry
+# .PHONY: telemetry
 
-telemetry:  ## Run Phoenix telemetry server in background
-	@echo "Starting Phoenix telemetry server..."
-	@if ! pgrep -f "phoenix.server.main" > /dev/null; then \
-		python -m phoenix.server.main serve > /tmp/phoenix.log 2>&1 & \
-		echo "Phoenix server started in background (PID: $$!)"; \
-		echo "Logs are being written to /tmp/phoenix.log"; \
-		echo "look at: http://localhost:6006/projects" \
-	else \
-		echo "Phoenix server is already running"; \
-	fi
+# telemetry:  ## Run Phoenix telemetry server in background
+# 	@echo "Starting Phoenix telemetry server..."
+# 	@if ! pgrep -f "phoenix.server.main" > /dev/null; then \
+# 		python -m phoenix.server.main serve > /tmp/phoenix.log 2>&1 & \
+# 		echo "Phoenix server started in background (PID: $$!)"; \
+# 		echo "Logs are being written to /tmp/phoenix.log"; \
+# 		echo "look at: http://localhost:6006/projects" \
+# 	else \
+# 		echo "Phoenix server is already running"; \
+# 	fi
 
 ##############################
 ##  uv and project  install
@@ -159,49 +143,17 @@ install: check_uv   ## Install SW
 ##  MISC  ###
 ##############
 
-.PHONY: backup  clean clean_history help
+.PHONY: clean clean-notebooks clean-history help postgres chrome qwen show-dev-path
 
 clean:  ## Clean Python bytecode and cache files
+	@echo "Cleaning UV cache and Python artifacts..."
 	uv cache prune
-	find . -type f -name "*.py[co]" -delete
-	find . -type d -name "__pycache__" -delete
-	find . -type d -name ".ruff_cache" -delete
-	find . -type d -name ".mypy_cache" -delete
+	@# Single find command for all cleanup operations
+	find . \( -name "*.py[co]" -o -name "__pycache__" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null || true
 
 
-backup: ## rsync project and shared files to $(ONEDRIVE)
-# (created as: ln -s '/mnt/c/Users/a184094/OneDrive - Eviden'  ~/to_onedrive )
-	cp -r ~/.env ~/.aws  ~/.bashrc ~/.bash_aliases ~/.modal.toml $(ONEDRIVE)/backup/wsl/tcl/
-	cp ~/install.sh  $(ONEDRIVE)/backup/wsl/tcl/
-
-backup-sync:
-	rsync -av \
-	--exclude='.git/' --exclude='.ruf_cache/' --exclude='__pycache__/'  \
-	--include='*/' \
-	--include='*.py' --include='*.ipynb' --include='*.toml' --include='*.yaml' --include='*.json' \
-	--include='Makefile' --include='Dockerfile' \
-	--exclude='*' \
-	~/prj $(ONEDRIVE)/backup/wsl/tcl
 
 
-ROOT1=/home/tcl/prj/genai-blueprint/
-ROOT2=/home/tcl/prj/ecod-engine-v3
-SYNC_DIRS=src/ai_core src/ai_extra src/ai_utils genai_blueprint/webapp/ui_components   
-
-sync-dirs: ## Sync subdirectories between two root directories
-	@if [ -z "$(ROOT1)" ] || [ -z "$(ROOT2)" ] || [ -z "$(SYNC_DIRS)" ]; then \
-		echo "Error: Missing required variables. Usage: make sync_dirs ROOT1=path1 ROOT2=path2 SYNC_DIRS='dir1 dir2 dir3'"; \
-		exit 1; \
-	fi; \
-	for dir in $(SYNC_DIRS); do \
-		if [ -d "$(ROOT1)/$$dir" ] && [ -d "$(ROOT2)/$$dir" ]; then \
-			echo "Synchronizing '$$dir' between '$(ROOT1)' and '$(ROOT2)''..."; \
-			rsync -av --include='*/' --include='*.py' --update "$(ROOT1)/$$dir/" "$(ROOT2)/$$dir/"; \
-			rsync -av --include='*/' --include='*.py' --update "$(ROOT2)/$$dir/" "$(ROOT1)/$$dir/"; \
-		else \
-			echo "Directory '$$dir' not found in both roots, skipping..."; \
-		fi; \
-	done
 
 clean-history: ## Remove duplicate entries and common commands from .bash_history
 	@if [ -f ~/.bash_history ]; then \
@@ -252,6 +204,3 @@ chrome:  ## Start docker Chromium
 	--shm-size="1gb" --restart unless-stopped \
 	lscr.io/linuxserver/chromium:latest
 	xdg-open localhost:3000
-
-qwen:
-	@OPENAI_API_KEY=$(OPENROUTER_API_KEY) OPENAI_BASE_URL="https://openrouter.ai/api/v1" OPENAI_MODEL="qwen/qwen3-coder" qwen
