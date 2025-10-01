@@ -25,7 +25,7 @@ from markpickle import dumps
 from pydantic import BaseModel, ConfigDict, PrivateAttr
 from upath import UPath
 
-from genai_blueprint.demos.ekg.cli_commands import KV_STORE_ID
+from genai_blueprint.demos.ekg.cli_commands.commands import KV_STORE_ID
 
 # Markdown separators for text splitting
 # fmt:off

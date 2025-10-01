@@ -239,15 +239,3 @@ def register_baml_commands(cli_app: typer.Typer) -> None:
         logger.success(
             f"BAML-based project extraction complete. {len(md_files)} files processed. Results saved to KV Store"
         )
-
-
-def register_commands(cli_app: typer.Typer) -> None:
-    """Register BAML commands - alias for register_baml_commands."""
-    register_baml_commands(cli_app)
-
-
-if __name__ == "__main__":
-    # For testing purposes
-    app = typer.Typer()
-    register_baml_commands(app)
-    app()

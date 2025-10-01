@@ -16,7 +16,7 @@ from langchain_core.tools.base import ArgsSchema
 from loguru import logger
 from pydantic import BaseModel, Field
 
-from genai_blueprint.demos.ekg.struct_rag_doc_processing import StructuredRagConfig, get_schema
+from genai_blueprint.demos.ekg.struct_rag.struct_rag_doc_processing import StructuredRagConfig, get_schema
 
 T = TypeVar("T", bound=BaseModel)
 
