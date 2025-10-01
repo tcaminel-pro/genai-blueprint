@@ -130,10 +130,9 @@ select = [
 ignore = [ # Ignored linter rules: 
     "E501", #Line too long (we use 120 chars instead of default 88) 
     "W291", # Trailing whitespace 
-    #  "W293",   # white spaces "
+    "W293",   # white spaces "
     "B006",   # Do not use mutable data structures for argument defaults
     "C901",   # Function is too complex , 
-    "PD901",  # pandas-df-variable-name',
     "ANN401", # Annotated with Any
     "ANN002", # Annotate *args
     "ANN003", # Annotate **kwarg

@@ -1,0 +1,212 @@
+[
+  {
+    "name": "Dr. Emily Carter",
+    "contact_info": {
+      "email": "emily.carter@example.com",
+      "phone": "(555) 123-4567",
+      "linkedin": "linkedin.com/in/emilycarterdata"
+    },
+    "summary": "Senior Data Scientist with over 8 years of experience in machine learning and predictive analytics. Expertise in developing advanced algorithms and deploying scalable models in production environments.",
+    "education": [
+      {
+        "institution": "Stanford University",
+        "degree": "Ph.D.",
+        "field_of_study": "Computer Science",
+        "graduation_year": 2014
+      },
+      {
+        "institution": "University of California, Berkeley",
+        "degree": "B.S.",
+        "field_of_study": "Mathematics",
+        "graduation_year": 2010
+      }
+    ],
+    "work_experience": [
+      {
+        "company": "InnovateAI Labs",
+        "position": "Senior Data Scientist",
+        "start_date": "2016",
+        "end_date": "Present",
+        "responsibilities": [
+          "Led a team in developing machine learning models for natural language processing applications",
+          "Collaborated with cross-functional teams to integrate models into cloud-based platforms"
+        ],
+        "achievements": [
+          "Implemented deep learning algorithms that improved prediction accuracy by 25%"
+        ]
+      },
+      {
+        "company": "DataWave Analytics",
+        "position": "Data Scientist",
+        "start_date": "2014",
+        "end_date": "2016",
+        "responsibilities": [
+          "Developed predictive models for customer segmentation and churn analysis",
+          "Analyzed large datasets using Hadoop and Spark frameworks"
+        ]
+      }
+    ],
+    "skills": [
+      {
+        "name": "Python",
+        "category": "Programming Languages",
+        "proficiency_level": "Expert"
+      },
+      {
+        "name": "R",
+        "category": "Programming Languages",
+        "proficiency_level": "Advanced"
+      },
+      {
+        "name": "SQL",
+        "category": "Programming Languages",
+        "proficiency_level": "Advanced"
+      },
+      {
+        "name": "TensorFlow",
+        "category": "Machine Learning Frameworks",
+        "proficiency_level": "Expert"
+      },
+      {
+        "name": "Keras",
+        "category": "Machine Learning Frameworks",
+        "proficiency_level": "Expert"
+      },
+      {
+        "name": "Scikit-Learn",
+        "category": "Machine Learning Frameworks",
+        "proficiency_level": "Expert"
+      },
+      {
+        "name": "Hadoop",
+        "category": "Big Data Technologies",
+        "proficiency_level": "Advanced"
+      },
+      {
+        "name": "Spark",
+        "category": "Big Data Technologies",
+        "proficiency_level": "Advanced"
+      },
+      {
+        "name": "Tableau",
+        "category": "Data Visualization",
+        "proficiency_level": "Intermediate"
+      },
+      {
+        "name": "Matplotlib",
+        "category": "Data Visualization",
+        "proficiency_level": "Advanced"
+      }
+    ],
+    "projects": [
+      {
+        "name": "NLP Chatbot System",
+        "description": "Developed an advanced chatbot using transformer models for customer service automation",
+        "technologies": ["Python", "TensorFlow", "BERT", "Flask"],
+        "role": "Lead Developer",
+        "duration": "6 months"
+      },
+      {
+        "name": "Predictive Analytics Platform",
+        "description": "Built a real-time analytics platform for customer behavior prediction",
+        "technologies": ["Python", "Spark", "Kafka", "PostgreSQL"],
+        "role": "Senior Data Scientist",
+        "duration": "12 months"
+      }
+    ],
+    "languages": ["English", "Spanish"],
+    "interests": ["Machine Learning Research", "Open Source Contributions", "Data Science Mentoring"]
+  },
+  {
+    "name": "Michael Rodriguez",
+    "contact_info": {
+      "email": "michael.rodriguez@example.com",
+      "phone": "(555) 234-5678",
+      "github": "github.com/mrodriguez-ml"
+    },
+    "summary": "Machine Learning Engineer with 5 years of experience in deploying scalable ML solutions. Proficient in MLOps practices and cloud infrastructure management.",
+    "education": [
+      {
+        "institution": "MIT",
+        "degree": "M.S.",
+        "field_of_study": "Artificial Intelligence",
+        "graduation_year": 2017
+      },
+      {
+        "institution": "Carnegie Mellon University",
+        "degree": "B.S.",
+        "field_of_study": "Computer Science",
+        "graduation_year": 2015
+      }
+    ],
+    "work_experience": [
+      {
+        "company": "TechFlow Systems",
+        "position": "Senior ML Engineer",
+        "start_date": "2019",
+        "end_date": "Present",
+        "responsibilities": [
+          "Designed and implemented ML pipelines for production deployment",
+          "Optimized model performance and reduced inference latency by 40%"
+        ]
+      },
+      {
+        "company": "DataCore Solutions",
+        "position": "ML Engineer",
+        "start_date": "2017",
+        "end_date": "2019",
+        "responsibilities": [
+          "Developed computer vision models for manufacturing quality control",
+          "Implemented CI/CD pipelines for ML model deployment"
+        ]
+      }
+    ],
+    "skills": [
+      {
+        "name": "Python",
+        "category": "Programming Languages",
+        "proficiency_level": "Expert"
+      },
+      {
+        "name": "Java",
+        "category": "Programming Languages",
+        "proficiency_level": "Intermediate"
+      },
+      {
+        "name": "PyTorch",
+        "category": "Machine Learning Frameworks",
+        "proficiency_level": "Expert"
+      },
+      {
+        "name": "MLflow",
+        "category": "MLOps Tools",
+        "proficiency_level": "Advanced"
+      },
+      {
+        "name": "Docker",
+        "category": "DevOps Tools",
+        "proficiency_level": "Advanced"
+      },
+      {
+        "name": "Kubernetes",
+        "category": "DevOps Tools",
+        "proficiency_level": "Intermediate"
+      },
+      {
+        "name": "AWS",
+        "category": "Cloud Platforms",
+        "proficiency_level": "Advanced"
+      }
+    ],
+    "certifications": [
+      {
+        "name": "AWS Certified Machine Learning - Specialty",
+        "issuer": "Amazon Web Services",
+        "issue_date": "2022-03",
+        "expiry_date": "2025-03"
+      }
+    ],
+    "languages": ["English", "Portuguese"],
+    "interests": ["MLOps", "Computer Vision", "Cloud Architecture"]
+  }
+]

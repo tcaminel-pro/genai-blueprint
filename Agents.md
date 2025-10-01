@@ -203,13 +203,13 @@ llm = LLMFactory.create("openai/gpt-4")
 agent = CustomReactAgent(llm=llm)
 
 # Add custom tools
-from src.demos.maintenance_agent.tools import get_maintenance_tools
+from genai_blueprint.demos.maintenance_agent.tools import get_maintenance_tools
 agent.tools.extend(get_maintenance_tools())
 ```
 
 ### Knowledge Graph Integration
 ```python
-from src.demos.ekg.graph_core import EKGGraphCore
+from genai_blueprint.demos.ekg.graph_core import EKGGraphCore
 from genai_tk.extra.cognee_utils import CogneeUtils
 
 # Initialize knowledge graph

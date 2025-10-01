@@ -15,6 +15,8 @@ IMAGE_VERSION=0.2a
 AWS_REGION=eu-west-1
 AWS_ACCOUNT_ID=909658914353
 
+DEV_PATH="/home/tcl/prj/genai-tk:/home/tcl/prj/genai-blueprint:$(PWD)"
+
 all: help 
 
 MAKEFLAGS += --warn-undefined-variables                                                            
@@ -64,7 +66,7 @@ langserve: ## Lauch langserve app
 	python src/main/langserve_app.py
 
 webapp: ## Launch Streamlit app
-	PYTHONPATH=$(PWD) uv run streamlit run "$(STREAMLIT_ENTRY_POINT)"
+	PYTHONPATH=$(DEV_PATH) uv run streamlit run "$(STREAMLIT_ENTRY_POINT)"
 
 
 ##############################

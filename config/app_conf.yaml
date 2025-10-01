@@ -73,8 +73,8 @@ auth:
 cli:
   commands:  # List modules:functions to register CLI commands
     - genai_tk.main.commands_core:register_commands:register_commands
-#     - src.ai_extra.cli_commands:register_commands
-#     - src.ai_extra.cli_commands_agents:register_commands
+#     - genai_tk.extra.cli_commands:register_commands
+#     - genai_tk.extra.cli_commands_agents:register_commands
 #  #   - src.webapp.cli_commands:register_commands
 #     - src.main.cli:register_commands
  

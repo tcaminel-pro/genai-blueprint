@@ -68,9 +68,9 @@ ekg_local:
     default : PgVector
   cli:
     commands:  
-    # - src.ai_core.cli_commands:register_commands
-    # - src.ai_extra.cli_commands:register_commands
-    # - src.ai_extra.cli_commands_agents:register_commands
+    # - genai_tk.core.cli_commands:register_commands
+    # - genai_tk.extra.cli_commands:register_commands
+    # - genai_tk.extra.cli_commands_agents:register_commands
     - genai_tk.main.commands_core:register_commands
     - src.demos.ekg.cli_commands:register_commands
     - src.demos.ekg.cli_commands_baml:register_baml_commands
