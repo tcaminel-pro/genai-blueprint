@@ -1,7 +1,5 @@
 gpt_researcher:
- available_configs: ["default", "detailed"]
- 
- default:
+  default:
     fast_llm: gpt_41mini_openrouter
     max_iterations: 3
     max_search_results_per_query: 5
@@ -9,22 +7,23 @@ gpt_researcher:
     search_engine: tavily
     tone: Objective
     description: Default configuration for GPT Researcher
-    document_urls:
-      - www.atos.net
-      - ddddd 
-  
- detailed:
-    max_iterations : 5
-    report_type: detailed_report
 
- legal_search:
+  
+  detailed:
+     max_iterations : 5
+     report_type: detailed_report
+
+  legal_search:
     fast_llm: gpt_41mini_openrouter
-    max_iterations: 3
-    max_search_results_per_query: 5
+    max_iterations: 2
+    max_search_results_per_query: 2
     report_type: research_report
+    report_source : "hybrid"
     search_engine: tavily
     tone: Objective
     description: Legal Assistant search
-    document_urls:
-      - www.atos.net
-      - ddddd 
+    document_urls:  # DOES NOT WORK .  Hydrid search need urls to documents
+      - https://www.data.gouv.fr/datasets/legi-codes-lois-et-reglements-consolides
+      - https://www.journal-officiel.gouv.fr
+
+       

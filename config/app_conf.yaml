@@ -25,6 +25,7 @@ merge:
   - ${paths.config}/baseline.yaml
   - ${paths.config}/overrides.yaml
   - ${paths.config}/mcp_servers.yaml
+  - ${paths.config}/components/gpt_researcher.yaml
 
 
 
