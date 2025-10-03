@@ -53,8 +53,12 @@ react_agent_demos:
       - "Show me albums by AC/DC"
       - "How many tracks are in the Rock genre?"
 
-  - name: "The super legal assistant"
-    mcp_servers:
-      - filesystem
+  - name: "legal"
+    tools: 
+      - class: langchain_tavily:TavilySearch 
+        max_results : 5
+        include_domains:  
+        - https://www.data.gouv.fr/datasets/legi-codes-lois-et-reglements-consolides
+        - https://www.journal-officiel.gouv.fr'
     examples:
-      - "write a powerpoint with the current directory. Create one slide with directy list."
+      - "changements de réglementation sur la regulation des marchés financiers."
