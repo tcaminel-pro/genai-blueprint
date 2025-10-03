@@ -88,7 +88,7 @@ rebase: ## Sync local repo with remote one (changes are stashed before!)
 	git fetch origin
 	git stash
 	git rebase origin/main
-	uv sync
+	uv sync --upgrade-package genai-tk
 
 lint: ## Run Ruff an all Python files to format fix imports
 	ruff check --select I --fix
