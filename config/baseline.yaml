@@ -33,6 +33,36 @@ vector_store:
   record_manager: sqlite:///${paths.data_root}/vector_store/record_manager_cache.sql
   postgres_url: ${paths.postgres}
   postgres_schema: public
+
+# New configuration-driven vector store factory approach
+vector_store_factory:
+  default:
+    id: Chroma
+    embeddings: default
+    table_name_prefix: embeddings
+    record_manager: sqlite:///${paths.data_root}/vector_store/record_manager_cache.sql
+    config:
+      chroma_path: ${paths.data_root}/vector_store
+  
+  in_memory:
+    id: InMemory
+    embeddings: default
+    table_name_prefix: embeddings
+  
+  local_fast:
+    id: Chroma
+    embeddings: local
+    table_name_prefix: embeddings_local
+    config:
+      chroma_path: ${paths.data_root}/vector_store_local
+  
+  postgres:
+    id: PgVector
+    embeddings: default
+    table_name_prefix: embeddings_pg
+    config:
+      postgres_url: ${paths.postgres}
+      postgres_schema: public
 documents:
   base: ./use_case_data
 monitoring: 
