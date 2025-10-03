@@ -9,7 +9,22 @@ gpt_researcher:
     search_engine: tavily
     tone: Objective
     description: Default configuration for GPT Researcher
+    document_urls:
+      - www.atos.net
+      - ddddd 
   
  detailed:
     max_iterations : 5
     report_type: detailed_report
+
+ legal_search:
+    fast_llm: gpt_41mini_openrouter
+    max_iterations: 3
+    max_search_results_per_query: 5
+    report_type: research_report
+    search_engine: tavily
+    tone: Objective
+    description: Legal Assistant search
+    document_urls:
+      - www.atos.net
+      - ddddd 

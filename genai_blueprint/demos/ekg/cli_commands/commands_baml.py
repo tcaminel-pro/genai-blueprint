@@ -2,65 +2,71 @@
 
 This module provides an alternative implementation of the structured_extract function
 that uses BAML instead of langchain for structured output extraction. It leverages
-the BAML-generated client to extract ReviewedOpportunity data from markdown files.
+the BAML-generated client to extract structured data from markdown files into any
+Pydantic BaseModel provided at runtime.
 
 Key Features:
     - Uses BAML's ExtractRainbow function for structured data extraction
     - Maintains the same CLI interface as the original version
     - Compatible with existing KV store and batch processing infrastructure
-    - Provides direct integration with BAML-generated Pydantic models
+    - Supports any Pydantic BaseModel (validated at runtime)
 
 Usage Examples:
     ```bash
     # Extract structured data from Markdown files using BAML
-    uv run cli rainbow-extract-baml "*.md" --output-dir ./data
+    uv run cli structured-extract-baml "*.md" --class ReviewedOpportunity --force
 
     # Process recursively with custom settings
-    uv run cli rainbow-extract-baml ./reviews/ --recursive --batch-size 10 --force
+    uv run cli structured-extract-baml ./reviews/ --recursive --batch-size 10 --force --class ReviewedOpportunity
     ```
 
 Data Flow:
-    1. Markdown files → BAML ExtractRainbow → ReviewedOpportunity objects
-    2. ReviewedOpportunity objects → KV Store → JSON structured data
+    1. Markdown files → BAML ExtractRainbow → model instances
+    2. Model instances → KV Store → JSON structured data
     3. Processed data → Available for EKG agent querying
 """
 
 import asyncio
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Generic, TypeVar, Type
 
 import typer
 from loguru import logger
+from pydantic import BaseModel
 from upath import UPath
 
 from genai_blueprint.demos.ekg.baml_client.async_client import b as baml_async_client
-from genai_blueprint.demos.ekg.baml_client.types import ReviewedOpportunity
+import genai_blueprint.demos.ekg.baml_client.types as baml_types
 
 LLM_ID = None
 KV_STORE_ID = "file"
 
 
-class BamlStructuredProcessor:
+T = TypeVar("T", bound=BaseModel)
+
+
+class BamlStructuredProcessor(Generic[T]):
     """Processor that uses BAML for extracting structured data from documents."""
 
-    def __init__(self, kvstore_id: str | None = None, force: bool = False) -> None:
+    def __init__(self, model_cls: Type[T], kvstore_id: str | None = None, force: bool = False) -> None:
+        self.model_cls = model_cls
         self.kvstore_id = kvstore_id or KV_STORE_ID
         self.force = force
 
     async def abatch_analyze_documents(
         self, document_ids: list[str], markdown_contents: list[str]
-    ) -> list[ReviewedOpportunity]:
+    ) -> list[T]:
         """Process multiple documents asynchronously with caching using BAML."""
         from genai_tk.utils.pydantic.kv_store import PydanticStore, save_object_to_kvstore
 
-        analyzed_docs: list[ReviewedOpportunity] = []
+        analyzed_docs: list[T] = []
         remaining_ids: list[str] = []
         remaining_contents: list[str] = []
 
         # Check cache first (unless force is enabled)
         if self.kvstore_id and not self.force:
             for doc_id, content in zip(document_ids, markdown_contents, strict=True):
-                cached_doc = PydanticStore(kvstore_id=self.kvstore_id, model=ReviewedOpportunity).load_object(doc_id)
+                cached_doc = PydanticStore(kvstore_id=self.kvstore_id, model=self.model_cls).load_object(doc_id)
 
                 if cached_doc:
                     analyzed_docs.append(cached_doc)
@@ -94,7 +100,7 @@ class BamlStructuredProcessor:
                 # Add document_id as a custom attribute
                 result_dict = result.model_dump()
                 result_dict["document_id"] = doc_id
-                result_with_id = ReviewedOpportunity(**result_dict)
+                result_with_id = self.model_cls(**result_dict)
 
                 analyzed_docs.append(result_with_id)
                 logger.success(f"Processed document: {doc_id}")
@@ -109,7 +115,7 @@ class BamlStructuredProcessor:
 
         return analyzed_docs
 
-    def analyze_document(self, document_id: str, markdown: str) -> ReviewedOpportunity:
+    def analyze_document(self, document_id: str, markdown: str) -> T:
         """Analyze a single document synchronously using BAML."""
         try:
             results = asyncio.run(self.abatch_analyze_documents([document_id], [markdown]))
@@ -171,19 +177,31 @@ def register_baml_commands(cli_app: typer.Typer) -> None:
         recursive: bool = typer.Option(False, help="Search for files recursively"),
         batch_size: int = typer.Option(5, help="Number of files to process in each batch"),
         force: bool = typer.Option(False, "--force", help="Overwrite existing KV entries"),
+        class_name: Annotated[str, typer.Option("--class", help="Name of the Pydantic model class to instantiate")] = "ReviewedOpportunity",
     ) -> None:
         """Extract structured project data from Markdown files using BAML and save as JSON in a key-value store.
 
-        This command uses BAML's ExtractRainbow function to extract ReviewedOpportunity data
-        from markdown files. It provides the same functionality as structured_extract but
-        uses BAML instead of langchain for structured output.
+        This command uses BAML's ExtractRainbow function to extract data from markdown files
+        and instantiate the provided Pydantic model class. It provides the same functionality
+        as structured_extract but uses BAML for structured output.
 
         Example:
-           uv run cli structured-extract-baml "*.md" "projects/*.md" --force
-           uv run cli structured-extract-baml "**/*.md" --recursive
+           uv run cli structured-extract-baml "*.md" --force --class ReviewedOpportunity
+           uv run cli structured-extract-baml "**/*.md" --recursive --class ReviewedOpportunity
         """
 
         logger.info(f"Starting BAML-based project extraction with: {file_or_dir}")
+
+        # Resolve model class from the BAML types module
+        try:
+            model_cls = getattr(baml_types, class_name)
+        except AttributeError as e:
+            logger.error(f"Unknown class '{class_name}' in baml_client.types: {e}")
+            return
+
+        if not isinstance(model_cls, type) or not issubclass(model_cls, BaseModel):
+            logger.error(f"Provided class '{class_name}' is not a Pydantic BaseModel")
+            return
 
         # Collect all Markdown files
         all_files = []
@@ -214,7 +232,7 @@ def register_baml_commands(cli_app: typer.Typer) -> None:
             logger.info("Force option enabled - will reprocess all files and overwrite existing KV entries")
 
         # Create BAML processor
-        processor = BamlStructuredProcessor(kvstore_id=KV_STORE_ID, force=force)
+        processor = BamlStructuredProcessor(model_cls=model_cls, kvstore_id=KV_STORE_ID, force=force)
 
         # Filter out files that already have JSON in KV unless forced
         if not force:
@@ -223,7 +241,7 @@ def register_baml_commands(cli_app: typer.Typer) -> None:
             unprocessed_files = []
             for md_file in md_files:
                 key = md_file.stem
-                cached_doc = PydanticStore(kvstore_id=KV_STORE_ID, model=ReviewedOpportunity).load_object(key)
+                cached_doc = PydanticStore(kvstore_id=KV_STORE_ID, model=model_cls).load_object(key)
                 if not cached_doc:
                     unprocessed_files.append(md_file)
                 else:

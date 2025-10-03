@@ -157,28 +157,28 @@ function ExtractRainbow(rainbow_file: string) -> ReviewedOpportunity {
   "#
 }
 
-function GenerateFakeRainbowDoc(project_description: string) -> ReviewedOpportunity {
-  client "GptOss120" 
+// function GenerateFakeRainbowDoc(project_description: string) -> ReviewedOpportunity {
+//   client "GptOss120" 
   
-  prompt #"
-    Generate a fake proposal review for a project descrived as:
-    {{ project_description }}
+//   prompt #"
+//     Generate a fake proposal review for a project descrived as:
+//     {{ project_description }}
 
-    Follow the format:
-    {{ ctx.output_format }}
+//     Follow the format:
+//     {{ ctx.output_format }}
 
-    JSON:
-  "#
-}
+//     JSON:
+//   "#
+// }
 
 
-test TestFake {
-  functions [GenerateFakeRainbowDoc]
-  args {
-    project_description #"
-    an IT project in the financial services, with a database, Thales and Cap as competitor, and low usual risks"
-  }
-}
+// test TestFake {
+//   functions [GenerateFakeRainbowDoc]
+//   args {
+//     project_description #"
+//     an IT project in the financial services, with a database, Thales and Cap as competitor, and low usual risks"
+//   }
+// }
 
 
 // Test the function with a sample resume. Open the VSCode playground to run this.
