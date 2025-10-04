@@ -6,7 +6,7 @@ authors = [{ name = "Thierry Caminel", email = "thierry.caminel@atos.net" }]
 requires-python = ">=3.12,<3.13"
 dependencies = [ # core dependencies - genai_tk provides AI capabilities
     # GenAI Toolkit - core AI components
-    "genai_tk @ git+https://github.com/tcaminel-pro/genai-tk@main",
+    "genai_tk @ git+https://github.com/tclatos/genai-tk@main",
     # Application framework dependencies
     "pydantic>=2.7.0,<3",         # Data validation framework
     "devtools>=0.12.2",           # Development utilities
@@ -26,8 +26,8 @@ dependencies = [ # core dependencies - genai_tk provides AI capabilities
 ]
 
 [project.urls]
-Homepage = "https://github.com/tcaminel-pro/genai-blueprint"
-Repository = "https://github.com/tcaminel-pro/genai-blueprint"
+Homepage = "https://github.com/tclatos/genai-blueprint"
+Repository = "https://github.com/tclatos/genai-blueprint"
 
 
 [dependency-groups]

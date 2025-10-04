@@ -3,7 +3,7 @@ from functools import cache
 
 import pandas as pd
 from genai_tk.core.embeddings_factory import EmbeddingsFactory
-from genai_tk.core.vector_store_factory import VectorStoreFactory
+from genai_tk.core.vector_store_factory import VectorStoreRegistry
 from genai_tk.extra.retrievers.bm25s_retriever import get_spacy_preprocess_fn
 from genai_tk.utils.pydantic.jsonl_store import load_objects_from_jsonl
 from langchain.retrievers import EnsembleRetriever
@@ -32,7 +32,7 @@ class SearchMode(Enum):
 def get_sparse_retriever(embeddings_model_id: str) -> Runnable:
     embeddings_factory = EmbeddingsFactory(embeddings_id=embeddings_model_id)
     retriever = (
-        VectorStoreFactory(
+        VectorStoreRegistry(
             id="Chroma",
             embeddings_factory=embeddings_factory,
             table_name_prefix="offres_formation",

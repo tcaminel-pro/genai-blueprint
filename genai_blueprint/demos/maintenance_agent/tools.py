@@ -19,8 +19,8 @@ import streamlit as st
 from genai_tk.core.embeddings_factory import EmbeddingsFactory
 from genai_tk.core.llm_factory import get_llm
 from genai_tk.core.prompts import dedent_ws, def_prompt
-from genai_tk.core.vector_store_factory import VectorStoreFactory
-from genai_tk.extra.tools.langchain.sql_tool_factory import SQLToolConfig, SQLToolFactory
+from genai_tk.core.vector_store_factory import VectorStoreRegistry
+from genai_tk.tools.langchain.sql_tool_factory import SQLToolConfig, SQLToolFactory
 from genai_tk.utils.config_mngr import global_config
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.tools import BaseTool, tool
@@ -61,7 +61,7 @@ def maintenance_procedure_vectors(text: str) -> VectorStore:
     3. Embedded using configured embeddings
     4. Stored in the vector store
     """
-    vs_factory = VectorStoreFactory(
+    vs_factory = VectorStoreRegistry(
         id=VECTOR_STORE_ID,
         table_name_prefix="maintenance_procedure",
         embeddings_factory=EmbeddingsFactory(),

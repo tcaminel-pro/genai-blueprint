@@ -17,8 +17,8 @@ from genai_tk.core.chain_registry import Example, RunnableItem, register_runnabl
 from genai_tk.core.embeddings_factory import EmbeddingsFactory
 from genai_tk.core.llm_factory import get_llm
 from genai_tk.core.prompts import def_prompt
-from genai_tk.core.vector_store_factory import VectorStoreFactory
-from genai_tk.extra.tools.langchain.web_search_tool import basic_web_search
+from genai_tk.core.vector_store_factory import VectorStoreRegistry
+from genai_tk.tools.langchain.web_search_tool import basic_web_search
 from langchain.output_parsers.enum import EnumOutputParser
 from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -136,7 +136,7 @@ def retriever() -> BaseRetriever:
         "https://lilianweng.github.io/posts/2023-10-25-adv-attack-llm/",
     ]
 
-    vs_factory = VectorStoreFactory(
+    vs_factory = VectorStoreRegistry(
         id="Chroma_in_memory",
         table_name_prefix="rag-chroma",
         embeddings_factory=EmbeddingsFactory(),

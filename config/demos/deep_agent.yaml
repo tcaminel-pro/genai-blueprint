@@ -187,8 +187,8 @@ deep_agent_demos:
       
       Always provide data-driven insights with proper risk disclaimers.
     tools:
-      - function: genai_tk.extra.tools.smolagents.yfinance_tools:get_stock_info
-      - function: genai_tk.extra.tools.smolagents.yfinance_tools:get_historical_price
+      - function: genai_tk.tools.smolagents.yfinance_tools:get_stock_info
+      - function: genai_tk.tools.smolagents.yfinance_tools:get_historical_price
       - class: smolagents:WebSearchTool
       - class: smolagents:VisitWebpageTool
     enable_file_system: true

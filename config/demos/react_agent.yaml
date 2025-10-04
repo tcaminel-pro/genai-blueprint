@@ -3,7 +3,7 @@ react_agent_demos:
   - name: "Weather"
     tools:  
      # - function: genai-blueprint.webapp.pages.demos.reAct_agent:my_custom_weather
-      - factory: genai_tk.extra.tools.langchain.search_tools_factory:create_search_function
+      - factory: genai_tk.tools.langchain.search_tools_factory:create_search_function
         verbose: true
     mcp_servers:
       - "weather"

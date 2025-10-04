@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 from genai_tk.core.llm_factory import get_llm
 from genai_tk.core.mcp_client import get_mcp_servers_dict
 from genai_tk.core.prompts import dedent_ws
-from genai_tk.extra.tools.langchain.shared_config_loader import LangChainAgentConfig, load_all_langchain_agent_configs
+from genai_tk.tools.langchain.shared_config_loader import LangChainAgentConfig, load_all_langchain_agent_configs
 from langchain.callbacks import tracing_v2_enabled
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain_core.messages import AIMessage, HumanMessage
@@ -38,7 +38,7 @@ from langchain_community.tools import DuckDuckGoSearchRun  # noqa: E402
 
 duckduck_search_tool = DuckDuckGoSearchRun()
 
-CONFIG_FILE = "config/demos/react_agent.yaml"
+CONFIG_FILE = "config/agents/react.yaml"
 assert Path(CONFIG_FILE).exists(), f"Cannot load {CONFIG_FILE}"
 
 # Default system prompt

@@ -11,7 +11,7 @@ from typing import Any, Dict, Optional
 
 from dotenv import load_dotenv
 from genai_tk.core.deep_agents import DeepAgentConfig, deep_agent_factory, run_deep_agent
-from genai_tk.extra.tools.langchain.web_search_tool import basic_web_search
+from genai_tk.tools.langchain.web_search_tool import basic_web_search
 from langchain.tools import tool
 from loguru import logger
 from tavily import TavilyClient

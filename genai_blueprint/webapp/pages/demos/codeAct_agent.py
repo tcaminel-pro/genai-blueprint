@@ -22,7 +22,7 @@ from genai_tk.core.mcp_client import dict_to_stdio_server_list, get_mcp_servers_
 from genai_tk.core.prompts import dedent_ws
 
 # Import shared configuration functionality
-from genai_tk.extra.tools.smolagents.config_loader import (
+from genai_tk.tools.smolagents.config_loader import (
     SmolagentsAgentConfig,
     load_all_demos_from_config,
 )
@@ -50,7 +50,7 @@ MODEL_ID = None  # Use the one by configuration
 # MODEL_ID = "qwen_qwq32_openrouter"
 
 DATA_PATH = Path.cwd() / "use_case_data/other"
-CONF_YAML_FILE = "config/demos/codeact_agent.yaml"
+CONF_YAML_FILE = "config/agents/codeact.yaml"
 
 # Initialize session state variables for managing agent output and display
 if "agent_output" not in sss:

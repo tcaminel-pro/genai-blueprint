@@ -14,7 +14,7 @@ from beartype.door import is_bearable
 from genai_tk.core.embeddings_factory import EmbeddingsFactory
 from genai_tk.core.llm_factory import get_llm
 from genai_tk.core.prompts import def_prompt
-from genai_tk.core.vector_store_factory import VectorStoreFactory
+from genai_tk.core.vector_store_factory import VectorStoreRegistry
 from genai_tk.utils.config_mngr import global_config
 from genai_tk.utils.pydantic.dyn_model_factory import PydanticModelFactory
 from genai_tk.utils.pydantic.kv_store import PydanticStore, save_object_to_kvstore
@@ -54,7 +54,7 @@ class StructuredRagConfig(BaseModel):
     """Configuration for a structured RAG document processing pipeline."""
 
     model_definition: dict
-    vector_store_factory: VectorStoreFactory
+    vector_store_factory: VectorStoreRegistry
     llm_id: str | None
     kvstore_id: str | None = None
 
@@ -134,11 +134,11 @@ class StructuredRagConfig(BaseModel):
         return description
 
     @staticmethod
-    def get_vector_store_factory() -> VectorStoreFactory:
+    def get_vector_store_factory() -> VectorStoreRegistry:
         """Create a vector store factory configured with the default embeddings model."""
         EMBEDDINGS_ID = "qwen3_06b_deepinfra"
         postgres_url = global_config().get_dsn("vector_store.postgres_url", driver="asyncpg")
-        vector_store_factory = VectorStoreFactory(
+        vector_store_factory = VectorStoreRegistry(
             id="PgVector",
             embeddings_factory=EmbeddingsFactory(embeddings_id=EMBEDDINGS_ID, cache_embeddings=True),
             config={

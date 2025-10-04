@@ -15,8 +15,8 @@ import streamlit as st
 from dotenv import load_dotenv
 from genai_tk.core.deep_agents import DeepAgentConfig, deep_agent_factory, run_deep_agent
 from genai_tk.core.llm_factory import get_llm
-from genai_tk.extra.tools.smolagents.config_loader import process_tools_from_config
-from genai_tk.extra.tools.smolagents.deep_config_loader import (
+from genai_tk.tools.smolagents.config_loader import process_tools_from_config
+from genai_tk.tools.smolagents.deep_config_loader import (
     load_all_deep_agent_demos_from_config,
 )
 from langchain.callbacks import tracing_v2_enabled

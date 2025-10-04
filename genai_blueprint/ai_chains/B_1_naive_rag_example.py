@@ -6,7 +6,7 @@ from genai_tk.core.chain_registry import Example, RunnableItem, register_runnabl
 from genai_tk.core.embeddings_factory import EmbeddingsFactory
 from genai_tk.core.llm_factory import get_llm
 from genai_tk.core.prompts import def_prompt
-from genai_tk.core.vector_store_factory import VectorStoreFactory
+from genai_tk.core.vector_store_factory import VectorStoreRegistry
 from langchain_community.document_loaders.text import TextLoader
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import Runnable, RunnableConfig, RunnableLambda, RunnablePassthrough
@@ -22,7 +22,7 @@ def get_retriever_fn(query: str | None, config: RunnableConfig) -> Runnable:
     path = Path(path)
     if not path.exists():
         raise FileNotFoundError(f"Path in does not exists: {path}")
-    vector_store = VectorStoreFactory(
+    vector_store = VectorStoreRegistry(
         id=None,
         table_name_prefix="test_rag",
         embeddings_factory=EmbeddingsFactory(),  # take default one

@@ -19,7 +19,7 @@ except ImportError as ex:
 from genai_tk.core.embeddings_factory import EmbeddingsFactory
 from genai_tk.core.llm_factory import get_llm
 from genai_tk.core.prompts import def_prompt
-from genai_tk.core.vector_store_factory import VectorStoreFactory
+from genai_tk.core.vector_store_factory import VectorStoreRegistry
 from genai_tk.extra.retrievers.bm25s_retriever import BM25FastRetriever, get_spacy_preprocess_fn
 from langchain_community.document_loaders.base import BaseLoader
 from langchain_core.documents import Document
@@ -162,7 +162,7 @@ EMBEDDINGS_MODEL = "solon_large_local"
 @app.command()
 def create_embeddings(embeddings_id: str = EMBEDDINGS_MODEL) -> None:
     embeddings_factory = EmbeddingsFactory(embeddings_id=embeddings_id)
-    vector_factory = VectorStoreFactory(
+    vector_factory = VectorStoreRegistry(
         id="Chroma",
         embeddings_factory=embeddings_factory,
         table_name_prefix="offres_formation",

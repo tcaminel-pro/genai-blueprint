@@ -1,7 +1,7 @@
 # Data Analyst SmolAgents Demos Configuration
 
 paths:
-  smolagent_custom_tools: genai_tk.extra.tools.smolagents
+  smolagent_custom_tools: genai_tk.tools.smolagents
   ekg_data: 
 
   

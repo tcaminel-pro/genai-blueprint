@@ -1222,7 +1222,7 @@ requires-dist = [
     { name = "beartype", specifier = ">=0.21.0" },
     { name = "devtools", specifier = ">=0.12.2" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.6" },
-    { name = "genai-tk", git = "https://github.com/tcaminel-pro/genai-tk?rev=main" },
+    { name = "genai-tk", git = "https://github.com/tclatos/genai-tk?rev=main" },
     { name = "kuzu", specifier = ">=0.11.2" },
     { name = "langchain-tavily", specifier = ">=0.2.11" },
     { name = "loguru", specifier = ">=0.7.3" },
@@ -1294,7 +1294,7 @@ ui = [
 [[package]]
 name = "genai-tk"
 version = "0.1.0"
-source = { git = "https://github.com/tcaminel-pro/genai-tk?rev=main#36a41234ba361433acc1b0a449305be7c8b53193" }
+source = { git = "https://github.com/tclatos/genai-tk?rev=main#36a41234ba361433acc1b0a449305be7c8b53193" }
 dependencies = [
     { name = "beartype" },
     { name = "chromadb" },
