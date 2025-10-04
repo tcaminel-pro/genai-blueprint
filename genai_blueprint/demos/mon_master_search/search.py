@@ -2,7 +2,7 @@ from enum import Enum
 from functools import cache
 
 import pandas as pd
-from genai_tk.core.vector_store_registry import VectorStoreRegistry
+from genai_tk.core.embeddings_store import EmbeddingsStore
 from genai_tk.extra.retrievers.bm25s_retriever import get_spacy_preprocess_fn
 from genai_tk.utils.pydantic.jsonl_store import load_objects_from_jsonl
 from langchain.retrievers import EnsembleRetriever
@@ -30,9 +30,7 @@ class SearchMode(Enum):
 @cache
 def get_sparse_retriever() -> Runnable:
     retriever = (
-        VectorStoreRegistry.create_from_config("default")
-        .get()
-        .as_retriever(search_kwargs={"k": DEFAULT_RESULT_COUNT})
+        EmbeddingsStore.create_from_config("default").get().as_retriever(search_kwargs={"k": DEFAULT_RESULT_COUNT})
     )
     return retriever
 

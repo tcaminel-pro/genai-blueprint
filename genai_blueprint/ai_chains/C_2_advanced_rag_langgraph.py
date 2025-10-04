@@ -14,9 +14,9 @@ from typing import Any, Literal
 
 from dotenv import load_dotenv
 from genai_tk.core.chain_registry import Example, RunnableItem, register_runnable
+from genai_tk.core.embeddings_store import EmbeddingsStore
 from genai_tk.core.llm_factory import get_llm
 from genai_tk.core.prompts import def_prompt
-from genai_tk.core.vector_store_registry import VectorStoreRegistry
 from genai_tk.tools.langchain.web_search_tool import basic_web_search
 from langchain.output_parsers.enum import EnumOutputParser
 from langchain.schema import Document
@@ -135,11 +135,11 @@ def retriever() -> BaseRetriever:
         "https://lilianweng.github.io/posts/2023-10-25-adv-attack-llm/",
     ]
 
-    vs_factory = VectorStoreRegistry.create_from_config("in_memory_chroma")
-    vectorstore = vs_factory.get()
+    embeddings_store = EmbeddingsStore.create_from_config("in_memory_chroma")
+    vectorstore = embeddings_store.get()
 
-    print(vs_factory.document_count())
-    if vs_factory.document_count() == 0:
+    print(embeddings_store.document_count())
+    if embeddings_store.document_count() == 0:
         logger.info("indexing documents...")
 
         docs = [WebBaseLoader(url).load() for url in urls]

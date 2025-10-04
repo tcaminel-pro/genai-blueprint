@@ -3,9 +3,9 @@
 from pathlib import Path
 
 from genai_tk.core.chain_registry import Example, RunnableItem, register_runnable
+from genai_tk.core.embeddings_store import EmbeddingsStore
 from genai_tk.core.llm_factory import get_llm
 from genai_tk.core.prompts import def_prompt
-from genai_tk.core.vector_store_registry import VectorStoreRegistry
 from langchain_community.document_loaders.text import TextLoader
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import Runnable, RunnableConfig, RunnableLambda, RunnablePassthrough
@@ -21,7 +21,7 @@ def get_retriever_fn(query: str | None, config: RunnableConfig) -> Runnable:
     path = Path(path)
     if not path.exists():
         raise FileNotFoundError(f"Path in does not exists: {path}")
-    vector_store = VectorStoreRegistry.create_from_config("default").get()
+    vector_store = EmbeddingsStore.create_from_config("default").get()
 
     logger.info(f"indexing text document  {path} in VectorStore")
     loader = TextLoader(path)

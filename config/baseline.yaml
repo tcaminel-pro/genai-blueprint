@@ -35,7 +35,7 @@ embeddings:
 #   postgres_schema: public
 
 # Configuration-driven vector store factory approach
-vector_store_registry:
+embeddings_store:
   default:
     backend: Chroma 
     embeddings: default

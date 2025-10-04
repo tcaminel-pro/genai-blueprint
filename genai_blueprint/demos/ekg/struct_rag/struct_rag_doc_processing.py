@@ -11,9 +11,9 @@ from typing import Any, Type
 
 import nest_asyncio
 from beartype.door import is_bearable
+from genai_tk.core.embeddings_store import EmbeddingsStore
 from genai_tk.core.llm_factory import get_llm
 from genai_tk.core.prompts import def_prompt
-from genai_tk.core.vector_store_registry import VectorStoreRegistry
 from genai_tk.utils.config_mngr import global_config
 from genai_tk.utils.pydantic.dyn_model_factory import PydanticModelFactory
 from genai_tk.utils.pydantic.kv_store import PydanticStore, save_object_to_kvstore
@@ -53,7 +53,7 @@ class StructuredRagConfig(BaseModel):
     """Configuration for a structured RAG document processing pipeline."""
 
     model_definition: dict
-    vector_store_registry: VectorStoreRegistry
+    embeddings_store: EmbeddingsStore
     llm_id: str | None
     kvstore_id: str | None = None
 
@@ -133,12 +133,12 @@ class StructuredRagConfig(BaseModel):
         return description
 
     @staticmethod
-    def get_vector_store_factory() -> VectorStoreRegistry:
+    def get_vector_store_factory() -> EmbeddingsStore:
         """Create a vector store factory configured with the postgres backend."""
         # Note: This uses the postgres configuration which should be configured
         # in the baseline.yaml with proper embeddings and PgVector settings
-        vector_store_registry = VectorStoreRegistry.create_from_config("postgres")
-        return vector_store_registry
+        embeddings_store = EmbeddingsStore.create_from_config("postgres")
+        return embeddings_store
 
 
 class StructuredRagDocProcessor(BaseModel):
@@ -216,8 +216,8 @@ class StructuredRagDocProcessor(BaseModel):
 
     def kv_to_vector_store(self) -> None:
         """Load all documents from KV store into the vector database."""
-        self.rag_conf.vector_store_registry.get()
-        self.rag_conf.vector_store_registry.delete_collection()
+        self.rag_conf.embeddings_store.get()
+        self.rag_conf.embeddings_store.delete_collection()
         psf = PydanticStore(kvstore_id=KV_STORE_ID, model=self.rag_conf.get_top_class())
         for keys in psf.get_kv_store().yield_keys():
             clean_key = keys.removesuffix(".json")
@@ -234,7 +234,7 @@ class StructuredRagDocProcessor(BaseModel):
 
     def store_chunks(self, chunks: list[Document]) -> None:
         """Store document chunks in the vector database."""
-        vector_store = self.rag_conf.vector_store_registry.get()
+        vector_store = self.rag_conf.embeddings_store.get()
         vector_store.add_documents(chunks)
 
     def chunck(self, model_instance: BaseModel) -> list[Document]:

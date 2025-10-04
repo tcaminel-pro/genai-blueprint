@@ -179,10 +179,10 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         logger.info(f"Found {len(md_files)} Markdown files to process")
 
-        vector_store_registry = StructuredRagConfig.get_vector_store_factory()
+        embeddings_store = StructuredRagConfig.get_vector_store_factory()
         struct_rag_conf = StructuredRagConfig(
             model_definition=schema_dict,
-            vector_store_registry=vector_store_registry,
+            embeddings_store=embeddings_store,
             llm_id=None,
             kvstore_id=KV_STORE_ID,
         )

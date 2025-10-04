@@ -16,9 +16,9 @@ from pathlib import Path
 from textwrap import dedent
 
 import streamlit as st
+from genai_tk.core.embeddings_store import EmbeddingsStore
 from genai_tk.core.llm_factory import get_llm
 from genai_tk.core.prompts import dedent_ws, def_prompt
-from genai_tk.core.vector_store_registry import VectorStoreRegistry
 from genai_tk.tools.langchain.sql_tool_factory import SQLToolConfig, SQLToolFactory
 from genai_tk.utils.config_mngr import global_config
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -60,14 +60,14 @@ def maintenance_procedure_vectors(text: str) -> VectorStore:
     3. Embedded using configured embeddings
     4. Stored in the vector store
     """
-    vs_factory = VectorStoreRegistry.create_from_config("in_memory")
+    embeddings_store = EmbeddingsStore.create_from_config("in_memory")
 
     loader = TextLoader(str(DATA_PATH / text))
     documents = loader.load()
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     texts = text_splitter.split_documents(documents)
-    vs_factory.add_documents(texts)
-    return vs_factory.get()
+    embeddings_store.add_documents(texts)
+    return embeddings_store.get()
 
 
 examples = [

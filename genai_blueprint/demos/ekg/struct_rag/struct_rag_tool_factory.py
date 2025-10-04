@@ -177,7 +177,7 @@ class StructuredRagToolFactory(BaseModel):
         Returns:
             A list of `Document` objects matching the query.
         """
-        vector_store = self.rag_conf.vector_store_registry.get()
+        vector_store = self.rag_conf.embeddings_store.get()
         return vector_store.similarity_search(query, k=k, filter=filter)
 
 
@@ -199,13 +199,13 @@ def create_structured_rag_tool(schema_name: str, llm_id: str | None = None, kvst
     Raises:
         ValueError: If the requested schema cannot be found.
     """
-    vector_store_registry = StructuredRagConfig.get_vector_store_factory()
+    embeddings_store = StructuredRagConfig.get_vector_store_factory()
     schema = get_schema(schema_name)
     if schema is None:
         raise ValueError(f"Unknown schema for structured rag: {schema_name}")
     rag_conf = StructuredRagConfig(
         model_definition=schema,
-        vector_store_registry=vector_store_registry,
+        embeddings_store=embeddings_store,
         llm_id=llm_id,
         kvstore_id=kvstore_id,
     )

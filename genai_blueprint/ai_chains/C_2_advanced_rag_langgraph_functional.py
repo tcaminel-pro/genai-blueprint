@@ -9,9 +9,9 @@ import sys
 from enum import Enum
 
 from dotenv import load_dotenv
+from genai_tk.core.embeddings_store import EmbeddingsStore
 from genai_tk.core.llm_factory import get_llm
 from genai_tk.core.prompts import def_prompt
-from genai_tk.core.vector_store_registry import VectorStoreRegistry
 from genai_tk.tools.langchain.web_search_tool import basic_web_search
 from genai_tk.utils.singleton import once
 from langchain.output_parsers.enum import EnumOutputParser
@@ -53,10 +53,10 @@ def retriever() -> BaseRetriever:
         "https://lilianweng.github.io/posts/2023-10-25-adv-attack-llm/",
     ]
 
-    vs_factory = VectorStoreRegistry.create_from_config("in_memory_chroma")
-    vectorstore = vs_factory.get()
+    embeddings_store = EmbeddingsStore.create_from_config("in_memory_chroma")
+    vectorstore = embeddings_store.get()
 
-    if vs_factory.document_count() == 0:
+    if embeddings_store.document_count() == 0:
         logger.info("indexing documents...")
         docs = [WebBaseLoader(url).load() for url in urls]
         docs_list = [item for sublist in docs for item in sublist]
