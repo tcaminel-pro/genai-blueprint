@@ -10,9 +10,8 @@ from genai_tk.core.chain_registry import (
     RunnableItem,
     register_runnable,
 )
-from genai_tk.core.embeddings_factory import EmbeddingsFactory
 from genai_tk.core.llm_factory import get_llm
-from genai_tk.core.vector_store_factory import VectorStoreRegistry
+from genai_tk.core.vector_store_registry import VectorStoreRegistry
 from langchain.chains.query_constructor.base import (
     StructuredQueryOutputParser,
     get_query_constructor_prompt,
@@ -83,11 +82,7 @@ document_content_description = "Brief summary of a movie"
 
 @cache
 def vector_store() -> VectorStore:
-    vector_store = VectorStoreRegistry(
-        id="Chroma_in_memory",
-        table_name_prefix="test_self_query",
-        embeddings_factory=EmbeddingsFactory(embeddings_tag="azure"),  # There's a bug with edenai
-    ).get()  # take default one
+    vector_store = VectorStoreRegistry.create_from_config("in_memory_chroma").get()
     vector_store.add_documents(docs)
     return vector_store
 

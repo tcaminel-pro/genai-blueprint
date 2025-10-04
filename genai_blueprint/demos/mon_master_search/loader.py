@@ -16,10 +16,9 @@ try:
     from abbreviations import schwartz_hearst
 except ImportError as ex:
     raise ImportError("abbreviations package is required. Install with: uv add abbreviations --group demos") from ex
-from genai_tk.core.embeddings_factory import EmbeddingsFactory
 from genai_tk.core.llm_factory import get_llm
 from genai_tk.core.prompts import def_prompt
-from genai_tk.core.vector_store_factory import VectorStoreRegistry
+from genai_tk.core.vector_store_registry import VectorStoreRegistry
 from genai_tk.extra.retrievers.bm25s_retriever import BM25FastRetriever, get_spacy_preprocess_fn
 from langchain_community.document_loaders.base import BaseLoader
 from langchain_core.documents import Document
@@ -161,13 +160,7 @@ EMBEDDINGS_MODEL = "solon_large_local"
 
 @app.command()
 def create_embeddings(embeddings_id: str = EMBEDDINGS_MODEL) -> None:
-    embeddings_factory = EmbeddingsFactory(embeddings_id=embeddings_id)
-    vector_factory = VectorStoreRegistry(
-        id="Chroma",
-        embeddings_factory=embeddings_factory,
-        table_name_prefix="offres_formation",
-        index_document=True,
-    )
+    vector_factory = VectorStoreRegistry.create_from_config("default")
     docs = list(load_objects_from_jsonl(FILES, Document))
 
     logger.info(f"There are {vector_factory.document_count()} documents in  vector store")

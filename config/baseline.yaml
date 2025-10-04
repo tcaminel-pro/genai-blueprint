@@ -27,42 +27,51 @@ embeddings:
     default:  ada_002_openai
     local : artic_22_ollama
   cache: ${paths.data_root}/hf_models
-vector_store:
-  default: Chroma
-  chroma_path: ${paths.data_root}/vector_store
-  record_manager: sqlite:///${paths.data_root}/vector_store/record_manager_cache.sql
-  postgres_url: ${paths.postgres}
-  postgres_schema: public
+# vector_store:
+#   default: Chroma
+#   chroma_path: ${paths.data_root}/vector_store
+#   record_manager: sqlite:///${paths.data_root}/vector_store/record_manager_cache.sql
+#   postgres_url: ${paths.postgres}
+#   postgres_schema: public
 
-# New configuration-driven vector store factory approach
-vector_store_factory:
+# Configuration-driven vector store factory approach
+vector_store_registry:
   default:
-    id: Chroma
+    backend: Chroma 
     embeddings: default
     table_name_prefix: embeddings
     record_manager: sqlite:///${paths.data_root}/vector_store/record_manager_cache.sql
     config:
-      chroma_path: ${paths.data_root}/vector_store
+      storage: ${paths.data_root}/vector_store  # Updated: was 'chroma_path'
   
   in_memory:
-    id: InMemory
+    backend: InMemory  
     embeddings: default
     table_name_prefix: embeddings
   
+  in_memory_chroma:
+    backend: Chroma
+    embeddings: default
+    table_name_prefix: embeddings
+    config:
+      storage: '::memory::'  # In-memory Chroma storage
+  
   local_fast:
-    id: Chroma
+    backend: Chroma  
     embeddings: local
     table_name_prefix: embeddings_local
     config:
-      chroma_path: ${paths.data_root}/vector_store_local
+      storage: ${paths.data_root}/vector_store_local  # Updated: was 'chroma_path'
   
   postgres:
-    id: PgVector
+    backend: PgVector 
     embeddings: default
     table_name_prefix: embeddings_pg
     config:
       postgres_url: ${paths.postgres}
       postgres_schema: public
+  
+
 documents:
   base: ./use_case_data
 monitoring: 

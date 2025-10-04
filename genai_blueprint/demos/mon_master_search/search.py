@@ -2,8 +2,7 @@ from enum import Enum
 from functools import cache
 
 import pandas as pd
-from genai_tk.core.embeddings_factory import EmbeddingsFactory
-from genai_tk.core.vector_store_factory import VectorStoreRegistry
+from genai_tk.core.vector_store_registry import VectorStoreRegistry
 from genai_tk.extra.retrievers.bm25s_retriever import get_spacy_preprocess_fn
 from genai_tk.utils.pydantic.jsonl_store import load_objects_from_jsonl
 from langchain.retrievers import EnsembleRetriever
@@ -29,14 +28,9 @@ class SearchMode(Enum):
 
 
 @cache
-def get_sparse_retriever(embeddings_model_id: str) -> Runnable:
-    embeddings_factory = EmbeddingsFactory(embeddings_id=embeddings_model_id)
+def get_sparse_retriever() -> Runnable:
     retriever = (
-        VectorStoreRegistry(
-            id="Chroma",
-            embeddings_factory=embeddings_factory,
-            table_name_prefix="offres_formation",
-        )
+        VectorStoreRegistry.create_from_config("default")
         .get()
         .as_retriever(search_kwargs={"k": DEFAULT_RESULT_COUNT})
     )
@@ -60,9 +54,9 @@ def get_bm25_retriever():
     return retriever
 
 
-def get_ensemble_retriever(embeddings_model_id: str, ratio_sparse: float) -> EnsembleRetriever:
+def get_ensemble_retriever(ratio_sparse: float) -> EnsembleRetriever:
     return EnsembleRetriever(
-        retrievers=[get_bm25_retriever(), get_sparse_retriever(embeddings_model_id)],
+        retrievers=[get_bm25_retriever(), get_sparse_retriever()],
         weights=[1.0 - ratio_sparse, ratio_sparse],
     )
 
@@ -71,11 +65,11 @@ def search(query: str, mode: SearchMode = SearchMode.VECTOR, ratio: int = RATIO_
     known_set: set[str] = set()
     df = pd.DataFrame()
     if mode == SearchMode.VECTOR:
-        retriever = get_sparse_retriever(EMBEDDINGS_MODEL_ID)
+        retriever = get_sparse_retriever()
     elif mode == SearchMode.KEYWORD:
         retriever = get_bm25_retriever()
     else:
-        retriever = get_ensemble_retriever(EMBEDDINGS_MODEL_ID, ratio_sparse=ratio)
+        retriever = get_ensemble_retriever(ratio_sparse=ratio)
 
     #  quick and dirty hack to have enough results
     count = DEFAULT_RESULT_COUNT * 2

@@ -12,10 +12,9 @@ import sys
 from enum import Enum
 
 from dotenv import load_dotenv
-from genai_tk.core.embeddings_factory import EmbeddingsFactory
 from genai_tk.core.llm_factory import get_llm
 from genai_tk.core.prompts import def_prompt
-from genai_tk.core.vector_store_factory import VectorStoreRegistry
+from genai_tk.core.vector_store_registry import VectorStoreRegistry
 from genai_tk.tools.langchain.web_search_tool import basic_web_search
 from genai_tk.utils.singleton import once
 from langchain.output_parsers.enum import EnumOutputParser
@@ -66,11 +65,7 @@ def retriever() -> BaseRetriever:
         "https://lilianweng.github.io/posts/2023-10-25-adv-attack-llm/",
     ]
 
-    vs_factory = VectorStoreRegistry(
-        id="Chroma_in_memory",
-        table_name_prefix="agentic-rag-chroma",
-        embeddings_factory=EmbeddingsFactory(),
-    )
+    vs_factory = VectorStoreRegistry.create_from_config("in_memory_chroma")
     vectorstore = vs_factory.get()
 
     if vs_factory.document_count() == 0:

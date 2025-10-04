@@ -124,15 +124,14 @@ def register_commands(cli_app: typer.Typer) -> None:
            uv run cli extract-rainbow "**/*.md" --recursive --output-dir=./data
         """
 
-        from genai_tk.core.llm_factory import LlmFactory
-        from genai_tk.utils.pydantic.kv_store import PydanticStore
-        from loguru import logger
-
         from genai_blueprint.demos.ekg.struct_rag_doc_processing import (
             StructuredRagConfig,
             StructuredRagDocProcessor,
             get_schema,
         )
+        from genai_tk.core.llm_factory import LlmFactory
+        from genai_tk.utils.pydantic.kv_store import PydanticStore
+        from loguru import logger
 
         # Resolve LLM identifier if provided
         llm_id = None
@@ -180,10 +179,10 @@ def register_commands(cli_app: typer.Typer) -> None:
 
         logger.info(f"Found {len(md_files)} Markdown files to process")
 
-        vector_store_factory = StructuredRagConfig.get_vector_store_factory()
+        vector_store_registry = StructuredRagConfig.get_vector_store_factory()
         struct_rag_conf = StructuredRagConfig(
             model_definition=schema_dict,
-            vector_store_factory=vector_store_factory,
+            vector_store_registry=vector_store_registry,
             llm_id=None,
             kvstore_id=KV_STORE_ID,
         )
@@ -353,11 +352,10 @@ def register_commands(cli_app: typer.Typer) -> None:
             - "Compare project delivery times across different technologies"
         """
 
+        from genai_blueprint.demos.ekg.struct_rag_tool_factory import create_structured_rag_tool
         from genai_tk.core.llm_factory import LlmFactory
         from genai_tk.utils.cli.langchain_setup import setup_langchain
         from genai_tk.utils.cli.langgraph_agent_shell import run_langgraph_agent_shell
-
-        from genai_blueprint.demos.ekg.struct_rag_tool_factory import create_structured_rag_tool
 
         # Resolve LLM identifier if provided
         llm_id = None
